@@ -31,5 +31,17 @@ services:
       - POSTGRES_USER=devuser
       - POSTGRES_PASSWORD=changeme
 
+  frontend:
+    image: node:22-alpine
+    working_dir: /frontend
+    volumes:
+      - ./frontend:/frontend
+      - /frontend/node_modules
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host"
+    stdin_open: true
+    tty: true
+
 volumes:
   dev-db-data:
