@@ -1,42 +1,66 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useCreateUserMutation } from '../store';
 
 export default function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordStrength, setPasswordStrength] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState('');
+  const [alert, setAlert] = useState(null);
+
+  const [createUser, { isLoading, error }] = useCreateUserMutation();
 
   const checkPasswordStrength = (pwd) => {
-    let strength = "";
+    let strength = '';
     const strongRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
     if (pwd.length < 6) {
-      strength = "Too short";
+      strength = 'Too short';
     } else if (!/[A-Z]/.test(pwd)) {
-      strength = "Must include uppercase letter";
+      strength = 'Must include uppercase letter';
     } else if (!/[0-9]/.test(pwd)) {
-      strength = "Must include a number";
+      strength = 'Must include a number';
     } else if (!/[!@#$%^&*]/.test(pwd)) {
-      strength = "Must include special character";
+      strength = 'Must include special character';
     } else if (strongRegex.test(pwd)) {
-      strength = "Strong Password ✅";
+      strength = 'Strong Password';
     }
     setPasswordStrength(strength);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      setAlert({ type: 'danger', message: 'Passwords do not match!' });
       return;
     }
 
-    console.log("Name:", name, "Email:", email, "Password:", password);
-    // Add registration logic here
+    if (passwordStrength !== 'Strong Password') {
+      setAlert({ type: 'danger', message: 'Password is not strong enough!' });
+      return;
+    }
+
+    try {
+      await createUser({ name, email, password }).unwrap();
+
+      setAlert({
+        type: 'success',
+        message: 'Account created! Please check your email to confirm.',
+      });
+
+      // clear form
+      setName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setPasswordStrength('');
+    } catch (err) {
+      console.error('Registration failed:', err);
+    }
   };
 
   return (
@@ -45,6 +69,18 @@ export default function Register() {
 
       <form onSubmit={handleSubmit} className="row">
         <div className="col-md-4 offset-md-4">
+          {/* Bootstrap Alert */}
+          {alert && (
+            <div className={`alert alert-${alert.type}`} role="alert">
+              {alert.message}
+            </div>
+          )}
+          {error && (
+            <div className="alert alert-danger" role="alert">
+              {error?.data?.message || 'Registration failed. Please try again.'}
+            </div>
+          )}
+
           {/* Name Field */}
           <div className="mb-3">
             <label htmlFor="name" className="mb-2">
@@ -58,6 +94,7 @@ export default function Register() {
               required
               className="form-control form-control-lg rounded-0"
               placeholder="Full Name"
+              disabled={isLoading}
             />
           </div>
 
@@ -74,6 +111,7 @@ export default function Register() {
               required
               className="form-control form-control-lg rounded-0"
               placeholder="Email"
+              disabled={isLoading}
             />
           </div>
 
@@ -93,13 +131,14 @@ export default function Register() {
               required
               className="form-control form-control-lg rounded-0"
               placeholder="Password"
+              disabled={isLoading}
             />
             {password && (
               <small
-                className={`d-block mt-1 ${
-                  passwordStrength.includes("Strong")
-                    ? "text-success"
-                    : "text-danger"
+                className={`d-block mt-1 fw-bold ${
+                  passwordStrength === 'Strong Password'
+                    ? 'text-success'
+                    : 'text-danger'
                 }`}
               >
                 {passwordStrength}
@@ -120,6 +159,7 @@ export default function Register() {
               required
               className="form-control form-control-lg rounded-0"
               placeholder="Confirm Password"
+              disabled={isLoading}
             />
           </div>
 
@@ -127,18 +167,16 @@ export default function Register() {
           <div className="text-center mb-3">
             <button
               type="submit"
-              className="btn brn-lg btn-success w-100 rounded-0"
+              disabled={passwordStrength !== 'Strong Password' || isLoading}
+              className="btn btn-lg btn-success w-100 rounded-0"
             >
-              Register
+              {isLoading ? 'Registering...' : 'Register'}
             </button>
           </div>
 
           {/* Login Link */}
           <p className="text-center">
-            Already have an account?{" "}
-            <Link to="/sign-in">
-              Sign In
-            </Link>
+            Already have an account? <Link to="/sign-in">Sign In</Link>
           </p>
         </div>
       </form>
