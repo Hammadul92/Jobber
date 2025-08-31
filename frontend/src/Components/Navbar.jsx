@@ -10,7 +10,7 @@ export default function Navbar() {
   const user = useSelector((state) => state.user);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light">
+    <nav className="navbar navbar-expand-lg fixed-top shadow-sm bg-white">
       <div className="container-fluid">
         {/* Brand */}
         <Link to="/" className="navbar-brand">
@@ -18,11 +18,7 @@ export default function Navbar() {
         </Link>
 
         {/* Toggler button */}
-        <button
-          className="navbar-toggler"
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-        >
+        <button className="navbar-toggler" type="button" onClick={() => setIsOpen(!isOpen)}>
           <span className="navbar-toggler-icon"></span>
         </button>
 
@@ -46,15 +42,12 @@ export default function Navbar() {
             ) : (
               <>
                 <li className="nav-item">
-                  <Link to="/profile" className="nav-link">
+                  <Link to="/dashboard/home" className="nav-link">
                     <i className="fa fa-user"></i> Welcome, {user.name}
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <button
-                    onClick={() => dispatch(logout())}
-                    className="nav-link text-danger"
-                  >
+                  <button onClick={() => dispatch(logout())} className="nav-link">
                     <i className="fa fa-power-off"></i> Logout
                   </button>
                 </li>

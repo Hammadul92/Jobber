@@ -1,9 +1,14 @@
 """
 Views for the user API.
 """
+from django.utils import timezone
+
 from rest_framework import generics, authentication, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
+
 
 from user.serializers import (
     UserSerializer,
@@ -17,9 +22,17 @@ class CreateUserView(generics.CreateAPIView):
 
 
 class CreateTokenView(ObtainAuthToken):
-    """Create a new auth token for user."""
+    """Create a new auth token for user and update last_login."""
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        token = Token.objects.get(key=response.data['token'])
+        user = token.user
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
+        return response
 
 
 class ManageUserView(generics.RetrieveUpdateAPIView):

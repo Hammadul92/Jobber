@@ -52,9 +52,5 @@ const userApi = createApi({
   }),
 });
 
-export const {
-  useSigninUserMutation,
-  useLazyFetchUserQuery,
-  useCreateUserMutation,
-} = userApi;
+export const { useSigninUserMutation, useLazyFetchUserQuery, useCreateUserMutation } = userApi;
 export { userApi };

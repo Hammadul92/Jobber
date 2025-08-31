@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useCreateUserMutation } from '../store';
+import { useCreateUserMutation } from '../../store';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -14,8 +14,7 @@ export default function Register() {
 
   const checkPasswordStrength = (pwd) => {
     let strength = '';
-    const strongRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
     if (pwd.length < 6) {
       strength = 'Too short';
@@ -40,7 +39,10 @@ export default function Register() {
     }
 
     if (passwordStrength !== 'Strong Password') {
-      setAlert({ type: 'danger', message: 'Password is not strong enough!' });
+      setAlert({
+        type: 'danger',
+        message: 'Password is not strong enough!',
+      });
       return;
     }
 
@@ -64,7 +66,7 @@ export default function Register() {
   };
 
   return (
-    <div className="mt-5">
+    <div className="my-5 container">
       <h2 className="text-center mb-4">Register</h2>
 
       <form onSubmit={handleSubmit} className="row">
@@ -92,7 +94,7 @@ export default function Register() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="form-control form-control-lg rounded-0"
+              className="form-control form-control-lg"
               placeholder="Full Name"
               disabled={isLoading}
             />
@@ -109,7 +111,7 @@ export default function Register() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="form-control form-control-lg rounded-0"
+              className="form-control form-control-lg"
               placeholder="Email"
               disabled={isLoading}
             />
@@ -129,16 +131,14 @@ export default function Register() {
                 checkPasswordStrength(e.target.value);
               }}
               required
-              className="form-control form-control-lg rounded-0"
+              className="form-control form-control-lg"
               placeholder="Password"
               disabled={isLoading}
             />
             {password && (
               <small
                 className={`d-block mt-1 fw-bold ${
-                  passwordStrength === 'Strong Password'
-                    ? 'text-success'
-                    : 'text-danger'
+                  passwordStrength === 'Strong Password' ? 'text-success' : 'text-danger'
                 }`}
               >
                 {passwordStrength}
@@ -157,7 +157,7 @@ export default function Register() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="form-control form-control-lg rounded-0"
+              className="form-control form-control-lg"
               placeholder="Confirm Password"
               disabled={isLoading}
             />
@@ -168,7 +168,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={passwordStrength !== 'Strong Password' || isLoading}
-              className="btn btn-lg btn-success w-100 rounded-0"
+              className="btn btn-lg btn-success w-100"
             >
               {isLoading ? 'Registering...' : 'Register'}
             </button>
