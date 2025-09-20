@@ -98,9 +98,7 @@ class Business(models.Model):
     services_offered = TaggableManager(blank=True)
 
     # Preferences
-
     timezone = models.CharField(max_length=50, default="America/Edmonton")
-    language = models.CharField(max_length=20, default="en")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

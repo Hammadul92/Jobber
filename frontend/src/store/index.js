@@ -5,13 +5,13 @@ import { userApi } from './apis/userApi';
 import { logout } from './actions';
 
 const store = configureStore({
-  reducer: {
-    user: userReducer,
-    [userApi.reducerPath]: userApi.reducer,
-  },
-  middleware: (getDefaultMiddleware) => {
-    return getDefaultMiddleware().concat(userApi.middleware);
-  },
+    reducer: {
+        user: userReducer,
+        [userApi.reducerPath]: userApi.reducer,
+    },
+    middleware: (getDefaultMiddleware) => {
+        return getDefaultMiddleware().concat(userApi.middleware);
+    },
 });
 
 setupListeners(store.dispatch);
