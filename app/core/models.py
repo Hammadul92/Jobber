@@ -3,89 +3,19 @@ Database models.
 """
 from django.db import models
 from django.conf import settings
-from django.core.validators import RegexValidator
-from django.core.exceptions import ValidationError
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
 
-from phonenumber_field.modelfields import PhoneNumberField
+from taggit.managers import TaggableManager
 
 
-COUNTRY_CHOICES = [
-    ("CA", "Canada"),
-    ("US", "United States"),
-]
-
-PROVINCES_CA = [
-    ("AB", "Alberta"),
-    ("BC", "British Columbia"),
-    ("MB", "Manitoba"),
-    ("NB", "New Brunswick"),
-    ("NL", "Newfoundland and Labrador"),
-    ("NS", "Nova Scotia"),
-    ("NT", "Northwest Territories"),
-    ("NU", "Nunavut"),
-    ("ON", "Ontario"),
-    ("PE", "Prince Edward Island"),
-    ("QC", "Quebec"),
-    ("SK", "Saskatchewan"),
-    ("YT", "Yukon"),
-]
-
-STATES_US = [
-    ("AL", "Alabama"),
-    ("AK", "Alaska"),
-    ("AZ", "Arizona"),
-    ("AR", "Arkansas"),
-    ("CA", "California"),
-    ("CO", "Colorado"),
-    ("CT", "Connecticut"),
-    ("DE", "Delaware"),
-    ("FL", "Florida"),
-    ("GA", "Georgia"),
-    ("HI", "Hawaii"),
-    ("ID", "Idaho"),
-    ("IL", "Illinois"),
-    ("IN", "Indiana"),
-    ("IA", "Iowa"),
-    ("KS", "Kansas"),
-    ("KY", "Kentucky"),
-    ("LA", "Louisiana"),
-    ("ME", "Maine"),
-    ("MD", "Maryland"),
-    ("MA", "Massachusetts"),
-    ("MI", "Michigan"),
-    ("MN", "Minnesota"),
-    ("MS", "Mississippi"),
-    ("MO", "Missouri"),
-    ("MT", "Montana"),
-    ("NE", "Nebraska"),
-    ("NV", "Nevada"),
-    ("NH", "New Hampshire"),
-    ("NJ", "New Jersey"),
-    ("NM", "New Mexico"),
-    ("NY", "New York"),
-    ("NC", "North Carolina"),
-    ("ND", "North Dakota"),
-    ("OH", "Ohio"),
-    ("OK", "Oklahoma"),
-    ("OR", "Oregon"),
-    ("PA", "Pennsylvania"),
-    ("RI", "Rhode Island"),
-    ("SC", "South Carolina"),
-    ("SD", "South Dakota"),
-    ("TN", "Tennessee"),
-    ("TX", "Texas"),
-    ("UT", "Utah"),
-    ("VT", "Vermont"),
-    ("VA", "Virginia"),
-    ("WA", "Washington"),
-    ("WV", "West Virginia"),
-    ("WI", "Wisconsin"),
-    ("WY", "Wyoming"),
+ROLE_CHOICES = [
+    ("ADMIN", "Admin"),
+    ("MANAGER", "Manager"),
+    ("EMPLOYEE", "Employee"),
 ]
 
 
@@ -116,6 +46,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     """User in the system."""
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default="MANAGER"
+    )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
@@ -126,23 +61,49 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Business(models.Model):
     """Business entity (like a company in Jobber)."""
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="owned_businesses",
         on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=255, blank=False, null=False)
-    # Address Fields
-    street_address = models.CharField(max_length=255, blank=False, null=False)
-    city = models.CharField(max_length=100, blank=False, null=False)
-    country = models.CharField(max_length=2, choices=COUNTRY_CHOICES, default="CA")
-    province_state = models.CharField(max_length=2, blank=False, null=False)
-    postal_code = models.CharField(max_length=10, blank=False, null=False)
-    phone = PhoneNumberField(blank=False, null=False)
+
+    # Core Info
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=20)
+    email = models.EmailField(max_length=50, blank=False, null=False)
+
+    # Branding
+    logo = models.ImageField(
+        upload_to="business_logos/",
+        blank=True,
+        null=True
+    )
+    website = models.URLField(blank=True)
+    business_description = models.TextField(max_length=1000)
+
+    # Address
+    street_address = models.CharField(max_length=255)
+    suite_unit = models.CharField(max_length=50, blank=True, null=True)
+    city = models.CharField(max_length=100)
+    country = models.CharField(max_length=2, default="CA")
+    province_state = models.CharField(max_length=2)
+    postal_code = models.CharField(max_length=10)
+
+    # Tax / Registration
+    business_number = models.CharField(max_length=20, null=False)
+    tax_rate = models.IntegerField(default=0)
+
+    # Services Offered (as tags)
+    services_offered = TaggableManager(blank=True)
+
+    # Preferences
+
+    timezone = models.CharField(max_length=50, default="America/Edmonton")
+    language = models.CharField(max_length=20, default="en")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
-

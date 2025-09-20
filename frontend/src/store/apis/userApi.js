@@ -12,6 +12,7 @@ const userApi = createApi({
       return headers;
     },
   }),
+  tagTypes: ['User'],
   endpoints: (builder) => ({
     createUser: builder.mutation({
       query: (data) => ({
@@ -52,5 +53,5 @@ const userApi = createApi({
   }),
 });
 
-export const { useSigninUserMutation, useLazyFetchUserQuery, useCreateUserMutation } = userApi;
+export const { useSigninUserMutation, useFetchUserQuery, useCreateUserMutation, useUpdateUserMutation } = userApi;
 export { userApi };

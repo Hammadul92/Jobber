@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store';
 import './Components.css';
+import logo from './images/logo.png';
 
 export default function Navbar() {
   const dispatch = useDispatch();
@@ -10,11 +11,11 @@ export default function Navbar() {
   const user = useSelector((state) => state.user);
 
   return (
-    <nav className="navbar navbar-expand-lg fixed-top shadow-sm bg-white">
+    <nav className="navbar navbar-expand-lg fixed-top shadow-sm bg-white px-2 py-0">
       <div className="container-fluid">
         {/* Brand */}
         <Link to="/" className="navbar-brand">
-          ZS Projects
+          <img src={logo} alt="logo" width={114} />
         </Link>
 
         {/* Toggler button */}

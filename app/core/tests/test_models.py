@@ -4,6 +4,8 @@ Tests for models.
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
+from core import models
+
 
 class ModelTests(TestCase):
     """Test models."""
@@ -46,3 +48,26 @@ class ModelTests(TestCase):
 
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
+
+    def test_create_business(self):
+        """Test creating business is successfull"""
+        user = get_user_model().objects.create_user(
+            'test@example.com',
+            'test123',
+        )
+
+        business = models.Business.objects.create(
+            owner=user,
+            name="Test Business",
+            phone="1234567890",
+            email="test_business@example.com",
+            business_description="Test business description",
+            street_address="123 test street",
+            city="Calgary",
+            country="CA",
+            province_state="AB",
+            business_number="123456789",
+            tax_rate=5
+        )
+
+        self.assertEqual(str(business), business.name)

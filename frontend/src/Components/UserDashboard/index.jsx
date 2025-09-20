@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import SideNav from './SideNav';
-import Settings from './Tabs/Settings';
+import Settings from './Tabs/Settings/';
 
 export default function UserDashboard({ page }) {
   const user = useSelector((state) => state.user);
@@ -26,7 +26,7 @@ export default function UserDashboard({ page }) {
   return (
     <div className="dashboard-container">
       <SideNav />
-      <main className="container py-3">{renderTab()}</main>
+      <main className="container py-3 tab-container">{renderTab()}</main>
     </div>
   );
 }

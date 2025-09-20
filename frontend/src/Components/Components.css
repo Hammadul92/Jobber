@@ -1,20 +1,26 @@
 body {
-  padding-top: 50px;
+  padding-top: 60px;
 }
 
 .nav-tabs .nav-link {
   color: #374151;
 }
 
-.btn,
-.form-control {
-  border-radius: 0;
+.nav-tabs .nav-link.active {
+  background-color: #198754;
+  color: #fff;
+  border: 1px solid #198754;
 }
 
 .dashboard-container {
   display: flex;
-  background: #f9fafb;
   overflow: auto;
+  background-color: #f9f9f9;
+}
+
+.tab-container {
+  height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 
 .side-nav {
@@ -25,7 +31,7 @@ body {
   flex-direction: column;
   transition: width 0.3s ease;
   position: relative;
-  height: calc(100vh - 50px);
+  height: calc(100vh - 60px);
 }
 
 .side-nav.collapsed {

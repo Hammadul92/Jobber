@@ -20,7 +20,7 @@ export default function SideNav() {
     },
     { name: 'Payouts', path: '/dashboard/payouts', icon: 'fa-credit-card' },
     { name: 'Team', path: '/dashboard/team', icon: 'fa-user-friends' },
-    { name: 'Tax & Settings', path: '/dashboard/settings', icon: 'fa-cog' },
+    { name: 'Settings', path: '/dashboard/settings', icon: 'fa-cog' },
   ];
 
   return (

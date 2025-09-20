@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { addUser, useSigninUserMutation, useLazyFetchUserQuery } from '../../store';
+import { addUser, useSigninUserMutation, useFetchUserQuery } from '../../store';
 
 export default function SignIn() {
   const dispatch = useDispatch();
@@ -11,17 +11,28 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
 
   const [signinUser, { isLoading: signinLoading, error: signinError }] = useSigninUserMutation();
-  const [fetchUser] = useLazyFetchUserQuery();
+
+  const token = useSelector((state) => state.user?.token);
+
+  const { data: userData, isSuccess: userSuccess } = useFetchUserQuery(undefined, {
+    skip: !token,
+  });
+
+  // Effect: update user in Redux once user data is fetched
+  useEffect(() => {
+    if (userSuccess && userData) {
+      dispatch(addUser({ token, ...userData }));
+      navigate('/');
+    }
+  }, [userSuccess, userData, token, dispatch, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const result = await signinUser({ email, password }).unwrap();
+      // Save token in Redux → this will re-trigger useFetchUserQuery
       dispatch(addUser({ token: result.token }));
-      const userResult = await fetchUser().unwrap();
-      dispatch(addUser({ token: result.token, ...userResult }));
-      navigate('/');
     } catch (err) {
       console.error('Login failed:', err);
     }
@@ -49,7 +60,7 @@ export default function SignIn() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="form-control form-control-lg rounded-0"
+              className="form-control form-control-lg"
               placeholder="Email"
             />
           </div>
@@ -65,7 +76,7 @@ export default function SignIn() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="form-control form-control-lg rounded-0"
+              className="form-control form-control-lg"
               placeholder="Password"
             />
           </div>
