@@ -1,42 +1,42 @@
+// userApi.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const userApi = createApi({
     reducerPath: 'userApi',
     baseQuery: fetchBaseQuery({
         baseUrl: 'http://localhost:8000/api',
-        prepareHeaders: (headers, { getState }) => {
-            const token = getState().user?.token;
+        prepareHeaders: (headers) => {
+            const token = localStorage.getItem('token');
             if (token) {
                 headers.set('authorization', `Token ${token}`);
             }
             return headers;
         },
     }),
-    tagTypes: ['User'],
     endpoints: (builder) => ({
         createUser: builder.mutation({
             query: (data) => ({
                 url: '/user/create/',
                 method: 'POST',
-                body: {
-                    name: data.name,
-                    email: data.email,
-                    password: data.password,
-                },
+                body: data,
             }),
         }),
         signinUser: builder.mutation({
             query: (data) => ({
                 url: '/user/token/',
                 method: 'POST',
-                body: {
-                    email: data.email,
-                    password: data.password,
-                },
+                body: data,
             }),
+            async onQueryStarted(arg, { queryFulfilled }) {
+                try {
+                    const { data } = await queryFulfilled;
+                    localStorage.setItem('token', data.token);
+                } catch (err) {
+                    console.error('Login failed:', err);
+                }
+            },
         }),
         updateUser: builder.mutation({
-            invalidatesTags: ['User'],
             query: (data) => ({
                 url: '/user/me/',
                 method: 'PATCH',
@@ -44,14 +44,26 @@ const userApi = createApi({
             }),
         }),
         fetchUser: builder.query({
-            providesTags: ['User'],
             query: () => ({
                 url: '/user/me',
                 method: 'GET',
             }),
         }),
+        logoutUser: builder.mutation({
+            queryFn: async () => {
+                localStorage.removeItem('token');
+                return { data: null };
+            },
+        }),
     }),
 });
 
-export const { useSigninUserMutation, useFetchUserQuery, useCreateUserMutation, useUpdateUserMutation } = userApi;
+export const {
+    useSigninUserMutation,
+    useFetchUserQuery,
+    useCreateUserMutation,
+    useUpdateUserMutation,
+    useLogoutUserMutation,
+} = userApi;
+
 export { userApi };

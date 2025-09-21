@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { addUser, useUpdateUserMutation, useFetchUserQuery } from '../../../../store';
+import { useUpdateUserMutation, useFetchUserQuery } from '../../../../store';
 
 export default function Profile() {
-    const dispatch = useDispatch();
     const { data: user, isFetching, refetch } = useFetchUserQuery();
 
     const [name, setUserName] = useState('');
@@ -16,7 +14,6 @@ export default function Profile() {
         if (user) {
             setUserName(user.name || '');
             setUserEmail(user.email || '');
-            dispatch(addUser(user));
         }
     }, [user]);
 
@@ -30,7 +27,6 @@ export default function Profile() {
                 message: 'Profile updated successfully.',
             });
 
-            // Force refresh user data after update
             refetch();
         } catch (err) {
             console.error('Profile update failed:', err);
@@ -49,7 +45,6 @@ export default function Profile() {
         <form className="tab-pane active" onSubmit={submitHandler}>
             <div className="row">
                 <div className="col-md-6">
-                    {/* Success/Error Alert */}
                     {alert && (
                         <div className={`alert alert-${alert.type}`} role="alert">
                             {alert.message}
@@ -61,7 +56,6 @@ export default function Profile() {
                         </div>
                     )}
 
-                    {/* Full Name */}
                     <div className="mb-3">
                         <label className="form-label">Full Name (*)</label>
                         <input
@@ -85,7 +79,6 @@ export default function Profile() {
                         />
                     </div>
 
-                    {/* Last Login (read-only) */}
                     <div className="mb-3 w-md-50">
                         <label className="form-label">Last Login</label>
                         <input type="text" className="form-control" value={user?.last_login || ''} readOnly />
@@ -93,7 +86,6 @@ export default function Profile() {
                 </div>
             </div>
 
-            {/* Submit Button */}
             <button className="btn btn-success" disabled={isLoading}>
                 {isLoading ? 'Saving Profile...' : 'Save Profile'}
             </button>

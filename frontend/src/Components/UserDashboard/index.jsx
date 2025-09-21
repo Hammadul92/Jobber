@@ -1,25 +1,38 @@
 import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useFetchUserQuery } from '../../store';
 
 import SideNav from './SideNav';
 import Settings from './Tabs/Settings/';
 
 export default function UserDashboard({ page }) {
-    const user = useSelector((state) => state.user);
     const navigate = useNavigate();
 
+    const token = localStorage.getItem('token');
+
+    const {
+        data: user,
+        isFetching,
+        isError,
+        error,
+    } = useFetchUserQuery(undefined, {
+        skip: !token,
+    });
+
     useEffect(() => {
-        if (!user || Object.keys(user).length === 0) {
-            navigate('/', { replace: true });
+        if (!token || (isError && error?.status === 401)) {
+            navigate('/sign-in', { replace: true });
         }
-    }, [user, navigate]);
+    }, [token, isError, error, navigate]);
+
+    if (isFetching) {
+        return <div className="text-center py-5">Loading...</div>;
+    }
 
     const renderTab = () => {
         if (page === 'settings') {
             return <Settings />;
         }
-
         return null;
     };
 
