@@ -81,3 +81,10 @@ body {
     padding: 0;
     text-align: center;
 }
+
+select.form-select:focus,
+input.form-control:focus,
+textarea.form-control:focus {
+    border: 1px solid #198754;
+    box-shadow: 0 0 4px #198754;
+}

@@ -1,13 +1,97 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useFetchBusinessesQuery, useCreateBusinessMutation, useUpdateBusinessMutation } from '../../../../store';
 
 export default function Business() {
+    const [alert, setAlert] = useState(null);
+
+    const [businessId, setBusinessId] = useState(null);
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [website, setWebsite] = useState('');
+    const [logo, setLogo] = useState(null);
+    const [businessDescription, setBusinessDescription] = useState('');
+    const [streetAddress, setStreetAddress] = useState('');
+    const [city, setCity] = useState('');
+    const [country, setCountry] = useState('CA');
+    const [provinceState, setProvinceState] = useState('');
+    const [postalCode, setPostalCode] = useState('');
+    const [businessNumber, setBusinessNumber] = useState('');
+    const [taxRate, setTaxRate] = useState(0);
     const [timezone, setTimezone] = useState('America/Edmonton');
     const [selectedServices, setSelectedServices] = useState([]);
-    const [alert, setAlert] = useState(null);
-    const [country, setCountry] = useState('Canada');
-    const [province, setProvince] = useState('');
-    const [taxNumber, setTaxNumber] = useState('');
-    const [taxRate, setTaxRate] = useState('');
+
+    const { data: businessData, isLoading, refetch } = useFetchBusinessesQuery();
+    const [createBusiness, { isLoading: isCreating }] = useCreateBusinessMutation();
+    const [updateBusiness, { isLoading: isUpdating }] = useUpdateBusinessMutation();
+
+    useEffect(() => {
+        if (businessData && Array.isArray(businessData) && businessData.length > 0) {
+            const b = businessData[0];
+            setBusinessId(b.id);
+            setName(b.name || '');
+            setPhone(b.phone || '');
+            setEmail(b.email || '');
+            setWebsite(b.website || '');
+            setBusinessDescription(b.business_description || '');
+            setStreetAddress(b.street_address || '');
+            setCity(b.city || '');
+            setCountry(b.country || 'CA');
+            setProvinceState(b.province_state || '');
+            setPostalCode(b.postal_code || '');
+            setBusinessNumber(b.business_number || '');
+            setTaxRate(b.tax_rate || 0);
+            setTimezone(b.timezone || 'America/Edmonton');
+            setSelectedServices(b.services_offered || []);
+        }
+    }, [businessData]);
+
+    const toggleService = (service) => {
+        setSelectedServices((prev) =>
+            prev.includes(service) ? prev.filter((s) => s !== service) : [...prev, service]
+        );
+        setAlert(null);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (selectedServices.length === 0) {
+            setAlert({ type: 'danger', message: 'Please select at least one service.' });
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('phone', phone);
+            formData.append('email', email);
+            formData.append('business_description', businessDescription);
+            formData.append('street_address', streetAddress);
+            formData.append('city', city);
+            formData.append('country', country);
+            formData.append('province_state', provinceState);
+            formData.append('postal_code', postalCode);
+            formData.append('business_number', businessNumber);
+            formData.append('tax_rate', parseInt(taxRate));
+            formData.append('timezone', timezone);
+            formData.append('services_offered', JSON.stringify(selectedServices));
+            if (logo) formData.append('logo', logo);
+            if (website) formData.append('website', website);
+
+            if (businessId) {
+                await updateBusiness({ id: businessId, data: formData }).unwrap();
+                setAlert({ type: 'success', message: 'Business updated successfully!' });
+            } else {
+                await createBusiness(formData).unwrap();
+                setAlert({ type: 'success', message: 'Business created successfully!' });
+            }
+
+            refetch();
+        } catch (err) {
+            console.error('Business save failed:', err);
+            setAlert({ type: 'danger', message: 'Failed to save business. Please try again.' });
+        }
+    };
 
     const services = [
         'Construction',
@@ -28,162 +112,142 @@ export default function Business() {
     ];
 
     const provinces = {
-        Canada: [
-            'Alberta',
-            'British Columbia',
-            'Manitoba',
-            'New Brunswick',
-            'Newfoundland and Labrador',
-            'Northwest Territories',
-            'Nova Scotia',
-            'Nunavut',
-            'Ontario',
-            'Prince Edward Island',
-            'Quebec',
-            'Saskatchewan',
-            'Yukon',
+        CA: [
+            { code: 'AB', name: 'Alberta' },
+            { code: 'BC', name: 'British Columbia' },
+            { code: 'MB', name: 'Manitoba' },
+            { code: 'NB', name: 'New Brunswick' },
+            { code: 'NL', name: 'Newfoundland and Labrador' },
+            { code: 'NT', name: 'Northwest Territories' },
+            { code: 'NS', name: 'Nova Scotia' },
+            { code: 'NU', name: 'Nunavut' },
+            { code: 'ON', name: 'Ontario' },
+            { code: 'PE', name: 'Prince Edward Island' },
+            { code: 'QC', name: 'Quebec' },
+            { code: 'SK', name: 'Saskatchewan' },
+            { code: 'YT', name: 'Yukon' },
         ],
-        USA: [
-            'Alabama',
-            'Alaska',
-            'Arizona',
-            'Arkansas',
-            'California',
-            'Colorado',
-            'Connecticut',
-            'Delaware',
-            'Florida',
-            'Georgia',
-            'Hawaii',
-            'Idaho',
-            'Illinois',
-            'Indiana',
-            'Iowa',
-            'Kansas',
-            'Kentucky',
-            'Louisiana',
-            'Maine',
-            'Maryland',
-            'Massachusetts',
-            'Michigan',
-            'Minnesota',
-            'Mississippi',
-            'Missouri',
-            'Montana',
-            'Nebraska',
-            'Nevada',
-            'New Hampshire',
-            'New Jersey',
-            'New Mexico',
-            'New York',
-            'North Carolina',
-            'North Dakota',
-            'Ohio',
-            'Oklahoma',
-            'Oregon',
-            'Pennsylvania',
-            'Rhode Island',
-            'South Carolina',
-            'South Dakota',
-            'Tennessee',
-            'Texas',
-            'Utah',
-            'Vermont',
-            'Virginia',
-            'Washington',
-            'West Virginia',
-            'Wisconsin',
-            'Wyoming',
+        US: [
+            { code: 'AL', name: 'Alabama' },
+            { code: 'AK', name: 'Alaska' },
+            { code: 'AZ', name: 'Arizona' },
+            { code: 'AR', name: 'Arkansas' },
+            { code: 'CA', name: 'California' },
+            { code: 'CO', name: 'Colorado' },
+            { code: 'CT', name: 'Connecticut' },
+            { code: 'DE', name: 'Delaware' },
+            { code: 'FL', name: 'Florida' },
+            { code: 'GA', name: 'Georgia' },
+            { code: 'HI', name: 'Hawaii' },
+            { code: 'ID', name: 'Idaho' },
+            { code: 'IL', name: 'Illinois' },
+            { code: 'IN', name: 'Indiana' },
+            { code: 'IA', name: 'Iowa' },
+            { code: 'KS', name: 'Kansas' },
+            { code: 'KY', name: 'Kentucky' },
+            { code: 'LA', name: 'Louisiana' },
+            { code: 'ME', name: 'Maine' },
+            { code: 'MD', name: 'Maryland' },
+            { code: 'MA', name: 'Massachusetts' },
+            { code: 'MI', name: 'Michigan' },
+            { code: 'MN', name: 'Minnesota' },
+            { code: 'MS', name: 'Mississippi' },
+            { code: 'MO', name: 'Missouri' },
+            { code: 'MT', name: 'Montana' },
+            { code: 'NE', name: 'Nebraska' },
+            { code: 'NV', name: 'Nevada' },
+            { code: 'NH', name: 'New Hampshire' },
+            { code: 'NJ', name: 'New Jersey' },
+            { code: 'NM', name: 'New Mexico' },
+            { code: 'NY', name: 'New York' },
+            { code: 'NC', name: 'North Carolina' },
+            { code: 'ND', name: 'North Dakota' },
+            { code: 'OH', name: 'Ohio' },
+            { code: 'OK', name: 'Oklahoma' },
+            { code: 'OR', name: 'Oregon' },
+            { code: 'PA', name: 'Pennsylvania' },
+            { code: 'RI', name: 'Rhode Island' },
+            { code: 'SC', name: 'South Carolina' },
+            { code: 'SD', name: 'South Dakota' },
+            { code: 'TN', name: 'Tennessee' },
+            { code: 'TX', name: 'Texas' },
+            { code: 'UT', name: 'Utah' },
+            { code: 'VT', name: 'Vermont' },
+            { code: 'VA', name: 'Virginia' },
+            { code: 'WA', name: 'Washington' },
+            { code: 'WV', name: 'West Virginia' },
+            { code: 'WI', name: 'Wisconsin' },
+            { code: 'WY', name: 'Wyoming' },
         ],
-    };
-
-    const toggleService = (service) => {
-        setSelectedServices((prev) =>
-            prev.includes(service) ? prev.filter((s) => s !== service) : [...prev, service]
-        );
-        setAlert(null);
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        if (selectedServices.length === 0) {
-            setAlert({
-                type: 'danger',
-                message: 'Please select at least one service.',
-            });
-            return;
-        }
-
-        setAlert({ type: 'success', message: 'Business saved successfully!' });
-        console.log('Business saved with:', {
-            timezone,
-            selectedServices,
-            country,
-            province,
-            taxNumber,
-            taxRate,
-        });
     };
 
     const timezones = [
         { value: 'America/St_Johns', label: 'Newfoundland Time (NT) - St. John’s' },
         { value: 'America/Halifax', label: 'Atlantic Time (AT) - Halifax' },
-        { value: 'America/Glace_Bay', label: 'Atlantic Time (AT) - Glace Bay' },
         { value: 'America/Moncton', label: 'Atlantic Time (AT) - Moncton' },
         { value: 'America/Toronto', label: 'Eastern Time (ET) - Toronto' },
         { value: 'America/Montreal', label: 'Eastern Time (ET) - Montreal' },
         { value: 'America/New_York', label: 'Eastern Time (ET) - New York' },
-        { value: 'America/Detroit', label: 'Eastern Time (ET) - Detroit' },
         { value: 'America/Chicago', label: 'Central Time (CT) - Chicago' },
         { value: 'America/Winnipeg', label: 'Central Time (CT) - Winnipeg' },
-        { value: 'America/Regina', label: 'Central Time (CT) - Regina' },
-        { value: 'America/Swift_Current', label: 'Central Time (CT) - Swift Current' },
         { value: 'America/Edmonton', label: 'Mountain Time (MT) - Edmonton' },
         { value: 'America/Denver', label: 'Mountain Time (MT) - Denver' },
         { value: 'America/Vancouver', label: 'Pacific Time (PT) - Vancouver' },
         { value: 'America/Los_Angeles', label: 'Pacific Time (PT) - Los Angeles' },
-        { value: 'America/Whitehorse', label: 'Pacific Time (PT) - Whitehorse' },
-        { value: 'America/Anchorage', label: 'Alaska Time (AKT) - Anchorage' },
-        { value: 'Pacific/Honolulu', label: 'Hawaii-Aleutian Time (HAT) - Honolulu' },
     ];
+
+    if (isLoading) return <div>Loading business data...</div>;
 
     return (
         <form className="tab-pane active" onSubmit={handleSubmit}>
             {alert && <div className={`alert alert-${alert.type}`}>{alert.message}</div>}
 
             <div className="row">
-                {/* Business Name */}
                 <div className="mb-3 col-md-6">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Business Name (*)</label>
                         <div className="col-sm-8">
-                            <input type="text" className="form-control" required />
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* Business Email */}
                 <div className="mb-3 col-md-6">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Business Email (*)</label>
                         <div className="col-sm-8">
-                            <input type="email" className="form-control" required />
+                            <input
+                                type="email"
+                                className="form-control"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* Business Phone */}
                 <div className="mb-3 col-md-6">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Business Phone (*)</label>
                         <div className="col-sm-8">
-                            <input type="text" className="form-control" required />
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                required
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* Timezone */}
                 <div className="mb-3 col-md-6">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Timezone (*)</label>
@@ -204,32 +268,34 @@ export default function Business() {
                     </div>
                 </div>
 
-                {/* Tax Number */}
                 <div className="mb-3 col-md-6">
                     <div className="row">
-                        <label className="col-sm-4 col-form-label">GST/HST Number (*)</label>
+                        <label className="col-sm-4 col-form-label">Business Number (*)</label>
                         <div className="col-sm-8">
                             <input
                                 type="text"
                                 className="form-control"
-                                value={taxNumber}
-                                onChange={(e) => setTaxNumber(e.target.value)}
+                                value={businessNumber}
+                                onChange={(e) => setBusinessNumber(e.target.value)}
+                                required
                             />
                         </div>
                     </div>
                 </div>
 
-                {/* Tax Rate (%) */}
+                {/* Tax Rate */}
                 <div className="mb-3 col-md-6">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Tax Rate % (*)</label>
                         <div className="col-sm-8">
                             <input
                                 type="number"
-                                step="0.01"
+                                step="1"
+                                min="0"
                                 className="form-control"
                                 value={taxRate}
                                 onChange={(e) => setTaxRate(e.target.value)}
+                                required
                             />
                         </div>
                     </div>
@@ -240,17 +306,22 @@ export default function Business() {
                     <div className="row">
                         <label className="col-sm-2 col-form-label">Business Description (*)</label>
                         <div className="col-sm-10">
-                            <textarea className="form-control" rows={3} required></textarea>
+                            <textarea
+                                className="form-control"
+                                rows={3}
+                                value={businessDescription}
+                                onChange={(e) => setBusinessDescription(e.target.value)}
+                                required
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* Business Logo */}
                 <div className="mb-3 col-md-6">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Business Logo</label>
                         <div className="col-sm-8">
-                            <input type="file" className="form-control" />
+                            <input type="file" className="form-control" onChange={(e) => setLogo(e.target.files[0])} />
                         </div>
                     </div>
                 </div>
@@ -259,31 +330,49 @@ export default function Business() {
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Business Website</label>
                         <div className="col-sm-8">
-                            <input type="url" className="form-control" />
+                            <input
+                                type="url"
+                                className="form-control"
+                                value={website}
+                                onChange={(e) => setWebsite(e.target.value)}
+                            />
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Business Address */}
             <h5 className="mt-4">Business Address</h5>
             <div className="row">
                 <div className="mb-3 col-md-4">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Street Address (*)</label>
                         <div className="col-sm-8">
-                            <input type="text" className="form-control" required />
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={streetAddress}
+                                onChange={(e) => setStreetAddress(e.target.value)}
+                                required
+                            />
                         </div>
                     </div>
                 </div>
+
                 <div className="mb-3 col-md-4">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">City (*)</label>
                         <div className="col-sm-8">
-                            <input type="text" className="form-control" required />
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={city}
+                                onChange={(e) => setCity(e.target.value)}
+                                required
+                            />
                         </div>
                     </div>
                 </div>
+
                 <div className="mb-3 col-md-4">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Country (*)</label>
@@ -293,55 +382,60 @@ export default function Business() {
                                 value={country}
                                 onChange={(e) => {
                                     setCountry(e.target.value);
-                                    setProvince('');
+                                    setProvinceState('');
                                 }}
                                 required
                             >
-                                <option value="Canada">Canada</option>
-                                <option value="USA">USA</option>
+                                <option value="CA">Canada</option>
+                                <option value="US">USA</option>
                             </select>
                         </div>
                     </div>
                 </div>
+
                 <div className="mb-3 col-md-4">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Province/State (*)</label>
                         <div className="col-sm-8">
                             <select
                                 className="form-select"
-                                value={province}
-                                onChange={(e) => setProvince(e.target.value)}
+                                value={provinceState}
+                                onChange={(e) => setProvinceState(e.target.value)}
                                 required
                             >
                                 <option value="">Select Province/State</option>
                                 {provinces[country].map((prov) => (
-                                    <option key={prov} value={prov}>
-                                        {prov}
+                                    <option key={prov.code} value={prov.code}>
+                                        {prov.name}
                                     </option>
                                 ))}
                             </select>
                         </div>
                     </div>
                 </div>
+
                 <div className="mb-3 col-md-4">
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Postal/ZIP Code (*)</label>
                         <div className="col-sm-8">
-                            <input type="text" className="form-control" required />
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={postalCode}
+                                onChange={(e) => setPostalCode(e.target.value)}
+                                required
+                            />
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Services Offered */}
             <h5 className="mt-4">Services Offered</h5>
             <div className="d-flex flex-wrap gap-2 mb-3">
                 {services.map((service) => (
                     <div
                         key={service}
-                        className={`alert px-3 py-2 mb-0 ${
-                            selectedServices.includes(service) ? 'alert-success' : 'alert-secondary'
-                        }`}
+                        className={`alert px-3 py-2 mb-0 ${selectedServices.includes(service) ? 'alert-success' : 'alert-secondary'}`}
                         role="button"
                         style={{ cursor: 'pointer' }}
                         onClick={() => toggleService(service)}
@@ -351,7 +445,9 @@ export default function Business() {
                 ))}
             </div>
 
-            <button className="btn btn-success">Save Business</button>
+            <button className="btn btn-success" disabled={isCreating || isUpdating}>
+                {isCreating || isUpdating ? 'Saving...' : 'Save Business'}
+            </button>
         </form>
     );
 }

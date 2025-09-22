@@ -20,3 +20,7 @@ class BusinessViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve businesses for authenticated user."""
         return self.queryset.filter(owner=self.request.user).order_by('-id')
+
+    def perform_create(self, serializer):
+        """Assign the owner to the logged-in user."""
+        serializer.save(owner=self.request.user)

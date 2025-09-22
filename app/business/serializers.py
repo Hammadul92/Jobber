@@ -2,6 +2,8 @@
 Serializers for business APIs
 """
 
+import json
+
 from rest_framework import serializers
 
 from core.models import Business
@@ -19,7 +21,7 @@ class BusinessSerializer(serializers.ModelSerializer):
                   'postal_code', 'business_number', 'tax_rate',
                   'services_offered', 'timezone']
 
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'owner']
 
     def get_services_offered(self, obj):
         """Return a list of tag names for services_offered."""
@@ -27,13 +29,25 @@ class BusinessSerializer(serializers.ModelSerializer):
             if obj.services_offered else []
 
     def create(self, validated_data):
-        tags = validated_data.pop('services_offered', [])
+        tags = self.initial_data.get('services_offered')
+        if isinstance(tags, str):
+            try:
+                tags = json.loads(tags)
+            except json.JSONDecodeError:
+                tags = []
+        validated_data.pop('services_offered', None)
         business = super().create(validated_data)
         business.services_offered.set(tags)
         return business
 
     def update(self, instance, validated_data):
-        tags = validated_data.pop('services_offered', None)
+        tags = self.initial_data.get('services_offered')
+        if isinstance(tags, str):
+            try:
+                tags = json.loads(tags)
+            except json.JSONDecodeError:
+                tags = []
+        validated_data.pop('services_offered', None)
         business = super().update(instance, validated_data)
         if tags is not None:
             business.services_offered.set(tags)
