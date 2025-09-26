@@ -4,6 +4,7 @@ import { useFetchUserQuery } from '../../store';
 
 import SideNav from './SideNav';
 import Settings from './Tabs/Settings/';
+import Clients from './Tabs/Clients';
 
 export default function UserDashboard({ page }) {
     const navigate = useNavigate();
@@ -32,6 +33,8 @@ export default function UserDashboard({ page }) {
     const renderTab = () => {
         if (page === 'settings') {
             return <Settings />;
+        } else if (page === 'clients') {
+            return <Clients />;
         }
         return null;
     };
