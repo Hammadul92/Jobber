@@ -5,6 +5,7 @@ Views for business APIs.
 from rest_framework import filters, viewsets, pagination
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from core.models import Business, Client
 from business import serializers
@@ -56,7 +57,8 @@ class ClientViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve clients for authenticated user."""
         owned_businesses = Business.objects.filter(owner=self.request.user)
-        return self.queryset.filter(business__in=owned_businesses).order_by('-id')
+        return self.queryset.filter(business__in=owned_businesses) \
+            .order_by('-id')
 
     def perform_create(self, serializer):
         """Assign business to the client for authenticated user"""

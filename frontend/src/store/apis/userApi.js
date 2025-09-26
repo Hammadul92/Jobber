@@ -21,6 +21,12 @@ const userApi = createApi({
                 body: data,
             }),
         }),
+        verifyEmail: builder.query({
+            query: (token) => ({
+                url: `/user/verify-email?token=${token}`,
+                method: 'GET',
+            }),
+        }),
         signinUser: builder.mutation({
             query: (data) => ({
                 url: '/user/token/',
@@ -60,6 +66,7 @@ const userApi = createApi({
 
 export const {
     useSigninUserMutation,
+    useVerifyEmailQuery,
     useFetchUserQuery,
     useCreateUserMutation,
     useUpdateUserMutation,

@@ -19,6 +19,7 @@ export { store, userApi, businessApi };
 export {
     useSigninUserMutation,
     useFetchUserQuery,
+    useVerifyEmailQuery,
     useCreateUserMutation,
     useUpdateUserMutation,
     useLogoutUserMutation,

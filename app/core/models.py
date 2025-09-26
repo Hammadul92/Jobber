@@ -65,8 +65,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Business(models.Model):
-    """Business entity (like a company in Jobber)."""
-
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="owned_businesses",
@@ -105,8 +103,6 @@ class Business(models.Model):
 
 
 class Client(models.Model):
-    """Client (customer) of a business — can have multiple jobs, invoices, payments."""
-
     business = models.ForeignKey(
         Business,
         related_name="clients",
@@ -132,8 +128,6 @@ class Client(models.Model):
 
 
 class BankingInformation(models.Model):
-    """Stores banking or card information for payments/payouts (Business or Client)."""
-
     business = models.ForeignKey(
         Business,
         related_name="banking_information",
@@ -156,9 +150,17 @@ class BankingInformation(models.Model):
 
     # Bank account details
     bank_name = models.CharField(max_length=100, blank=True, null=True)
-    account_holder_name = models.CharField(max_length=100, blank=True, null=True)
+    account_holder_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
     transit_number = models.CharField(max_length=10, blank=True, null=True)
-    account_number_last4 = models.CharField(max_length=4, blank=True, null=True)
+    account_number_last4 = models.CharField(
+        max_length=4,
+        blank=True,
+        null=True
+    )
     routing_number = models.CharField(max_length=20, blank=True, null=True)
 
     # Card details
@@ -168,8 +170,16 @@ class BankingInformation(models.Model):
     card_exp_year = models.IntegerField(blank=True, null=True)
 
     # Stripe references
-    stripe_customer_id = models.CharField(max_length=255, blank=True, null=True)
-    stripe_payment_method_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_customer_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+    stripe_payment_method_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+    )
 
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
@@ -179,12 +189,20 @@ class BankingInformation(models.Model):
     def clean(self):
         """Ensure either business or client is set, not both or neither."""
         if not self.business and not self.client:
-            raise ValueError("BankingInformation must be linked to either a Business or a Client.")
+            raise ValueError(
+                "Banking Info must be linked to either a Business or a Client."
+            )
         if self.business and self.client:
-            raise ValueError("BankingInformation cannot belong to both Business and Client.")
+            raise ValueError(
+                "Banking Info cannot belong to both Business and Client."
+            )
 
     def __str__(self):
         owner = self.business.name if self.business else self.client.name
         if self.payment_method_type == "BANK_ACCOUNT":
             return f"Bank ••••{self.account_number_last4 or '----'} ({owner})"
-        return f"{self.card_brand or 'Card'} ••••{self.card_last4 or '----'} ({owner})"
+
+        return (
+            f"{self.card_brand or 'Card'} ••••{self.card_last4 or '----'} "
+            f"({owner})"
+        )
