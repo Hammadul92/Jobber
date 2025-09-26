@@ -8,8 +8,6 @@ export default function Business() {
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
-    const [website, setWebsite] = useState('');
-    const [logo, setLogo] = useState(null);
     const [businessDescription, setBusinessDescription] = useState('');
     const [streetAddress, setStreetAddress] = useState('');
     const [city, setCity] = useState('');
@@ -32,7 +30,6 @@ export default function Business() {
             setName(b.name || '');
             setPhone(b.phone || '');
             setEmail(b.email || '');
-            setWebsite(b.website || '');
             setBusinessDescription(b.business_description || '');
             setStreetAddress(b.street_address || '');
             setCity(b.city || '');
@@ -75,8 +72,6 @@ export default function Business() {
             formData.append('tax_rate', parseInt(taxRate));
             formData.append('timezone', timezone);
             formData.append('services_offered', JSON.stringify(selectedServices));
-            if (logo) formData.append('logo', logo);
-            if (website) formData.append('website', website);
 
             if (businessId) {
                 await updateBusiness({ id: businessId, data: formData }).unwrap();
@@ -102,6 +97,7 @@ export default function Business() {
         'Snow Removal',
         'HVAC',
         'Roofing',
+        'Siding',
         'Handyman Services',
         'Flooring',
         'Windows & Doors',
@@ -312,29 +308,6 @@ export default function Business() {
                                 value={businessDescription}
                                 onChange={(e) => setBusinessDescription(e.target.value)}
                                 required
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mb-3 col-md-6">
-                    <div className="row">
-                        <label className="col-sm-4 col-form-label">Business Logo</label>
-                        <div className="col-sm-8">
-                            <input type="file" className="form-control" onChange={(e) => setLogo(e.target.files[0])} />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mb-3 col-md-6">
-                    <div className="row">
-                        <label className="col-sm-4 col-form-label">Business Website</label>
-                        <div className="col-sm-8">
-                            <input
-                                type="url"
-                                className="form-control"
-                                value={website}
-                                onChange={(e) => setWebsite(e.target.value)}
                             />
                         </div>
                     </div>

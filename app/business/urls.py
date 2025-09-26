@@ -11,7 +11,7 @@ from rest_framework.routers import DefaultRouter
 from business import views
 
 router = DefaultRouter()
-router.register('businesses', views.BusinessViewSet)
+router.register('business', views.BusinessViewSet)
 
 app_name = 'business'
 

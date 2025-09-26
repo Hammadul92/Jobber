@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 const businessApi = createApi({
     reducerPath: 'businessApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:8000/api/business',
+        baseUrl: 'http://localhost:8000/api/ops',
         prepareHeaders: (headers) => {
             const token = localStorage.getItem('token');
             if (token) {
@@ -14,7 +14,7 @@ const businessApi = createApi({
     }),
     endpoints: (builder) => ({
         fetchBusinesses: builder.query({
-            query: () => '/businesses',
+            query: () => '/business',
         }),
 
         fetchBusiness: builder.query({
@@ -23,7 +23,7 @@ const businessApi = createApi({
 
         createBusiness: builder.mutation({
             query: (data) => ({
-                url: '/businesses/',
+                url: '/business/',
                 method: 'POST',
                 body: data,
             }),
@@ -31,7 +31,7 @@ const businessApi = createApi({
 
         updateBusiness: builder.mutation({
             query: (data) => ({
-                url: `/businesses/${data.id}/`,
+                url: `/business/${data.id}/`,
                 method: 'PATCH',
                 body: data.data,
             }),
@@ -39,7 +39,7 @@ const businessApi = createApi({
 
         deleteBusiness: builder.mutation({
             query: (id) => ({
-                url: `/businesses/${id}/`,
+                url: `/business/${id}/`,
                 method: 'DELETE',
             }),
         }),
