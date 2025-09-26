@@ -74,9 +74,9 @@ class Business(models.Model):
     )
 
     # Core Info
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=50)
     phone = models.CharField(max_length=20)
-    email = models.EmailField(max_length=50, blank=False, null=False)
+    email = models.EmailField(max_length=50)
     business_description = models.TextField(max_length=1000)
 
     # Address
@@ -112,9 +112,9 @@ class Client(models.Model):
         related_name="clients",
         on_delete=models.CASCADE,
     )
-    name = models.CharField(max_length=255)
-    email = models.EmailField(max_length=100, blank=True, null=True)
-    phone = models.CharField(max_length=20, blank=True, null=True)
+    name = models.CharField(max_length=50)
+    email = models.EmailField(max_length=50)
+    phone = models.CharField(max_length=20)
 
     # Billing Address
     street_address = models.CharField(max_length=255, blank=True, null=True)

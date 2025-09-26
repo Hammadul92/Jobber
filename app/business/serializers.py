@@ -6,7 +6,7 @@ import json
 
 from rest_framework import serializers
 
-from core.models import Business
+from core.models import Business, Client
 
 
 class BusinessSerializer(serializers.ModelSerializer):
@@ -19,9 +19,10 @@ class BusinessSerializer(serializers.ModelSerializer):
                   'business_description', 'street_address',
                   'city', 'country', 'province_state',
                   'postal_code', 'business_number', 'tax_rate',
-                  'services_offered', 'timezone']
+                  'services_offered', 'timezone', 'created_at',
+                  'updated_at']
 
-        read_only_fields = ['id', 'owner']
+        read_only_fields = ['id', 'owner', 'created_at', 'updated_at']
 
     def get_services_offered(self, obj):
         """Return a list of tag names for services_offered."""
@@ -52,3 +53,15 @@ class BusinessSerializer(serializers.ModelSerializer):
         if tags is not None:
             business.services_offered.set(tags)
         return business
+
+
+class ClientSerializer(serializers.ModelSerializer):
+    """ Serializer for clients."""
+
+    class Meta:
+        model = Client
+        fields = ['id', 'business', 'name', 'email', 'phone',
+                  'street_address', 'city', 'country', 'province_state',
+                  'postal_code', 'created_at', 'updated_at']
+
+        read_only_fields = ['id', 'business', 'created_at', 'updated_at']
