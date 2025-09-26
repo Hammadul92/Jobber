@@ -2,6 +2,15 @@ body {
     padding-top: 60px;
 }
 
+.bg-accent {
+    background-color: #198754 !important;
+}
+
+.scrollbar-hidden {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* Internet Explorer and Edge */
+}
+
 .nav-tabs .nav-link {
     color: #374151;
 }
