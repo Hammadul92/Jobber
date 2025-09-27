@@ -23,6 +23,8 @@ export {
     useCreateUserMutation,
     useUpdateUserMutation,
     useLogoutUserMutation,
+    useRequestPasswordResetMutation,
+    useResetPasswordMutation,
 } from './apis/userApi';
 
 export {

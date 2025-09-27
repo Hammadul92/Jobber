@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 const userApi = createApi({
     reducerPath: 'userApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:8000/api',
+        baseUrl: 'http://localhost:8000/api/user',
         prepareHeaders: (headers) => {
             const token = localStorage.getItem('token');
             if (token) {
@@ -16,20 +16,20 @@ const userApi = createApi({
     endpoints: (builder) => ({
         createUser: builder.mutation({
             query: (data) => ({
-                url: '/user/create/',
+                url: '/create/',
                 method: 'POST',
                 body: data,
             }),
         }),
         verifyEmail: builder.query({
             query: (token) => ({
-                url: `/user/verify-email?token=${token}`,
+                url: `/verify-email?token=${token}`,
                 method: 'GET',
             }),
         }),
         signinUser: builder.mutation({
             query: (data) => ({
-                url: '/user/token/',
+                url: '/token/',
                 method: 'POST',
                 body: data,
             }),
@@ -44,14 +44,14 @@ const userApi = createApi({
         }),
         updateUser: builder.mutation({
             query: (data) => ({
-                url: '/user/me/',
+                url: '/me/',
                 method: 'PATCH',
                 body: data,
             }),
         }),
         fetchUser: builder.query({
             query: () => ({
-                url: '/user/me',
+                url: '/me',
                 method: 'GET',
             }),
         }),
@@ -60,6 +60,20 @@ const userApi = createApi({
                 localStorage.removeItem('token');
                 return { data: null };
             },
+        }),
+        requestPasswordReset: builder.mutation({
+            query: (data) => ({
+                url: '/password-reset/request/',
+                method: 'POST',
+                body: data,
+            }),
+        }),
+        resetPassword: builder.mutation({
+            query: (data) => ({
+                url: '/password-reset/reset/',
+                method: 'POST',
+                body: data,
+            }),
         }),
     }),
 });
@@ -71,6 +85,8 @@ export const {
     useCreateUserMutation,
     useUpdateUserMutation,
     useLogoutUserMutation,
+    useRequestPasswordResetMutation,
+    useResetPasswordMutation,
 } = userApi;
 
 export { userApi };

@@ -2,25 +2,27 @@
 Views for the user API.
 """
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.utils import timezone
 
-from rest_framework import generics, authentication, permissions, status, views
+from rest_framework import generics, authentication, permissions, status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-
 from user.serializers import (
     UserSerializer,
     AuthTokenSerializer,
+    RequestPasswordResetSerializer,
+    ResetPasswordSerializer,
 )
 from user.utils import (
     generate_email_token,
     verify_email_token,
+    generate_password_reset_token,
+    verify_password_reset_token,
 )
-from user.email import send_registration_email
+from user.email import send_registration_email, send_password_reset_email
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -33,7 +35,7 @@ class CreateUserView(generics.CreateAPIView):
         send_registration_email(user, token)
 
 
-class VerifyEmailView(views.APIView):
+class VerifyEmailView(generics.GenericAPIView):
     """Verify user email via token."""
 
     def get(self, request):
@@ -89,3 +91,52 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         """Retrieve and return the authenticated user."""
         return self.request.user
+
+
+class RequestPasswordResetView(generics.GenericAPIView):
+    """Generate password reset email with token."""
+    serializer_class = RequestPasswordResetSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        try:
+            user = get_user_model().objects.get(email=email)
+            token = generate_password_reset_token(user)
+            send_password_reset_email(user, token)
+        except get_user_model().DoesNotExist:
+            pass  # Silent fail, do not reveal if email exists
+
+        return Response(
+            {"detail": "If an account exists for this email, a reset link will be sent."},
+            status=status.HTTP_200_OK
+        )
+
+
+class ResetPasswordView(generics.GenericAPIView):
+    """Reset password using token."""
+    serializer_class = ResetPasswordSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        token = serializer.validated_data['token']
+        new_password = serializer.validated_data['password']
+
+        user = verify_password_reset_token(token)
+        if not user:
+            return Response(
+                {"detail": "Invalid or expired token."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response(
+            {"detail": "Password reset successfully."},
+            status=status.HTTP_200_OK
+        )

@@ -63,3 +63,14 @@ class AuthTokenSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
+
+
+class RequestPasswordResetSerializer(serializers.Serializer):
+    """Serializer for requesting a password reset."""
+    email = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    """Serializer for resetting the password."""
+    token = serializers.CharField()
+    password = serializers.CharField(min_length=8, write_only=True)
