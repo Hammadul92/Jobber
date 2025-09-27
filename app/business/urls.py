@@ -12,6 +12,7 @@ from business import views
 
 router = DefaultRouter()
 router.register('business', views.BusinessViewSet)
+router.register('client', views.ClientViewSet)
 
 app_name = 'business'
 

@@ -1,11 +1,14 @@
 """
 Views for the user API.
 """
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 from django.utils import timezone
 
-from rest_framework import generics, authentication, permissions
+from rest_framework import generics, authentication, permissions, status, views
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 
@@ -13,11 +16,54 @@ from user.serializers import (
     UserSerializer,
     AuthTokenSerializer,
 )
+from user.utils import (
+    generate_email_token,
+    verify_email_token,
+)
+from user.email import send_registration_email
 
 
 class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system."""
     serializer_class = UserSerializer
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        token = generate_email_token(user)
+        send_registration_email(user, token)
+
+
+class VerifyEmailView(views.APIView):
+    """Verify user email via token."""
+
+    def get(self, request):
+        token = request.query_params.get("token")
+        user_id = verify_email_token(token)
+        if not user_id:
+            return Response(
+                {"detail": "Invalid or expired token."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            user = get_user_model().objects.get(id=user_id)
+            if user.is_active:
+                return Response(
+                    {"detail": "Email already verified."},
+                    status=status.HTTP_200_OK
+                )
+
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+            return Response(
+                {"detail": "Email verified successfully."},
+                status=status.HTTP_200_OK
+            )
+        except get_user_model().DoesNotExist:
+            return Response(
+                {"detail": "User not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class CreateTokenView(ObtainAuthToken):
