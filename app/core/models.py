@@ -89,7 +89,10 @@ class Business(models.Model):
     tax_rate = models.IntegerField(default=0)
 
     # Services Offered (as tags)
-    services_offered = TaggableManager(blank=True)
+    services_offered = TaggableManager(
+        blank=True,
+        help_text="Add services offered by this business (comma-separated tags)."
+    )
 
     # Preferences
     timezone = models.CharField(max_length=50, default="America/Edmonton")
@@ -122,6 +125,18 @@ class Client(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["business", "email"],
+                name="unique_client_email_per_business"
+            ),
+            models.UniqueConstraint(
+                fields=["business", "phone"],
+                name="unique_client_phone_per_business"
+            ),
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.business.name})"
