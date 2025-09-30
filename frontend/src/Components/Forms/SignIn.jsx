@@ -10,8 +10,7 @@ export default function SignIn() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const [signinUser, { isLoading: signinLoading, error: signinError }] =
-        useSigninUserMutation();
+    const [signinUser, { isLoading: signinLoading, error: signinError }] = useSigninUserMutation();
 
     const { data: userData, isSuccess: userFetched } = useFetchUserQuery(undefined, {
         skip: !localStorage.getItem('token'),
@@ -47,15 +46,9 @@ export default function SignIn() {
             {/* ✅ Show backend-provided response messages */}
             {token && (
                 <div className="mb-4 col-md-4 offset-md-4">
-                    {verifying && (
-                        <div className="alert alert-info text-center">
-                            Verifying your email...
-                        </div>
-                    )}
+                    {verifying && <div className="alert alert-info text-center">Verifying your email...</div>}
                     {!verifying && verifyData?.detail && (
-                        <div className="alert alert-success text-center">
-                            {verifyData.detail}
-                        </div>
+                        <div className="alert alert-success text-center">{verifyData.detail}</div>
                     )}
                     {verifyError && (
                         <div className="alert alert-danger text-center">
