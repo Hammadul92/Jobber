@@ -91,7 +91,10 @@ class Business(models.Model):
     # Services Offered (as tags)
     services_offered = TaggableManager(
         blank=True,
-        help_text="Add services offered by this business (comma-separated tags)."
+        help_text=(
+            "Add services offered by this business "
+            "(comma-separated tags)."
+        ),
     )
 
     # Preferences

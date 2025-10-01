@@ -23,5 +23,9 @@ def verify_password_reset_token(token, max_age=3600):
         data = signing.loads(token, salt="password-reset", max_age=max_age)
         user_id = data.get('user_id')
         return get_user_model().objects.get(id=user_id)
-    except (signing.BadSignature, signing.SignatureExpired, get_user_model().DoesNotExist):
+    except (
+        signing.BadSignature,
+        signing.SignatureExpired,
+        get_user_model().DoesNotExist
+    ):
         return None

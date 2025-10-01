@@ -88,7 +88,7 @@ export default function App() {
 
     return (
         <>
-            <div>
+            <div className="border data-table">
                 <Grid rows={rows} columns={columns}>
                     <SortingState defaultSorting={defaultSorting} columnExtensions={sortingStateColumnExtensions} />
                     <IntegratedSorting />
@@ -146,7 +146,6 @@ export default function App() {
                 </div>
             )}
 
-            {/* Backdrop */}
             {showModal && <div className="modal-backdrop fade show"></div>}
         </>
     );

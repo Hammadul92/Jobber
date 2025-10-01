@@ -37,9 +37,9 @@ const clientApi = createApi({
             query: (data) => ({
                 url: `/client/${data.id}/`,
                 method: 'PATCH',
-                body: data.data,
+                body: data,
             }),
-            invalidatesTags: (result, error, arg) => [{ type: 'Client', id: arg.id }, 'Client'],
+            invalidatesTags: (result, error, arg) => [{ type: 'Client', id: arg.id }],
         }),
 
         deleteClient: builder.mutation({

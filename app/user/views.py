@@ -110,8 +110,13 @@ class RequestPasswordResetView(generics.GenericAPIView):
             pass  # Silent fail, do not reveal if email exists
 
         return Response(
-            {"detail": "If an account exists for this email, a reset link will be sent."},
-            status=status.HTTP_200_OK
+            {
+                "detail": (
+                    "If an account exists for this email, "
+                    "a reset link will be sent."
+                )
+            },
+            status=status.HTTP_200_OK,
         )
 
 

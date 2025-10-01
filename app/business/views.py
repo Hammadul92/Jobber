@@ -39,7 +39,7 @@ class ClientPagination(pagination.PageNumberPagination):
             'current_page': self.page.number,
             'page_size': self.get_page_size(self.request),
             'columns': [
-                {'name': 'id', 'title': 'Id' },
+                {'name': 'id', 'title': 'Id'},
                 {'name': 'name', 'title': 'Name'},
                 {'name': 'email', 'title': 'Email'},
                 {'name': 'phone', 'title': 'Phone'}

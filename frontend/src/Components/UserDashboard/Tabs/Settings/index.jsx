@@ -7,7 +7,7 @@ export default function AccountSettings() {
     const [activeTab, setActiveTab] = useState('profile');
 
     return (
-        <div className="container mt-4">
+        <div>
             <h3 className="mb-3">Settings</h3>
 
             {/* Tabs Navigation */}

@@ -1,13 +1,23 @@
+import { useState } from 'react';
+
 import CreateClientForm from './CreateClientForm';
 import DataTable from './ClientsDatatable';
 
 export default function Clients() {
-    return (
-        <div className="container mt-4">
-            <h3 className="mb-3">Clients</h3>
-            <CreateClientForm />
+    const [showModal, setShowModal] = useState(false);
 
-            <div className="mt-3">
+    return (
+        <div>
+            <div className="clearfix mb-3">
+                <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
+                    Add Client
+                </button>
+                <h3 className="mb-0">Clients</h3>
+            </div>
+
+            <CreateClientForm showModal={showModal} setShowModal={setShowModal} />
+
+            <div className="">
                 <DataTable />
             </div>
         </div>

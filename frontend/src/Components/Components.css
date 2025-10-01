@@ -98,6 +98,10 @@ textarea.form-control:focus {
     box-shadow: 0 0 4px #198754;
 }
 
+.table {
+    margin-bottom: 0;
+}
+
 .table thead th {
     background-color: #f9f9f9;
     cursor: pointer;
@@ -106,6 +110,10 @@ textarea.form-control:focus {
 .table thead input:read-only {
     cursor: not-allowed;
     background-color: #eee;
+}
+
+.data-table .card-footer {
+    padding: 1rem;
 }
 
 .sr-only {

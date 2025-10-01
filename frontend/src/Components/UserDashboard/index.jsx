@@ -45,7 +45,7 @@ export default function UserDashboard({ page }) {
     return (
         <div className="dashboard-container">
             <SideNav />
-            <main className="container py-3 tab-container">{renderTab()}</main>
+            <main className="container py-3 tab-container mt-4">{renderTab()}</main>
         </div>
     );
 }
