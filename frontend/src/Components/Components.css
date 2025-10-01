@@ -97,3 +97,43 @@ textarea.form-control:focus {
     border: 1px solid #198754;
     box-shadow: 0 0 4px #198754;
 }
+
+.table thead th {
+    background-color: #f9f9f9;
+    cursor: pointer;
+}
+
+.table thead input:read-only {
+    cursor: not-allowed;
+    background-color: #eee;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.float-right {
+    float: right !important;
+}
+
+.active > .page-link,
+.page-link.active {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.active.disabled .page-link {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.page-link {
+    color: #374151;
+}

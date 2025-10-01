@@ -9,12 +9,11 @@ export default function CreateClientForm() {
     const [createClient, { isLoading, error, isSuccess }] = useCreateClientMutation();
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); // fixed typo
+        e.preventDefault();
 
         try {
             await createClient({ name, phone, email }).unwrap();
 
-            // Reset form on success
             setName('');
             setPhone('');
             setEmail('');

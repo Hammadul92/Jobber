@@ -7,7 +7,7 @@ export default function Clients() {
             <h3 className="mb-3">Clients</h3>
             <CreateClientForm />
 
-            <div className="mt-5 clearfix">
+            <div className="mt-3">
                 <DataTable />
             </div>
         </div>
