@@ -9,20 +9,21 @@ import {
     PagingState,
     IntegratedPaging,
 } from '@devexpress/dx-react-grid';
-import { useFetchClientsQuery, useDeleteClientMutation } from '../../../../store';
+import { useFetchTeamMembersQuery, useDeleteTeamMemberMutation } from '../../../../store';
 
-export default function ClientsDatatable({ token }) {
+export default function TeamMembersDatatable({ token }) {
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
 
     const {
-        data: clientData,
+        data: teamMemberData,
         isLoading,
         error,
-    } = useFetchClientsQuery(undefined, {
+    } = useFetchTeamMembersQuery(undefined, {
         skip: !token,
     });
-    const [deleteClient, { isLoading: deleting }] = useDeleteClientMutation();
+
+    const [deleteTeamMember, { isLoading: deleting }] = useDeleteTeamMemberMutation();
 
     const [sortingStateColumnExtensions] = useState([{ columnName: 'actions', sortingEnabled: false }]);
     const [defaultSorting] = useState([]);
@@ -33,14 +34,14 @@ export default function ClientsDatatable({ token }) {
     const [pageSizes] = useState([20, 30, 50]);
 
     const [showModal, setShowModal] = useState(false);
-    const [selectedClientId, setSelectedClientId] = useState(null);
+    const [selectedTeamMemberId, setSelectedTeamMemberId] = useState(null);
 
     useEffect(() => {
-        if (clientData) {
-            setRows(clientData.results);
-            generateColumns(clientData.columns);
+        if (teamMemberData) {
+            setRows(teamMemberData.results);
+            generateColumns(teamMemberData.columns);
         }
-    }, [clientData]);
+    }, [teamMemberData]);
 
     const generateColumns = (columns) => {
         const updatedColumns = [...columns, { name: 'actions', title: 'Actions' }];
@@ -48,19 +49,19 @@ export default function ClientsDatatable({ token }) {
     };
 
     const handleDeleteClick = (id) => {
-        setSelectedClientId(id);
+        setSelectedTeamMemberId(id);
         setShowModal(true);
     };
 
     const confirmDelete = async () => {
-        if (!selectedClientId) return;
+        if (!selectedTeamMemberId) return;
 
         try {
-            await deleteClient(selectedClientId).unwrap();
+            await deleteTeamMember(selectedTeamMemberId).unwrap();
             setShowModal(false);
-            setSelectedClientId(null);
+            setSelectedTeamMemberId(null);
         } catch (err) {
-            console.error('Failed to delete client:', err);
+            console.error('Failed to delete team member:', err);
         }
     };
 
@@ -69,14 +70,15 @@ export default function ClientsDatatable({ token }) {
             return (
                 <Table.Cell {...props}>
                     <Link
-                        to={`/dashboard/client/${props.row.id}`}
+                        to={`/dashboard/team-member/${props.row.id}`}
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary"
                     >
                         <i className="fa fa-pencil"></i>
                     </Link>
                     <button
-                        className="badge bg-light rounded-circle p-2 me-2 text-secondary border-0"
+                        className="badge bg-light rounded-circle p-2 text-secondary border-0"
                         onClick={() => handleDeleteClick(props.row.id)}
+                        disabled={props.row.role === 'MANAGER'}
                     >
                         <i className="fa fa-trash-alt"></i>
                     </button>
@@ -93,7 +95,7 @@ export default function ClientsDatatable({ token }) {
     if (error) {
         return (
             <div className="alert alert-danger" role="alert">
-                {error?.data?.detail || 'Failed to load client data. Please try again later.'}
+                {error?.data?.detail || 'Failed to load team member data. Please try again later.'}
             </div>
         );
     }
@@ -130,7 +132,7 @@ export default function ClientsDatatable({ token }) {
                     <div className="modal-dialog modal-dialog-centered" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Delete Client</h5>
+                                <h5 className="modal-title">Delete Team Member</h5>
                                 <button
                                     type="button"
                                     className="btn-close"
@@ -138,7 +140,7 @@ export default function ClientsDatatable({ token }) {
                                 ></button>
                             </div>
                             <div className="modal-body">
-                                <p>Are you sure you want to delete this client?</p>
+                                <p>Are you sure you want to delete this team member?</p>
                             </div>
                             <div className="modal-footer">
                                 <button

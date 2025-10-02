@@ -6,12 +6,11 @@ import SideNav from './SideNav';
 import Settings from './Tabs/Settings/';
 import Clients from './Tabs/Clients';
 import Client from './Tabs/Clients/Client';
+import TeamMembers from './Tabs/TeamMembers';
 
 export default function UserDashboard({ page }) {
     const navigate = useNavigate();
-
     const token = localStorage.getItem('token');
-
     const {
         data: user,
         isFetching,
@@ -33,11 +32,13 @@ export default function UserDashboard({ page }) {
 
     const renderTab = () => {
         if (page === 'settings') {
-            return <Settings />;
+            return <Settings token={token} />;
         } else if (page === 'clients') {
-            return <Clients />;
+            return <Clients token={token} />;
         } else if (page === 'client') {
-            return <Client />;
+            return <Client token={token} />;
+        } else if (page === 'team-members') {
+            return <TeamMembers token={token} />;
         }
         return null;
     };
@@ -45,7 +46,7 @@ export default function UserDashboard({ page }) {
     return (
         <div className="dashboard-container">
             <SideNav />
-            <main className="container py-3 tab-container mt-4">{renderTab()}</main>
+            <main className="container tab-container py-4">{renderTab()}</main>
         </div>
     );
 }

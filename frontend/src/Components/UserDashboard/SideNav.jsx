@@ -19,7 +19,7 @@ export default function SideNav() {
             icon: 'fa-file-invoice',
         },
         { name: 'Payouts', path: '/dashboard/payouts', icon: 'fa-credit-card' },
-        { name: 'Team', path: '/dashboard/team', icon: 'fa-user-friends' },
+        { name: 'Team Members', path: '/dashboard/team-members', icon: 'fa-user-friends' },
         { name: 'Settings', path: '/dashboard/settings', icon: 'fa-cog' },
     ];
 

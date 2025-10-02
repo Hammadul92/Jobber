@@ -3,10 +3,10 @@ Serializers for business APIs
 """
 
 import json
-
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from core.models import Business, Client
+from core.models import Business, Client, TeamMember
 
 
 class BusinessSerializer(serializers.ModelSerializer):
@@ -24,6 +24,7 @@ class BusinessSerializer(serializers.ModelSerializer):
 
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at']
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_services_offered(self, obj):
         """Return a list of tag names for services_offered."""
         return list(obj.services_offered.names()) \
@@ -65,3 +66,22 @@ class ClientSerializer(serializers.ModelSerializer):
                   'postal_code', 'created_at', 'updated_at']
 
         read_only_fields = ['id', 'business', 'created_at', 'updated_at']
+
+
+class TeamMemberSerializer(serializers.ModelSerializer):
+    employee_name = serializers.CharField(source="employee.name", read_only=True)
+    employee_email = serializers.CharField(source="employee.email", read_only=True)
+    is_active = serializers.CharField(source="employee.is_active", read_only=True)
+    role = serializers.CharField(source="employee.role", read_only=True)
+    business_name = serializers.CharField(source="business.name", read_only=True)
+
+    class Meta:
+        model = TeamMember
+        fields = [
+            "id", "business", "business_name", "employee",
+            "employee_name", "employee_email", "is_active", "role",
+            "job_duties", "expertise", "phone",
+            "is_active", "joined_at",
+        ]
+
+        read_only_fields = ["id", "joined_at"]

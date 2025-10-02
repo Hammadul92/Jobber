@@ -9,6 +9,7 @@ export default function SignIn() {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const [signinUser, { isLoading: signinLoading, error: signinError }] = useSigninUserMutation();
 
@@ -16,7 +17,6 @@ export default function SignIn() {
         skip: !localStorage.getItem('token'),
     });
 
-    // ✅ Call verification only if token exists
     const {
         data: verifyData,
         isLoading: verifying,
@@ -43,7 +43,6 @@ export default function SignIn() {
         <div className="my-5 container">
             <h2 className="text-center mb-4">Sign In</h2>
 
-            {/* ✅ Show backend-provided response messages */}
             {token && (
                 <div className="mb-4 col-md-4 offset-md-4">
                     {verifying && <div className="alert alert-info text-center">Verifying your email...</div>}
@@ -66,6 +65,7 @@ export default function SignIn() {
                         </div>
                     )}
 
+                    {/* Email */}
                     <div className="mb-3">
                         <label htmlFor="email" className="mb-2">
                             Email (*)
@@ -81,31 +81,56 @@ export default function SignIn() {
                         />
                     </div>
 
+                    {/* Password with Eye Toggle */}
                     <div className="mb-3">
                         <label htmlFor="password" className="mb-2">
                             Password (*)
                         </label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="form-control form-control-lg"
-                            placeholder="Password"
-                        />
+                        <div className="input-group">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                className="form-control form-control-lg"
+                                placeholder="Password"
+                            />
+                            <button
+                                type="button"
+                                className="btn btn-outline-success"
+                                onClick={() => setShowPassword(!showPassword)}
+                                tabIndex={-1}
+                            >
+                                <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                            </button>
+                        </div>
                     </div>
 
+                    {/* Submit */}
                     <div className="text-center mb-3">
                         <button type="submit" className="btn btn-lg btn-success w-100" disabled={signinLoading}>
-                            {signinLoading ? 'Signing In...' : 'Sign In'}
+                            {signinLoading ? (
+                                <>
+                                    <span
+                                        className="spinner-border spinner-border-sm me-2"
+                                        role="status"
+                                        aria-hidden="true"
+                                    ></span>
+                                    Signing In...
+                                </>
+                            ) : (
+                                'Sign In'
+                            )}
                         </button>
                     </div>
 
+                    {/* Forgot Password */}
                     <div className="text-center mb-3">
                         <Link to="/forgot-password">Forgot Password?</Link>
                     </div>
 
+                    {/* Register Link */}
                     <p className="text-center">
                         Don’t have an account? <Link to="/register">Register</Link>
                     </p>

@@ -3,7 +3,7 @@ import { provinces, countries } from '../../../../utils/locations';
 
 import { useFetchBusinessesQuery, useCreateBusinessMutation, useUpdateBusinessMutation } from '../../../../store';
 
-export default function Business() {
+export default function Business({ token }) {
     const [alert, setAlert] = useState(null);
 
     const [businessId, setBusinessId] = useState(null);
@@ -21,7 +21,13 @@ export default function Business() {
     const [timezone, setTimezone] = useState('America/Edmonton');
     const [selectedServices, setSelectedServices] = useState([]);
 
-    const { data: businessData, isLoading, refetch } = useFetchBusinessesQuery();
+    const {
+        data: businessData,
+        isLoading,
+        refetch,
+    } = useFetchBusinessesQuery(undefined, {
+        skip: !token,
+    });
     const [createBusiness, { isLoading: isCreating }] = useCreateBusinessMutation();
     const [updateBusiness, { isLoading: isUpdating }] = useUpdateBusinessMutation();
 
@@ -356,7 +362,14 @@ export default function Business() {
             </div>
 
             <button className="btn btn-success" disabled={isCreating || isUpdating}>
-                {isCreating || isUpdating ? 'Saving...' : 'Save Business'}
+                {isCreating || isUpdating ? (
+                    <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Saving...
+                    </>
+                ) : (
+                    'Save'
+                )}
             </button>
         </form>
     );

@@ -6,6 +6,8 @@ export default function Credentials() {
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [passwordStrength, setPasswordStrength] = useState('');
     const [alert, setAlert] = useState(null);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [updateUser, { isLoading, error }] = useUpdateUserMutation();
 
@@ -48,7 +50,6 @@ export default function Credentials() {
                 message: 'Password updated successfully!',
             });
 
-            // Reset fields
             setNewPassword('');
             setConfirmNewPassword('');
             setPasswordStrength('');
@@ -61,7 +62,7 @@ export default function Credentials() {
     return (
         <form className="tab-pane active" onSubmit={handleSubmit}>
             <div className="row">
-                <div className="col-md-6">
+                <div className="col-md-4">
                     {/* Alerts */}
                     {alert && (
                         <div className={`alert alert-${alert.type}`} role="alert">
@@ -77,21 +78,32 @@ export default function Credentials() {
                     {/* New Password */}
                     <div className="mb-3">
                         <label className="form-label">New Password</label>
-                        <input
-                            type="password"
-                            className="form-control"
-                            value={newPassword}
-                            onChange={(e) => {
-                                setNewPassword(e.target.value);
-                                checkPasswordStrength(e.target.value);
-                            }}
-                            required
-                            disabled={isLoading}
-                        />
+                        <div className="input-group">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                className="form-control"
+                                value={newPassword}
+                                onChange={(e) => {
+                                    setNewPassword(e.target.value);
+                                    checkPasswordStrength(e.target.value);
+                                }}
+                                required
+                                disabled={isLoading}
+                            />
+                            <span
+                                className="input-group-text"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                            </span>
+                        </div>
                         {newPassword && (
                             <small
                                 className={`d-block mt-1 fw-bold ${
-                                    passwordStrength === 'Strong Password' ? 'text-success' : 'text-danger'
+                                    passwordStrength === 'Strong Password'
+                                        ? 'text-success'
+                                        : 'text-danger'
                                 }`}
                             >
                                 {passwordStrength}
@@ -102,23 +114,43 @@ export default function Credentials() {
                     {/* Confirm New Password */}
                     <div className="mb-3">
                         <label className="form-label">Confirm New Password</label>
-                        <input
-                            type="password"
-                            className="form-control"
-                            value={confirmNewPassword}
-                            onChange={(e) => setConfirmNewPassword(e.target.value)}
-                            required
-                            disabled={isLoading}
-                        />
+                        <div className="input-group">
+                            <input
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                className="form-control"
+                                value={confirmNewPassword}
+                                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                required
+                                disabled={isLoading}
+                            />
+                            <span
+                                className="input-group-text"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                                <i className={`fa ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                            </span>
+                        </div>
                     </div>
 
                     {/* Submit Button */}
                     <button
                         type="submit"
-                        className="btn btn-success"
+                        className="btn btn-sm btn-success"
                         disabled={passwordStrength !== 'Strong Password' || isLoading}
                     >
-                        {isLoading ? 'Updating...' : 'Save Credentials'}
+                        {isLoading ? (
+                            <>
+                                <span
+                                    className="spinner-border spinner-border-sm me-2"
+                                    role="status"
+                                    aria-hidden="true"
+                                ></span>
+                                Updating...
+                            </>
+                        ) : (
+                            'Update'
+                        )}
                     </button>
                 </div>
             </div>

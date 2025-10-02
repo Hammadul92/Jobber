@@ -13,6 +13,7 @@ from business import views
 router = DefaultRouter()
 router.register('business', views.BusinessViewSet)
 router.register('client', views.ClientViewSet)
+router.register('team-member', views.TeamMemberViewSet)
 
 app_name = 'business'
 

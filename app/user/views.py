@@ -4,11 +4,13 @@ Views for the user API.
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
+
 from rest_framework import generics, authentication, permissions, status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from rest_framework.views import APIView
 
 from user.serializers import (
     UserSerializer,
@@ -35,7 +37,7 @@ class CreateUserView(generics.CreateAPIView):
         send_registration_email(user, token)
 
 
-class VerifyEmailView(generics.GenericAPIView):
+class VerifyEmailView(APIView):
     """Verify user email via token."""
 
     def get(self, request):

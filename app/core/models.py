@@ -23,6 +23,18 @@ PAYMENT_METHOD_CHOICES = [
     ("CARD", "Credit/Debit Card"),
 ]
 
+SERVICE_TYPE_CHOICES = [
+    ("ONE_TIME", "One Time"),
+    ("SUBSCRIPTION", "Subscription"),
+]
+
+JOB_STATUS_CHOICES = [
+    ("PENDING", "Pending"),
+    ("IN_PROGRESS", "In Progress"),
+    ("COMPLETED", "Completed"),
+    ("CANCELLED", "Cancelled"),
+]
+
 
 class UserManager(BaseUserManager):
     """Manager for users."""
@@ -224,3 +236,139 @@ class BankingInformation(models.Model):
             f"{self.card_brand or 'Card'} ••••{self.card_last4 or '----'} "
             f"({owner})"
         )
+
+
+class Service(models.Model):
+    client = models.ForeignKey(
+        Client,
+        related_name="client_services",
+        on_delete=models.CASCADE,
+    )
+    business = models.ForeignKey(
+        Business,
+        related_name="business_services",
+        on_delete=models.CASCADE,
+    )
+    service_name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    start_date = models.DateField()
+    end_date = models.DateField(blank=True, null=True)
+
+    service_type = models.CharField(
+        max_length=20,
+        choices=SERVICE_TYPE_CHOICES,
+        default="ONE_TIME",
+    )
+
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default="CAD")
+
+    BILLING_CYCLE_CHOICES = [
+        ("MONTHLY", "Monthly"),
+        ("YEARLY", "Yearly"),
+    ]
+    billing_cycle = models.CharField(
+        max_length=20,
+        choices=BILLING_CYCLE_CHOICES,
+        blank=True,
+        null=True,
+    )
+
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("ACTIVE", "Active"),
+        ("CANCELLED", "Cancelled"),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="PENDING",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return (
+            f"{self.service_name} ({self.get_service_type_display()}) "
+            f"for {self.client.name} - {self.get_status_display()}"
+        )
+
+
+class Job(models.Model):
+    service = models.ForeignKey(
+        Service,
+        related_name="jobs",
+        on_delete=models.CASCADE,
+    )
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="assigned_jobs",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+
+    scheduled_date = models.DateTimeField()
+    completed_at = models.DateTimeField(blank=True, null=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=JOB_STATUS_CHOICES,
+        default="PENDING",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Job {self.title} - {self.get_status_display()} (Service: {self.service.service_name})"
+
+
+class JobPhoto(models.Model):
+    JOB_PHOTO_TYPE_CHOICES = [
+        ("BEFORE", "Before"),
+        ("AFTER", "After"),
+    ]
+
+    job = models.ForeignKey(
+        Job,
+        related_name="photos",
+        on_delete=models.CASCADE,
+    )
+    photo = models.ImageField(upload_to="jobs/photos/")
+    photo_type = models.CharField(max_length=10, choices=JOB_PHOTO_TYPE_CHOICES)
+
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.photo_type} photo for Job {self.job.id}"
+
+
+class TeamMember(models.Model):
+    business = models.ForeignKey(
+        Business,
+        related_name="team_members",
+        on_delete=models.CASCADE,
+    )
+    employee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="business_roles",
+        on_delete=models.CASCADE,
+        limit_choices_to={"role__in": ["MANAGER", "EMPLOYEE"]},
+    )
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    job_duties = models.TextField(blank=True, null=True)
+    expertise = models.CharField(max_length=255, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("business", "employee")
+
+    def __str__(self):
+        return f"{self.employee.name} @ {self.business.name}"

@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useUpdateUserMutation, useFetchUserQuery } from '../../../../store';
 
-export default function Profile() {
-    const { data: user, isFetching, refetch } = useFetchUserQuery();
+export default function Profile({ token }) {
+    const {
+        data: user,
+        isFetching,
+        refetch,
+    } = useFetchUserQuery(undefined, {
+        skip: !token,
+    });
 
     const [name, setUserName] = useState('');
     const [email, setUserEmail] = useState('');
@@ -44,7 +50,7 @@ export default function Profile() {
     return (
         <form className="tab-pane active" onSubmit={submitHandler}>
             <div className="row">
-                <div className="col-md-6">
+                <div className="col-md-4">
                     {alert && (
                         <div className={`alert alert-${alert.type}`} role="alert">
                             {alert.message}
@@ -86,8 +92,15 @@ export default function Profile() {
                 </div>
             </div>
 
-            <button className="btn btn-success" disabled={isLoading}>
-                {isLoading ? 'Saving Profile...' : 'Save Profile'}
+            <button className="btn btn-sm btn-success" disabled={isLoading}>
+                {isLoading ? (
+                    <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Saving...
+                    </>
+                ) : (
+                    'Save'
+                )}
             </button>
         </form>
     );

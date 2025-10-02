@@ -53,7 +53,18 @@ export default function ForgotPassword() {
 
                     <div className="text-center mb-3">
                         <button type="submit" className="btn btn-lg btn-success w-100" disabled={isLoading}>
-                            {isLoading ? 'Sending Reset Link...' : 'Send Reset Link'}
+                            {isLoading ? (
+                                <>
+                                    <span
+                                        className="spinner-border spinner-border-sm me-2"
+                                        role="status"
+                                        aria-hidden="true"
+                                    ></span>
+                                    Sending Reset Link...
+                                </>
+                            ) : (
+                                'Send Reset Link'
+                            )}
                         </button>
                     </div>
 

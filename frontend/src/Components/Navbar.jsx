@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useFetchUserQuery, useLogoutUserMutation, userApi, businessApi, clientApi } from '../store';
+import { useFetchUserQuery, useLogoutUserMutation, userApi, businessApi, clientApi, teamMemberApi } from '../store';
 import { useDispatch } from 'react-redux';
 import './Components.css';
 import logo from './images/logo.png';
@@ -22,6 +22,7 @@ export default function Navbar() {
         dispatch(userApi.util.resetApiState());
         dispatch(businessApi.util.resetApiState());
         dispatch(clientApi.util.resetApiState());
+        dispatch(teamMemberApi.util.resetApiState());
         navigate('/sign-in');
     };
 

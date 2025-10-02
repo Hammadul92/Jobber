@@ -9,6 +9,8 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordStrength, setPasswordStrength] = useState('');
     const [alert, setAlert] = useState(null);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [createUser, { isLoading, error }] = useCreateUserMutation();
 
@@ -54,7 +56,6 @@ export default function Register() {
                 message: 'Account created! Please check your email to confirm.',
             });
 
-            // clear form
             setName('');
             setEmail('');
             setPassword('');
@@ -71,7 +72,6 @@ export default function Register() {
 
             <form onSubmit={handleSubmit} className="row">
                 <div className="col-md-4 offset-md-4">
-                    {/* Bootstrap Alert */}
                     {alert && (
                         <div className={`alert alert-${alert.type}`} role="alert">
                             {alert.message}
@@ -83,7 +83,7 @@ export default function Register() {
                         </div>
                     )}
 
-                    {/* Name Field */}
+                    {/* Name */}
                     <div className="mb-3">
                         <label htmlFor="name" className="mb-2">
                             Name (*)
@@ -100,7 +100,7 @@ export default function Register() {
                         />
                     </div>
 
-                    {/* Email Field */}
+                    {/* Email */}
                     <div className="mb-3">
                         <label htmlFor="email" className="mb-2">
                             Email (*)
@@ -117,24 +117,34 @@ export default function Register() {
                         />
                     </div>
 
-                    {/* Password Field */}
+                    {/* Password */}
                     <div className="mb-3">
                         <label htmlFor="password" className="mb-2">
                             Password (*)
                         </label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                checkPasswordStrength(e.target.value);
-                            }}
-                            required
-                            className="form-control form-control-lg"
-                            placeholder="Password"
-                            disabled={isLoading}
-                        />
+                        <div className="input-group">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                id="password"
+                                value={password}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    checkPasswordStrength(e.target.value);
+                                }}
+                                required
+                                className="form-control form-control-lg"
+                                placeholder="Password"
+                                disabled={isLoading}
+                            />
+                            <button
+                                type="button"
+                                className="btn btn-outline-success"
+                                onClick={() => setShowPassword(!showPassword)}
+                                tabIndex={-1}
+                            >
+                                <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                            </button>
+                        </div>
                         {password && (
                             <small
                                 className={`d-block mt-1 fw-bold ${
@@ -146,31 +156,52 @@ export default function Register() {
                         )}
                     </div>
 
-                    {/* Confirm Password Field */}
+                    {/* Confirm Password */}
                     <div className="mb-3">
                         <label htmlFor="confirmPassword" className="mb-2">
                             Confirm Password (*)
                         </label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                            className="form-control form-control-lg"
-                            placeholder="Confirm Password"
-                            disabled={isLoading}
-                        />
+                        <div className="input-group">
+                            <input
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                id="confirmPassword"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                className="form-control form-control-lg"
+                                placeholder="Confirm Password"
+                                disabled={isLoading}
+                            />
+                            <button
+                                type="button"
+                                className="btn btn-outline-success"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                tabIndex={-1}
+                            >
+                                <i className={`fa ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Submit Button */}
+                    {/* Submit */}
                     <div className="text-center mb-3">
                         <button
                             type="submit"
                             disabled={passwordStrength !== 'Strong Password' || isLoading}
                             className="btn btn-lg btn-success w-100"
                         >
-                            {isLoading ? 'Registering...' : 'Register'}
+                            {isLoading ? (
+                                <>
+                                    <span
+                                        className="spinner-border spinner-border-sm me-2"
+                                        role="status"
+                                        aria-hidden="true"
+                                    ></span>
+                                    Registering...
+                                </>
+                            ) : (
+                                'Register'
+                            )}
                         </button>
                     </div>
 

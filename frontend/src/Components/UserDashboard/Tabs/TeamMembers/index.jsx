@@ -1,21 +1,21 @@
 import { useState } from 'react';
 
-import CreateClientForm from './CreateClientForm';
-import DataTable from './ClientsDatatable';
+import CreateTeamMemberForm from './CreateTeamMemberForm';
+import DataTable from './TeamMembersDatatable';
 
-export default function Clients({ token }) {
+export default function TeamMembers({ token }) {
     const [showModal, setShowModal] = useState(false);
 
     return (
         <div>
             <div className="clearfix mb-3">
                 <button className="btn btn-sm btn-success float-end" onClick={() => setShowModal(true)}>
-                    Add Client
+                    Add Member
                 </button>
-                <h3 className="mb-0">Clients</h3>
+                <h3 className="mb-0">Team Members</h3>
             </div>
 
-            <CreateClientForm showModal={showModal} setShowModal={setShowModal} />
+            <CreateTeamMemberForm token={token} showModal={showModal} setShowModal={setShowModal} />
 
             <div className="">
                 <DataTable token={token} />

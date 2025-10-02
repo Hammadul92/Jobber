@@ -29,7 +29,7 @@ function App() {
                 <Route path="/dashboard/jobs" element={<UserDashboard page={'jobs'} />} />
                 <Route path="/dashboard/invoices" element={<UserDashboard page={'invoices'} />} />
                 <Route path="/dashboard/payouts" element={<UserDashboard page={'payouts'} />} />
-                <Route path="/dashboard/team" element={<UserDashboard page={'team'} />} />
+                <Route path="/dashboard/team-members" element={<UserDashboard page={'team-members'} />} />
                 <Route path="/dashboard/settings" element={<UserDashboard page={'settings'} />} />
 
                 <Route path="*" element={<PageNotFound />} />

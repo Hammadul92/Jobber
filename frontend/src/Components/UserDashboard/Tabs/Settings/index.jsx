@@ -3,7 +3,7 @@ import Profile from './Profile';
 import Business from './Business';
 import Credentials from './Credentials';
 
-export default function AccountSettings() {
+export default function AccountSettings({ token }) {
     const [activeTab, setActiveTab] = useState('profile');
 
     return (
@@ -48,8 +48,8 @@ export default function AccountSettings() {
 
             {/* Tabs Content */}
             <div className="tab-content py-3">
-                {activeTab === 'profile' && <Profile />}
-                {activeTab === 'business' && <Business />}
+                {activeTab === 'profile' && <Profile token={token} />}
+                {activeTab === 'business' && <Business token={token} />}
                 {activeTab === 'credentials' && <Credentials />}
             </div>
         </div>
