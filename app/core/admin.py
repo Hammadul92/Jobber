@@ -51,14 +51,20 @@ class UserAdmin(BaseUserAdmin):
 
 
 class BusinessAdmin(admin.ModelAdmin):
-    list_display = ['name', 'email', 'phone', 'owner', 'is_active', 'created_at']
+    list_display = [
+        'name', 'email', 'phone', 'owner',
+        'is_active', 'created_at'
+    ]
     list_filter = ['is_active', 'country', 'province_state']
     search_fields = ['name', 'email', 'phone', 'business_number']
     readonly_fields = ['created_at', 'updated_at']
 
 
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ['name', 'email', 'phone', 'business', 'is_active', 'created_at']
+    list_display = [
+        'name', 'email', 'phone', 'business',
+        'is_active', 'created_at'
+    ]
     list_filter = ['is_active', 'business', 'country', 'province_state']
     search_fields = ['name', 'email', 'phone']
     readonly_fields = ['created_at', 'updated_at']
@@ -75,14 +81,20 @@ class BankingInformationAdmin(admin.ModelAdmin):
 
 
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ['service_name', 'client', 'business', 'service_type', 'status', 'price', 'currency']
+    list_display = [
+        'service_name', 'client', 'business', 'service_type',
+        'status', 'price', 'currency'
+    ]
     list_filter = ['service_type', 'status', 'currency']
     search_fields = ['service_name', 'client__name', 'business__name']
     readonly_fields = ['created_at', 'updated_at']
 
 
 class JobAdmin(admin.ModelAdmin):
-    list_display = ['title', 'service', 'assigned_to', 'status', 'scheduled_date', 'completed_at']
+    list_display = [
+        'title', 'service', 'assigned_to', 'status',
+        'scheduled_date', 'completed_at'
+    ]
     list_filter = ['status', 'scheduled_date']
     search_fields = ['title', 'description', 'service__service_name']
     readonly_fields = ['created_at', 'updated_at']
@@ -96,7 +108,10 @@ class JobPhotoAdmin(admin.ModelAdmin):
 
 
 class TeamMemberAdmin(admin.ModelAdmin):
-    list_display = ['employee', 'business', 'phone', 'expertise', 'is_active', 'joined_at']
+    list_display = [
+        'employee', 'business', 'phone', 'expertise',
+        'is_active', 'joined_at'
+    ]
     list_filter = ['is_active', 'business']
     search_fields = ['employee__name', 'employee__email', 'business__name']
     readonly_fields = ['joined_at']

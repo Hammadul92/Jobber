@@ -17,14 +17,15 @@ export default function CreateTeamMemberModal({ token, showModal, setShowModal }
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [role, setRole] = useState('EMPLOYEE');
+    const [jobDuties, setJobDuties] = useState('');
+    const [expertise, setExpertise] = useState('');
+
     const [apiError, setApiError] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
 
     const [createUser, { isLoading: isUserLoading }] = useCreateUserMutation();
     const [createTeamMember, { isLoading: isTeamMemberLoading }] = useCreateTeamMemberMutation();
-    const { data: businesses } = useFetchBusinessesQuery(undefined, {
-        skip: !token,
-    });
+    const { data: businesses } = useFetchBusinessesQuery(undefined, { skip: !token });
 
     const isSubmitting = isUserLoading || isTeamMemberLoading;
 
@@ -40,24 +41,18 @@ export default function CreateTeamMemberModal({ token, showModal, setShowModal }
 
         try {
             const password = generateStrongPassword();
-            const userPayload = {
-                name,
-                email,
-                password,
-                role,
-            };
-
+            const userPayload = { name, email, password, role };
             const newUser = await createUser(userPayload).unwrap();
 
             const businessId = businesses?.[0]?.id;
-            if (!businessId) {
-                throw new Error('No business found for the current user.');
-            }
+            if (!businessId) throw new Error('No business found for the current user.');
 
             await createTeamMember({
                 business: businessId,
                 employee: newUser.id,
                 phone,
+                job_duties: jobDuties,
+                expertise,
             }).unwrap();
 
             setSuccessMessage('Team member added successfully.');
@@ -65,6 +60,8 @@ export default function CreateTeamMemberModal({ token, showModal, setShowModal }
             setPhone('');
             setEmail('');
             setRole('EMPLOYEE');
+            setJobDuties('');
+            setExpertise('');
             setShowModal(false);
         } catch (err) {
             const message =
@@ -98,17 +95,8 @@ export default function CreateTeamMemberModal({ token, showModal, setShowModal }
                                         sign-in page.
                                     </p>
 
-                                    {apiError && (
-                                        <div className="alert alert-danger mb-3" role="alert">
-                                            {apiError}
-                                        </div>
-                                    )}
-
-                                    {successMessage && (
-                                        <div className="alert alert-success mb-3" role="alert">
-                                            {successMessage}
-                                        </div>
-                                    )}
+                                    {apiError && <div className="alert alert-danger mb-3">{apiError}</div>}
+                                    {successMessage && <div className="alert alert-success mb-3">{successMessage}</div>}
 
                                     <div className="row">
                                         <div className="mb-3 col-md-6">
@@ -153,6 +141,25 @@ export default function CreateTeamMemberModal({ token, showModal, setShowModal }
                                                 <option value="MANAGER">Manager</option>
                                             </select>
                                         </div>
+                                        <div className="mb-3 col-md-12">
+                                            <label className="form-label">Job Duties</label>
+                                            <textarea
+                                                className="form-control"
+                                                rows="3"
+                                                value={jobDuties}
+                                                onChange={(e) => setJobDuties(e.target.value)}
+                                            ></textarea>
+                                        </div>
+                                        <div className="mb-3 col-md-12">
+                                            <label className="form-label">Expertise</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                value={expertise}
+                                                onChange={(e) => setExpertise(e.target.value)}
+                                                placeholder="e.g., Plumbing, Electrical Work"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -168,11 +175,7 @@ export default function CreateTeamMemberModal({ token, showModal, setShowModal }
                                     <button type="submit" className="btn btn-sm btn-success" disabled={isSubmitting}>
                                         {isSubmitting ? (
                                             <>
-                                                <span
-                                                    className="spinner-border spinner-border-sm me-2"
-                                                    role="status"
-                                                    aria-hidden="true"
-                                                ></span>
+                                                <span className="spinner-border spinner-border-sm me-2"></span>
                                                 Adding...
                                             </>
                                         ) : (
@@ -185,7 +188,6 @@ export default function CreateTeamMemberModal({ token, showModal, setShowModal }
                     </div>
                 </div>
             )}
-
             {showModal && <div className="modal-backdrop fade show"></div>}
         </>
     );

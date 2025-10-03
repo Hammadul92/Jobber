@@ -148,7 +148,6 @@ export default function Client() {
                                 setCountry(e.target.value);
                                 setProvinceState('');
                             }}
-                            required
                         >
                             {countries.map(({ code, name }) => {
                                 return (
@@ -166,7 +165,6 @@ export default function Client() {
                             className="form-select"
                             value={provinceState}
                             onChange={(e) => setProvinceState(e.target.value)}
-                            required
                         >
                             <option value="">Select Province/State</option>
                             {provinces[country].map((prov) => (

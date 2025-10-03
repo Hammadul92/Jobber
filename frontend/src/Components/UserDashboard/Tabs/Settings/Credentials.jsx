@@ -101,9 +101,7 @@ export default function Credentials() {
                         {newPassword && (
                             <small
                                 className={`d-block mt-1 fw-bold ${
-                                    passwordStrength === 'Strong Password'
-                                        ? 'text-success'
-                                        : 'text-danger'
+                                    passwordStrength === 'Strong Password' ? 'text-success' : 'text-danger'
                                 }`}
                             >
                                 {passwordStrength}

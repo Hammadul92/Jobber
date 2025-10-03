@@ -69,11 +69,23 @@ class ClientSerializer(serializers.ModelSerializer):
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):
-    employee_name = serializers.CharField(source="employee.name", read_only=True)
-    employee_email = serializers.CharField(source="employee.email", read_only=True)
-    is_active = serializers.CharField(source="employee.is_active", read_only=True)
+    employee_name = serializers.CharField(
+        source="employee.name",
+        read_only=True
+    )
+    employee_email = serializers.CharField(
+        source="employee.email",
+        read_only=True
+    )
+    is_active = serializers.CharField(
+        source="employee.is_active",
+        read_only=True
+    )
     role = serializers.CharField(source="employee.role", read_only=True)
-    business_name = serializers.CharField(source="business.name", read_only=True)
+    business_name = serializers.CharField(
+        source="business.name",
+        read_only=True
+    )
 
     class Meta:
         model = TeamMember

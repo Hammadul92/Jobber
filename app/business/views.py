@@ -70,7 +70,8 @@ class ClientViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve clients for authenticated user."""
         owned_businesses = Business.objects.filter(owner=self.request.user)
-        return self.queryset.filter(business__in=owned_businesses).order_by('-id')
+        return self.queryset.filter(business__in=owned_businesses) \
+            .order_by('-id')
 
     def perform_create(self, serializer):
         """Assign business to the client for authenticated user"""
@@ -90,7 +91,6 @@ class ClientViewSet(viewsets.ModelViewSet):
         )
 
 
-
 class TeamMemberPagination(pagination.PageNumberPagination):
     page_size = 20
     page_size_query_param = 'page_size'
@@ -106,8 +106,7 @@ class TeamMemberPagination(pagination.PageNumberPagination):
                 {'name': 'employee_name', 'title': 'Name'},
                 {'name': 'employee_email', 'title': 'Email'},
                 {'name': 'phone', 'title': 'Phone'},
-                {'name': 'role', 'title': 'Role'},
-                {'name': 'is_active', 'title': 'Active?'},
+                {'name': 'role', 'title': 'Role'}
             ],
             'results': data,
         })
@@ -117,9 +116,9 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
     """View for manage team member APIs."""
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    queryset = TeamMember.objects.all().select_related("business", "employee")
+    queryset = TeamMember.objects.filter(is_active=True) \
+        .select_related("business", "employee")
     serializer_class = serializers.TeamMemberSerializer
-
 
     filter_backends = [filters.SearchFilter]
     search_fields = [
@@ -135,3 +134,13 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return self.queryset.filter(business__in=user.owned_businesses.all())
+
+    def destroy(self, request, *args, **kwargs):
+        """Instead of deleting, mark team member as inactive"""
+        instance = self.get_object()
+        instance.is_active = False
+        instance.save(update_fields=["is_active"])
+        return Response(
+            {"detail": "Team member deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT
+        )

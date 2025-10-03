@@ -325,7 +325,10 @@ class Job(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Job {self.title} - {self.get_status_display()} (Service: {self.service.service_name})"
+        return (
+            f"Job {self.title} - {self.get_status_display()} "
+            f"(Service: {self.service.service_name})"
+        )
 
 
 class JobPhoto(models.Model):
@@ -340,7 +343,10 @@ class JobPhoto(models.Model):
         on_delete=models.CASCADE,
     )
     photo = models.ImageField(upload_to="jobs/photos/")
-    photo_type = models.CharField(max_length=10, choices=JOB_PHOTO_TYPE_CHOICES)
+    photo_type = models.CharField(
+        max_length=10,
+        choices=JOB_PHOTO_TYPE_CHOICES
+    )
 
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

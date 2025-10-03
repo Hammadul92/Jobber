@@ -1,5 +1,8 @@
 body {
     padding-top: 60px;
+    /* font-family: "Noto Sans", sans-serif; */
+    font-family:
+        'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 .bg-accent {
@@ -106,6 +109,7 @@ textarea.form-control:focus {
     background-color: transparent;
     text-transform: uppercase;
     cursor: pointer;
+    font-weight: normal;
 }
 
 .table thead input:read-only {

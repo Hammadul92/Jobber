@@ -84,6 +84,22 @@ export default function TeamMembersDatatable({ token }) {
                     </button>
                 </Table.Cell>
             );
+        } else if (props.column.name === 'employee_name') {
+            if (props.row.is_active === 'True') {
+                return (
+                    <Table.Cell {...props}>
+                        {props.row.employee_name}{' '}
+                        <span className="badge bg-success rounded-pill text-white">Active</span>
+                    </Table.Cell>
+                );
+            } else {
+                return (
+                    <Table.Cell {...props}>
+                        {props.row.employee_name}{' '}
+                        <span className="badge bg-danger rounded-pill text-white">Inactive</span>
+                    </Table.Cell>
+                );
+            }
         }
         return <Table.Cell {...props} />;
     };
