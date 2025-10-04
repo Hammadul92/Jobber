@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useCreateTeamMemberMutation, useCreateUserMutation, useFetchBusinessesQuery } from '../../../../store';
 
+import SubmitButton from '../../../../utils/SubmitButton';
+
 function generateStrongPassword(length = 12) {
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?';
     let password = '';
@@ -172,16 +174,11 @@ export default function CreateTeamMemberModal({ token, showModal, setShowModal }
                                     >
                                         Cancel
                                     </button>
-                                    <button type="submit" className="btn btn-sm btn-success" disabled={isSubmitting}>
-                                        {isSubmitting ? (
-                                            <>
-                                                <span className="spinner-border spinner-border-sm me-2"></span>
-                                                Adding...
-                                            </>
-                                        ) : (
-                                            'Add Member'
-                                        )}
-                                    </button>
+                                    <SubmitButton
+                                        isLoading={isSubmitting}
+                                        btnClass="btn btn-sm btn-success"
+                                        btnName="Add Member"
+                                    />
                                 </div>
                             </form>
                         </div>

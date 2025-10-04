@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { countries, provinces } from '../../../../utils/locations';
 import { useFetchClientQuery, useUpdateClientMutation } from '../../../../store';
 
+import SubmitButton from '../../../../utils/SubmitButton';
+
 export default function Client() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -10,12 +12,10 @@ export default function Client() {
     const { data: clientData, isLoading, error } = useFetchClientQuery({ id });
     const [updateClient, { isLoading: updating, error: updateError, isSuccess }] = useUpdateClientMutation();
 
-    // Basic
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
 
-    // Address
     const [streetAddress, setStreetAddress] = useState('');
     const [city, setCity] = useState('');
     const [country, setCountry] = useState('CA');
@@ -78,7 +78,6 @@ export default function Client() {
 
                 {isSuccess && <div className="alert alert-success mb-3">Client updated successfully!</div>}
 
-                {/* Basic Info */}
                 <div className="row mb-3">
                     <div className="mb-3 col-md-4">
                         <label className="form-label">Name (*)</label>
@@ -114,7 +113,6 @@ export default function Client() {
                     </div>
                 </div>
 
-                {/* Billing Address */}
                 <h5>Billing Address</h5>
                 <div className="row mb-3">
                     <div className="mb-3 col-md-8">
@@ -194,9 +192,8 @@ export default function Client() {
                     >
                         Cancel
                     </button>
-                    <button type="submit" className="btn btn-sm btn-success" disabled={updating}>
-                        {updating ? 'Saving...' : 'Save Changes'}
-                    </button>
+
+                    <SubmitButton isLoading={updating} btnClass="btn btn-sm btn-success" btnName="Save Changes" />
                 </div>
             </form>
         </div>

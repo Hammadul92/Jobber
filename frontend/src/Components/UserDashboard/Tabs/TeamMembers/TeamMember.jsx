@@ -1,66 +1,66 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { countries, provinces } from '../../../../utils/locations';
-import { useFetchClientQuery, useUpdateClientMutation } from '../../../../store';
+import { useFetchTeamMemberQuery, useUpdateTeamMemberMutation } from '../../../../store';
 
-export default function Client() {
+import SubmitButton from '../../../../utils/SubmitButton';
+
+export default function TeamMember({ token }) {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const { data: clientData, isLoading, error } = useFetchClientQuery({ id });
-    const [updateClient, { isLoading: updating, error: updateError, isSuccess }] = useUpdateClientMutation();
+    const {
+        data: teamMemberData,
+        isLoading,
+        error,
+    } = useFetchTeamMemberQuery(id, {
+        skip: !token,
+    });
 
-    // Basic
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
+    const [updateTeamMember, { isLoading: updatingMember }] = useUpdateTeamMemberMutation();
+
     const [phone, setPhone] = useState('');
+    const [jobDuties, setJobDuties] = useState('');
+    const [expertise, setExpertise] = useState('');
 
-    // Address
-    const [streetAddress, setStreetAddress] = useState('');
-    const [city, setCity] = useState('');
-    const [country, setCountry] = useState('CA');
-    const [provinceState, setProvinceState] = useState('');
-    const [postalCode, setPostalCode] = useState('');
+    const [name, setName] = useState('');
+    const [role, setRole] = useState('');
+    const [email, setEmail] = useState('');
+    const [joinedAt, setJoinedAt] = useState('');
 
     useEffect(() => {
-        if (clientData) {
-            setName(clientData.name || '');
-            setEmail(clientData.email || '');
-            setPhone(clientData.phone || '');
-            setStreetAddress(clientData.street_address || '');
-            setCity(clientData.city || '');
-            setCountry(clientData.country || 'CA');
-            setProvinceState(clientData.province_state || '');
-            setPostalCode(clientData.postal_code || '');
+        if (teamMemberData) {
+            setName(teamMemberData.employee_name || '');
+            setEmail(teamMemberData.employee_email || '');
+            setRole(teamMemberData.role || '');
+            setPhone(teamMemberData.phone || '');
+            setJobDuties(teamMemberData.job_duties || '');
+            setExpertise(teamMemberData.expertise || '');
+            setJoinedAt(teamMemberData.joined_at || '');
         }
-    }, [clientData]);
+    }, [teamMemberData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await updateClient({
+            await updateTeamMember({
                 id,
-                name,
-                email,
                 phone,
-                street_address: streetAddress,
-                city,
-                country,
-                province_state: provinceState,
-                postal_code: postalCode,
+                job_duties: jobDuties,
+                expertise,
             }).unwrap();
-            navigate('/dashboard/clients');
+
+            navigate('/dashboard/team-members');
         } catch (err) {
-            console.error('Failed to update client:', err);
+            console.error('Failed to update:', err);
         }
     };
 
-    if (isLoading) return <div>Loading client...</div>;
+    if (isLoading) return <div>Loading team member...</div>;
 
     if (error) {
         return (
             <div className="alert alert-danger" role="alert">
-                {error?.data?.detail || 'Failed to load client.'}
+                {error?.data?.detail || 'Failed to load team member.'}
             </div>
         );
     }
@@ -70,135 +70,74 @@ export default function Client() {
             <h3 className="mb-4">{name}</h3>
 
             <form onSubmit={handleSubmit}>
-                {updateError && (
-                    <div className="alert alert-danger mb-3">
-                        {updateError?.data?.detail || 'Failed to update client.'}
-                    </div>
-                )}
-
-                {isSuccess && <div className="alert alert-success mb-3">Client updated successfully!</div>}
-
-                {/* Basic Info */}
                 <div className="row mb-3">
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Name (*)</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
+                    {/* Read-only user fields */}
+                    <div className="mb-3 col-md-6">
+                        <label className="form-label">Name</label>
+                        <input type="text" className="form-control" value={name} disabled />
                     </div>
 
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Email (*)</label>
-                        <input
-                            type="email"
-                            className="form-control"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
+                    <div className="mb-3 col-md-6">
+                        <label className="form-label">Role</label>
+                        <input type="text" className="form-control" value={role} disabled />
                     </div>
 
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Phone (*)</label>
+                    <div className="mb-3 col-md-6">
+                        <label className="form-label">Email</label>
+                        <input type="email" className="form-control" value={email} disabled />
+                    </div>
+
+                    <div className="mb-3 col-md-6">
+                        <label className="form-label">Joined At</label>
+                        <input type="text" className="form-control" value={joinedAt} disabled />
+                    </div>
+                </div>
+
+                {/* Editable TeamMember fields */}
+                <div className="row mb-3">
+                    <div className="mb-3 col-md-6">
+                        <label className="form-label">Phone</label>
                         <input
                             type="text"
                             className="form-control"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
-                            required
+                        />
+                    </div>
+
+                    <div className="mb-3 col-md-12">
+                        <label className="form-label">Job Duties</label>
+                        <textarea
+                            className="form-control"
+                            rows="3"
+                            value={jobDuties}
+                            onChange={(e) => setJobDuties(e.target.value)}
+                        ></textarea>
+                    </div>
+
+                    <div className="mb-3 col-md-12">
+                        <label className="form-label">Expertise</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={expertise}
+                            onChange={(e) => setExpertise(e.target.value)}
+                            placeholder="e.g., Plumbing, Electrical Work"
                         />
                     </div>
                 </div>
 
-                {/* Billing Address */}
-                <h5>Billing Address</h5>
-                <div className="row mb-3">
-                    <div className="mb-3 col-md-8">
-                        <label className="form-label">Street Address</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={streetAddress}
-                            onChange={(e) => setStreetAddress(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">City</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={city}
-                            onChange={(e) => setCity(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                <div className="row">
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Country</label>
-                        <select
-                            className="form-select"
-                            value={country}
-                            onChange={(e) => {
-                                setCountry(e.target.value);
-                                setProvinceState('');
-                            }}
-                            required
-                        >
-                            {countries.map(({ code, name }) => {
-                                return (
-                                    <option value={code} key={code}>
-                                        {name}
-                                    </option>
-                                );
-                            })}
-                        </select>
-                    </div>
-
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Province/State</label>
-                        <select
-                            className="form-select"
-                            value={provinceState}
-                            onChange={(e) => setProvinceState(e.target.value)}
-                            required
-                        >
-                            <option value="">Select Province/State</option>
-                            {provinces[country].map((prov) => (
-                                <option key={prov.code} value={prov.code}>
-                                    {prov.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Postal/ZIP Code</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={postalCode}
-                            onChange={(e) => setPostalCode(e.target.value)}
-                        />
-                    </div>
-                </div>
-
+                {/* Actions */}
                 <div>
                     <button
                         type="button"
                         className="btn btn-sm btn-dark me-2"
-                        onClick={() => navigate('/dashboard/clients')}
+                        onClick={() => navigate('/dashboard/team-members')}
                     >
                         Cancel
                     </button>
-                    <button type="submit" className="btn btn-sm btn-success" disabled={updating}>
-                        {updating ? 'Saving...' : 'Save Changes'}
-                    </button>
+
+                    <SubmitButton isLoading={updatingMember} btnClass="btn btn-sm btn-success" btnName="Save Changes" />
                 </div>
             </form>
         </div>

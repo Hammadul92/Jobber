@@ -7,6 +7,7 @@ import Settings from './Tabs/Settings/';
 import Clients from './Tabs/Clients';
 import Client from './Tabs/Clients/Client';
 import TeamMembers from './Tabs/TeamMembers';
+import TeamMember from './Tabs/TeamMembers/TeamMember';
 
 export default function UserDashboard({ page }) {
     const navigate = useNavigate();
@@ -39,6 +40,8 @@ export default function UserDashboard({ page }) {
             return <Client token={token} />;
         } else if (page === 'team-members') {
             return <TeamMembers token={token} />;
+        } else if (page === 'team-member') {
+            return <TeamMember token={token} />;
         }
         return null;
     };

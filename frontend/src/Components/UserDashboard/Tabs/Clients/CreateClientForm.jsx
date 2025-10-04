@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useCreateClientMutation } from '../../../../store';
 
+import SubmitButton from '../../../../utils/SubmitButton';
+
 export default function CreateClientModal({ showModal, setShowModal }) {
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
@@ -90,20 +92,12 @@ export default function CreateClientModal({ showModal, setShowModal }) {
                                     >
                                         Cancel
                                     </button>
-                                    <button type="submit" className="btn btn-sm btn-success" disabled={isLoading}>
-                                        {isLoading ? (
-                                            <>
-                                                <span
-                                                    className="spinner-border spinner-border-sm me-2"
-                                                    role="status"
-                                                    aria-hidden="true"
-                                                ></span>
-                                                Adding...
-                                            </>
-                                        ) : (
-                                            'Add Client'
-                                        )}
-                                    </button>
+
+                                    <SubmitButton
+                                        isLoading={isLoading}
+                                        btnClass="btn btn-sm btn-success"
+                                        btnName="Add Client"
+                                    />
                                 </div>
                             </form>
                         </div>

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCreateUserMutation } from '../../store';
 
+import SubmitButton from '../../utils/SubmitButton';
+
 export default function Register() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -183,29 +185,15 @@ export default function Register() {
                         </div>
                     </div>
 
-                    {/* Submit */}
                     <div className="text-center mb-3">
-                        <button
-                            type="submit"
-                            disabled={passwordStrength !== 'Strong Password' || isLoading}
-                            className="btn btn-lg btn-success w-100"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <span
-                                        className="spinner-border spinner-border-sm me-2"
-                                        role="status"
-                                        aria-hidden="true"
-                                    ></span>
-                                    Registering...
-                                </>
-                            ) : (
-                                'Register'
-                            )}
-                        </button>
+                        <SubmitButton
+                            isLoading={isLoading}
+                            btnClass="btn btn-lg btn-success w-100"
+                            btnName="Register"
+                            isDisabled={passwordStrength !== 'Strong Password'}
+                        />
                     </div>
 
-                    {/* Login Link */}
                     <p className="text-center">
                         Already have an account? <Link to="/sign-in">Sign In</Link>
                     </p>

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useUpdateUserMutation } from '../../../../store';
 
+import SubmitButton from '../../../../utils/SubmitButton';
+
 export default function Credentials() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -63,7 +65,6 @@ export default function Credentials() {
         <form className="tab-pane active" onSubmit={handleSubmit}>
             <div className="row">
                 <div className="col-md-4">
-                    {/* Alerts */}
                     {alert && (
                         <div className={`alert alert-${alert.type}`} role="alert">
                             {alert.message}
@@ -75,7 +76,6 @@ export default function Credentials() {
                         </div>
                     )}
 
-                    {/* New Password */}
                     <div className="mb-3">
                         <label className="form-label">New Password</label>
                         <div className="input-group">
@@ -90,13 +90,14 @@ export default function Credentials() {
                                 required
                                 disabled={isLoading}
                             />
-                            <span
-                                className="input-group-text"
-                                style={{ cursor: 'pointer' }}
+                            <button
+                                type="button"
+                                className="btn btn-outline-success"
                                 onClick={() => setShowPassword(!showPassword)}
+                                tabIndex={-1}
                             >
-                                <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                            </span>
+                                <i className={`fa ${!showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                            </button>
                         </div>
                         {newPassword && (
                             <small
@@ -109,7 +110,6 @@ export default function Credentials() {
                         )}
                     </div>
 
-                    {/* Confirm New Password */}
                     <div className="mb-3">
                         <label className="form-label">Confirm New Password</label>
                         <div className="input-group">
@@ -121,35 +121,23 @@ export default function Credentials() {
                                 required
                                 disabled={isLoading}
                             />
-                            <span
-                                className="input-group-text"
-                                style={{ cursor: 'pointer' }}
+                            <button
+                                type="button"
+                                className="btn btn-outline-success"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                tabIndex={-1}
                             >
-                                <i className={`fa ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                            </span>
+                                <i className={`fa ${!showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                            </button>
                         </div>
                     </div>
 
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        className="btn btn-sm btn-success"
-                        disabled={passwordStrength !== 'Strong Password' || isLoading}
-                    >
-                        {isLoading ? (
-                            <>
-                                <span
-                                    className="spinner-border spinner-border-sm me-2"
-                                    role="status"
-                                    aria-hidden="true"
-                                ></span>
-                                Updating...
-                            </>
-                        ) : (
-                            'Update'
-                        )}
-                    </button>
+                    <SubmitButton
+                        isLoading={isLoading}
+                        isDisabled={passwordStrength !== 'Strong Password'}
+                        btnClass="btn btn-sm btn-success"
+                        btnName="Save Changes"
+                    />
                 </div>
             </div>
         </form>

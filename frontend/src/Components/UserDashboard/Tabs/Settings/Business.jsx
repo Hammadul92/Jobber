@@ -3,6 +3,8 @@ import { provinces, countries } from '../../../../utils/locations';
 
 import { useFetchBusinessesQuery, useCreateBusinessMutation, useUpdateBusinessMutation } from '../../../../store';
 
+import SubmitButton from '../../../../utils/SubmitButton';
+
 export default function Business({ token }) {
     const [alert, setAlert] = useState(null);
 
@@ -361,16 +363,11 @@ export default function Business({ token }) {
                 ))}
             </div>
 
-            <button className="btn btn-success" disabled={isCreating || isUpdating}>
-                {isCreating || isUpdating ? (
-                    <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Saving...
-                    </>
-                ) : (
-                    'Save'
-                )}
-            </button>
+            <SubmitButton
+                isLoading={isCreating || isUpdating}
+                btnClass="btn btn-sm btn-success"
+                btnName="Save Changes"
+            />
         </form>
     );
 }

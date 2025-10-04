@@ -11,6 +11,8 @@ import {
 } from '@devexpress/dx-react-grid';
 import { useFetchClientsQuery, useDeleteClientMutation } from '../../../../store';
 
+import SubmitButton from '../../../../utils/SubmitButton';
+
 export default function ClientsDatatable({ token }) {
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
@@ -52,7 +54,9 @@ export default function ClientsDatatable({ token }) {
         setShowModal(true);
     };
 
-    const confirmDelete = async () => {
+    const confirmDelete = async (e) => {
+        e.preventDefault();
+
         if (!selectedClientId) return;
 
         try {
@@ -124,9 +128,8 @@ export default function ClientsDatatable({ token }) {
                 </Grid>
             </div>
 
-            {/* Delete Confirmation Modal */}
             {showModal && (
-                <div className="modal d-block" tabIndex="-1" role="dialog">
+                <form onSubmit={confirmDelete} className="modal d-block" tabIndex="-1" role="dialog">
                     <div className="modal-dialog modal-dialog-centered" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -148,29 +151,11 @@ export default function ClientsDatatable({ token }) {
                                 >
                                     Cancel
                                 </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-sm btn-danger"
-                                    onClick={confirmDelete}
-                                    disabled={deleting}
-                                >
-                                    {deleting ? (
-                                        <>
-                                            <span
-                                                className="spinner-border spinner-border-sm me-2"
-                                                role="status"
-                                                aria-hidden="true"
-                                            ></span>
-                                            Deleting...
-                                        </>
-                                    ) : (
-                                        'Delete'
-                                    )}
-                                </button>
+                                <SubmitButton isLoading={deleting} btnClass="btn btn-sm btn-danger" btnName="Delete" />
                             </div>
                         </div>
                     </div>
-                </div>
+                </form>
             )}
 
             {showModal && <div className="modal-backdrop fade show"></div>}

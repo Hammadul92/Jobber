@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSigninUserMutation, useFetchUserQuery, useVerifyEmailQuery } from '../../store';
 
+import SubmitButton from '../../utils/SubmitButton';
+
 export default function SignIn() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -109,20 +111,11 @@ export default function SignIn() {
 
                     {/* Submit */}
                     <div className="text-center mb-3">
-                        <button type="submit" className="btn btn-lg btn-success w-100" disabled={signinLoading}>
-                            {signinLoading ? (
-                                <>
-                                    <span
-                                        className="spinner-border spinner-border-sm me-2"
-                                        role="status"
-                                        aria-hidden="true"
-                                    ></span>
-                                    Signing In...
-                                </>
-                            ) : (
-                                'Sign In'
-                            )}
-                        </button>
+                        <SubmitButton
+                            isLoading={signinLoading}
+                            btnClass="btn btn-lg btn-success w-100"
+                            btnName="Sign In"
+                        />
                     </div>
 
                     {/* Forgot Password */}

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useResetPasswordMutation } from '../../store';
 
+import SubmitButton from '../../utils/SubmitButton';
+
 export default function ResetPassword() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -95,7 +97,6 @@ export default function ResetPassword() {
                             }}
                             required
                             className="form-control form-control-lg"
-                            placeholder="New Password"
                             disabled={isLoading}
                         />
                         {password && (
@@ -121,23 +122,18 @@ export default function ResetPassword() {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                             className="form-control form-control-lg"
-                            placeholder="Confirm New Password"
                             disabled={isLoading}
                         />
                     </div>
 
-                    {/* Submit Button */}
                     <div className="text-center mb-3">
-                        <button
-                            type="submit"
-                            disabled={passwordStrength !== 'Strong Password' || isLoading}
-                            className="btn btn-lg btn-success w-100"
-                        >
-                            {isLoading ? 'Resetting Password...' : 'Reset Password'}
-                        </button>
+                        <SubmitButton
+                            isLoading={isLoading}
+                            btnClass="btn btn-lg btn-success w-100"
+                            btnName="Reset Password"
+                        />
                     </div>
 
-                    {/* Back to Login */}
                     <p className="text-center">
                         Remembered your password? <Link to="/sign-in">Sign In</Link>
                     </p>

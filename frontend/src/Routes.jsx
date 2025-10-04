@@ -30,6 +30,7 @@ function App() {
                 <Route path="/dashboard/invoices" element={<UserDashboard page={'invoices'} />} />
                 <Route path="/dashboard/payouts" element={<UserDashboard page={'payouts'} />} />
                 <Route path="/dashboard/team-members" element={<UserDashboard page={'team-members'} />} />
+                <Route path="/dashboard/team-member/:id" element={<UserDashboard page="team-member" />} />
                 <Route path="/dashboard/settings" element={<UserDashboard page={'settings'} />} />
 
                 <Route path="*" element={<PageNotFound />} />

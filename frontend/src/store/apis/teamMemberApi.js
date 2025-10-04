@@ -39,7 +39,7 @@ const teamMemberApi = createApi({
                 method: 'PATCH',
                 body: data,
             }),
-            invalidatesTags: (result, error, arg) => [{ type: 'TeamMember', id: arg.id }],
+            invalidatesTags: (result, error, arg) => ['TeamMember', { type: 'TeamMember', id: arg.id }],
         }),
 
         deleteTeamMember: builder.mutation({

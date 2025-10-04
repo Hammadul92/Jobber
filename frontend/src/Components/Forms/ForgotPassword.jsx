@@ -1,7 +1,8 @@
-// ForgotPassword.jsx
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useRequestPasswordResetMutation } from '../../store';
+
+import SubmitButton from '../../utils/SubmitButton';
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
@@ -22,14 +23,12 @@ export default function ForgotPassword() {
 
             <form onSubmit={handleSubmit} className="row">
                 <div className="col-md-4 offset-md-4">
-                    {/* Show API error if any */}
                     {error && (
                         <div className="alert alert-danger text-center">
                             {error?.data?.detail || 'Something went wrong. Please try again.'}
                         </div>
                     )}
 
-                    {/* Show success message */}
                     {isSuccess && (
                         <div className="alert alert-success text-center">
                             If an account exists for this email, a reset link has been sent.
@@ -52,20 +51,11 @@ export default function ForgotPassword() {
                     </div>
 
                     <div className="text-center mb-3">
-                        <button type="submit" className="btn btn-lg btn-success w-100" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <span
-                                        className="spinner-border spinner-border-sm me-2"
-                                        role="status"
-                                        aria-hidden="true"
-                                    ></span>
-                                    Sending Reset Link...
-                                </>
-                            ) : (
-                                'Send Reset Link'
-                            )}
-                        </button>
+                        <SubmitButton
+                            isLoading={isLoading}
+                            btnClass="btn btn-lg btn-success w-100"
+                            btnName="Send Reset Link"
+                        />
                     </div>
 
                     <p className="text-center">

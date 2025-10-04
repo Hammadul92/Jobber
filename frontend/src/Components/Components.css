@@ -76,7 +76,6 @@ body {
 .side-nav a.active {
     background: #198754;
     color: #ffffff;
-    font-weight: 700;
 }
 
 .side-nav button.collapse-handle {
@@ -101,10 +100,6 @@ textarea.form-control:focus {
     box-shadow: 0 0 4px #198754;
 }
 
-.table {
-    margin-bottom: 0;
-}
-
 .table thead th {
     background-color: transparent;
     text-transform: uppercase;
@@ -117,8 +112,8 @@ textarea.form-control:focus {
     background-color: #eee;
 }
 
-.data-table .card-footer {
-    padding: 1rem;
+.table thead th .text-primary {
+    color: #198754 !important;
 }
 
 .sr-only {

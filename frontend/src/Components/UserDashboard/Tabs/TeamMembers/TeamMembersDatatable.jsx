@@ -11,6 +11,8 @@ import {
 } from '@devexpress/dx-react-grid';
 import { useFetchTeamMembersQuery, useDeleteTeamMemberMutation } from '../../../../store';
 
+import SubmitButton from '../../../../utils/SubmitButton';
+
 export default function TeamMembersDatatable({ token }) {
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
@@ -53,7 +55,9 @@ export default function TeamMembersDatatable({ token }) {
         setShowModal(true);
     };
 
-    const confirmDelete = async () => {
+    const confirmDelete = async (e) => {
+        e.preventDefault();
+
         if (!selectedTeamMemberId) return;
 
         try {
@@ -89,14 +93,14 @@ export default function TeamMembersDatatable({ token }) {
                 return (
                     <Table.Cell {...props}>
                         {props.row.employee_name}{' '}
-                        <span className="badge bg-success rounded-pill text-white">Active</span>
+                        <span className="badge bg-success rounded-pill text-white">ACTIVE</span>
                     </Table.Cell>
                 );
             } else {
                 return (
                     <Table.Cell {...props}>
                         {props.row.employee_name}{' '}
-                        <span className="badge bg-danger rounded-pill text-white">Inactive</span>
+                        <span className="badge bg-danger rounded-pill text-white">INACTIVE</span>
                     </Table.Cell>
                 );
             }
@@ -144,7 +148,7 @@ export default function TeamMembersDatatable({ token }) {
 
             {/* Delete Confirmation Modal */}
             {showModal && (
-                <div className="modal d-block" tabIndex="-1" role="dialog">
+                <form onSubmit={confirmDelete} className="modal d-block" tabIndex="-1" role="dialog">
                     <div className="modal-dialog modal-dialog-centered" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -166,29 +170,11 @@ export default function TeamMembersDatatable({ token }) {
                                 >
                                     Cancel
                                 </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-sm btn-danger"
-                                    onClick={confirmDelete}
-                                    disabled={deleting}
-                                >
-                                    {deleting ? (
-                                        <>
-                                            <span
-                                                className="spinner-border spinner-border-sm me-2"
-                                                role="status"
-                                                aria-hidden="true"
-                                            ></span>
-                                            Deleting...
-                                        </>
-                                    ) : (
-                                        'Delete'
-                                    )}
-                                </button>
+                                <SubmitButton isLoading={deleting} btnClass="btn btn-sm btn-danger" btnName="Delete" />
                             </div>
                         </div>
                     </div>
-                </div>
+                </form>
             )}
 
             {showModal && <div className="modal-backdrop fade show"></div>}

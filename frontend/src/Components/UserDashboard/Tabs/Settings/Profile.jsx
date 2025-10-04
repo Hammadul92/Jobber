@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useUpdateUserMutation, useFetchUserQuery } from '../../../../store';
 
+import SubmitButton from '../../../../utils/SubmitButton';
+
 export default function Profile({ token }) {
     const {
         data: user,
@@ -87,21 +89,12 @@ export default function Profile({ token }) {
 
                     <div className="mb-3 w-md-50">
                         <label className="form-label">Last Login</label>
-                        <input type="text" className="form-control" value={user?.last_login || ''} readOnly />
+                        <input type="text" className="form-control" value={user?.last_login || ''} disabled />
                     </div>
                 </div>
             </div>
 
-            <button className="btn btn-sm btn-success" disabled={isLoading}>
-                {isLoading ? (
-                    <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Saving...
-                    </>
-                ) : (
-                    'Save'
-                )}
-            </button>
+            <SubmitButton isLoading={isLoading} btnClass="btn btn-sm btn-success" btnName="Save Changes" />
         </form>
     );
 }
