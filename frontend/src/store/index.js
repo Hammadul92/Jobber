@@ -4,6 +4,7 @@ import { userApi } from './apis/userApi';
 import { businessApi } from './apis/businessApi';
 import { clientApi } from './apis/clientApi';
 import { teamMemberApi } from './apis/teamMemberApi';
+import { serviceApi } from './apis/serviceApi';
 
 const store = configureStore({
     reducer: {
@@ -11,19 +12,21 @@ const store = configureStore({
         [businessApi.reducerPath]: businessApi.reducer,
         [clientApi.reducerPath]: clientApi.reducer,
         [teamMemberApi.reducerPath]: teamMemberApi.reducer,
+        [serviceApi.reducerPath]: serviceApi.reducer,
     },
     middleware: (getDefaultMiddleware) => {
         return getDefaultMiddleware()
             .concat(userApi.middleware)
             .concat(businessApi.middleware)
             .concat(clientApi.middleware)
-            .concat(teamMemberApi.middleware);
+            .concat(teamMemberApi.middleware)
+            .concat(serviceApi.middleware);
     },
 });
 
 setupListeners(store.dispatch);
 
-export { store, userApi, businessApi, clientApi, teamMemberApi };
+export { store, userApi, businessApi, clientApi, teamMemberApi, serviceApi };
 export {
     useSigninUserMutation,
     useFetchUserQuery,
@@ -58,3 +61,11 @@ export {
     useUpdateTeamMemberMutation,
     useDeleteTeamMemberMutation,
 } from './apis/teamMemberApi';
+
+export {
+    useFetchServicesQuery,
+    useFetchServiceQuery,
+    useCreateServiceMutation,
+    useUpdateServiceMutation,
+    useDeleteServiceMutation,
+} from './apis/serviceApi';

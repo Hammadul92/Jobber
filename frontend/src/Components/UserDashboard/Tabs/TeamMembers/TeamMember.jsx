@@ -131,7 +131,7 @@ export default function TeamMember({ token }) {
                 <div>
                     <button
                         type="button"
-                        className="btn btn-sm btn-dark me-2"
+                        className="btn btn-dark me-2"
                         onClick={() => navigate('/dashboard/team-members')}
                     >
                         Cancel

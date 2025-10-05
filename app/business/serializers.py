@@ -6,7 +6,16 @@ import json
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from core.models import Business, Client, TeamMember
+from core.models import (
+    Business,
+    Client,
+    TeamMember,
+    Service,
+    SERVICE_TYPE_CHOICES,
+    CURRENCY_CHOICES,
+    BILLING_CYCLE_CHOICES,
+    SERVICE_STATUS_CHOICES
+)
 
 
 class BusinessSerializer(serializers.ModelSerializer):
@@ -97,3 +106,76 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = ["id", "joined_at"]
+
+
+class ServiceSerializer(serializers.ModelSerializer):
+    service_type = serializers.ChoiceField(
+        choices=SERVICE_TYPE_CHOICES,
+        default="ONE_TIME"
+    )
+    currency = serializers.ChoiceField(
+        choices=CURRENCY_CHOICES,
+        default="CAD"
+    )
+    status = serializers.ChoiceField(
+        choices=SERVICE_STATUS_CHOICES,
+        default="PENDING"
+    )
+
+    billing_cycle = serializers.ChoiceField(
+        choices=BILLING_CYCLE_CHOICES,
+        allow_blank=True,
+        allow_null=True,
+        required=False
+    )
+
+    class Meta:
+        model = Service
+        fields = [
+            "id",
+            "client",
+            "business",
+            "service_name",
+            "description",
+            "start_date",
+            "end_date",
+            "service_type",
+            "price",
+            "currency",
+            "billing_cycle",
+            "status",
+            "street_address",
+            "city",
+            "country",
+            "province_state",
+            "postal_code",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
+
+    def validate(self, data):
+        """
+        Custom validation:
+        - Ensure service_name is valid for the selected business.
+        - Ensure client belongs to the same business.
+        """
+        business = data.get("business") or getattr(self.instance, "business", None)
+        client = data.get("client") or getattr(self.instance, "client", None)
+
+        # Validate service_name
+        if business and data.get("service_name"):
+            allowed = {service.name for service in business.services_offered.all()}
+            if data["service_name"] not in allowed:
+                raise serializers.ValidationError({
+                    "service_name": "This service is not offered by the selected business."
+                })
+
+        # Validate client belongs to business
+        if business and client:
+            if client.business != business:
+                raise serializers.ValidationError({
+                    "client": "This client does not belong to the selected business."
+                })
+
+        return data

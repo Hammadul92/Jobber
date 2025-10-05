@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { countries, provinces } from '../../../../utils/locations';
 import { useFetchClientQuery, useUpdateClientMutation } from '../../../../store';
 
 import SubmitButton from '../../../../utils/SubmitButton';
 
-export default function Client() {
+export default function Client({ token }) {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const { data: clientData, isLoading, error } = useFetchClientQuery({ id });
+    const {
+        data: clientData,
+        isLoading,
+        error,
+    } = useFetchClientQuery(id, {
+        skip: !token,
+    });
     const [updateClient, { isLoading: updating, error: updateError, isSuccess }] = useUpdateClientMutation();
 
     const [name, setName] = useState('');
@@ -67,7 +73,12 @@ export default function Client() {
 
     return (
         <div>
-            <h3 className="mb-4">{name}</h3>
+            <div className="clearfix">
+                <Link to={`/dashboard/client/${id}/services`} className="btn btn-success float-end">
+                    Services
+                </Link>
+                <h3 className="mb-4">{name}</h3>
+            </div>
 
             <form onSubmit={handleSubmit}>
                 {updateError && (
@@ -185,15 +196,11 @@ export default function Client() {
                 </div>
 
                 <div>
-                    <button
-                        type="button"
-                        className="btn btn-sm btn-dark me-2"
-                        onClick={() => navigate('/dashboard/clients')}
-                    >
+                    <button type="button" className="btn btn-dark me-2" onClick={() => navigate('/dashboard/clients')}>
                         Cancel
                     </button>
 
-                    <SubmitButton isLoading={updating} btnClass="btn btn-sm btn-success" btnName="Save Changes" />
+                    <SubmitButton isLoading={updating} btnClass="btn btn-success" btnName="Save Changes" />
                 </div>
             </form>
         </div>

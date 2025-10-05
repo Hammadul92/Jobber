@@ -363,11 +363,7 @@ export default function Business({ token }) {
                 ))}
             </div>
 
-            <SubmitButton
-                isLoading={isCreating || isUpdating}
-                btnClass="btn btn-sm btn-success"
-                btnName="Save Changes"
-            />
+            <SubmitButton isLoading={isCreating || isUpdating} btnClass="btn btn-success" btnName="Save Changes" />
         </form>
     );
 }

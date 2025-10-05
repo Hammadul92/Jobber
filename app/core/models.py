@@ -28,11 +28,27 @@ SERVICE_TYPE_CHOICES = [
     ("SUBSCRIPTION", "Subscription"),
 ]
 
+SERVICE_STATUS_CHOICES = [
+    ("PENDING", "Pending"),
+    ("ACTIVE", "Active"),
+    ("CANCELLED", "Cancelled"),
+]
+
 JOB_STATUS_CHOICES = [
     ("PENDING", "Pending"),
     ("IN_PROGRESS", "In Progress"),
     ("COMPLETED", "Completed"),
     ("CANCELLED", "Cancelled"),
+]
+
+BILLING_CYCLE_CHOICES = [
+    ("MONTHLY", "Monthly"),
+    ("YEARLY", "Yearly"),
+]
+
+CURRENCY_CHOICES = [
+    ("CAD", "CAD"),
+    ("USD", "USD"),
 ]
 
 
@@ -261,12 +277,12 @@ class Service(models.Model):
     )
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=3, default="CAD")
+    currency = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default="CAD"
+    )
 
-    BILLING_CYCLE_CHOICES = [
-        ("MONTHLY", "Monthly"),
-        ("YEARLY", "Yearly"),
-    ]
     billing_cycle = models.CharField(
         max_length=20,
         choices=BILLING_CYCLE_CHOICES,
@@ -274,17 +290,20 @@ class Service(models.Model):
         null=True,
     )
 
-    STATUS_CHOICES = [
-        ("PENDING", "Pending"),
-        ("ACTIVE", "Active"),
-        ("CANCELLED", "Cancelled"),
-    ]
     status = models.CharField(
         max_length=20,
-        choices=STATUS_CHOICES,
+        choices=SERVICE_STATUS_CHOICES,
         default="PENDING",
     )
 
+    # Service Address
+    street_address = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    country = models.CharField(max_length=2, default="CA")
+    province_state = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

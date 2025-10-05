@@ -18,7 +18,7 @@ const businessApi = createApi({
         }),
 
         fetchBusiness: builder.query({
-            query: (data) => `/business/${data.id}`,
+            query: (id) => `/business/${id}`,
         }),
 
         createBusiness: builder.mutation({

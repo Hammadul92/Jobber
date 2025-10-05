@@ -9,7 +9,7 @@ export default function Clients({ token }) {
     return (
         <div>
             <div className="clearfix mb-3">
-                <button className="btn btn-sm btn-success float-end" onClick={() => setShowModal(true)}>
+                <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
                     Add Client
                 </button>
                 <h3 className="mb-0">Clients</h3>

@@ -135,7 +135,7 @@ export default function Credentials() {
                     <SubmitButton
                         isLoading={isLoading}
                         isDisabled={passwordStrength !== 'Strong Password'}
-                        btnClass="btn btn-sm btn-success"
+                        btnClass="btn btn-success"
                         btnName="Save Changes"
                     />
                 </div>

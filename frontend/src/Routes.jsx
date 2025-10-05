@@ -25,6 +25,7 @@ function App() {
                 <Route path="/dashboard/home" element={<UserDashboard page={'home'} />} />
                 <Route path="/dashboard/clients" element={<UserDashboard page={'clients'} />} />
                 <Route path="/dashboard/client/:id" element={<UserDashboard page="client" />} />
+                <Route path="/dashboard/client/:id/services" element={<UserDashboard page="client-services" />} />
                 <Route path="/dashboard/quotes" element={<UserDashboard page={'quotes'} />} />
                 <Route path="/dashboard/jobs" element={<UserDashboard page={'jobs'} />} />
                 <Route path="/dashboard/invoices" element={<UserDashboard page={'invoices'} />} />

@@ -8,7 +8,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import Business, Client, TeamMember
+from core.models import Business, Client, TeamMember, Service
 from business import serializers
 
 
@@ -69,9 +69,17 @@ class ClientViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve clients for authenticated user."""
-        owned_businesses = Business.objects.filter(owner=self.request.user)
-        return self.queryset.filter(business__in=owned_businesses) \
-            .order_by('-id')
+        user = self.request.user
+        qs = super().get_queryset()
+
+        if user.role == "ADMIN":
+            return qs
+
+        if user.role == "MANAGER":
+            return qs.filter(business__owner=user) \
+                .order_by('-id')
+
+        return qs.none()
 
     def perform_create(self, serializer):
         """Assign business to the client for authenticated user"""
@@ -133,7 +141,15 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return self.queryset.filter(business__in=user.owned_businesses.all())
+        qs = super().get_queryset()
+
+        if user.role == "ADMIN":
+            return qs
+
+        if user.role == "MANAGER":
+            return qs.filter(business__owner=user).order_by('-id')
+
+        return qs.none()
 
     def destroy(self, request, *args, **kwargs):
         """Instead of deleting, mark team member as inactive"""
@@ -144,3 +160,34 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
             {"detail": "Team member deleted successfully."},
             status=status.HTTP_204_NO_CONTENT
         )
+
+
+class ServiceViewSet(viewsets.ModelViewSet):
+    """View for manage service APIs."""
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    queryset = Service.objects.filter(is_active=True).select_related("client", "business")
+    serializer_class = serializers.ServiceSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = super().get_queryset()
+
+        if user.role == "ADMIN":
+            return qs
+
+        if user.role == "MANAGER":
+            return qs.filter(business__owner=user).order_by('-id')
+
+        return qs.none()
+
+    def perform_create(self, serializer):
+        # Validate that client belongs to business
+        client = serializer.validated_data["client"]
+        business = serializer.validated_data["business"]
+
+        if client.business != business:
+            raise serializers.ValidationError("Selected client does not belong to this business.")
+
+        serializer.save()

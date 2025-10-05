@@ -150,8 +150,3 @@ textarea.form-control:focus {
     border: none;
     opacity: 0.6;
 }
-
-.btn,
-.form-control {
-    border-radius: 0;
-}

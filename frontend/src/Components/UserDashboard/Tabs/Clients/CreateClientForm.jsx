@@ -85,17 +85,13 @@ export default function CreateClientModal({ showModal, setShowModal }) {
                                 </div>
 
                                 <div className="modal-footer">
-                                    <button
-                                        type="button"
-                                        className="btn btn-sm btn-dark"
-                                        onClick={() => setShowModal(false)}
-                                    >
+                                    <button type="button" className="btn btn-dark" onClick={() => setShowModal(false)}>
                                         Cancel
                                     </button>
 
                                     <SubmitButton
                                         isLoading={isLoading}
-                                        btnClass="btn btn-sm btn-success"
+                                        btnClass="btn btn-success"
                                         btnName="Add Client"
                                     />
                                 </div>

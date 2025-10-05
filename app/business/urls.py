@@ -14,6 +14,7 @@ router = DefaultRouter()
 router.register('business', views.BusinessViewSet)
 router.register('client', views.ClientViewSet)
 router.register('team-member', views.TeamMemberViewSet)
+router.register('service', views.ServiceViewSet)
 
 app_name = 'business'
 

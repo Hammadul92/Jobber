@@ -94,7 +94,7 @@ export default function Profile({ token }) {
                 </div>
             </div>
 
-            <SubmitButton isLoading={isLoading} btnClass="btn btn-sm btn-success" btnName="Save Changes" />
+            <SubmitButton isLoading={isLoading} btnClass="btn btn-success" btnName="Save Changes" />
         </form>
     );
 }

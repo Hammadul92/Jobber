@@ -20,7 +20,7 @@ const clientApi = createApi({
         }),
 
         fetchClient: builder.query({
-            query: (data) => `/client/${data.id}`,
+            query: (id) => `/client/${id}`,
             providesTags: (result, error, arg) => [{ type: 'Client', id: arg.id }],
         }),
 
