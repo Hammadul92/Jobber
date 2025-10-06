@@ -78,6 +78,12 @@ export default function ClientsDatatable({ token }) {
                     >
                         <i className="fa fa-pencil"></i>
                     </Link>
+                    <Link
+                        to={`/dashboard/client/${props.row.id}/services`}
+                        className="badge bg-light rounded-circle p-2 me-2 text-secondary"
+                    >
+                        <i className="fa fa fa-cogs"></i>
+                    </Link>
                     <button
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary border-0"
                         onClick={() => handleDeleteClick(props.row.id)}
@@ -86,6 +92,21 @@ export default function ClientsDatatable({ token }) {
                     </button>
                 </Table.Cell>
             );
+        } else if (props.column.name === 'client_name') {
+            if (props.row.is_active === 'True') {
+                return (
+                    <Table.Cell {...props}>
+                        {props.row.client_name} <span className="badge bg-success rounded-pill text-white">ACTIVE</span>
+                    </Table.Cell>
+                );
+            } else {
+                return (
+                    <Table.Cell {...props}>
+                        {props.row.client_name}{' '}
+                        <span className="badge bg-danger rounded-pill text-white">INACTIVE</span>
+                    </Table.Cell>
+                );
+            }
         }
         return <Table.Cell {...props} />;
     };

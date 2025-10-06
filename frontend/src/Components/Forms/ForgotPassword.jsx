@@ -45,15 +45,14 @@ export default function ForgotPassword() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="form-control form-control-lg"
-                            placeholder="Email"
+                            className="form-control"
                         />
                     </div>
 
                     <div className="text-center mb-3">
                         <SubmitButton
                             isLoading={isLoading}
-                            btnClass="btn btn-lg btn-success w-100"
+                            btnClass="btn btn-success w-100"
                             btnName="Send Reset Link"
                         />
                     </div>

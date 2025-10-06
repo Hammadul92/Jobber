@@ -75,6 +75,13 @@ const userApi = createApi({
                 body: data,
             }),
         }),
+        checkUserExists: builder.mutation({
+            query: (data) => ({
+                url: '/check-user-exists/',
+                method: 'POST',
+                body: data,
+            }),
+        }),
     }),
 });
 
@@ -87,6 +94,7 @@ export const {
     useLogoutUserMutation,
     useRequestPasswordResetMutation,
     useResetPasswordMutation,
+    useCheckUserExistsMutation,
 } = userApi;
 
 export { userApi };

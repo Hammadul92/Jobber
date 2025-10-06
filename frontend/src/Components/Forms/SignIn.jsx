@@ -78,8 +78,7 @@ export default function SignIn() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="form-control form-control-lg"
-                            placeholder="Email"
+                            className="form-control"
                         />
                     </div>
 
@@ -95,8 +94,7 @@ export default function SignIn() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="form-control form-control-lg"
-                                placeholder="Password"
+                                className="form-control"
                             />
                             <button
                                 type="button"
@@ -104,26 +102,19 @@ export default function SignIn() {
                                 onClick={() => setShowPassword(!showPassword)}
                                 tabIndex={-1}
                             >
-                                <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                <i className={`fa ${!showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                             </button>
                         </div>
                     </div>
 
-                    {/* Submit */}
                     <div className="text-center mb-3">
-                        <SubmitButton
-                            isLoading={signinLoading}
-                            btnClass="btn btn-lg btn-success w-100"
-                            btnName="Sign In"
-                        />
+                        <SubmitButton isLoading={signinLoading} btnClass="btn btn-success w-100" btnName="Sign In" />
                     </div>
 
-                    {/* Forgot Password */}
                     <div className="text-center mb-3">
                         <Link to="/forgot-password">Forgot Password?</Link>
                     </div>
 
-                    {/* Register Link */}
                     <p className="text-center">
                         Don’t have an account? <Link to="/register">Register</Link>
                     </p>

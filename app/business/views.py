@@ -28,7 +28,6 @@ class BusinessViewSet(viewsets.ModelViewSet):
         user = self.request.user
         business = serializer.save(owner=user)
 
-        # Auto-create TeamMember entry for the manager (owner)
         TeamMember.objects.get_or_create(
             business=business,
             employee=user,
@@ -47,9 +46,9 @@ class ClientPagination(pagination.PageNumberPagination):
             'current_page': self.page.number,
             'page_size': self.get_page_size(self.request),
             'columns': [
-                {'name': 'name', 'title': 'Name'},
-                {'name': 'email', 'title': 'Email'},
-                {'name': 'phone', 'title': 'Phone'}
+                {'name': 'client_name', 'title': 'Name'},
+                {'name': 'client_email', 'title': 'Email'},
+                {'name': 'client_phone', 'title': 'Phone'}
             ],
             'results': data,
         })
@@ -63,7 +62,7 @@ class ClientViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'name', 'email', 'phone']
+    search_fields = ['id', 'client_name', 'client_email', 'client_phone']
 
     pagination_class = ClientPagination
 
@@ -82,11 +81,16 @@ class ClientViewSet(viewsets.ModelViewSet):
         return qs.none()
 
     def perform_create(self, serializer):
-        """Assign business to the client for authenticated user"""
+        """Assign business and user to the client for authenticated user"""
         business = Business.objects.filter(owner=self.request.user).first()
         if not business:
             raise ValueError("You must own a business to create a client.")
-        serializer.save(business=business)
+
+        user_id = self.request.data.get("user")
+        if not user_id:
+            raise ValueError("Client must have a user assigned.")
+
+        serializer.save(business=business, user_id=user_id)
 
     def destroy(self, request, *args, **kwargs):
         """Instead of deleting, mark client as inactive"""
@@ -113,7 +117,7 @@ class TeamMemberPagination(pagination.PageNumberPagination):
             'columns': [
                 {'name': 'employee_name', 'title': 'Name'},
                 {'name': 'employee_email', 'title': 'Email'},
-                {'name': 'phone', 'title': 'Phone'},
+                {'name': 'employee_phone', 'title': 'Phone'},
                 {'name': 'role', 'title': 'Role'}
             ],
             'results': data,

@@ -27,4 +27,9 @@ urlpatterns = [
         views.ResetPasswordView.as_view(),
         name="password-reset"
     ),
+     path(
+        "check-user-exists/",
+        views.CheckUserExistsView.as_view(),
+        name="check-user-exists"
+    ),
 ]

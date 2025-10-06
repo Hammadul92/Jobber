@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetchServicesQuery, useDeleteServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../../utils/SubmitButton';
+import { countries, provinces } from '../../../../../utils/locations';
 
 export default function ClientServicesData({ token, clientId }) {
     const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();
@@ -14,6 +15,12 @@ export default function ClientServicesData({ token, clientId }) {
         error: serviceError,
         refetch,
     } = useFetchServicesQuery(clientId, { skip: !token });
+
+    // Filters
+    const [statusFilter, setStatusFilter] = useState('');
+    const [typeFilter, setTypeFilter] = useState('');
+    const [countryFilter, setCountryFilter] = useState('');
+    const [provinceFilter, setProvinceFilter] = useState('');
 
     const handleDeleteClick = (id) => {
         setSelectedServiceId(id);
@@ -34,27 +41,106 @@ export default function ClientServicesData({ token, clientId }) {
         }
     };
 
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'ACTIVE':
+                return <span className="badge bg-success rounded-pill float-end">ACTIVE</span>;
+            case 'PENDING':
+                return <span className="badge bg-primary rounded-pill float-end">PENDING</span>;
+            case 'CANCELLED':
+                return <span className="badge bg-danger rounded-pill float-end">CANCELLED</span>;
+            case 'COMPLETED':
+                return <span className="badge bg-secondary rounded-pill float-end">COMPLETED</span>;
+            default:
+                return null;
+        }
+    };
+
+    // Apply filters
+    const filteredServices = useMemo(() => {
+        if (!services) return [];
+        return services.filter((service) => {
+            return (
+                (!statusFilter || service.status === statusFilter) &&
+                (!typeFilter || service.service_type === typeFilter) &&
+                (!countryFilter || service.country === countryFilter) &&
+                (!provinceFilter || service.province_state === provinceFilter)
+            );
+        });
+    }, [services, statusFilter, typeFilter, countryFilter, provinceFilter]);
+
     return (
         <>
+            {/* Filters */}
+            <div className="mb-4 row g-2">
+                <div className="col-md-3">
+                    <select
+                        className="form-select"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="PENDING">PENDING</option>
+                        <option value="CANCELLED">CANCELLED</option>
+                        <option value="COMPLETED">COMPLETED</option>
+                    </select>
+                </div>
+                <div className="col-md-3">
+                    <select className="form-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+                        <option value="">All Types</option>
+                        <option value="ONE_TIME">ONE_TIME</option>
+                        <option value="SUBSCRIPTION">SUBSCRIPTION</option>
+                    </select>
+                </div>
+                <div className="col-md-3">
+                    <select
+                        className="form-select"
+                        value={countryFilter}
+                        onChange={(e) => {
+                            setCountryFilter(e.target.value);
+                            setProvinceFilter(''); // reset province when country changes
+                        }}
+                    >
+                        <option value="">All Countries</option>
+                        {countries.map((c) => (
+                            <option key={c.code} value={c.code}>
+                                {c.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="col-md-3">
+                    <select
+                        className="form-select"
+                        value={provinceFilter}
+                        onChange={(e) => setProvinceFilter(e.target.value)}
+                        disabled={!countryFilter}
+                    >
+                        <option value="">All Provinces/States</option>
+                        {countryFilter &&
+                            provinces[countryFilter]?.map((prov) => (
+                                <option key={prov.code} value={prov.code}>
+                                    {prov.name}
+                                </option>
+                            ))}
+                    </select>
+                </div>
+            </div>
+
             <div className="row">
                 {loadingServices && <div>Loading services...</div>}
                 {serviceError && (
                     <div className="alert alert-danger">{serviceError?.data?.detail || 'Failed to load services'}</div>
                 )}
-                {services?.length === 0 && !loadingServices && <p>No services added yet.</p>}
+                {filteredServices?.length === 0 && !loadingServices && <p>No services found.</p>}
 
-                {services?.map((service) => (
+                {filteredServices?.map((service) => (
                     <div className="col-md-4 mb-3" key={service.id}>
                         <div className="card h-100 shadow-sm border-0">
                             <div className="card-body">
                                 <div className="clearfix">
-                                    {service.status === 'ACTIVE' ? (
-                                        <span className="badge bg-success rounded-pill float-end">ACTIVE</span>
-                                    ) : service.status === 'PENDING' ? (
-                                        <span className="badge bg-primary rounded-pill float-end">PENDING</span>
-                                    ) : service.status === 'CANCELLED' ? (
-                                        <span className="badge bg-danger rounded-pill float-end">CANCELLED</span>
-                                    ) : null}
+                                    {getStatusBadge(service.status)}
 
                                     <span className="badge bg-dark rounded-pill float-end me-2">
                                         {service.service_type}
@@ -63,7 +149,7 @@ export default function ClientServicesData({ token, clientId }) {
                                     <h5 className="card-title">{service.service_name}</h5>
                                 </div>
 
-                                {service.description ? <p className="card-text">{service.description}</p> : null}
+                                {service.description && <p className="card-text text-muted">{service.description}</p>}
 
                                 <p className="mb-1">
                                     Price: ${service.price} {service.currency}
@@ -71,9 +157,9 @@ export default function ClientServicesData({ token, clientId }) {
 
                                 <p className="mb-1">Start Date: {service.start_date}</p>
 
-                                {service.end_date ? <p className="mb-1">End Date: {service.end_date}</p> : null}
+                                {service.end_date && <p className="mb-1">End Date: {service.end_date}</p>}
 
-                                <p className="mb-1">
+                                <p>
                                     <i className="fa fa-map-marker-alt me-1"></i>
                                     {service.street_address}, {service.city}, {service.province_state},{' '}
                                     {service.country}, {service.postal_code}

@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { useCreateUserMutation } from '../../store';
 
 import SubmitButton from '../../utils/SubmitButton';
+import PhoneInputField from '../../utils/PhoneInput';
 
 export default function Register() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordStrength, setPasswordStrength] = useState('');
@@ -51,7 +53,7 @@ export default function Register() {
         }
 
         try {
-            await createUser({ name, email, password }).unwrap();
+            await createUser({ name, email, phone, password }).unwrap();
 
             setAlert({
                 type: 'success',
@@ -96,9 +98,7 @@ export default function Register() {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
-                            className="form-control form-control-lg"
-                            placeholder="Full Name"
-                            disabled={isLoading}
+                            className="form-control"
                         />
                     </div>
 
@@ -113,10 +113,15 @@ export default function Register() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="form-control form-control-lg"
-                            placeholder="Email"
-                            disabled={isLoading}
+                            className="form-control"
                         />
+                    </div>
+
+                    <div className="mb-3">
+                        <label htmlFor="email" className="mb-2">
+                            Phone (*)
+                        </label>
+                        <PhoneInputField value={phone} setValue={setPhone} />
                     </div>
 
                     {/* Password */}
@@ -134,17 +139,15 @@ export default function Register() {
                                     checkPasswordStrength(e.target.value);
                                 }}
                                 required
-                                className="form-control form-control-lg"
-                                placeholder="Password"
-                                disabled={isLoading}
+                                className="form-control"
                             />
                             <button
                                 type="button"
-                                className="btn btn-outline-success"
+                                className="btn btn-success"
                                 onClick={() => setShowPassword(!showPassword)}
                                 tabIndex={-1}
                             >
-                                <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                <i className={`fa ${!showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                             </button>
                         </div>
                         {password && (
@@ -170,17 +173,15 @@ export default function Register() {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
-                                className="form-control form-control-lg"
-                                placeholder="Confirm Password"
-                                disabled={isLoading}
+                                className="form-control"
                             />
                             <button
                                 type="button"
-                                className="btn btn-outline-success"
+                                className="btn btn-success"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 tabIndex={-1}
                             >
-                                <i className={`fa ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                <i className={`fa ${!showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                             </button>
                         </div>
                     </div>
@@ -188,7 +189,7 @@ export default function Register() {
                     <div className="text-center mb-3">
                         <SubmitButton
                             isLoading={isLoading}
-                            btnClass="btn btn-lg btn-success w-100"
+                            btnClass="btn btn-success w-100"
                             btnName="Register"
                             isDisabled={passwordStrength !== 'Strong Password'}
                         />

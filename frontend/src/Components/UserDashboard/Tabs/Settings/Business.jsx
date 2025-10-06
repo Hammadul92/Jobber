@@ -4,6 +4,7 @@ import { provinces, countries } from '../../../../utils/locations';
 import { useFetchBusinessesQuery, useCreateBusinessMutation, useUpdateBusinessMutation } from '../../../../store';
 
 import SubmitButton from '../../../../utils/SubmitButton';
+import PhoneInputField from '../../../../utils/PhoneInput';
 
 export default function Business({ token }) {
     const [alert, setAlert] = useState(null);
@@ -173,13 +174,7 @@ export default function Business({ token }) {
                     <div className="row">
                         <label className="col-sm-4 col-form-label">Business Phone (*)</label>
                         <div className="col-sm-8">
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                required
-                            />
+                            <PhoneInputField value={phone} setValue={setPhone} />
                         </div>
                     </div>
                 </div>

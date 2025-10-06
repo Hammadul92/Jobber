@@ -36,6 +36,7 @@ export {
     useLogoutUserMutation,
     useRequestPasswordResetMutation,
     useResetPasswordMutation,
+    useCheckUserExistsMutation,
 } from './apis/userApi';
 
 export {

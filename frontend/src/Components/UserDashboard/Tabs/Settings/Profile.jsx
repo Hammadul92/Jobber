@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useUpdateUserMutation, useFetchUserQuery } from '../../../../store';
 
 import SubmitButton from '../../../../utils/SubmitButton';
+import PhoneInputField from '../../../../utils/PhoneInput';
 
 export default function Profile({ token }) {
     const {
@@ -14,6 +15,7 @@ export default function Profile({ token }) {
 
     const [name, setUserName] = useState('');
     const [email, setUserEmail] = useState('');
+    const [phone, setUserPhone] = useState('');
     const [alert, setAlert] = useState(null);
 
     const [updateUser, { isLoading, error }] = useUpdateUserMutation();
@@ -22,13 +24,14 @@ export default function Profile({ token }) {
         if (user) {
             setUserName(user.name || '');
             setUserEmail(user.email || '');
+            setUserPhone(user.phone || '');
         }
     }, [user]);
 
     const submitHandler = async (e) => {
         e.preventDefault();
         try {
-            await updateUser({ name, email }).unwrap();
+            await updateUser({ name, email, phone }).unwrap();
 
             setAlert({
                 type: 'success',
@@ -75,7 +78,6 @@ export default function Profile({ token }) {
                         />
                     </div>
 
-                    {/* Email */}
                     <div className="mb-3 w-md-50">
                         <label className="form-label">Email (*)</label>
                         <input
@@ -85,6 +87,11 @@ export default function Profile({ token }) {
                             onChange={(e) => setUserEmail(e.target.value)}
                             required
                         />
+                    </div>
+
+                    <div className="mb-3 w-md-50">
+                        <label className="form-label">Phone (*)</label>
+                        <PhoneInputField value={phone} setValue={setUserPhone} />
                     </div>
 
                     <div className="mb-3 w-md-50">

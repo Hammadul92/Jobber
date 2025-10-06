@@ -15,7 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ['id', 'email', 'role', 'password', 'name', 'last_login']
+        fields = ['id', 'email', 'role', 'password', 'name', 'phone', 'last_login']
         extra_kwargs = {
             'password': {'write_only': True, 'min_length': 5},
             'last_login': {'read_only': True},
@@ -74,3 +74,8 @@ class ResetPasswordSerializer(serializers.Serializer):
     """Serializer for resetting the password."""
     token = serializers.CharField()
     password = serializers.CharField(min_length=8, write_only=True)
+
+
+class CheckUserExistsSerializer(serializers.Serializer):
+    """Serializer for checking if a user exists by email."""
+    email = serializers.EmailField(required=True)

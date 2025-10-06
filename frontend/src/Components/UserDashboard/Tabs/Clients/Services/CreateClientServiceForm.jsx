@@ -22,7 +22,6 @@ export default function CreateServiceModal({
     const [status, setStatus] = useState('PENDING');
     const [description, setDescription] = useState('');
 
-    // address fields
     const [streetAddress, setStreetAddress] = useState('');
     const [city, setCity] = useState('');
     const [country, setCountry] = useState('CA');
@@ -208,6 +207,7 @@ export default function CreateServiceModal({
                                             >
                                                 <option value="PENDING">Pending</option>
                                                 <option value="ACTIVE">Active</option>
+                                                <option value="COMPLETED">Completed</option>
                                                 <option value="CANCELLED">Cancelled</option>
                                             </select>
                                         </div>
@@ -299,12 +299,16 @@ export default function CreateServiceModal({
                                 </div>
 
                                 <div className="modal-footer">
-                                    <button type="button" className="btn btn-dark" onClick={() => setShowModal(false)}>
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-dark"
+                                        onClick={() => setShowModal(false)}
+                                    >
                                         Cancel
                                     </button>
                                     <SubmitButton
                                         isLoading={isLoading}
-                                        btnClass="btn btn-success"
+                                        btnClass="btn btn-sm btn-success"
                                         btnName="Add Service"
                                     />
                                 </div>

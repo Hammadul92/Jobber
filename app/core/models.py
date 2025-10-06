@@ -16,6 +16,7 @@ ROLE_CHOICES = [
     ("ADMIN", "Admin"),
     ("MANAGER", "Manager"),
     ("EMPLOYEE", "Employee"),
+    ("CLIENT", "Client")
 ]
 
 PAYMENT_METHOD_CHOICES = [
@@ -31,6 +32,7 @@ SERVICE_TYPE_CHOICES = [
 SERVICE_STATUS_CHOICES = [
     ("PENDING", "Pending"),
     ("ACTIVE", "Active"),
+    ("COMPLETED", "Completed"),
     ("CANCELLED", "Cancelled"),
 ]
 
@@ -77,8 +79,9 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     """User in the system."""
-    email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255, unique=True)
+    phone = models.CharField(max_length=20)
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
@@ -99,24 +102,20 @@ class Business(models.Model):
         on_delete=models.CASCADE
     )
 
-    # Core Info
     name = models.CharField(max_length=50)
     phone = models.CharField(max_length=20)
     email = models.EmailField(max_length=50)
     business_description = models.TextField(max_length=1000)
 
-    # Address
     street_address = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
     country = models.CharField(max_length=2, default="CA")
     province_state = models.CharField(max_length=2)
     postal_code = models.CharField(max_length=10)
 
-    # Tax / Registration
     business_number = models.CharField(max_length=20, null=False)
     tax_rate = models.IntegerField(default=0)
 
-    # Services Offered (as tags)
     services_offered = TaggableManager(
         blank=True,
         help_text=(
@@ -125,7 +124,6 @@ class Business(models.Model):
         ),
     )
 
-    # Preferences
     timezone = models.CharField(max_length=50, default="America/Edmonton")
 
     is_active = models.BooleanField(default=True)
@@ -142,9 +140,11 @@ class Client(models.Model):
         related_name="clients",
         on_delete=models.CASCADE,
     )
-    name = models.CharField(max_length=50)
-    email = models.EmailField(max_length=50)
-    phone = models.CharField(max_length=20)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="users",
+        on_delete=models.CASCADE,
+    )
 
     # Billing Address
     street_address = models.CharField(max_length=255, blank=True, null=True)
@@ -158,19 +158,10 @@ class Client(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["business", "email"],
-                name="unique_client_email_per_business"
-            ),
-            models.UniqueConstraint(
-                fields=["business", "phone"],
-                name="unique_client_phone_per_business"
-            ),
-        ]
+        unique_together = ('business', 'user')
 
     def __str__(self):
-        return f"{self.name} ({self.business.name})"
+        return f"{self.user.name} ({self.business.name})"
 
 
 class BankingInformation(models.Model):
@@ -385,7 +376,6 @@ class TeamMember(models.Model):
         on_delete=models.CASCADE,
         limit_choices_to={"role__in": ["MANAGER", "EMPLOYEE"]},
     )
-    phone = models.CharField(max_length=20, blank=True, null=True)
     job_duties = models.TextField(blank=True, null=True)
     expertise = models.CharField(max_length=255, blank=True, null=True)
     is_active = models.BooleanField(default=True)

@@ -22,7 +22,7 @@ export default function ClientServices({ token }) {
     } = useFetchBusinessQuery(client?.business, { skip: !client?.business || !token });
 
     return (
-        <div>
+        <>
             <div className="clearfix mb-3">
                 <button
                     className="btn btn-success float-end"
@@ -38,7 +38,7 @@ export default function ClientServices({ token }) {
                         {clientError?.data?.detail || 'Failed to load client'}
                     </div>
                 )}
-                {client && <h3 className="mb-0">Services for {client.name}</h3>}
+                {client && <h3 className="mb-0">Services for {client.client_name}</h3>}
             </div>
 
             <CreateClientServiceForm
@@ -52,6 +52,6 @@ export default function ClientServices({ token }) {
             />
 
             <ClientServicesData token={token} clientId={clientId} />
-        </div>
+        </>
     );
 }

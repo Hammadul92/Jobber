@@ -96,8 +96,7 @@ export default function ResetPassword() {
                                 checkPasswordStrength(e.target.value);
                             }}
                             required
-                            className="form-control form-control-lg"
-                            disabled={isLoading}
+                            className="form-control"
                         />
                         {password && (
                             <small
@@ -110,7 +109,6 @@ export default function ResetPassword() {
                         )}
                     </div>
 
-                    {/* Confirm Password field */}
                     <div className="mb-3">
                         <label htmlFor="confirmPassword" className="mb-2">
                             Confirm New Password (*)
@@ -121,17 +119,12 @@ export default function ResetPassword() {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
-                            className="form-control form-control-lg"
-                            disabled={isLoading}
+                            className="form-control"
                         />
                     </div>
 
                     <div className="text-center mb-3">
-                        <SubmitButton
-                            isLoading={isLoading}
-                            btnClass="btn btn-lg btn-success w-100"
-                            btnName="Reset Password"
-                        />
+                        <SubmitButton isLoading={isLoading} btnClass="btn btn-success w-100" btnName="Reset Password" />
                     </div>
 
                     <p className="text-center">

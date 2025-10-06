@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { countries, provinces } from '../../../../utils/locations';
 import { useFetchClientQuery, useUpdateClientMutation } from '../../../../store';
-
 import SubmitButton from '../../../../utils/SubmitButton';
+import PhoneInputField from '../../../../utils/PhoneInput';
 
 export default function Client({ token }) {
     const { id } = useParams();
@@ -21,23 +21,24 @@ export default function Client({ token }) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
-
     const [streetAddress, setStreetAddress] = useState('');
     const [city, setCity] = useState('');
     const [country, setCountry] = useState('CA');
     const [provinceState, setProvinceState] = useState('');
     const [postalCode, setPostalCode] = useState('');
+    const [role, setRole] = useState('');
 
     useEffect(() => {
         if (clientData) {
-            setName(clientData.name || '');
-            setEmail(clientData.email || '');
-            setPhone(clientData.phone || '');
+            setName(clientData.client_name || '');
+            setEmail(clientData.client_email || '');
+            setPhone(clientData.client_phone || '');
             setStreetAddress(clientData.street_address || '');
             setCity(clientData.city || '');
             setCountry(clientData.country || 'CA');
             setProvinceState(clientData.province_state || '');
             setPostalCode(clientData.postal_code || '');
+            setRole(clientData.role || 'CLIENT');
         }
     }, [clientData]);
 
@@ -46,9 +47,6 @@ export default function Client({ token }) {
         try {
             await updateClient({
                 id,
-                name,
-                email,
-                phone,
                 street_address: streetAddress,
                 city,
                 country,
@@ -65,144 +63,127 @@ export default function Client({ token }) {
 
     if (error) {
         return (
-            <div className="alert alert-danger" role="alert">
+            <div className="alert alert-danger mt-4" role="alert">
                 {error?.data?.detail || 'Failed to load client.'}
             </div>
         );
     }
 
     return (
-        <div>
-            <div className="clearfix">
-                <Link to={`/dashboard/client/${id}/services`} className="btn btn-success float-end">
-                    Services
-                </Link>
-                <h3 className="mb-4">{name}</h3>
+        <div className="container py-4">
+            <div className="row">
+                {/* Left: Profile Card */}
+                <div className="col-12 col-lg-4 mb-4">
+                    <div className="text-center">
+                        <img
+                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=120`}
+                            alt={name}
+                            className="rounded-circle mb-3 shadow-sm"
+                            width="90"
+                            height="90"
+                        />
+                        <h4 className="mb-1">{name}</h4>
+                        <span className="badge rounded-pill bg-dark p-2">{role}</span>
+
+                        <div className="d-flex flex-column align-items-center small text-muted mt-2">
+                            <div>{email}</div>
+                            <div>{phone}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-12 col-lg-8">
+                    <form onSubmit={handleSubmit}>
+                        {updateError && (
+                            <div className="alert alert-danger mb-3">
+                                {updateError?.data?.detail || 'Failed to update client.'}
+                            </div>
+                        )}
+
+                        {isSuccess && <div className="alert alert-success mb-3">Client updated successfully!</div>}
+
+                        <h5 className="mt-4">Billing Address</h5>
+                        <div className="row mb-3">
+                            <div className="col-md-8 mb-3">
+                                <label className="form-label">Street Address</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={streetAddress}
+                                    onChange={(e) => setStreetAddress(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="col-md-4 mb-3">
+                                <label className="form-label">City</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={city}
+                                    onChange={(e) => setCity(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="row mb-3">
+                            <div className="col-md-4 mb-3">
+                                <label className="form-label">Country</label>
+                                <select
+                                    className="form-select"
+                                    value={country}
+                                    onChange={(e) => {
+                                        setCountry(e.target.value);
+                                        setProvinceState('');
+                                    }}
+                                >
+                                    {countries.map(({ code, name }) => (
+                                        <option key={code} value={code}>
+                                            {name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="col-md-4 mb-3">
+                                <label className="form-label">Province/State</label>
+                                <select
+                                    className="form-select"
+                                    value={provinceState}
+                                    onChange={(e) => setProvinceState(e.target.value)}
+                                >
+                                    <option value="">Select Province/State</option>
+                                    {provinces[country]?.map((prov) => (
+                                        <option key={prov.code} value={prov.code}>
+                                            {prov.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="col-md-4 mb-3">
+                                <label className="form-label">Postal/ZIP Code</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={postalCode}
+                                    onChange={(e) => setPostalCode(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="d-flex justify-content-end">
+                            <button
+                                type="button"
+                                className="btn btn-dark me-2"
+                                onClick={() => navigate('/dashboard/clients')}
+                            >
+                                Cancel
+                            </button>
+                            <SubmitButton isLoading={updating} btnClass="btn btn-success" btnName="Save Changes" />
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <form onSubmit={handleSubmit}>
-                {updateError && (
-                    <div className="alert alert-danger mb-3">
-                        {updateError?.data?.detail || 'Failed to update client.'}
-                    </div>
-                )}
-
-                {isSuccess && <div className="alert alert-success mb-3">Client updated successfully!</div>}
-
-                <div className="row mb-3">
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Name (*)</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Email (*)</label>
-                        <input
-                            type="email"
-                            className="form-control"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Phone (*)</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            required
-                        />
-                    </div>
-                </div>
-
-                <h5>Billing Address</h5>
-                <div className="row mb-3">
-                    <div className="mb-3 col-md-8">
-                        <label className="form-label">Street Address</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={streetAddress}
-                            onChange={(e) => setStreetAddress(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">City</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={city}
-                            onChange={(e) => setCity(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                <div className="row">
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Country</label>
-                        <select
-                            className="form-select"
-                            value={country}
-                            onChange={(e) => {
-                                setCountry(e.target.value);
-                                setProvinceState('');
-                            }}
-                        >
-                            {countries.map(({ code, name }) => {
-                                return (
-                                    <option value={code} key={code}>
-                                        {name}
-                                    </option>
-                                );
-                            })}
-                        </select>
-                    </div>
-
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Province/State</label>
-                        <select
-                            className="form-select"
-                            value={provinceState}
-                            onChange={(e) => setProvinceState(e.target.value)}
-                        >
-                            <option value="">Select Province/State</option>
-                            {provinces[country].map((prov) => (
-                                <option key={prov.code} value={prov.code}>
-                                    {prov.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="mb-3 col-md-4">
-                        <label className="form-label">Postal/ZIP Code</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={postalCode}
-                            onChange={(e) => setPostalCode(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <button type="button" className="btn btn-dark me-2" onClick={() => navigate('/dashboard/clients')}>
-                        Cancel
-                    </button>
-
-                    <SubmitButton isLoading={updating} btnClass="btn btn-success" btnName="Save Changes" />
-                </div>
-            </form>
         </div>
     );
 }

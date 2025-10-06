@@ -7,6 +7,7 @@ import Settings from './Tabs/Settings/';
 import Clients from './Tabs/Clients';
 import Client from './Tabs/Clients/Client';
 import ClientServices from './Tabs/Clients/Services';
+import Service from './Tabs/Clients/Services/Service';
 import TeamMembers from './Tabs/TeamMembers';
 import TeamMember from './Tabs/TeamMembers/TeamMember';
 
@@ -41,6 +42,8 @@ export default function UserDashboard({ page }) {
             return <Client token={token} />;
         } else if (page === 'client-services') {
             return <ClientServices token={token} />;
+        } else if (page === 'service') {
+            return <Service token={token} />;
         } else if (page === 'team-members') {
             return <TeamMembers token={token} />;
         } else if (page === 'team-member') {

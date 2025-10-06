@@ -1,8 +1,5 @@
 body {
     padding-top: 60px;
-    /* font-family: "Noto Sans", sans-serif; */
-    font-family:
-        'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 .bg-accent {
@@ -93,11 +90,30 @@ body {
     text-align: center;
 }
 
+.form-control,
+.form-select,
+.btn {
+    border-radius: 0;
+}
+
 select.form-select:focus,
 input.form-control:focus,
 textarea.form-control:focus {
-    border: 1px solid #198754;
-    box-shadow: 0 0 4px #198754;
+    border: 1px solid #cacaca;
+    box-shadow: 0 0 4px #cacaca;
+}
+
+.react-tel-input .flag-dropdown {
+    background-color: #fff !important;
+    border-right: none !important;
+    border-color: #dee2e6 !important;
+    border-radius: 0 !important;
+}
+
+.react-tel-input .form-control {
+    width: 100% !important;
+    border-color: #dee2e6 !important;
+    border-radius: 0 !important;
 }
 
 .table thead th {

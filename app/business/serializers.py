@@ -67,14 +67,31 @@ class BusinessSerializer(serializers.ModelSerializer):
 
 class ClientSerializer(serializers.ModelSerializer):
     """ Serializer for clients."""
+    client_name = serializers.CharField(
+        source="user.name",
+        read_only=True
+    )
+    client_email = serializers.CharField(
+        source="user.email",
+        read_only=True
+    )
+    client_phone = serializers.CharField(
+        source="user.phone",
+        read_only=True
+    )
+    is_active = serializers.CharField(
+        source="user.is_active",
+        read_only=True
+    )
 
     class Meta:
         model = Client
-        fields = ['id', 'business', 'name', 'email', 'phone',
+        fields = ['id', 'user', 'business', 'client_name',
+                  'client_email', 'client_phone', 'is_active',
                   'street_address', 'city', 'country', 'province_state',
                   'postal_code', 'created_at', 'updated_at']
 
-        read_only_fields = ['id', 'business', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'business', 'created_at', 'updated_at']
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):
@@ -84,6 +101,10 @@ class TeamMemberSerializer(serializers.ModelSerializer):
     )
     employee_email = serializers.CharField(
         source="employee.email",
+        read_only=True
+    )
+    employee_phone = serializers.CharField(
+        source="employee.phone",
         read_only=True
     )
     is_active = serializers.CharField(
@@ -101,7 +122,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         fields = [
             "id", "business", "business_name", "employee",
             "employee_name", "employee_email", "is_active", "role",
-            "job_duties", "expertise", "phone",
+            "job_duties", "expertise", "employee_phone",
             "is_active", "joined_at",
         ]
 
