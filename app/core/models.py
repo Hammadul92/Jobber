@@ -416,7 +416,7 @@ class Quote(models.Model):
     signed_at = models.DateTimeField(null=True, blank=True)
     signed_by = models.CharField(max_length=50, null=True, blank=True)
 
-    terms_conditions = models.TextField(blank=True, null=True)
+    terms_conditions = models.TextField()
     notes = models.TextField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
@@ -436,7 +436,8 @@ class Quote(models.Model):
         year = timezone.now().year
         prefix = f"Q-{year}-"
 
-        last_quote = Quote.objects.filter(quote_number__startswith=prefix).order_by("quote_number").last()
+        last_quote = Quote.objects.filter(quote_number__startswith=prefix) \
+            .order_by("quote_number").last()
 
         if last_quote:
             last_number = int(last_quote.quote_number.split("-")[-1])

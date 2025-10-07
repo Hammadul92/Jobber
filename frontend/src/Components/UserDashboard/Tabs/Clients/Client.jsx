@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { countries, provinces } from '../../../../utils/locations';
 import { useFetchClientQuery, useUpdateClientMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
-import PhoneInputField from '../../../../utils/PhoneInput';
 
 export default function Client({ token }) {
     const { id } = useParams();
@@ -53,7 +52,6 @@ export default function Client({ token }) {
                 province_state: provinceState,
                 postal_code: postalCode,
             }).unwrap();
-            navigate('/dashboard/clients');
         } catch (err) {
             console.error('Failed to update client:', err);
         }

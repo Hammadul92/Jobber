@@ -96,13 +96,14 @@ export default function CreateQuoteForm({ token, showModal, setShowModal }) {
                                         </div>
 
                                         <div className="mb-3 col-md-12">
-                                            <label className="form-label">Terms & Conditions</label>
+                                            <label className="form-label">Terms & Conditions (*)</label>
                                             <textarea
                                                 className="form-control"
                                                 rows="3"
                                                 value={termsConditions}
                                                 onChange={(e) => setTermsConditions(e.target.value)}
                                                 placeholder="Enter any special terms or agreement details"
+                                                required
                                             ></textarea>
                                         </div>
 

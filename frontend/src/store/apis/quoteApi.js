@@ -41,13 +41,19 @@ const quoteApi = createApi({
             }),
             invalidatesTags: (result, error, arg) => ['Quote', { type: 'Quote', id: arg.id }],
         }),
-
         deleteQuote: builder.mutation({
             query: (id) => ({
                 url: `/quote/${id}/`,
                 method: 'DELETE',
             }),
             invalidatesTags: ['Quote'],
+        }),
+        sendQuote: builder.mutation({
+            query: (id) => ({
+                url: `/quote/${id}/send-quote/`,
+                method: 'POST',
+            }),
+            invalidatesTags: (result, error, id) => [{ type: 'Quote', id }],
         }),
     }),
 });
@@ -58,6 +64,7 @@ export const {
     useCreateQuoteMutation,
     useUpdateQuoteMutation,
     useDeleteQuoteMutation,
+    useSendQuoteMutation,
 } = quoteApi;
 
 export { quoteApi };

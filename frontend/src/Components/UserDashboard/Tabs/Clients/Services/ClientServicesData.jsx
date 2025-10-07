@@ -137,9 +137,9 @@ export default function ClientServicesData({ token, clientId }) {
 
                 {filteredServices?.map((service) => (
                     <div className="col-md-4 mb-3" key={service.id}>
-                        <div className="card h-100 shadow border-0">
-                            <div className="card-body">
-                                <div className="clearfix">
+                        <div className="h-100 shadow border-0 bg-white rounded-4 p-3">
+                            <div>
+                                <div className="clearfix mb-2">
                                     {getStatusBadge(service.status)}
 
                                     <span className="badge bg-dark rounded-pill float-end me-2">

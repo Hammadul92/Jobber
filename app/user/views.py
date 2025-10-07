@@ -27,7 +27,7 @@ from user.utils import (
     generate_password_reset_token,
     verify_password_reset_token,
 )
-from user.email import send_registration_email, send_password_reset_email
+from user.emails import send_registration_email, send_password_reset_email
 
 
 class CreateUserView(generics.CreateAPIView):

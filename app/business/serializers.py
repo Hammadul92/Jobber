@@ -90,7 +90,9 @@ class ClientSerializer(serializers.ModelSerializer):
                   'street_address', 'city', 'country', 'province_state',
                   'postal_code', 'created_at', 'updated_at']
 
-        read_only_fields = ['id', 'user', 'business', 'created_at', 'updated_at']
+        read_only_fields = [
+            'id', 'user', 'business', 'created_at', 'updated_at'
+        ]
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):
@@ -135,12 +137,15 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = [
-            "id", "client", "business", "quotations", "service_name", "description",
-            "start_date", "end_date", "service_type", "price", "currency",
-            "billing_cycle", "status", "street_address", "city", "country",
-            "province_state", "postal_code", "created_at", "updated_at",
+            "id", "client", "business", "quotations", "service_name",
+            "description", "start_date", "end_date", "service_type",
+            "price", "currency", "billing_cycle", "status",
+            "street_address", "city", "country", "province_state",
+            "postal_code", "created_at", "updated_at",
         ]
-        read_only_fields = ["id", "client", "business", "created_at", "updated_at"]
+        read_only_fields = [
+            "id", "client", "business", "created_at", "updated_at"
+        ]
 
     def get_quotations(self, obj):
         """Return related quotes."""
@@ -155,23 +160,34 @@ class ServiceSerializer(serializers.ModelSerializer):
         - Ensure service_name is valid for the selected business.
         - Ensure client belongs to the same business.
         """
-        business = data.get("business") or getattr(self.instance, "business", None)
+        business = (
+            data.get("business")
+            or getattr(self.instance, "business", None)
+        )
         client = data.get("client") or getattr(self.instance, "client", None)
 
         # Validate service_name
         if business and data.get("service_name"):
-            allowed = {service.name for service in business.services_offered.all()}
+            allowed = {
+                service.name
+                for service in business.services_offered.all()
+            }
             if data["service_name"] not in allowed:
                 raise serializers.ValidationError({
-                    "service_name": "This service is not offered by the selected business."
+                    "service_name": (
+                        "This service is not offered by the "
+                        "selected business."
+                    )
                 })
 
         # Validate client belongs to business
-        if business and client:
-            if client.business != business:
-                raise serializers.ValidationError({
-                    "client": "This client does not belong to the selected business."
-                })
+        if business and client and client.business != business:
+            raise serializers.ValidationError({
+                "client": (
+                    "This client does not belong to the selected "
+                    "business."
+                )
+            })
 
         return data
 
@@ -179,7 +195,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 class QuoteSerializer(serializers.ModelSerializer):
     """ Serializer for quotes."""
 
-    service = ServiceSerializer(read_only=True)
+    service_data = ServiceSerializer(source="service", read_only=True)
     client = ClientSerializer(source="service.client", read_only=True)
     service_name = serializers.CharField(
         source="service.service_name",
@@ -193,9 +209,10 @@ class QuoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quote
         fields = [
-            "id", "quote_number", "service", "client", "service_name",
-            "client_name", "valid_until", "status", "signed_at", "signed_by",
-            "terms_conditions", "notes", "is_active", "created_at", "updated_at",
+            "id", "quote_number", "service", "service_data", "client",
+            "service_name", "client_name", "valid_until", "status",
+            "signed_at", "signed_by", "terms_conditions", "notes",
+            "is_active", "created_at", "updated_at",
         ]
         read_only_fields = [
             "quote_number", "status", "created_at", "updated_at",

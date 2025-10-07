@@ -80,4 +80,5 @@ export {
     useCreateQuoteMutation,
     useUpdateQuoteMutation,
     useDeleteQuoteMutation,
+    useSendQuoteMutation,
 } from './apis/quoteApi';

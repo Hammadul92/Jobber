@@ -3,13 +3,14 @@ Views for business APIs.
 """
 
 from rest_framework import status
-from rest_framework import filters, viewsets
+from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.models import Business, Client, TeamMember, Service, Quote
-from business import serializers, paginations
+from business import serializers, paginations, emails
 
 
 class BusinessViewSet(viewsets.ModelViewSet):
@@ -116,7 +117,8 @@ class ServiceViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    queryset = Service.objects.filter(is_active=True).select_related("client", "business")
+    queryset = Service.objects.filter(is_active=True) \
+        .select_related("client", "business")
     serializer_class = serializers.ServiceSerializer
 
     def get_queryset(self):
@@ -137,7 +139,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
         business = serializer.validated_data["business"]
 
         if client.business != business:
-            raise serializers.ValidationError("Selected client does not belong to this business.")
+            raise serializers.ValidationError(
+                "Selected client does not belong to this business."
+            )
 
         serializer.save()
 
@@ -181,3 +185,24 @@ class QuoteViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         return super().update(request, *args, **kwargs)
+
+    @action(detail=True, methods=["post"], url_path="send-quote")
+    def send_quote(self, request, pk=None):
+        """Send quote details and signing link to the client."""
+
+        quote = self.get_object()
+
+        try:
+            emails.send_quote_email(quote)
+            quote.status = "SENT"
+            quote.save(update_fields=["status"])
+
+            return Response(
+                {"detail": "Quote sent successfully."},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"detail": f"Failed to send quote: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

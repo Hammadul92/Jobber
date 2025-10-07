@@ -119,7 +119,8 @@ class TeamMemberAdmin(admin.ModelAdmin):
 
 class QuoteAdmin(admin.ModelAdmin):
     list_display = [
-        'quote_number', 'service', 'status', 'valid_until', 'signed_by', 'is_active', 'created_at'
+        'quote_number', 'service', 'status', 'valid_until',
+        'signed_by', 'is_active', 'created_at'
     ]
     list_filter = ['status', 'is_active', 'valid_until']
     search_fields = ['quote_number', 'service__service_name', 'signed_by']

@@ -86,10 +86,10 @@ export default function QuotesDatatable({ token }) {
         }
 
         if (props.column.name === 'quote_number') {
-            let badgeClass = 'bg-warning text-dark';
-            if (props.row.status === 'SIGNED') badgeClass = 'bg-success text-white';
-            else if (props.row.status === 'EXPIRED') badgeClass = 'bg-danger text-white';
-            else if (props.row.status === 'DRAFT') badgeClass = 'bg-secondary text-white';
+            let badgeClass = 'bg-primary';
+            if (props.row.status === 'SIGNED') badgeClass = 'bg-success';
+            else if (props.row.status === 'EXPIRED') badgeClass = 'bg-danger';
+            else if (props.row.status === 'DRAFT') badgeClass = 'bg-secondary';
 
             return (
                 <Table.Cell {...props}>
