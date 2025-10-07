@@ -99,7 +99,7 @@ export default function ClientServicesData({ token, clientId }) {
                         value={countryFilter}
                         onChange={(e) => {
                             setCountryFilter(e.target.value);
-                            setProvinceFilter(''); // reset province when country changes
+                            setProvinceFilter('');
                         }}
                     >
                         <option value="">All Countries</option>
@@ -137,7 +137,7 @@ export default function ClientServicesData({ token, clientId }) {
 
                 {filteredServices?.map((service) => (
                     <div className="col-md-4 mb-3" key={service.id}>
-                        <div className="card h-100 shadow-sm border-0">
+                        <div className="card h-100 shadow border-0">
                             <div className="card-body">
                                 <div className="clearfix">
                                     {getStatusBadge(service.status)}
@@ -149,21 +149,54 @@ export default function ClientServicesData({ token, clientId }) {
                                     <h5 className="card-title">{service.service_name}</h5>
                                 </div>
 
-                                {service.description && <p className="card-text text-muted">{service.description}</p>}
+                                {service.description && (
+                                    <p className="card-text p-2 bg-light">
+                                        <i className="fa fa-info"></i> {service.description}
+                                    </p>
+                                )}
 
                                 <p className="mb-1">
-                                    Price: ${service.price} {service.currency}
+                                    <strong>Price:</strong> ${service.price} {service.currency}
                                 </p>
 
-                                <p className="mb-1">Start Date: {service.start_date}</p>
+                                <p className="mb-1">
+                                    <strong>Start Date:</strong> {service.start_date}
+                                </p>
 
                                 {service.end_date && <p className="mb-1">End Date: {service.end_date}</p>}
 
-                                <p>
-                                    <i className="fa fa-map-marker-alt me-1"></i>
-                                    {service.street_address}, {service.city}, {service.province_state},{' '}
-                                    {service.country}, {service.postal_code}
+                                <p className="mb-1">
+                                    <strong>Service Address:</strong> {service.street_address}, {service.city},{' '}
+                                    {service.province_state}, {service.country}, {service.postal_code}
                                 </p>
+
+                                {service.quotations && service.quotations.length > 0 && (
+                                    <div className="mb-2">
+                                        <strong>Quotations: </strong>
+                                        {service.quotations.map((quote, index) => {
+                                            const statusClass =
+                                                quote.status === 'SIGNED'
+                                                    ? 'success'
+                                                    : quote.status === 'SENT'
+                                                      ? 'primary'
+                                                      : quote.status === 'EXPIRED'
+                                                        ? 'danger'
+                                                        : 'secondary';
+
+                                            return (
+                                                <span key={quote.id}>
+                                                    <Link
+                                                        to={`/dashboard/quote/${quote.id}`}
+                                                        className={`text-${statusClass} text-decoration-none fw-semibold`}
+                                                    >
+                                                        {quote.quote_number}
+                                                    </Link>
+                                                    {index < service.quotations.length - 1 && ', '}
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                )}
 
                                 <div className="clearfix">
                                     <Link

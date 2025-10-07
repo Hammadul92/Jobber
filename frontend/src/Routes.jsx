@@ -28,6 +28,7 @@ function App() {
                 <Route path="/dashboard/client/:id/services" element={<UserDashboard page="client-services" />} />
                 <Route path="/dashboard/service/:id" element={<UserDashboard page="service" />} />
                 <Route path="/dashboard/quotes" element={<UserDashboard page={'quotes'} />} />
+                <Route path="/dashboard/quote/:id" element={<UserDashboard page="quote" />} />
                 <Route path="/dashboard/jobs" element={<UserDashboard page={'jobs'} />} />
                 <Route path="/dashboard/invoices" element={<UserDashboard page={'invoices'} />} />
                 <Route path="/dashboard/payouts" element={<UserDashboard page={'payouts'} />} />

@@ -63,11 +63,10 @@ export default function TeamMember({ token }) {
     }
 
     return (
-        <div className="container py-4">
+        <>
             <div className="row">
-                {/* Left: Profile Card */}
-                <div className="col-12 col-lg-4 mb-4">
-                    <div className="text-center">
+                <div className="col-12 col-lg-3 mb-4">
+                    <div className="text-center shadow p-3 bg-white rounded-3 mb-3">
                         <img
                             src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=120`}
                             alt={name}
@@ -92,7 +91,7 @@ export default function TeamMember({ token }) {
                     </div>
                 </div>
 
-                <div className="col-12 col-lg-8">
+                <div className="col-12 col-lg-9">
                     <form onSubmit={handleSubmit}>
                         <div className="row">
                             <div className="mb-3 col-md-12">
@@ -135,6 +134,6 @@ export default function TeamMember({ token }) {
                     </form>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

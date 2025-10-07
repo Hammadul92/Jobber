@@ -1,13 +1,15 @@
 """
 Database models.
 """
-from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
+from django.db import models
+from django.utils import timezone
+
 
 from taggit.managers import TaggableManager
 
@@ -51,6 +53,13 @@ BILLING_CYCLE_CHOICES = [
 CURRENCY_CHOICES = [
     ("CAD", "CAD"),
     ("USD", "USD"),
+]
+
+QUOTE_STATUS_CHOICES = [
+    ("DRAFT", "Draft"),
+    ("SENT", "Sent"),
+    ("SIGNED", "Signed"),
+    ("REJECTED", "Rejected")
 ]
 
 
@@ -301,7 +310,7 @@ class Service(models.Model):
     def __str__(self):
         return (
             f"{self.service_name} ({self.get_service_type_display()}) "
-            f"for {self.client.name} - {self.get_status_display()}"
+            f"for {self.client.user.name} - {self.get_status_display()}"
         )
 
 
@@ -387,3 +396,55 @@ class TeamMember(models.Model):
 
     def __str__(self):
         return f"{self.employee.name} @ {self.business.name}"
+
+
+class Quote(models.Model):
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.CASCADE,
+        related_name="service_quotes"
+    )
+    quote_number = models.CharField(max_length=20, unique=True, editable=False)
+    date_created = models.DateTimeField(auto_now_add=True)
+    valid_until = models.DateField()
+
+    status = models.CharField(
+        max_length=20,
+        choices=QUOTE_STATUS_CHOICES,
+        default="DRAFT"
+    )
+    signed_at = models.DateTimeField(null=True, blank=True)
+    signed_by = models.CharField(max_length=50, null=True, blank=True)
+
+    terms_conditions = models.TextField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.quote_number:
+            self.quote_number = self.generate_quote_number()
+        super().save(*args, **kwargs)
+
+    def generate_quote_number(self):
+        """
+        Generates a unique quote number in the format: Q-YYYY-XXX
+        Example: Q-2025-001
+        """
+        year = timezone.now().year
+        prefix = f"Q-{year}-"
+
+        last_quote = Quote.objects.filter(quote_number__startswith=prefix).order_by("quote_number").last()
+
+        if last_quote:
+            last_number = int(last_quote.quote_number.split("-")[-1])
+            new_number = last_number + 1
+        else:
+            new_number = 1
+
+        return f"{prefix}{new_number:03d}"
+
+    def __str__(self):
+        return f"{self.quote_number} for {self.service.client}"

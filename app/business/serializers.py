@@ -3,6 +3,8 @@ Serializers for business APIs
 """
 
 import json
+from django.utils import timezone
+
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -11,10 +13,7 @@ from core.models import (
     Client,
     TeamMember,
     Service,
-    SERVICE_TYPE_CHOICES,
-    CURRENCY_CHOICES,
-    BILLING_CYCLE_CHOICES,
-    SERVICE_STATUS_CHOICES
+    Quote,
 )
 
 
@@ -130,50 +129,25 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
 
 class ServiceSerializer(serializers.ModelSerializer):
-    service_type = serializers.ChoiceField(
-        choices=SERVICE_TYPE_CHOICES,
-        default="ONE_TIME"
-    )
-    currency = serializers.ChoiceField(
-        choices=CURRENCY_CHOICES,
-        default="CAD"
-    )
-    status = serializers.ChoiceField(
-        choices=SERVICE_STATUS_CHOICES,
-        default="PENDING"
-    )
-
-    billing_cycle = serializers.ChoiceField(
-        choices=BILLING_CYCLE_CHOICES,
-        allow_blank=True,
-        allow_null=True,
-        required=False
-    )
+    """ Serializer for services."""
+    quotations = serializers.SerializerMethodField()
 
     class Meta:
         model = Service
         fields = [
-            "id",
-            "client",
-            "business",
-            "service_name",
-            "description",
-            "start_date",
-            "end_date",
-            "service_type",
-            "price",
-            "currency",
-            "billing_cycle",
-            "status",
-            "street_address",
-            "city",
-            "country",
-            "province_state",
-            "postal_code",
-            "created_at",
-            "updated_at",
+            "id", "client", "business", "quotations", "service_name", "description",
+            "start_date", "end_date", "service_type", "price", "currency",
+            "billing_cycle", "status", "street_address", "city", "country",
+            "province_state", "postal_code", "created_at", "updated_at",
         ]
-        read_only_fields = ["created_at", "updated_at"]
+        read_only_fields = ["id", "client", "business", "created_at", "updated_at"]
+
+    def get_quotations(self, obj):
+        """Return related quotes."""
+        quotes = obj.service_quotes.filter(is_active=True).values(
+            "id", "quote_number", "status", "valid_until", "created_at"
+        )
+        return list(quotes)
 
     def validate(self, data):
         """
@@ -200,3 +174,36 @@ class ServiceSerializer(serializers.ModelSerializer):
                 })
 
         return data
+
+
+class QuoteSerializer(serializers.ModelSerializer):
+    """ Serializer for quotes."""
+
+    service = ServiceSerializer(read_only=True)
+    client = ClientSerializer(source="service.client", read_only=True)
+    service_name = serializers.CharField(
+        source="service.service_name",
+        read_only=True
+    )
+    client_name = serializers.CharField(
+        source="service.client.user.name",
+        read_only=True
+    )
+
+    class Meta:
+        model = Quote
+        fields = [
+            "id", "quote_number", "service", "client", "service_name",
+            "client_name", "valid_until", "status", "signed_at", "signed_by",
+            "terms_conditions", "notes", "is_active", "created_at", "updated_at",
+        ]
+        read_only_fields = [
+            "quote_number", "status", "created_at", "updated_at",
+        ]
+
+    def validate_valid_until(self, value):
+        if value < timezone.now().date():
+            raise serializers.ValidationError(
+                "The 'valid_until' date must be in the future."
+            )
+        return value

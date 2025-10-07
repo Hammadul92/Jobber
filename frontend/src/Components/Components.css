@@ -1,5 +1,6 @@
 body {
     padding-top: 60px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
 .bg-accent {
@@ -7,8 +8,8 @@ body {
 }
 
 .scrollbar-hidden {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* Internet Explorer and Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .nav-tabs .nav-link {
@@ -44,7 +45,7 @@ body {
 }
 
 .side-nav.collapsed {
-    width: 190px;
+    width: 160px;
 }
 
 .side-nav ul {

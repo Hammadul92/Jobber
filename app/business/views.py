@@ -3,13 +3,13 @@ Views for business APIs.
 """
 
 from rest_framework import status
-from rest_framework import filters, viewsets, pagination
+from rest_framework import filters, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import Business, Client, TeamMember, Service
-from business import serializers
+from core.models import Business, Client, TeamMember, Service, Quote
+from business import serializers, paginations
 
 
 class BusinessViewSet(viewsets.ModelViewSet):
@@ -34,37 +34,13 @@ class BusinessViewSet(viewsets.ModelViewSet):
         )
 
 
-class ClientPagination(pagination.PageNumberPagination):
-    page_size = 50
-    page_size_query_param = 'page_size'
-    max_page_size = 100
-
-    def get_paginated_response(self, data):
-        return Response({
-            'count': self.page.paginator.count,
-            'total_pages': self.page.paginator.num_pages,
-            'current_page': self.page.number,
-            'page_size': self.get_page_size(self.request),
-            'columns': [
-                {'name': 'client_name', 'title': 'Name'},
-                {'name': 'client_email', 'title': 'Email'},
-                {'name': 'client_phone', 'title': 'Phone'}
-            ],
-            'results': data,
-        })
-
-
 class ClientViewSet(viewsets.ModelViewSet):
     """View for manage business APIs."""
-    serializer_class = serializers.ClientSerializer
-    queryset = Client.objects.filter(is_active=True)
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'client_name', 'client_email', 'client_phone']
-
-    pagination_class = ClientPagination
+    serializer_class = serializers.ClientSerializer
+    queryset = Client.objects.filter(is_active=True)
+    pagination_class = paginations.ClientPagination
 
     def get_queryset(self):
         """Retrieve clients for authenticated user."""
@@ -103,27 +79,6 @@ class ClientViewSet(viewsets.ModelViewSet):
         )
 
 
-class TeamMemberPagination(pagination.PageNumberPagination):
-    page_size = 20
-    page_size_query_param = 'page_size'
-    max_page_size = 100
-
-    def get_paginated_response(self, data):
-        return Response({
-            'count': self.page.paginator.count,
-            'total_pages': self.page.paginator.num_pages,
-            'current_page': self.page.number,
-            'page_size': self.get_page_size(self.request),
-            'columns': [
-                {'name': 'employee_name', 'title': 'Name'},
-                {'name': 'employee_email', 'title': 'Email'},
-                {'name': 'employee_phone', 'title': 'Phone'},
-                {'name': 'role', 'title': 'Role'}
-            ],
-            'results': data,
-        })
-
-
 class TeamMemberViewSet(viewsets.ModelViewSet):
     """View for manage team member APIs."""
     authentication_classes = [TokenAuthentication]
@@ -131,17 +86,7 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
     queryset = TeamMember.objects.filter(is_active=True) \
         .select_related("business", "employee")
     serializer_class = serializers.TeamMemberSerializer
-
-    filter_backends = [filters.SearchFilter]
-    search_fields = [
-        "id",
-        "employee__name",
-        "employee__email",
-        "job_duties",
-        "expertise",
-    ]
-
-    pagination_class = TeamMemberPagination
+    pagination_class = paginations.TeamMemberPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -195,3 +140,44 @@ class ServiceViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError("Selected client does not belong to this business.")
 
         serializer.save()
+
+
+class QuoteViewSet(viewsets.ModelViewSet):
+    """View for manage quote APIs."""
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.QuoteSerializer
+    queryset = Quote.objects.filter(is_active=True).select_related("service")
+    pagination_class = paginations.QuotePagination
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = super().get_queryset()
+
+        if user.role == "ADMIN":
+            return qs
+
+        if user.role == "MANAGER":
+            return qs.filter(service__business__owner=user).order_by('-id')
+
+        return qs.none()
+
+    def perform_create(self, serializer):
+        """Automatically handle quote creation logic."""
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        """Soft-delete quote instead of removing it from DB."""
+        instance.is_active = False
+        instance.save()
+
+    def update(self, request, *args, **kwargs):
+        """Prevent updates if quote is already signed."""
+        instance = self.get_object()
+        if instance.status == "SIGNED":
+            return Response(
+                {"detail": "Cannot update a signed quote."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().update(request, *args, **kwargs)

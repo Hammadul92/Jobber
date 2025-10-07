@@ -10,6 +10,8 @@ import ClientServices from './Tabs/Clients/Services';
 import Service from './Tabs/Clients/Services/Service';
 import TeamMembers from './Tabs/TeamMembers';
 import TeamMember from './Tabs/TeamMembers/TeamMember';
+import Quotes from './Tabs/Quotes';
+import Quote from './Tabs/Quotes/Quote';
 
 export default function UserDashboard({ page }) {
     const navigate = useNavigate();
@@ -48,6 +50,10 @@ export default function UserDashboard({ page }) {
             return <TeamMembers token={token} />;
         } else if (page === 'team-member') {
             return <TeamMember token={token} />;
+        } else if (page === 'quotes') {
+            return <Quotes token={token} />;
+        } else if (page === 'quote') {
+            return <Quote token={token} />;
         }
         return null;
     };

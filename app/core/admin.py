@@ -117,6 +117,17 @@ class TeamMemberAdmin(admin.ModelAdmin):
     readonly_fields = ['joined_at']
 
 
+class QuoteAdmin(admin.ModelAdmin):
+    list_display = [
+        'quote_number', 'service', 'status', 'valid_until', 'signed_by', 'is_active', 'created_at'
+    ]
+    list_filter = ['status', 'is_active', 'valid_until']
+    search_fields = ['quote_number', 'service__service_name', 'signed_by']
+    readonly_fields = ['quote_number', 'created_at', 'updated_at', 'signed_at']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+
+
 # Register models
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Business, BusinessAdmin)
@@ -126,3 +137,4 @@ admin.site.register(models.Service, ServiceAdmin)
 admin.site.register(models.Job, JobAdmin)
 admin.site.register(models.JobPhoto, JobPhotoAdmin)
 admin.site.register(models.TeamMember, TeamMemberAdmin)
+admin.site.register(models.Quote, QuoteAdmin)

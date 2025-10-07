@@ -15,6 +15,7 @@ router.register('business', views.BusinessViewSet)
 router.register('client', views.ClientViewSet)
 router.register('team-member', views.TeamMemberViewSet)
 router.register('service', views.ServiceViewSet)
+router.register('quote', views.QuoteViewSet)
 
 app_name = 'business'
 

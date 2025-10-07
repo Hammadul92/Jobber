@@ -5,6 +5,7 @@ import { businessApi } from './apis/businessApi';
 import { clientApi } from './apis/clientApi';
 import { teamMemberApi } from './apis/teamMemberApi';
 import { serviceApi } from './apis/serviceApi';
+import { quoteApi } from './apis/quoteApi';
 
 const store = configureStore({
     reducer: {
@@ -13,6 +14,7 @@ const store = configureStore({
         [clientApi.reducerPath]: clientApi.reducer,
         [teamMemberApi.reducerPath]: teamMemberApi.reducer,
         [serviceApi.reducerPath]: serviceApi.reducer,
+        [quoteApi.reducerPath]: quoteApi.reducer,
     },
     middleware: (getDefaultMiddleware) => {
         return getDefaultMiddleware()
@@ -20,13 +22,14 @@ const store = configureStore({
             .concat(businessApi.middleware)
             .concat(clientApi.middleware)
             .concat(teamMemberApi.middleware)
-            .concat(serviceApi.middleware);
+            .concat(serviceApi.middleware)
+            .concat(quoteApi.middleware);
     },
 });
 
 setupListeners(store.dispatch);
 
-export { store, userApi, businessApi, clientApi, teamMemberApi, serviceApi };
+export { store, userApi, businessApi, clientApi, teamMemberApi, serviceApi, quoteApi };
 export {
     useSigninUserMutation,
     useFetchUserQuery,
@@ -70,3 +73,11 @@ export {
     useUpdateServiceMutation,
     useDeleteServiceMutation,
 } from './apis/serviceApi';
+
+export {
+    useFetchQuotesQuery,
+    useFetchQuoteQuery,
+    useCreateQuoteMutation,
+    useUpdateQuoteMutation,
+    useDeleteQuoteMutation,
+} from './apis/quoteApi';

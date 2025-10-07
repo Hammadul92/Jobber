@@ -70,119 +70,116 @@ export default function Client({ token }) {
     }
 
     return (
-        <div className="container py-4">
-            <div className="row">
-                {/* Left: Profile Card */}
-                <div className="col-12 col-lg-4 mb-4">
-                    <div className="text-center">
-                        <img
-                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=120`}
-                            alt={name}
-                            className="rounded-circle mb-3 shadow-sm"
-                            width="90"
-                            height="90"
-                        />
-                        <h4 className="mb-1">{name}</h4>
-                        <span className="badge rounded-pill bg-dark p-2">{role}</span>
+        <div className="row">
+            <div className="col-12 col-lg-3 mb-4">
+                <div className="text-center shadow p-3 bg-white rounded-3 mb-3">
+                    <img
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=120`}
+                        alt={name}
+                        className="rounded-circle mb-3 shadow-sm"
+                        width="90"
+                        height="90"
+                    />
+                    <h4 className="mb-1">{name}</h4>
+                    <span className="badge rounded-pill bg-dark p-2">{role}</span>
 
-                        <div className="d-flex flex-column align-items-center small text-muted mt-2">
-                            <div>{email}</div>
-                            <div>{phone}</div>
-                        </div>
+                    <div className="d-flex flex-column align-items-center small text-muted mt-2">
+                        <div>{email}</div>
+                        <div>{phone}</div>
                     </div>
                 </div>
+            </div>
 
-                <div className="col-12 col-lg-8">
-                    <form onSubmit={handleSubmit}>
-                        {updateError && (
-                            <div className="alert alert-danger mb-3">
-                                {updateError?.data?.detail || 'Failed to update client.'}
-                            </div>
-                        )}
+            <div className="col-12 col-lg-9">
+                <form onSubmit={handleSubmit}>
+                    {updateError && (
+                        <div className="alert alert-danger mb-3">
+                            {updateError?.data?.detail || 'Failed to update client.'}
+                        </div>
+                    )}
 
-                        {isSuccess && <div className="alert alert-success mb-3">Client updated successfully!</div>}
+                    {isSuccess && <div className="alert alert-success mb-3">Client updated successfully!</div>}
 
-                        <h5 className="mt-4">Billing Address</h5>
-                        <div className="row mb-3">
-                            <div className="col-md-8 mb-3">
-                                <label className="form-label">Street Address</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={streetAddress}
-                                    onChange={(e) => setStreetAddress(e.target.value)}
-                                />
-                            </div>
-
-                            <div className="col-md-4 mb-3">
-                                <label className="form-label">City</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={city}
-                                    onChange={(e) => setCity(e.target.value)}
-                                />
-                            </div>
+                    <h5>Billing Address</h5>
+                    <div className="row mb-3">
+                        <div className="col-md-8 mb-3">
+                            <label className="form-label">Street Address</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={streetAddress}
+                                onChange={(e) => setStreetAddress(e.target.value)}
+                            />
                         </div>
 
-                        <div className="row mb-3">
-                            <div className="col-md-4 mb-3">
-                                <label className="form-label">Country</label>
-                                <select
-                                    className="form-select"
-                                    value={country}
-                                    onChange={(e) => {
-                                        setCountry(e.target.value);
-                                        setProvinceState('');
-                                    }}
-                                >
-                                    {countries.map(({ code, name }) => (
-                                        <option key={code} value={code}>
-                                            {name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="col-md-4 mb-3">
-                                <label className="form-label">Province/State</label>
-                                <select
-                                    className="form-select"
-                                    value={provinceState}
-                                    onChange={(e) => setProvinceState(e.target.value)}
-                                >
-                                    <option value="">Select Province/State</option>
-                                    {provinces[country]?.map((prov) => (
-                                        <option key={prov.code} value={prov.code}>
-                                            {prov.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="col-md-4 mb-3">
-                                <label className="form-label">Postal/ZIP Code</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={postalCode}
-                                    onChange={(e) => setPostalCode(e.target.value)}
-                                />
-                            </div>
+                        <div className="col-md-4 mb-3">
+                            <label className="form-label">City</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={city}
+                                onChange={(e) => setCity(e.target.value)}
+                            />
                         </div>
+                    </div>
 
-                        <div className="d-flex justify-content-end">
-                            <button
-                                type="button"
-                                className="btn btn-dark me-2"
-                                onClick={() => navigate('/dashboard/clients')}
+                    <div className="row mb-3">
+                        <div className="col-md-4 mb-3">
+                            <label className="form-label">Country</label>
+                            <select
+                                className="form-select"
+                                value={country}
+                                onChange={(e) => {
+                                    setCountry(e.target.value);
+                                    setProvinceState('');
+                                }}
                             >
-                                Cancel
-                            </button>
-                            <SubmitButton isLoading={updating} btnClass="btn btn-success" btnName="Save Changes" />
+                                {countries.map(({ code, name }) => (
+                                    <option key={code} value={code}>
+                                        {name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                    </form>
-                </div>
+
+                        <div className="col-md-4 mb-3">
+                            <label className="form-label">Province/State</label>
+                            <select
+                                className="form-select"
+                                value={provinceState}
+                                onChange={(e) => setProvinceState(e.target.value)}
+                            >
+                                <option value="">Select Province/State</option>
+                                {provinces[country]?.map((prov) => (
+                                    <option key={prov.code} value={prov.code}>
+                                        {prov.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="col-md-4 mb-3">
+                            <label className="form-label">Postal/ZIP Code</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={postalCode}
+                                onChange={(e) => setPostalCode(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="d-flex justify-content-end">
+                        <button
+                            type="button"
+                            className="btn btn-dark me-2"
+                            onClick={() => navigate('/dashboard/clients')}
+                        >
+                            Cancel
+                        </button>
+                        <SubmitButton isLoading={updating} btnClass="btn btn-success" btnName="Save Changes" />
+                    </div>
+                </form>
             </div>
         </div>
     );
