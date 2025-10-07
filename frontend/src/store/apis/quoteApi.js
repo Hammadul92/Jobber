@@ -53,7 +53,7 @@ const quoteApi = createApi({
                 url: `/quote/${id}/send-quote/`,
                 method: 'POST',
             }),
-            invalidatesTags: (result, error, id) => [{ type: 'Quote', id }],
+            invalidatesTags: (result, error, id) => ['Quote', { type: 'Quote', id }],
         }),
     }),
 });

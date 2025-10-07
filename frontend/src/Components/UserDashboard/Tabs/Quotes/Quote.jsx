@@ -121,7 +121,15 @@ export default function Quote({ token }) {
 
                 <div className="row">
                     <div className="col-md-4">
-                        <div className="shadow p-3 bg-white rounded-3 mb-3">
+                        <div className="shadow p-3 bg-white rounded-3 mb-3 position-relative">
+                            <div className="position-absolute top-0 end-0 mt-2 me-2">
+                                {quoteData.client.is_active === 'True' ? (
+                                    <span className="badge bg-success rounded-pill">ACTIVE</span>
+                                ) : (
+                                    <span className="badge bg-danger rounded-pill">INACTIVE</span>
+                                )}
+                            </div>
+
                             <h6 className="text-muted">Client Details</h6>
 
                             <div className="mb-1">
@@ -131,12 +139,7 @@ export default function Quote({ token }) {
                                     className="text-success text-decoration-none"
                                 >
                                     {quoteData.client_name}
-                                </Link>{' '}
-                                {quoteData.client.is_active === 'True' ? (
-                                    <span className="badge bg-success rounded-pill">ACTIVE</span>
-                                ) : (
-                                    <span className="badge bg-danger rounded-pill">INACTIVE</span>
-                                )}
+                                </Link>
                             </div>
                             <div className="mb-1">
                                 <strong>Email: </strong> {quoteData.client.client_email}
@@ -152,8 +155,26 @@ export default function Quote({ token }) {
                             </div>
                         </div>
 
-                        <div className="shadow p-3 bg-white rounded-3 mb-3">
+                        <div className="shadow p-3 bg-white rounded-3 mb-3 position-relative">
+                            <div className="position-absolute top-0 end-0 mt-2 me-2 d-flex gap-1 flex-wrap justify-content-end">
+                                <span className="badge bg-dark rounded-pill">
+                                    {quoteData.service_data.service_type}
+                                </span>
+                                <span
+                                    className={`badge rounded-pill ${
+                                        ['ACTIVE', 'COMPLETED'].includes(quoteData.service_data.status)
+                                            ? 'bg-success'
+                                            : quoteData.service_data.status === 'PENDING'
+                                              ? 'bg-primary'
+                                              : 'bg-danger'
+                                    }`}
+                                >
+                                    {quoteData.service_data.status}
+                                </span>
+                            </div>
+
                             <h6 className="text-muted">Service Details</h6>
+
                             <div className="mb-2">
                                 <strong>Name: </strong>
                                 <Link
@@ -161,11 +182,9 @@ export default function Quote({ token }) {
                                     className="text-decoration-none text-success"
                                 >
                                     {quoteData.service_data.service_name}
-                                </Link>{' '}
-                                <span className="badge bg-dark rounded-pill">
-                                    {quoteData.service_data.service_type}
-                                </span>
+                                </Link>
                             </div>
+
                             {quoteData.service_data.description && (
                                 <p className="bg-light p-2 mb-2 rounded">
                                     <i className="fa fa-info"></i> {quoteData.service_data.description}
