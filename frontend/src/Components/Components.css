@@ -164,6 +164,5 @@ textarea.form-control:focus {
 }
 
 .btn:disabled {
-    border: none;
     opacity: 0.6;
 }

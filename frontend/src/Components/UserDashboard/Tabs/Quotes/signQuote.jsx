@@ -1,0 +1,318 @@
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { useFetchQuoteQuery, useSignQuoteMutation } from '../../../../store';
+import AcceptAndSignQuote from './AcceptAndSignQuote';
+
+export default function SignQuote({ token }) {
+    const { id } = useParams();
+    const { data: quote, isLoading, error } = useFetchQuoteQuery(id, { skip: !token });
+    const [signQuote, { isLoading: signing, isSuccess, error: signError }] = useSignQuoteMutation();
+
+    const [showSignModal, setShowSignModal] = useState(false);
+    const [showDeclineModal, setShowDeclineModal] = useState(false);
+    const [status, setStatus] = useState('');
+    const [timeRemaining, setTimeRemaining] = useState('');
+
+    const handleDeclineConfirm = async () => {
+        try {
+            await signQuote({ id, status: 'DECLINED' }).unwrap();
+            setStatus('DECLINED');
+        } catch (err) {
+            console.error('Failed to decline quote:', err);
+        }
+        setShowDeclineModal(false);
+    };
+
+    const handleSignSubmit = async ({ signature }) => {
+        try {
+            await signQuote({ id, status: 'SIGNED', signature }).unwrap();
+            setStatus('SIGNED');
+        } catch (err) {
+            console.error('Failed to sign quote:', err);
+        }
+        setShowSignModal(false);
+    };
+
+    useEffect(() => {
+        if (quote) setStatus(quote.status);
+    }, [quote]);
+
+    useEffect(() => {
+        if (!quote?.valid_until) return;
+
+        const interval = setInterval(() => {
+            const now = new Date();
+            const endTime = new Date(quote.valid_until);
+            const diff = endTime - now;
+
+            if (diff <= 0) {
+                setTimeRemaining('Expired');
+                clearInterval(interval);
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+
+            setTimeRemaining(`${days > 0 ? `${days}d ` : ''}${hours}h ${minutes}m ${seconds}s`);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [quote]);
+
+    if (isLoading) return <div>Loading quote...</div>;
+
+    if (error)
+        return (
+            <div className="alert alert-danger" role="alert">
+                {error?.data?.detail || 'Failed to load quote.'}
+            </div>
+        );
+
+    if (!quote) {
+        return (
+            <div className="alert alert-warning text-center my-5">
+                <i className="fa fa-exclamation-circle me-2"></i>
+                Quote not found or no longer available.
+            </div>
+        );
+    }
+
+    const isFinalized = ['SIGNED', 'DECLINED'].includes(status);
+
+    return (
+        <>
+            <div className="shadow p-4 bg-white rounded-4">
+                <div className="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+                    <h3 className="fw-semibold text-dark mb-0">
+                        <i className="far fa-file-text text-secondary me-2"></i>
+                        Quote ({quote.quote_number})
+                    </h3>
+
+                    {quote.valid_until && status === 'SENT' && (
+                        <div className="text-end">
+                            <div className="d-flex align-items-center justify-content-end">
+                                <i className="far fa-clock text-secondary me-2"></i>
+                                <span className="fw-semibold text-dark">
+                                    Valid Until:{' '}
+                                    <span className="text-muted">{new Date(quote.valid_until).toLocaleString()}</span>
+                                </span>
+                            </div>
+
+                            <div
+                                className={`mt-1 fw-semibold ${
+                                    timeRemaining === 'Expired' ? 'text-danger' : 'text-success'
+                                }`}
+                                style={{ fontSize: '0.95rem' }}
+                            >
+                                {timeRemaining === 'Expired'
+                                    ? 'This quote has expired.'
+                                    : `Time left: ${timeRemaining}`}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {signError && <div className="alert alert-danger">{signError?.data?.detail || 'Action failed.'}</div>}
+                {isSuccess && (
+                    <div className="alert alert-success">
+                        Quote {status === 'SIGNED' ? 'signed' : 'declined'} successfully!
+                    </div>
+                )}
+
+                <div className="row mb-3">
+                    <div className="col-md-6 mb-4 mb-md-0">
+                        <h5 className="text-muted mb-2">Service Details</h5>
+                        <p className="mb-1">
+                            <strong>Service Name:</strong> {quote.service_data?.service_name || '—'}
+                        </p>
+                        <p className="mb-1">
+                            <strong>Description:</strong> {quote.service_data?.description || '—'}
+                        </p>
+                        <p className="mb-1">
+                            <strong>Price:</strong> ${quote.service_data?.price} {quote.service_data?.currency}
+                        </p>
+                        <p className="mb-1">
+                            <strong>Service Type:</strong> {quote.service_data?.service_type}
+                        </p>
+                        <p className="mb-1">
+                            <strong>Billing Cycle:</strong> {quote.service_data?.billing_cycle || '—'}
+                        </p>
+                        <p className="mb-1">
+                            <strong>Start Date:</strong>{' '}
+                            {quote.service_data?.start_date
+                                ? new Date(quote.service_data.start_date).toLocaleDateString()
+                                : '—'}
+                        </p>
+                        <p className="mb-1">
+                            <strong>End Date:</strong>{' '}
+                            {quote.service_data?.end_date
+                                ? new Date(quote.service_data.end_date).toLocaleDateString()
+                                : '—'}
+                        </p>
+                        <p className="mb-1">
+                            <strong>Service Address:</strong> {quote.service_data?.street_address || '_'},{' '}
+                            {quote.service_data?.city || '_'}, {quote.service_data?.country || '_'},{' '}
+                            {quote.service_data?.postal_code || '_'}
+                        </p>
+                    </div>
+
+                    <div className="col-md-6">
+                        <h5 className="text-muted mb-2">Client Details</h5>
+                        <p className="mb-1">
+                            <strong>Name:</strong> {quote.client_name || '_'}
+                        </p>
+                        <p className="mb-1">
+                            <strong>Email:</strong> {quote.client?.client_email || '_'}
+                        </p>
+                        <p className="mb-1">
+                            <strong>Phone:</strong> {quote.client?.client_phone || '_'}
+                        </p>
+                        <p className="mb-1">
+                            <strong>Billing Address:</strong> {quote.client?.street_address || '_'},{' '}
+                            {quote.client?.city || '_'}, {quote.client?.country || '_'},{' '}
+                            {quote.client?.postal_code || '_'}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mb-4">
+                    <h5 className="text-muted">Terms & Conditions</h5>
+                    <p className="bg-light p-3 rounded">{quote.terms_conditions || '_'}</p>
+                </div>
+
+                <div className="mb-4">
+                    <h5 className="text-muted">Notes</h5>
+                    <p className="bg-light p-3 rounded">{quote.notes || 'No notes added.'}</p>
+                </div>
+
+                <div>
+                    {isFinalized ? (
+                        <div className={`alert alert-${status === 'DECLINED' ? 'danger' : 'success'} mt-3`}>
+                            {status === 'SIGNED' ? (
+                                <div className="row">
+                                    <div className="col-md-6">
+                                        <div className="mb-2">
+                                            <strong>This quote has been signed successfully.</strong>
+                                        </div>
+
+                                        <p className="mb-1">
+                                            Signed on: <strong>{new Date(quote.signed_at).toLocaleString()}</strong>
+                                        </p>
+                                        <p className="mb-1">
+                                            Signed by: <strong>{quote.client.client_name}</strong>
+                                        </p>
+                                    </div>
+                                    <div className="col-md-6">
+                                        {quote.signature && (
+                                            <div>
+                                                <img
+                                                    src={
+                                                        quote.signature.startsWith('http')
+                                                            ? quote.signature
+                                                            : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${quote.signature}`
+                                                    }
+                                                    alt="Signed Document"
+                                                    className="border rounded bg-white p-2"
+                                                    style={{
+                                                        height: '80px',
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    This quote has been <strong>declined</strong>
+                                    {quote.signed_at && (
+                                        <>
+                                            {' '}
+                                            on <strong>{new Date(quote.signed_at).toLocaleString()}</strong>
+                                        </>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="d-flex justify-content-end gap-2 mt-3">
+                            <button
+                                className="btn btn-danger"
+                                onClick={() => setShowDeclineModal(true)}
+                                disabled={signing || timeRemaining === 'Expired'}
+                            >
+                                Decline
+                            </button>
+                            <button
+                                className="btn btn-success"
+                                onClick={() => setShowSignModal(true)}
+                                disabled={signing || timeRemaining === 'Expired' || status !== 'SENT'}
+                            >
+                                Accept & Sign
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {showSignModal && (
+                <AcceptAndSignQuote
+                    handleSignSubmit={handleSignSubmit}
+                    signing={signing}
+                    setShowSignModal={setShowSignModal}
+                />
+            )}
+
+            {showDeclineModal && (
+                <div
+                    className="modal fade show"
+                    style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}
+                    tabIndex="-1"
+                    role="dialog"
+                >
+                    <div className="modal-dialog modal-dialog-centered" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title text-danger">
+                                    <i className="fa fa-exclamation-triangle me-2"></i>
+                                    Confirm Decline
+                                </h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => setShowDeclineModal(false)}
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                <p className="mb-0">
+                                    Are you sure you want to <strong>decline</strong> this quote? <br />
+                                    This action cannot be undone.
+                                </p>
+                            </div>
+                            <div className="modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-secondary"
+                                    onClick={() => setShowDeclineModal(false)}
+                                    disabled={signing}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-danger"
+                                    onClick={handleDeclineConfirm}
+                                    disabled={signing}
+                                >
+                                    {signing ? 'Declining...' : 'Yes, Decline'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}

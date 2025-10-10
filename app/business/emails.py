@@ -6,8 +6,8 @@ def send_quote_email(quote):
     """Send quotation email to client."""
 
     sign_link = (
-        f"{settings.FRONTEND_URL}/quotes/"
-        f"{quote.id}/{quote.quote_number}/sign"
+        f"{settings.FRONTEND_URL}/dashboard/quote/"
+        f"sign/{quote.id}/"
     )
 
     subject = f"Quote {quote.quote_number} - {quote.service.service_name}"

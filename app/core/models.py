@@ -1,6 +1,8 @@
 """
 Database models.
 """
+import base64
+from django.core.files.base import ContentFile
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -59,7 +61,7 @@ QUOTE_STATUS_CHOICES = [
     ("DRAFT", "Draft"),
     ("SENT", "Sent"),
     ("SIGNED", "Signed"),
-    ("REJECTED", "Rejected")
+    ("DECLINED", "Declined")
 ]
 
 
@@ -414,7 +416,7 @@ class Quote(models.Model):
         default="DRAFT"
     )
     signed_at = models.DateTimeField(null=True, blank=True)
-    signed_by = models.CharField(max_length=50, null=True, blank=True)
+    signature = models.ImageField(upload_to="media/signatures/", null=True, blank=True)
 
     terms_conditions = models.TextField()
     notes = models.TextField(blank=True, null=True)
@@ -422,6 +424,9 @@ class Quote(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.quote_number} for {self.service.client}"
 
     def save(self, *args, **kwargs):
         if not self.quote_number:
@@ -447,5 +452,20 @@ class Quote(models.Model):
 
         return f"{prefix}{new_number:03d}"
 
-    def __str__(self):
-        return f"{self.quote_number} for {self.service.client}"
+    def set_signature_from_base64(self, base64_data):
+        """
+        Saves a base64-encoded signature image (PNG) to the `signature` field.
+        """
+        if not base64_data:
+            return
+
+        if not base64_data.startswith("data:image"):
+            raise ValueError("Invalid signature format")
+
+        try:
+            format, imgstr = base64_data.split(";base64,")
+            ext = format.split("/")[-1]
+            file_name = f"signature_{self.quote_number}.{ext}"
+            self.signature.save(file_name, ContentFile(base64.b64decode(imgstr)), save=False)
+        except Exception as e:
+            raise ValueError(f"Error decoding signature: {e}")

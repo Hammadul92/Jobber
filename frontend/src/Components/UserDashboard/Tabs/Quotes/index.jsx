@@ -3,22 +3,26 @@ import { useState } from 'react';
 import CreateQuoteForm from './CreateQuoteForm';
 import DataTable from './QuotesDatatable';
 
-export default function Quotes({ token }) {
+export default function Quotes({ token, role }) {
     const [showModal, setShowModal] = useState(false);
 
     return (
         <div>
             <div className="clearfix mb-3">
-                <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
-                    Add Quote
-                </button>
+                {role === 'MANAGER' ? (
+                    <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
+                        Add Quote
+                    </button>
+                ) : null}
                 <h3 className="mb-0">Quotes</h3>
             </div>
 
-            <CreateQuoteForm token={token} showModal={showModal} setShowModal={setShowModal} />
+            {role === 'MANAGER' ? (
+                <CreateQuoteForm token={token} showModal={showModal} setShowModal={setShowModal} />
+            ) : null}
 
             <div className="">
-                <DataTable token={token} />
+                <DataTable token={token} role={role} />
             </div>
         </div>
     );

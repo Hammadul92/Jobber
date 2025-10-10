@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSigninUserMutation, useFetchUserQuery, useVerifyEmailQuery } from '../../store';
-
 import SubmitButton from '../../utils/SubmitButton';
 
 export default function SignIn() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token');
+    const next = searchParams.get('next') || '/'; // default to home
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const [signinUser, { isLoading: signinLoading, error: signinError }] = useSigninUserMutation();
+    const [signinUser, { isLoading: signinLoading, error: signinError, isSuccess: signinSuccess }] =
+        useSigninUserMutation();
 
     const { data: userData, isSuccess: userFetched } = useFetchUserQuery(undefined, {
         skip: !localStorage.getItem('token'),
@@ -26,11 +27,12 @@ export default function SignIn() {
         error: verifyErrorObj,
     } = useVerifyEmailQuery(token, { skip: !token });
 
+    // ✅ Redirect after login success
     useEffect(() => {
         if (userFetched && userData) {
-            navigate('/');
+            navigate(next, { replace: true });
         }
-    }, [userFetched, userData, navigate]);
+    }, [userFetched, userData, navigate, next]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -67,7 +69,6 @@ export default function SignIn() {
                         </div>
                     )}
 
-                    {/* Email */}
                     <div className="mb-3">
                         <label htmlFor="email" className="mb-2">
                             Email (*)
@@ -82,7 +83,6 @@ export default function SignIn() {
                         />
                     </div>
 
-                    {/* Password with Eye Toggle */}
                     <div className="mb-3">
                         <label htmlFor="password" className="mb-2">
                             Password (*)

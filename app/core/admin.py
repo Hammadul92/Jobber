@@ -120,10 +120,10 @@ class TeamMemberAdmin(admin.ModelAdmin):
 class QuoteAdmin(admin.ModelAdmin):
     list_display = [
         'quote_number', 'service', 'status', 'valid_until',
-        'signed_by', 'is_active', 'created_at'
+        'is_active', 'created_at'
     ]
     list_filter = ['status', 'is_active', 'valid_until']
-    search_fields = ['quote_number', 'service__service_name', 'signed_by']
+    search_fields = ['quote_number', 'service__service_name']
     readonly_fields = ['quote_number', 'created_at', 'updated_at', 'signed_at']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']

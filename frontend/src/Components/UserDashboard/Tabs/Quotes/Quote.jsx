@@ -63,6 +63,15 @@ export default function Quote({ token }) {
 
     const disableSendBtn = isSigned || isExpired || isInactiveClient || isServiceInactive || isRequiredFieldsMissing;
 
+    // Collect all reasons for disabling
+    const disableReasons = [];
+    if (isSigned) disableReasons.push('This quote has already been signed and cannot be resent.');
+    if (isExpired) disableReasons.push('This quote has expired. Please update the "Valid Until" date before sending.');
+    if (isInactiveClient) disableReasons.push('The client is inactive. Reactivate the client before sending.');
+    if (isServiceInactive) disableReasons.push('The linked service is inactive. Please ensure it is active.');
+    if (isRequiredFieldsMissing)
+        disableReasons.push('Please fill in all required fields (Valid Until and Terms & Conditions).');
+
     const statusColor =
         quoteData.status === 'SIGNED'
             ? 'success'
@@ -80,28 +89,30 @@ export default function Quote({ token }) {
                     <span className={`badge bg-${statusColor} rounded-pill`}>{quoteData.status}</span>
                 </h3>
 
-                <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleSendQuote}
-                    disabled={disableSendBtn || sending}
-                >
-                    {sending ? (
-                        <>
-                            <span
-                                className="spinner-border spinner-border-sm me-2"
-                                role="status"
-                                aria-hidden="true"
-                            ></span>
-                            Sending...
-                        </>
-                    ) : (
-                        <>
-                            <i className="fa fa-paper-plane me-2"></i>
-                            Send Quote
-                        </>
-                    )}
-                </button>
+                <div className="text-end">
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handleSendQuote}
+                        disabled={disableSendBtn || sending}
+                    >
+                        {sending ? (
+                            <>
+                                <span
+                                    className="spinner-border spinner-border-sm me-2"
+                                    role="status"
+                                    aria-hidden="true"
+                                ></span>
+                                Sending...
+                            </>
+                        ) : (
+                            <>
+                                <i className="fa fa-paper-plane me-2"></i>
+                                Send Quote
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
 
             {sendError && (
@@ -118,7 +129,16 @@ export default function Quote({ token }) {
                     </div>
                 )}
                 {isSuccess && <div className="alert alert-success mb-3">Quote updated successfully!</div>}
-
+                {disableSendBtn && (
+                    <div className="alert alert-warning py-2 small mb-3 text-start">
+                        <strong>Note:</strong>
+                        <ul className="mb-0 ps-3">
+                            {disableReasons.map((reason, idx) => (
+                                <li key={idx}>{reason}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
                 <div className="row">
                     <div className="col-md-4">
                         <div className="shadow p-3 bg-white rounded-3 mb-3 position-relative">
@@ -155,6 +175,7 @@ export default function Quote({ token }) {
                             </div>
                         </div>
 
+                        {/* Service Info */}
                         <div className="shadow p-3 bg-white rounded-3 mb-3 position-relative">
                             <div className="position-absolute top-0 end-0 mt-2 me-2 d-flex gap-1 flex-wrap justify-content-end">
                                 <span className="badge bg-dark rounded-pill">
@@ -214,18 +235,8 @@ export default function Quote({ token }) {
                         </div>
                     </div>
 
-                    {/* --- RIGHT: FORM --- */}
                     <div className="col-md-8">
                         <div className="row mb-3">
-                            <div className="col-md-4">
-                                <label className="form-label">Signed By</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={quoteData.signed_by || ''}
-                                    disabled
-                                />
-                            </div>
                             <div className="col-md-4">
                                 <label className="form-label">Signed At</label>
                                 <input

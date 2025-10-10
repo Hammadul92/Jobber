@@ -1,7 +1,7 @@
 """
 Views for business APIs.
 """
-
+from django.utils import timezone
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -161,9 +161,10 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         if user.role == "ADMIN":
             return qs
-
         if user.role == "MANAGER":
             return qs.filter(service__business__owner=user).order_by('-id')
+        if user.role == "CLIENT":
+            return qs.filter(service__client__user=user).order_by('-id')
 
         return qs.none()
 
@@ -206,3 +207,63 @@ class QuoteViewSet(viewsets.ModelViewSet):
                 {"detail": f"Failed to send quote: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+    @action(detail=True, methods=["post"], url_path="sign-quote")
+    def sign_quote(self, request, pk=None):
+        """
+        Endpoint for client to accept (sign) or decline a quote.
+        """
+        user = request.user
+        try:
+            quote = self.get_object()
+        except Quote.DoesNotExist:
+            return Response({"detail": "Quote not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if quote.service.client.user != user:
+            return Response({"detail": "You are not authorized to sign this quote."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        new_status = request.data.get("status")
+        signature_data = request.data.get("signature")
+
+        if new_status not in ["SIGNED", "DECLINED"]:
+            return Response(
+                {"detail": "Invalid status. Must be 'SIGNED' or 'DECLINED'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if quote.status in ["SIGNED", "DECLINED"]:
+            return Response({"detail": f"Quote already {quote.status.lower()}."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if new_status == "SIGNED":
+            if not signature_data:
+                return Response(
+                    {"detail": "Signature is required when signing the quote."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            quote.signed_at = timezone.now()
+            quote.status = "SIGNED"
+
+            try:
+                quote.set_signature_from_base64(signature_data)
+            except ValueError as e:
+                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        elif new_status == "DECLINED":
+            quote.status = "DECLINED"
+            quote.signed_at = timezone.now()
+            quote.signature = None
+
+        quote.save(update_fields=["status", "signed_at", "signature"])
+
+        return Response(
+            {
+                "detail": f"Quote successfully {new_status.lower()}.",
+                "status": new_status,
+                "signed_at": quote.signed_at,
+                "signature_url": request.build_absolute_uri(quote.signature.url) if quote.signature else None,
+            },
+            status=status.HTTP_200_OK,
+        )

@@ -211,11 +211,11 @@ class QuoteSerializer(serializers.ModelSerializer):
         fields = [
             "id", "quote_number", "service", "service_data", "client",
             "service_name", "client_name", "valid_until", "status",
-            "signed_at", "signed_by", "terms_conditions", "notes",
-            "is_active", "created_at", "updated_at",
+            "signed_at", "signature", "terms_conditions",
+            "notes", "is_active", "created_at", "updated_at",
         ]
         read_only_fields = [
-            "quote_number", "status", "created_at", "updated_at",
+            "id", "quote_number", "status", "created_at", "updated_at",
         ]
 
     def validate_valid_until(self, value):

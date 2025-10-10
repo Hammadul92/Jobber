@@ -12,7 +12,7 @@ import {
 import { useFetchQuotesQuery, useDeleteQuoteMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 
-export default function QuotesDatatable({ token }) {
+export default function QuotesDatatable({ token, role }) {
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
 
@@ -69,18 +69,33 @@ export default function QuotesDatatable({ token }) {
         if (props.column.name === 'actions') {
             return (
                 <Table.Cell {...props}>
-                    <Link
-                        to={`/dashboard/quote/${props.row.id}`}
-                        className="badge bg-light rounded-circle p-2 me-2 text-secondary"
-                    >
-                        <i className="fa fa-pencil"></i>
-                    </Link>
-                    <button
-                        className="badge bg-light rounded-circle p-2 me-2 text-secondary border-0"
-                        onClick={() => handleDeleteClick(props.row.id)}
-                    >
-                        <i className="fa fa-trash-alt"></i>
-                    </button>
+                    {role === 'MANAGER' ? (
+                        <Link
+                            to={`/dashboard/quote/${props.row.id}`}
+                            className="badge bg-light rounded-circle p-2 me-2 text-secondary"
+                            title="Edit Quote"
+                        >
+                            <i className="fa fa-pencil"></i>
+                        </Link>
+                    ) : null}
+                    {props.row.status !== 'DRAFT' ? (
+                        <Link
+                            to={`/dashboard/quote/sign/${props.row.id}`}
+                            className="badge bg-light rounded-circle p-2 me-2 text-secondary"
+                            title="Quote"
+                        >
+                            <i className="fas fa-file-signature" />
+                        </Link>
+                    ) : null}
+                    {role === 'MANAGER' ? (
+                        <button
+                            className="badge bg-light rounded-circle p-2 me-2 text-secondary border-0"
+                            onClick={() => handleDeleteClick(props.row.id)}
+                            title="Delete Quote"
+                        >
+                            <i className="fa fa-trash-alt"></i>
+                        </button>
+                    ) : null}
                 </Table.Cell>
             );
         }
@@ -88,7 +103,7 @@ export default function QuotesDatatable({ token }) {
         if (props.column.name === 'quote_number') {
             let badgeClass = 'bg-primary';
             if (props.row.status === 'SIGNED') badgeClass = 'bg-success';
-            else if (props.row.status === 'EXPIRED') badgeClass = 'bg-danger';
+            else if (['EXPIRED', 'DECLINED'].includes(props.row.status)) badgeClass = 'bg-danger';
             else if (props.row.status === 'DRAFT') badgeClass = 'bg-secondary';
 
             return (

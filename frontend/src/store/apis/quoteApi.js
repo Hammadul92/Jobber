@@ -55,6 +55,14 @@ const quoteApi = createApi({
             }),
             invalidatesTags: (result, error, id) => ['Quote', { type: 'Quote', id }],
         }),
+        signQuote: builder.mutation({
+            query: (data) => ({
+                url: `/quote/${data.id}/sign-quote/`,
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: (result, error, id) => ['Quote', { type: 'Quote', id }],
+        }),
     }),
 });
 
@@ -65,6 +73,7 @@ export const {
     useUpdateQuoteMutation,
     useDeleteQuoteMutation,
     useSendQuoteMutation,
+    useSignQuoteMutation,
 } = quoteApi;
 
 export { quoteApi };
