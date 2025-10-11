@@ -46,7 +46,7 @@ export default function ClientServices({ token }) {
                     onClick={() => setShowModal(true)}
                     disabled={loadingClient || clientError}
                 >
-                    Add Service
+                    Add
                 </button>
 
                 {loadingClient && <h3 className="mb-0 text-muted">Loading client...</h3>}

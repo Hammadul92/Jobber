@@ -196,19 +196,34 @@ export default function ClientServicesData({ token, clientId }) {
                                     </div>
                                 )}
 
-                                <div className="clearfix">
-                                    <Link
-                                        className="badge bg-light rounded-circle p-2 text-secondary float-end fs-5"
-                                        to={`/dashboard/service/${service.id}`}
+                                <div className="d-flex align-items-center justify-content-between mb-2">
+                                    <span
+                                        className={`badge rounded-pill ${
+                                            service.service_questionnaires && service.service_questionnaires.length > 0
+                                                ? 'bg-primary'
+                                                : 'bg-danger'
+                                        }`}
                                     >
-                                        <i className="fa fa-pencil"></i>
-                                    </Link>
-                                    <button
-                                        className="badge bg-light rounded-circle p-2 me-2 text-secondary border-0 float-end fs-5"
-                                        onClick={() => handleDeleteClick(service.id)}
-                                    >
-                                        <i className="fa fa-trash-alt"></i>
-                                    </button>
+                                        Service Questions:{' '}
+                                        {service.service_questionnaires ? service.service_questionnaires.length : 0}
+                                    </span>
+
+                                    <div className="d-flex align-items-center">
+                                        <button
+                                            className="badge bg-light rounded-circle p-2 me-2 text-secondary border-0 fs-5"
+                                            onClick={() => handleDeleteClick(service.id)}
+                                            title="Delete Service"
+                                        >
+                                            <i className="fa fa-trash-alt"></i>
+                                        </button>
+                                        <Link
+                                            className="badge bg-light rounded-circle p-2 text-secondary fs-5"
+                                            to={`/dashboard/service/${service.id}`}
+                                            title="Edit Service"
+                                        >
+                                            <i className="fa fa-pencil"></i>
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>

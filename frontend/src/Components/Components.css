@@ -1,6 +1,5 @@
 body {
     padding-top: 60px;
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
 .bg-accent {
@@ -91,11 +90,11 @@ body {
     text-align: center;
 }
 
-.form-control,
+/* .form-control,
 .form-select,
 .btn {
     border-radius: 0;
-}
+} */
 
 select.form-select:focus,
 input.form-control:focus,
@@ -108,13 +107,11 @@ textarea.form-control:focus {
     background-color: #fff !important;
     border-right: none !important;
     border-color: #dee2e6 !important;
-    border-radius: 0 !important;
 }
 
 .react-tel-input .form-control {
     width: 100% !important;
     border-color: #dee2e6 !important;
-    border-radius: 0 !important;
 }
 
 .table thead th {

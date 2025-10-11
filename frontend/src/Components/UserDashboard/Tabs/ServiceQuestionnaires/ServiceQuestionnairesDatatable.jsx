@@ -79,12 +79,21 @@ export default function ServiceQuestionnairesDatatable({ token }) {
                     <Link
                         to={`/dashboard/service-questionnaire/${props.row.id}`}
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary"
+                        title="Edit Service Questionnaire"
                     >
                         <i className="fa fa-pencil"></i>
+                    </Link>
+                    <Link
+                        to={`/dashboard/service-questionnaire/preview/${props.row.id}`}
+                        className="badge bg-light rounded-circle p-2 me-2 text-secondary"
+                        title="Preview Service Questionnaire Form"
+                    >
+                        <i className="far fa-file"></i>
                     </Link>
                     <button
                         className="badge bg-light rounded-circle p-2 text-secondary border-0"
                         onClick={() => handleDeleteClick(props.row.id)}
+                        title="Delete Service Questionnaire"
                     >
                         <i className="fa fa-trash-alt"></i>
                     </button>

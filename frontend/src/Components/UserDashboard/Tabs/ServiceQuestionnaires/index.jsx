@@ -23,9 +23,9 @@ export default function Questionnaires({ token }) {
             </nav>
             <div className="clearfix mb-3">
                 <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
-                    Add Questionnaire
+                    Add
                 </button>
-                <h3 className="mb-0">Questionnaires</h3>
+                <h3 className="mb-0">Service Questionnaires</h3>
             </div>
 
             <CreateServiceQuestionnairesForm token={token} showModal={showModal} setShowModal={setShowModal} />

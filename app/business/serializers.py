@@ -134,6 +134,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 class ServiceSerializer(serializers.ModelSerializer):
     """ Serializer for services."""
     quotations = serializers.SerializerMethodField()
+    service_questionnaires = serializers.SerializerMethodField()
     client_name = serializers.CharField(
         source="client.user.name",
         read_only=True
@@ -143,10 +144,10 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = [
             "id", "client", "client_name", "business", "quotations",
-            "service_name", "description", "start_date", "end_date",
-            "service_type", "price", "currency", "billing_cycle", "status",
-            "street_address", "city", "country", "province_state",
-            "postal_code", "created_at", "updated_at",
+            "service_name", "service_questionnaires", "description",
+            "start_date", "end_date", "service_type", "price", "currency",
+            "billing_cycle", "status", "street_address", "city", "country",
+            "province_state", "postal_code", "created_at", "updated_at",
         ]
         read_only_fields = [
             "id", "client", "business", "created_at", "updated_at"
@@ -158,6 +159,17 @@ class ServiceSerializer(serializers.ModelSerializer):
             "id", "quote_number", "status", "valid_until", "created_at"
         )
         return list(quotes)
+
+    def get_service_questionnaires(self, obj):
+        """Return the additional_questions_form of the related service questionnaire."""
+        questionnaire = obj.business.service_questionnaires.filter(
+            service_name=obj.service_name,
+            is_active=True
+        ).first()
+
+        if questionnaire:
+            return questionnaire.additional_questions_form
+        return None
 
     def validate(self, data):
         """

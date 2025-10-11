@@ -23,7 +23,7 @@ export default function TeamMembers({ token }) {
             </nav>
             <div className="clearfix mb-3">
                 <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
-                    Add Member
+                    Add
                 </button>
                 <h3 className="mb-0">Team Members</h3>
             </div>

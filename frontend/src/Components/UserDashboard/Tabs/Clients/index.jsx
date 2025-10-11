@@ -23,7 +23,7 @@ export default function Clients({ token }) {
             </nav>
             <div className="clearfix mb-3">
                 <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
-                    Add Client
+                    Add
                 </button>
                 <h3 className="mb-0">Clients</h3>
             </div>
