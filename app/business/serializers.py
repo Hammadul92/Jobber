@@ -133,13 +133,17 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 class ServiceSerializer(serializers.ModelSerializer):
     """ Serializer for services."""
     quotations = serializers.SerializerMethodField()
+    client_name = serializers.CharField(
+        source="client.user.name",
+        read_only=True
+    )
 
     class Meta:
         model = Service
         fields = [
-            "id", "client", "business", "quotations", "service_name",
-            "description", "start_date", "end_date", "service_type",
-            "price", "currency", "billing_cycle", "status",
+            "id", "client", "client_name", "business", "quotations",
+            "service_name", "description", "start_date", "end_date",
+            "service_type", "price", "currency", "billing_cycle", "status",
             "street_address", "city", "country", "province_state",
             "postal_code", "created_at", "updated_at",
         ]
@@ -205,13 +209,17 @@ class QuoteSerializer(serializers.ModelSerializer):
         source="service.client.user.name",
         read_only=True
     )
+    business_name = serializers.CharField(
+        source="service.business.name",
+        read_only=True
+    )
 
     class Meta:
         model = Quote
         fields = [
             "id", "quote_number", "service", "service_data", "client",
-            "service_name", "client_name", "valid_until", "status",
-            "signed_at", "signature", "terms_conditions",
+            "service_name", "client_name", "business_name", "valid_until",
+            "status", "signed_at", "signature", "terms_conditions",
             "notes", "is_active", "created_at", "updated_at",
         ]
         read_only_fields = [

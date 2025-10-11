@@ -83,9 +83,26 @@ export default function Quote({ token }) {
 
     return (
         <>
+            <nav aria-label="breadcrumb mb-3">
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/home`} className="text-success">
+                            Dashboard
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/quotes`} className="text-success">
+                            Quotes
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item active" aria-current="page">
+                        Edit Quote ({quoteData.quote_number})
+                    </li>
+                </ol>
+            </nav>
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h3 className="mb-0">
-                    Quote: {quoteData.quote_number}{' '}
+                    {quoteData.quote_number}{' '}
                     <span className={`badge bg-${statusColor} rounded-pill`}>{quoteData.status}</span>
                 </h3>
 
@@ -106,10 +123,7 @@ export default function Quote({ token }) {
                                 Sending...
                             </>
                         ) : (
-                            <>
-                                <i className="fa fa-paper-plane me-2"></i>
-                                Send Quote
-                            </>
+                            <>Send Quote</>
                         )}
                     </button>
                 </div>
@@ -130,7 +144,7 @@ export default function Quote({ token }) {
                 )}
                 {isSuccess && <div className="alert alert-success mb-3">Quote updated successfully!</div>}
                 {disableSendBtn && (
-                    <div className="alert alert-warning py-2 small mb-3 text-start">
+                    <div className="alert alert-warning mb-3">
                         <strong>Note:</strong>
                         <ul className="mb-0 ps-3">
                             {disableReasons.map((reason, idx) => (

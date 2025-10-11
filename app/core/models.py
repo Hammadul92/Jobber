@@ -416,7 +416,7 @@ class Quote(models.Model):
         default="DRAFT"
     )
     signed_at = models.DateTimeField(null=True, blank=True)
-    signature = models.ImageField(upload_to="media/signatures/", null=True, blank=True)
+    signature = models.ImageField(upload_to="signatures/", null=True, blank=True)
 
     terms_conditions = models.TextField()
     notes = models.TextField(blank=True, null=True)

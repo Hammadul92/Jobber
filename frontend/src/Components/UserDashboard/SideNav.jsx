@@ -2,7 +2,6 @@ import { NavLink } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function SideNav({ role }) {
-    console.log(role);
     const [collapsed, setCollapsed] = useState(false);
 
     const navItems = [

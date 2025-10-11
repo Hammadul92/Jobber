@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import CreateClientServiceForm from './CreateClientServiceForm';
 
 import { useFetchClientQuery, useFetchBusinessQuery } from '../../../../../store';
@@ -23,6 +23,23 @@ export default function ClientServices({ token }) {
 
     return (
         <>
+            <nav aria-label="breadcrumb mb-3">
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/home`} className="text-success">
+                            Dashboard
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/clients`} className="text-success">
+                            Clients
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item active" aria-current="page">
+                        Services for {client && client.client_name}
+                    </li>
+                </ol>
+            </nav>
             <div className="clearfix mb-3">
                 <button
                     className="btn btn-success float-end"

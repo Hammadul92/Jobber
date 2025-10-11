@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useFetchQuoteQuery, useSignQuoteMutation } from '../../../../store';
 import AcceptAndSignQuote from './AcceptAndSignQuote';
 
@@ -84,6 +84,23 @@ export default function SignQuote({ token }) {
 
     return (
         <>
+            <nav aria-label="breadcrumb mb-3">
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/home`} className="text-success">
+                            Dashboard
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/quotes`} className="text-success">
+                            Quotes
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item active" aria-current="page">
+                        Quote ({quote.quote_number})
+                    </li>
+                </ol>
+            </nav>
             <div className="shadow p-4 bg-white rounded-4">
                 <div className="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
                     <h3 className="fw-semibold text-dark mb-0">

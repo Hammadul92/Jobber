@@ -92,7 +92,7 @@ export default function Credentials() {
                             />
                             <button
                                 type="button"
-                                className="btn btn-outline-success"
+                                className="btn btn-success"
                                 onClick={() => setShowPassword(!showPassword)}
                                 tabIndex={-1}
                             >
@@ -123,7 +123,7 @@ export default function Credentials() {
                             />
                             <button
                                 type="button"
-                                className="btn btn-outline-success"
+                                className="btn btn-success"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 tabIndex={-1}
                             >

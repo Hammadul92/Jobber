@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useFetchTeamMemberQuery, useUpdateTeamMemberMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 
@@ -64,6 +64,23 @@ export default function TeamMember({ token }) {
 
     return (
         <>
+            <nav aria-label="breadcrumb mb-3">
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/home`} className="text-success">
+                            Dashboard
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/team-members`} className="text-success">
+                            Team Members
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item active" aria-current="page">
+                        {name}
+                    </li>
+                </ol>
+            </nav>
             <div className="row">
                 <div className="col-12 col-lg-3 mb-4">
                     <div className="text-center shadow p-3 bg-white rounded-3 mb-3">

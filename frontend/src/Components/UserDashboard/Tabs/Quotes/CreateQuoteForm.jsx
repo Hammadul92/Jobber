@@ -78,7 +78,7 @@ export default function CreateQuoteForm({ token, showModal, setShowModal }) {
                                                 <option value="">Select Service</option>
                                                 {services?.map((service) => (
                                                     <option key={service.id} value={service.id}>
-                                                        {service.service_name}
+                                                        {service.service_name} for {service.client_name}
                                                     </option>
                                                 ))}
                                             </select>

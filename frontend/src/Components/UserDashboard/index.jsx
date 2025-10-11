@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFetchUserQuery } from '../../store';
 
 import SideNav from './SideNav';
+import DashboardHome from './Tabs/Home/';
 import Settings from './Tabs/Settings/';
 import Clients from './Tabs/Clients';
 import Client from './Tabs/Clients/Client';
@@ -56,7 +57,8 @@ export default function UserDashboard({ page }) {
     }
 
     const renderTab = () => {
-        if (page === 'settings') return <Settings token={token} />;
+        if (page === 'home') return <DashboardHome token={token} role={user.role} />;
+        else if (page === 'settings') return <Settings token={token} role={user.role} />;
         else if (page === 'clients') return <Clients token={token} />;
         else if (page === 'client') return <Client token={token} />;
         else if (page === 'client-services') return <ClientServices token={token} />;

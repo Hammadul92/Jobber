@@ -75,18 +75,21 @@ export default function ClientsDatatable({ token }) {
                     <Link
                         to={`/dashboard/client/${props.row.id}`}
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary"
+                        title="Edit Client"
                     >
                         <i className="fa fa-pencil"></i>
                     </Link>
                     <Link
                         to={`/dashboard/client/${props.row.id}/services`}
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary"
+                        title="Client Services"
                     >
                         <i className="fa fa fa-cogs"></i>
                     </Link>
                     <button
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary border-0"
                         onClick={() => handleDeleteClick(props.row.id)}
+                        title="Delete Client"
                     >
                         <i className="fa fa-trash-alt"></i>
                     </button>

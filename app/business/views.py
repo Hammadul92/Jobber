@@ -125,8 +125,12 @@ class ServiceViewSet(viewsets.ModelViewSet):
         user = self.request.user
         qs = super().get_queryset()
 
+        client_id = self.request.query_params.get("client")
+        if client_id:
+            qs = qs.filter(client_id=client_id)
+
         if user.role == "ADMIN":
-            return qs
+            return qs.order_by('-id')
 
         if user.role == "MANAGER":
             return qs.filter(business__owner=user).order_by('-id')

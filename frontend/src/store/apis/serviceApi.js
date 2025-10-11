@@ -15,7 +15,13 @@ const serviceApi = createApi({
     tagTypes: ['Service'],
     endpoints: (builder) => ({
         fetchServices: builder.query({
-            query: () => '/service/',
+            query: (client) => {
+                let url = '/service/';
+                if (client) {
+                    url += `?client=${client}`;
+                }
+                return url;
+            },
             providesTags: ['Service'],
         }),
 

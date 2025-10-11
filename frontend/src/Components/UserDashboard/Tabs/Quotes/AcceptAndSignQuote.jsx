@@ -3,7 +3,6 @@ import SignaturePad from 'react-signature-pad-wrapper';
 import SubmitButton from '../../../../utils/SubmitButton';
 
 export default function AcceptAndSignQuote({ setShowSignModal, handleSignSubmit, signing }) {
-    const [signedBy, setSignedBy] = useState('');
     const [signatureData, setSignatureData] = useState(null);
     const sigPadRef = useRef(null);
 
@@ -23,18 +22,14 @@ export default function AcceptAndSignQuote({ setShowSignModal, handleSignSubmit,
 
     const onSubmit = (e) => {
         e.preventDefault();
-        if (!signedBy.trim()) {
-            alert('Please enter your full name.');
-            return;
-        }
         if (!signatureData) {
             alert('Please save your signature before submitting.');
             return;
         }
-        handleSignSubmit({ signedBy, signature: signatureData });
+        handleSignSubmit({ signature: signatureData });
     };
 
-    const isSubmitDisabled = !signedBy.trim() || !signatureData;
+    const isSubmitDisabled = !signatureData;
 
     return (
         <div
@@ -56,18 +51,6 @@ export default function AcceptAndSignQuote({ setShowSignModal, handleSignSubmit,
                         </div>
 
                         <div className="modal-body">
-                            <div className="mb-3">
-                                <label className="form-label">Your Full Name</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    placeholder="Enter your full name"
-                                    value={signedBy}
-                                    onChange={(e) => setSignedBy(e.target.value)}
-                                    required
-                                />
-                            </div>
-
                             <div className="mb-3">
                                 <div className="d-flex justify-content-between align-items-center mb-2">
                                     <label className="form-label mb-0">Draw Your Signature</label>

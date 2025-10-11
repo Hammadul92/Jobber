@@ -16,7 +16,6 @@ export default function ClientServicesData({ token, clientId }) {
         refetch,
     } = useFetchServicesQuery(clientId, { skip: !token });
 
-    // Filters
     const [statusFilter, setStatusFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
     const [countryFilter, setCountryFilter] = useState('');
@@ -56,7 +55,6 @@ export default function ClientServicesData({ token, clientId }) {
         }
     };
 
-    // Apply filters
     const filteredServices = useMemo(() => {
         if (!services) return [];
         return services.filter((service) => {

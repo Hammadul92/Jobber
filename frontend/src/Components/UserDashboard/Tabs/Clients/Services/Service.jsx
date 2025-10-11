@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useFetchServiceQuery, useUpdateServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../../utils/SubmitButton';
 
@@ -82,6 +82,28 @@ export default function Service({ token }) {
 
     return (
         <>
+            <nav aria-label="breadcrumb mb-3">
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/home`} className="text-success">
+                            Dashboard
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/clients`} className="text-success">
+                            Clients
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
+                        <Link to={`/dashboard/client/${serviceData.client}/services`} className="text-success">
+                            Services
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item active" aria-current="page">
+                        Edit Service
+                    </li>
+                </ol>
+            </nav>
             <h3 className="mb-4">Edit Service</h3>
 
             <form onSubmit={handleSubmit}>
@@ -101,6 +123,7 @@ export default function Service({ token }) {
                             value={serviceName}
                             onChange={(e) => setServiceName(e.target.value)}
                             required
+                            disabled
                         />
                     </div>
                     <div className="mb-3 col-md-6">
