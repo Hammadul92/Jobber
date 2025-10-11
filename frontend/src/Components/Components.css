@@ -166,3 +166,7 @@ textarea.form-control:focus {
 .btn:disabled {
     opacity: 0.6;
 }
+
+.accordion-button:not(.collapsed) {
+    box-shadow: none;
+}

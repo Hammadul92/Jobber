@@ -129,6 +129,21 @@ class QuoteAdmin(admin.ModelAdmin):
     ordering = ['-created_at']
 
 
+class ServiceQuestionnaireAdmin(admin.ModelAdmin):
+    list_display = [
+        'service_name',
+        'business',
+        'is_active',
+        'created_at',
+        'updated_at',
+    ]
+    list_filter = ['is_active', 'business']
+    search_fields = ['service_name', 'business__name']
+    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+
+
 # Register models
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Business, BusinessAdmin)
@@ -139,3 +154,4 @@ admin.site.register(models.Job, JobAdmin)
 admin.site.register(models.JobPhoto, JobPhotoAdmin)
 admin.site.register(models.TeamMember, TeamMemberAdmin)
 admin.site.register(models.Quote, QuoteAdmin)
+admin.site.register(models.ServiceQuestionnaire, ServiceQuestionnaireAdmin)

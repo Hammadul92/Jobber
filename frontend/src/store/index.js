@@ -3,6 +3,7 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 import { userApi } from './apis/userApi';
 import { businessApi } from './apis/businessApi';
 import { clientApi } from './apis/clientApi';
+import { serviceQuestionnaireApi } from './apis/serviceQuestionnaireApi';
 import { teamMemberApi } from './apis/teamMemberApi';
 import { serviceApi } from './apis/serviceApi';
 import { quoteApi } from './apis/quoteApi';
@@ -15,12 +16,14 @@ const store = configureStore({
         [teamMemberApi.reducerPath]: teamMemberApi.reducer,
         [serviceApi.reducerPath]: serviceApi.reducer,
         [quoteApi.reducerPath]: quoteApi.reducer,
+        [serviceQuestionnaireApi.reducerPath]: serviceQuestionnaireApi.reducer,
     },
     middleware: (getDefaultMiddleware) => {
         return getDefaultMiddleware()
             .concat(userApi.middleware)
             .concat(businessApi.middleware)
             .concat(clientApi.middleware)
+            .concat(serviceQuestionnaireApi.middleware)
             .concat(teamMemberApi.middleware)
             .concat(serviceApi.middleware)
             .concat(quoteApi.middleware);
@@ -29,7 +32,7 @@ const store = configureStore({
 
 setupListeners(store.dispatch);
 
-export { store, userApi, businessApi, clientApi, teamMemberApi, serviceApi, quoteApi };
+export { store, userApi, businessApi, clientApi, serviceQuestionnaireApi, teamMemberApi, serviceApi, quoteApi };
 export {
     useSigninUserMutation,
     useFetchUserQuery,
@@ -83,3 +86,11 @@ export {
     useSendQuoteMutation,
     useSignQuoteMutation,
 } from './apis/quoteApi';
+
+export {
+    useFetchServiceQuestionnairesQuery,
+    useFetchServiceQuestionnaireQuery,
+    useCreateServiceQuestionnaireMutation,
+    useUpdateServiceQuestionnaireMutation,
+    useDeleteServiceQuestionnaireMutation,
+} from './apis/serviceQuestionnaireApi';

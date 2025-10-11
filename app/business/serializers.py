@@ -11,6 +11,7 @@ from rest_framework import serializers
 from core.models import (
     Business,
     Client,
+    ServiceQuestionnaire,
     TeamMember,
     Service,
     Quote,
@@ -232,3 +233,34 @@ class QuoteSerializer(serializers.ModelSerializer):
                 "The 'valid_until' date must be in the future."
             )
         return value
+
+
+class ServiceQuestionnaireSerializer(serializers.ModelSerializer):
+    business_name = serializers.CharField(source='business.name', read_only=True)
+    no_of_questions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ServiceQuestionnaire
+        fields = [
+            'id',
+            'business',
+            'business_name',
+            'service_name',
+            'additional_questions_form',
+            'no_of_questions',
+            'is_active',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = [
+            'business_name',
+            'no_of_questions',
+            'created_at',
+            'updated_at',
+        ]
+
+    def get_no_of_questions(self, obj):
+        """Return the count of questions in the questionnaire."""
+        if obj.additional_questions_form and isinstance(obj.additional_questions_form, list):
+            return len(obj.additional_questions_form)
+        return 0

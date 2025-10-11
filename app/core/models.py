@@ -2,7 +2,6 @@
 Database models.
 """
 import base64
-from django.core.files.base import ContentFile
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -10,6 +9,8 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.utils import timezone
 
 
@@ -256,6 +257,49 @@ class BankingInformation(models.Model):
         )
 
 
+class ServiceQuestionnaire(models.Model):
+
+    business = models.ForeignKey(
+        'Business',
+        related_name='service_questionnaires',
+        on_delete=models.CASCADE
+    )
+    service_name = models.CharField(
+        max_length=100,
+        help_text="Name of the service this questionnaire is for"
+    )
+    additional_questions_form = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Stores the dynamic questionnaire structure for the service"
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('business', 'service_name')
+        ordering = ['business', 'service_name']
+
+    def __str__(self):
+        return f"{self.service_name} Questionnaire ({self.business.name})"
+
+    def clean(self):
+        # Ensure service_name is one of the business's offered services
+        offered_services = self.business.services_offered.names()
+        if self.service_name not in offered_services:
+            raise ValidationError({
+                'service_name': (
+                    f"Service must be one of the business's offered services: "
+                    f"{offered_services}"
+                )
+            })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+
 class Service(models.Model):
     client = models.ForeignKey(
         Client,
@@ -400,9 +444,15 @@ class TeamMember(models.Model):
         return f"{self.employee.name} @ {self.business.name}"
 
 
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from django.db import models
+from django.core.files.base import ContentFile
+import base64
+
 class Quote(models.Model):
     service = models.ForeignKey(
-        Service,
+        "Service",
         on_delete=models.CASCADE,
         related_name="service_quotes"
     )
@@ -416,7 +466,11 @@ class Quote(models.Model):
         default="DRAFT"
     )
     signed_at = models.DateTimeField(null=True, blank=True)
-    signature = models.ImageField(upload_to="signatures/", null=True, blank=True)
+    signature = models.ImageField(
+        upload_to="signatures/",
+        null=True,
+        blank=True
+    )
 
     terms_conditions = models.TextField()
     notes = models.TextField(blank=True, null=True)
@@ -428,16 +482,36 @@ class Quote(models.Model):
     def __str__(self):
         return f"{self.quote_number} for {self.service.client}"
 
+    def clean(self):
+        """Ensure only one active (non-declined) quote exists per service."""
+        if self.service_id:
+            existing = Quote.objects.filter(
+                service=self.service
+            ).exclude(
+                id=self.id
+            ).exclude(
+                status="DECLINED"
+            )
+
+            if existing.exists():
+                raise ValidationError({
+                    "service": (
+                        "A quote already exists for this service. "
+                        "You cannot create another unless the existing "
+                        "one is declined or expired."
+                    )
+                })
+
     def save(self, *args, **kwargs):
+        self.full_clean()
+
         if not self.quote_number:
             self.quote_number = self.generate_quote_number()
+
         super().save(*args, **kwargs)
 
     def generate_quote_number(self):
-        """
-        Generates a unique quote number in the format: Q-YYYY-XXX
-        Example: Q-2025-001
-        """
+        """Generates a unique quote number in the format: Q-YYYY-XXX."""
         year = timezone.now().year
         prefix = f"Q-{year}-"
 
@@ -453,9 +527,7 @@ class Quote(models.Model):
         return f"{prefix}{new_number:03d}"
 
     def set_signature_from_base64(self, base64_data):
-        """
-        Saves a base64-encoded signature image (PNG) to the `signature` field.
-        """
+        """Saves a base64-encoded signature image (PNG) to the `signature` field."""
         if not base64_data:
             return
 
@@ -466,6 +538,10 @@ class Quote(models.Model):
             format, imgstr = base64_data.split(";base64,")
             ext = format.split("/")[-1]
             file_name = f"signature_{self.quote_number}.{ext}"
-            self.signature.save(file_name, ContentFile(base64.b64decode(imgstr)), save=False)
+            self.signature.save(
+                file_name,
+                ContentFile(base64.b64decode(imgstr)),
+                save=False
+            )
         except Exception as e:
             raise ValueError(f"Error decoding signature: {e}")

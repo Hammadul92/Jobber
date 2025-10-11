@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import Business, Client, TeamMember, Service, Quote
+from core.models import Business, Client, ServiceQuestionnaire, TeamMember, Service, Quote
 from business import serializers, paginations, emails
 
 
@@ -221,11 +221,16 @@ class QuoteViewSet(viewsets.ModelViewSet):
         try:
             quote = self.get_object()
         except Quote.DoesNotExist:
-            return Response({"detail": "Quote not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Quote not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         if quote.service.client.user != user:
-            return Response({"detail": "You are not authorized to sign this quote."},
-                            status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "You are not authorized to sign this quote."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         new_status = request.data.get("status")
         signature_data = request.data.get("signature")
@@ -237,13 +242,15 @@ class QuoteViewSet(viewsets.ModelViewSet):
             )
 
         if quote.status in ["SIGNED", "DECLINED"]:
-            return Response({"detail": f"Quote already {quote.status.lower()}."},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": f"Quote already {quote.status.lower()}."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if new_status == "SIGNED":
             if not signature_data:
                 return Response(
-                    {"detail": "Signature is required when signing the quote."},
+                    {"detail": "Signature is required."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -253,7 +260,10 @@ class QuoteViewSet(viewsets.ModelViewSet):
             try:
                 quote.set_signature_from_base64(signature_data)
             except ValueError as e:
-                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"detail": str(e)},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         elif new_status == "DECLINED":
             quote.status = "DECLINED"
@@ -263,11 +273,27 @@ class QuoteViewSet(viewsets.ModelViewSet):
         quote.save(update_fields=["status", "signed_at", "signature"])
 
         return Response(
-            {
-                "detail": f"Quote successfully {new_status.lower()}.",
-                "status": new_status,
-                "signed_at": quote.signed_at,
-                "signature_url": request.build_absolute_uri(quote.signature.url) if quote.signature else None,
-            },
+            {"detail": f"Quote successfully {new_status.lower()}."},
             status=status.HTTP_200_OK,
         )
+
+
+class ServiceQuestionnaireViewSet(viewsets.ModelViewSet):
+    """View for manage service questionnaires APIs."""
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = ServiceQuestionnaire.objects.all().select_related('business')
+    serializer_class = serializers.ServiceQuestionnaireSerializer
+    pagination_class = paginations.ServiceQuestionnairePagination
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = super().get_queryset()
+
+        if user.role == "ADMIN":
+            return qs
+        if user.role == "MANAGER":
+            return qs.filter(business__owner=user).order_by('-id')
+
+        return qs.none()

@@ -6,6 +6,7 @@ import {
     userApi,
     businessApi,
     clientApi,
+    serviceQuestionnaireApi,
     teamMemberApi,
     serviceApi,
     quoteApi,
@@ -31,6 +32,7 @@ export default function Navbar() {
         dispatch(userApi.util.resetApiState());
         dispatch(businessApi.util.resetApiState());
         dispatch(clientApi.util.resetApiState());
+        dispatch(serviceQuestionnaireApi.util.resetApiState());
         dispatch(teamMemberApi.util.resetApiState());
         dispatch(serviceApi.util.resetApiState());
         dispatch(quoteApi.util.resetApiState());

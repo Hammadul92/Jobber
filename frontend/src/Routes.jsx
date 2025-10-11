@@ -26,6 +26,14 @@ function App() {
                 <Route path="/dashboard/clients" element={<UserDashboard page={'clients'} />} />
                 <Route path="/dashboard/client/:id" element={<UserDashboard page="client" />} />
                 <Route path="/dashboard/client/:id/services" element={<UserDashboard page="client-services" />} />
+                <Route
+                    path="/dashboard/service-questionnaires"
+                    element={<UserDashboard page="service-questionnaires" />}
+                />
+                <Route
+                    path="/dashboard/service-questionnaire/:id"
+                    element={<UserDashboard page="service-questionnaire" />}
+                />
                 <Route path="/dashboard/service/:id" element={<UserDashboard page="service" />} />
                 <Route path="/dashboard/quotes" element={<UserDashboard page={'quotes'} />} />
                 <Route path="/dashboard/quote/:id" element={<UserDashboard page="quote" />} />

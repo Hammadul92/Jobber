@@ -9,6 +9,8 @@ import Clients from './Tabs/Clients';
 import Client from './Tabs/Clients/Client';
 import ClientServices from './Tabs/Clients/Services';
 import Service from './Tabs/Clients/Services/Service';
+import ServiceQuestionnaires from './Tabs/ServiceQuestionnaires';
+import ServiceQuestionnaire from './Tabs/ServiceQuestionnaires/ServiceQuestionnaire';
 import TeamMembers from './Tabs/TeamMembers';
 import TeamMember from './Tabs/TeamMembers/TeamMember';
 import Quotes from './Tabs/Quotes';
@@ -41,6 +43,8 @@ export default function UserDashboard({ page }) {
                 'client',
                 'client-services',
                 'service',
+                'service-questionnaires',
+                'service-questionnaire',
                 'team-members',
                 'team-member',
                 'payouts',
@@ -63,6 +67,8 @@ export default function UserDashboard({ page }) {
         else if (page === 'client') return <Client token={token} />;
         else if (page === 'client-services') return <ClientServices token={token} />;
         else if (page === 'service') return <Service token={token} />;
+        else if (page === 'service-questionnaires') return <ServiceQuestionnaires token={token} />;
+        else if (page === 'service-questionnaire') return <ServiceQuestionnaire token={token} />;
         else if (page === 'team-members') return <TeamMembers token={token} />;
         else if (page === 'team-member') return <TeamMember token={token} />;
         else if (page === 'quotes') return <Quotes token={token} role={user.role} />;

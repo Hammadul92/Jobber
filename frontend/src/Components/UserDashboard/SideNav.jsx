@@ -5,24 +5,35 @@ export default function SideNav({ role }) {
     const [collapsed, setCollapsed] = useState(false);
 
     const navItems = [
-        { name: 'Dashboard', path: '/dashboard/home', icon: 'fa-chart-line', hidden: false },
-        { name: 'Clients', path: '/dashboard/clients', icon: 'fa-users', hidden: role === 'CLIENT' },
+        { name: 'Dashboard', path: '/dashboard/home', icon: 'fa-chart-line', is_visible: true },
+        { name: 'Clients', path: '/dashboard/clients', icon: 'fa-users', is_visible: role === 'MANAGER' },
+        {
+            name: 'Questionnaires',
+            path: '/dashboard/service-questionnaires',
+            icon: 'fa-list-check',
+            is_visible: role === 'MANAGER',
+        },
         {
             name: 'Quotes',
             path: '/dashboard/quotes',
             icon: 'fa-file-signature',
-            hidden: false,
+            is_visible: true,
         },
-        { name: 'Jobs', path: '/dashboard/jobs', icon: 'fa-clipboard-check', hidden: false },
+        { name: 'Jobs', path: '/dashboard/jobs', icon: 'fa-clipboard-check', is_visible: true },
         {
             name: 'Invoices',
             path: '/dashboard/invoices',
             icon: 'fa-file-invoice',
-            hidden: false,
+            is_visible: role !== 'EMPLOYEE',
         },
-        { name: 'Payouts', path: '/dashboard/payouts', icon: 'fa-credit-card', hidden: role === 'CLIENT' },
-        { name: 'Team Members', path: '/dashboard/team-members', icon: 'fa-user-friends', hidden: role === 'CLIENT' },
-        { name: 'Settings', path: '/dashboard/settings', icon: 'fa-cog', hidden: false },
+        { name: 'Payouts', path: '/dashboard/payouts', icon: 'fa-credit-card', is_visible: role === 'MANAGER' },
+        {
+            name: 'Team Members',
+            path: '/dashboard/team-members',
+            icon: 'fa-user-friends',
+            is_visible: role === 'MANAGER',
+        },
+        { name: 'Settings', path: '/dashboard/settings', icon: 'fa-cog', is_visible: true },
     ];
 
     return (
@@ -33,7 +44,7 @@ export default function SideNav({ role }) {
             <ul className="nav flex-column">
                 {navItems.map(
                     (item) =>
-                        !item.hidden && (
+                        item.is_visible && (
                             <li className={`nav-item mb-2`} key={item.path}>
                                 <NavLink
                                     to={item.path}
