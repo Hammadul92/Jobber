@@ -18,12 +18,10 @@ const serviceQuestionnaireApi = createApi({
             query: () => '/service-questionnaire/',
             providesTags: ['ServiceQuestionnaire'],
         }),
-
         fetchServiceQuestionnaire: builder.query({
             query: (id) => `/service-questionnaire/${id}/`,
             providesTags: (result, error, id) => [{ type: 'ServiceQuestionnaire', id }],
         }),
-
         createServiceQuestionnaire: builder.mutation({
             query: (data) => ({
                 url: '/service-questionnaire/',
@@ -32,7 +30,6 @@ const serviceQuestionnaireApi = createApi({
             }),
             invalidatesTags: ['ServiceQuestionnaire'],
         }),
-
         updateServiceQuestionnaire: builder.mutation({
             query: (data) => ({
                 url: `/service-questionnaire/${data.id}/`,
@@ -44,7 +41,6 @@ const serviceQuestionnaireApi = createApi({
                 { type: 'ServiceQuestionnaire', id: arg.id },
             ],
         }),
-
         deleteServiceQuestionnaire: builder.mutation({
             query: (id) => ({
                 url: `/service-questionnaire/${id}/`,

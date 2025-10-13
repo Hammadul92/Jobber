@@ -38,18 +38,16 @@ export default function ServiceQuestionnairesDatatable({ token }) {
     const [showModal, setShowModal] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
 
-    // 🔹 Handle API data
     useEffect(() => {
         if (questionnaireData) {
             const data = questionnaireData.results || questionnaireData;
-            setRows(data.results || data); // rows
-            generateColumns(questionnaireData.columns); // columns from backend
+            setRows(data.results || data);
+            generateColumns(questionnaireData.columns);
         }
     }, [questionnaireData]);
 
     const generateColumns = (colsFromBackend) => {
         if (!colsFromBackend) return;
-        // Append Actions column at the end
         const updatedCols = [...colsFromBackend, { name: 'actions', title: 'Actions' }];
         setColumns(updatedCols);
     };
@@ -84,7 +82,7 @@ export default function ServiceQuestionnairesDatatable({ token }) {
                         <i className="fa fa-pencil"></i>
                     </Link>
                     <Link
-                        to={`/dashboard/service-questionnaire/preview/${props.row.id}`}
+                        to={`/dashboard/service-questionnaire/${props.row.id}/form`}
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary"
                         title="Preview Service Questionnaire Form"
                     >
@@ -154,7 +152,6 @@ export default function ServiceQuestionnairesDatatable({ token }) {
                 </Grid>
             </div>
 
-            {/* Delete Confirmation Modal */}
             {showModal && (
                 <form onSubmit={confirmDelete} className="modal d-block" tabIndex="-1" role="dialog">
                     <div className="modal-dialog modal-dialog-centered" role="document">

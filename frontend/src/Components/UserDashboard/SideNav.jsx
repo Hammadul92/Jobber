@@ -1,12 +1,18 @@
 import { NavLink } from 'react-router-dom';
 import { useState } from 'react';
 
-export default function SideNav({ role }) {
+export default function SideNav({ role, userId }) {
     const [collapsed, setCollapsed] = useState(false);
 
     const navItems = [
         { name: 'Dashboard', path: '/dashboard/home', icon: 'fa-chart-line', is_visible: true },
         { name: 'Clients', path: '/dashboard/clients', icon: 'fa-users', is_visible: role === 'MANAGER' },
+        {
+            name: 'Services',
+            path: `/dashboard/services`,
+            icon: 'fa-cogs',
+            is_visible: role === 'CLIENT',
+        },
         {
             name: 'Questionnaires',
             path: '/dashboard/service-questionnaires',

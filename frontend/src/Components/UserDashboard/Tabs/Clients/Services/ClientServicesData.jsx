@@ -4,17 +4,18 @@ import { useFetchServicesQuery, useDeleteServiceMutation } from '../../../../../
 import SubmitButton from '../../../../../utils/SubmitButton';
 import { countries, provinces } from '../../../../../utils/locations';
 
-export default function ClientServicesData({ token, clientId }) {
+export default function ClientServicesData({ token, role, clientId }) {
     const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();
     const [showModal, setShowModal] = useState(false);
     const [selectedServiceId, setSelectedServiceId] = useState(null);
+    const queryArg = role === 'CLIENT' ? null : clientId;
 
     const {
         data: services,
         isLoading: loadingServices,
         error: serviceError,
         refetch,
-    } = useFetchServicesQuery(clientId, { skip: !token });
+    } = useFetchServicesQuery(queryArg, { skip: !token });
 
     const [statusFilter, setStatusFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
@@ -29,7 +30,6 @@ export default function ClientServicesData({ token, clientId }) {
     const confirmDelete = async (e) => {
         e.preventDefault();
         if (!selectedServiceId) return;
-
         try {
             await deleteService(selectedServiceId).unwrap();
             refetch();
@@ -69,7 +69,6 @@ export default function ClientServicesData({ token, clientId }) {
 
     return (
         <>
-            {/* Filters */}
             <div className="mb-4 row g-2">
                 <div className="col-md-3">
                     <select
@@ -139,11 +138,9 @@ export default function ClientServicesData({ token, clientId }) {
                             <div>
                                 <div className="clearfix mb-2">
                                     {getStatusBadge(service.status)}
-
                                     <span className="badge bg-dark rounded-pill float-end me-2">
                                         {service.service_type}
                                     </span>
-
                                     <h5 className="card-title">{service.service_name}</h5>
                                 </div>
 
@@ -153,9 +150,11 @@ export default function ClientServicesData({ token, clientId }) {
                                     </p>
                                 )}
 
-                                <p className="mb-1">
-                                    <strong>Price:</strong> ${service.price} {service.currency}
-                                </p>
+                                {role === 'MANAGER' ? (
+                                    <p className="mb-1">
+                                        <strong>Price:</strong> ${service.price} {service.currency}
+                                    </p>
+                                ) : null}
 
                                 <p className="mb-1">
                                     <strong>Start Date:</strong> {service.start_date}
@@ -169,7 +168,7 @@ export default function ClientServicesData({ token, clientId }) {
                                 </p>
 
                                 {service.quotations && service.quotations.length > 0 && (
-                                    <div className="mb-2">
+                                    <div className="">
                                         <strong>Quotations: </strong>
                                         {service.quotations.map((quote, index) => {
                                             const statusClass =
@@ -196,33 +195,41 @@ export default function ClientServicesData({ token, clientId }) {
                                     </div>
                                 )}
 
-                                <div className="d-flex align-items-center justify-content-between mb-2">
-                                    <span
-                                        className={`badge rounded-pill ${
-                                            service.service_questionnaires && service.service_questionnaires.length > 0
-                                                ? 'bg-primary'
-                                                : 'bg-danger'
-                                        }`}
-                                    >
-                                        Service Questions:{' '}
-                                        {service.service_questionnaires ? service.service_questionnaires.length : 0}
-                                    </span>
-
-                                    <div className="d-flex align-items-center">
-                                        <button
-                                            className="badge bg-light rounded-circle p-2 me-2 text-secondary border-0 fs-5"
-                                            onClick={() => handleDeleteClick(service.id)}
-                                            title="Delete Service"
-                                        >
-                                            <i className="fa fa-trash-alt"></i>
-                                        </button>
+                                <div className="d-flex align-items-center justify-content-between mt-3">
+                                    {service.service_questionnaires ? (
                                         <Link
-                                            className="badge bg-light rounded-circle p-2 text-secondary fs-5"
-                                            to={`/dashboard/service/${service.id}`}
-                                            title="Edit Service"
+                                            to={`/dashboard/service-questionnaire/${service.service_questionnaires.id}/form/${service.id}`}
                                         >
-                                            <i className="fa fa-pencil"></i>
+                                            <span className="badge bg-primary rounded-pill p-2">
+                                                Service Questions: {service.service_questionnaires.questionnaire.length}
+                                            </span>
                                         </Link>
+                                    ) : (
+                                        <div className="alert alert-danger small mb-0 p-2">
+                                            <i className="fa fa-exclamation-triangle me-1"></i>
+                                            No questionnaire found for this service.
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        {role === 'MANAGER' ? (
+                                            <button
+                                                className="btn btn-light rounded-circle py-1 px-2 me-2 border-0 fs-5"
+                                                onClick={() => handleDeleteClick(service.id)}
+                                                title="Delete Service"
+                                            >
+                                                <i className="fa fa-trash-alt"></i>
+                                            </button>
+                                        ) : null}
+                                        {role === 'MANAGER' ? (
+                                            <Link
+                                                className="btn btn-light rounded-circle py-1 px-2 fs-5"
+                                                to={`/dashboard/service/${service.id}`}
+                                                title="Edit Service"
+                                            >
+                                                <i className="fa fa-pencil"></i>
+                                            </Link>
+                                        ) : null}
                                     </div>
                                 </div>
                             </div>

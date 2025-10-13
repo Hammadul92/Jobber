@@ -285,7 +285,6 @@ class ServiceQuestionnaire(models.Model):
         return f"{self.service_name} Questionnaire ({self.business.name})"
 
     def clean(self):
-        # Ensure service_name is one of the business's offered services
         offered_services = self.business.services_offered.names()
         if self.service_name not in offered_services:
             raise ValidationError({
@@ -348,6 +347,16 @@ class Service(models.Model):
     country = models.CharField(max_length=2, default="CA")
     province_state = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
+
+    # Save filled questionnaire form
+    filled_questionnaire = models.JSONField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Stores client responses for this service's "
+            "questionnaire in JSON format"
+        )
+    )
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

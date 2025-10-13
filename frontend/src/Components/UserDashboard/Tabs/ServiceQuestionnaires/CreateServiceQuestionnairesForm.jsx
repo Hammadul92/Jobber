@@ -134,7 +134,11 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
                                     <div>
                                         <div className="d-flex justify-content-between align-items-center mb-2">
                                             <label className="form-label">Questions (*)</label>
-                                            <button type="button" className="btn p-0" onClick={handleAddQuestion}>
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-primary"
+                                                onClick={handleAddQuestion}
+                                            >
                                                 <i className="fa fa-plus"></i> Add Question
                                             </button>
                                         </div>
@@ -291,7 +295,7 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
                                                                         </div>
                                                                         <button
                                                                             type="button"
-                                                                            className="btn p-0 mt-2"
+                                                                            className="btn btn-sm btn-primary mt-2"
                                                                             onClick={() => handleAddOption(index)}
                                                                         >
                                                                             <i className="fa fa-plus"></i> Add Option

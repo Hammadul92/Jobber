@@ -116,9 +116,7 @@ textarea.form-control:focus {
 
 .table thead th {
     background-color: transparent;
-    text-transform: uppercase;
     cursor: pointer;
-    font-weight: normal;
 }
 
 .table thead input:read-only {

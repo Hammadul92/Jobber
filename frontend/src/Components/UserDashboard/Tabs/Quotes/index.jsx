@@ -25,7 +25,7 @@ export default function Quotes({ token, role }) {
             <div className="clearfix mb-3">
                 {role === 'MANAGER' ? (
                     <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
-                        Add Quote
+                        Add
                     </button>
                 ) : null}
                 <h3 className="mb-0">Quotes</h3>

@@ -135,6 +135,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
         if user.role == "MANAGER":
             return qs.filter(business__owner=user).order_by('-id')
 
+        if user.role == "CLIENT":
+            return qs.filter(client__user=user).order_by('-id')
+
         return qs.none()
 
     def perform_create(self, serializer):
@@ -295,5 +298,7 @@ class ServiceQuestionnaireViewSet(viewsets.ModelViewSet):
             return qs
         if user.role == "MANAGER":
             return qs.filter(business__owner=user).order_by('-id')
+        if user.role == "CLIENT":
+            return qs.filter(business__clients__user=user).order_by('-id')
 
         return qs.none()

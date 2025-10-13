@@ -144,7 +144,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = [
             "id", "client", "client_name", "business", "quotations",
-            "service_name", "service_questionnaires", "description",
+            "service_name", "service_questionnaires", "filled_questionnaire", "description",
             "start_date", "end_date", "service_type", "price", "currency",
             "billing_cycle", "status", "street_address", "city", "country",
             "province_state", "postal_code", "created_at", "updated_at",
@@ -168,7 +168,10 @@ class ServiceSerializer(serializers.ModelSerializer):
         ).first()
 
         if questionnaire:
-            return questionnaire.additional_questions_form
+            return {
+               'questionnaire': questionnaire.additional_questions_form,
+               'id': questionnaire.id
+            }
         return None
 
     def validate(self, data):
