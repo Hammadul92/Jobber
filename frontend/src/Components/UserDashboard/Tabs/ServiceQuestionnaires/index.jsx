@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 
 import CreateServiceQuestionnairesForm from './CreateServiceQuestionnairesForm';
 import DataTable from './ServiceQuestionnairesDatatable';
+import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 export default function Questionnaires({ token }) {
     const [showModal, setShowModal] = useState(false);
+    const [alert, setAlert] = useState({ type: '', message: '' });
 
     return (
         <div>
@@ -21,6 +23,7 @@ export default function Questionnaires({ token }) {
                     </li>
                 </ol>
             </nav>
+
             <div className="clearfix mb-3">
                 <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
                     Add
@@ -28,8 +31,22 @@ export default function Questionnaires({ token }) {
                 <h3 className="mb-0">Service Questionnaires</h3>
             </div>
 
-            <CreateServiceQuestionnairesForm token={token} showModal={showModal} setShowModal={setShowModal} />
-            <DataTable token={token} />
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
+            <CreateServiceQuestionnairesForm
+                token={token}
+                showModal={showModal}
+                setShowModal={setShowModal}
+                setAlert={setAlert}
+            />
+
+            <DataTable token={token} setAlert={setAlert} />
         </div>
     );
 }

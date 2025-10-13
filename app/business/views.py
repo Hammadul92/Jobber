@@ -113,44 +113,27 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
 
 
 class ServiceViewSet(viewsets.ModelViewSet):
-    """View for manage service APIs."""
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    queryset = Service.objects.filter(is_active=True) \
-        .select_related("client", "business")
+    queryset = Service.objects.filter(is_active=True).select_related("client", "business")
     serializer_class = serializers.ServiceSerializer
 
     def get_queryset(self):
         user = self.request.user
-        qs = super().get_queryset()
+        qs = super().get_queryset().order_by("-id")
 
         client_id = self.request.query_params.get("client")
         if client_id:
             qs = qs.filter(client_id=client_id)
 
-        if user.role == "ADMIN":
-            return qs.order_by('-id')
-
         if user.role == "MANAGER":
-            return qs.filter(business__owner=user).order_by('-id')
+            qs = qs.filter(business__owner=user)
+        elif user.role == "CLIENT":
+            qs = qs.filter(client__user=user)
 
-        if user.role == "CLIENT":
-            return qs.filter(client__user=user).order_by('-id')
+        return qs
 
-        return qs.none()
-
-    def perform_create(self, serializer):
-        # Validate that client belongs to business
-        client = serializer.validated_data["client"]
-        business = serializer.validated_data["business"]
-
-        if client.business != business:
-            raise serializers.ValidationError(
-                "Selected client does not belong to this business."
-            )
-
-        serializer.save()
 
 
 class QuoteViewSet(viewsets.ModelViewSet):
@@ -174,10 +157,6 @@ class QuoteViewSet(viewsets.ModelViewSet):
             return qs.filter(service__client__user=user).order_by('-id')
 
         return qs.none()
-
-    def perform_create(self, serializer):
-        """Automatically handle quote creation logic."""
-        serializer.save()
 
     def perform_destroy(self, instance):
         """Soft-delete quote instead of removing it from DB."""

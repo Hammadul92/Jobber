@@ -2,27 +2,17 @@ import { useState } from 'react';
 import { useFetchServicesQuery, useCreateQuoteMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 
-export default function CreateQuoteForm({ token, showModal, setShowModal }) {
+export default function CreateQuoteForm({ token, showModal, setShowModal, setAlert }) {
     const [serviceId, setServiceId] = useState('');
     const [validUntil, setValidUntil] = useState('');
     const [termsConditions, setTermsConditions] = useState('');
     const [notes, setNotes] = useState('');
-
-    const [apiError, setApiError] = useState(null);
-    const [successMessage, setSuccessMessage] = useState('');
 
     const { data: services } = useFetchServicesQuery(undefined, { skip: !token });
     const [createQuote, { isLoading: isCreating }] = useCreateQuoteMutation();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setApiError(null);
-        setSuccessMessage('');
-
-        if (!serviceId || !validUntil) {
-            setApiError('Please select service and valid until date.');
-            return;
-        }
 
         try {
             await createQuote({
@@ -32,16 +22,24 @@ export default function CreateQuoteForm({ token, showModal, setShowModal }) {
                 notes,
             }).unwrap();
 
-            setSuccessMessage('Quote created successfully.');
+            setAlert({
+                type: 'success',
+                message: 'Quote created successfully!',
+            });
+
             setServiceId('');
             setValidUntil('');
             setTermsConditions('');
             setNotes('');
-            setShowModal(false);
         } catch (err) {
             console.error('Create quote error:', err);
-            setApiError('Something went wrong while creating the quote. Please try again.');
+            setAlert({
+                type: 'danger',
+                message: 'Something went wrong while creating the quote. Please try again.',
+            });
         }
+
+        setShowModal(false);
     };
 
     const isSubmitting = isCreating;
@@ -63,9 +61,6 @@ export default function CreateQuoteForm({ token, showModal, setShowModal }) {
 
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body">
-                                    {apiError && <div className="alert alert-danger mb-3">{apiError}</div>}
-                                    {successMessage && <div className="alert alert-success mb-3">{successMessage}</div>}
-
                                     <div className="row">
                                         <div className="mb-3 col-md-8">
                                             <label className="form-label">Service (*)</label>

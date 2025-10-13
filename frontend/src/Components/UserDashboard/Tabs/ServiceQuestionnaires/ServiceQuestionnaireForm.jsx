@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useFetchServiceQuestionnaireQuery, useFetchServiceQuery, useUpdateServiceMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 export default function ServiceQuestionnaireForm({ token, role }) {
     const { id, serviceId } = useParams();
@@ -20,7 +21,7 @@ export default function ServiceQuestionnaireForm({ token, role }) {
     const [updateService, { isLoading: saving }] = useUpdateServiceMutation();
     const [questions, setQuestions] = useState({});
     const [serviceName, setServiceName] = useState('');
-    const [alert, setAlert] = useState(null);
+    const [alert, setAlert] = useState({ type: '', message: '' });
 
     useEffect(() => {
         if (questionnaire) {
@@ -83,19 +84,35 @@ export default function ServiceQuestionnaireForm({ token, role }) {
             console.error('Failed to save questionnaire:', err);
             setAlert({
                 type: 'danger',
-                message: 'Failed to save questionnaire. Please try again.',
+                message: err?.data?.detail || 'Failed to save questionnaire. Please try again.',
             });
         }
     };
 
+    useEffect(() => {
+        if (errorQ) {
+            setAlert({
+                type: 'danger',
+                message: 'Failed to load questionnaire. Please try again later.',
+            });
+        }
+    }, [errorQ]);
+
     if (loadingQ || loadingS) return <div className="text-center py-5">Loading questionnaire...</div>;
-    if (errorQ) return <div className="alert alert-danger">Failed to load questionnaire.</div>;
     if (!Object.keys(questions).length) return <div className="alert alert-warning">No questions found.</div>;
 
     const isClient = role === 'CLIENT';
 
     return (
         <div>
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
             <nav aria-label="breadcrumb mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
@@ -120,12 +137,6 @@ export default function ServiceQuestionnaireForm({ token, role }) {
             <h3 className="mb-4">{serviceName} Questionnaire</h3>
 
             <div className="shadow bg-white rounded-4 p-4">
-                {alert && (
-                    <div className={`alert alert-${alert.type} alert-dismissible`} role="alert">
-                        {alert.message}
-                        <button type="button" className="btn-close" onClick={() => setAlert(null)}></button>
-                    </div>
-                )}
                 <form onSubmit={isClient ? handleSubmit : undefined}>
                     {Object.entries(questions).map(([key, q]) => (
                         <div className="row align-items-center mb-3" key={key}>

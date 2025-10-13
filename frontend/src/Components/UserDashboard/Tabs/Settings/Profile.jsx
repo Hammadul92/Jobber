@@ -1,24 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useUpdateUserMutation, useFetchUserQuery } from '../../../../store';
-
 import SubmitButton from '../../../../utils/SubmitButton';
 import PhoneInputField from '../../../../utils/PhoneInput';
 
-export default function Profile({ token }) {
-    const {
-        data: user,
-        isFetching,
-        refetch,
-    } = useFetchUserQuery(undefined, {
-        skip: !token,
-    });
+export default function Profile({ token, setAlert }) {
+    const { data: user, isFetching, refetch } = useFetchUserQuery(undefined, { skip: !token });
 
     const [name, setUserName] = useState('');
     const [email, setUserEmail] = useState('');
     const [phone, setUserPhone] = useState('');
-    const [alert, setAlert] = useState(null);
 
-    const [updateUser, { isLoading, error }] = useUpdateUserMutation();
+    const [updateUser, { isLoading }] = useUpdateUserMutation();
 
     useEffect(() => {
         if (user) {
@@ -32,43 +24,25 @@ export default function Profile({ token }) {
         e.preventDefault();
         try {
             await updateUser({ name, email, phone }).unwrap();
-
-            setAlert({
-                type: 'success',
-                message: 'Profile updated successfully.',
-            });
-
             refetch();
+
+            setAlert({ type: 'success', message: 'Profile updated successfully.' });
         } catch (err) {
             console.error('Profile update failed:', err);
             setAlert({
                 type: 'danger',
-                message: 'Profile update failed. Please try again.',
+                message: err?.data?.message || 'Profile update failed. Please try again.',
             });
         }
     };
 
-    if (isFetching) {
-        return <div>Loading profile...</div>;
-    }
+    if (isFetching) return <div>Loading profile...</div>;
 
     return (
         <form className="tab-pane active" onSubmit={submitHandler}>
-            <div className="row">
+            <div className="row mb-4">
                 <div className="col-md-4">
-                    {alert && (
-                        <div className={`alert alert-${alert.type}`} role="alert">
-                            {alert.message}
-                        </div>
-                    )}
-                    {error && (
-                        <div className="alert alert-danger" role="alert">
-                            {error?.data?.message || 'Profile update failed. Please try again.'}
-                        </div>
-                    )}
-
-                    <div className="mb-3">
-                        <label className="form-label">Full Name (*)</label>
+                    <div className="field-wrapper">
                         <input
                             type="text"
                             className="form-control"
@@ -76,10 +50,10 @@ export default function Profile({ token }) {
                             onChange={(e) => setUserName(e.target.value)}
                             required
                         />
+                        <label className="form-label">Full Name (*)</label>
                     </div>
 
-                    <div className="mb-3 w-md-50">
-                        <label className="form-label">Email (*)</label>
+                    <div className="field-wrapper">
                         <input
                             type="email"
                             className="form-control"
@@ -87,16 +61,17 @@ export default function Profile({ token }) {
                             onChange={(e) => setUserEmail(e.target.value)}
                             required
                         />
+                        <label className="form-label">Email (*)</label>
                     </div>
 
-                    <div className="mb-3 w-md-50">
-                        <label className="form-label">Phone (*)</label>
+                    <div className="field-wrapper">
                         <PhoneInputField value={phone} setValue={setUserPhone} />
+                        <label className="form-label">Phone (*)</label>
                     </div>
 
-                    <div className="mb-3 w-md-50">
+                    <div className="field-wrapper">
+                        <input type="text" className="form-control" value={user?.last_login || ''} readOnly />
                         <label className="form-label">Last Login</label>
-                        <input type="text" className="form-control" value={user?.last_login || ''} disabled />
                     </div>
                 </div>
             </div>

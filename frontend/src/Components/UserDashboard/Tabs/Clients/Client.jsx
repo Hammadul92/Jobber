@@ -3,18 +3,13 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { countries, provinces } from '../../../../utils/locations';
 import { useFetchClientQuery, useUpdateClientMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 export default function Client({ token }) {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const {
-        data: clientData,
-        isLoading,
-        error,
-    } = useFetchClientQuery(id, {
-        skip: !token,
-    });
+    const { data: clientData, isLoading, error } = useFetchClientQuery(id, { skip: !token });
     const [updateClient, { isLoading: updating, error: updateError, isSuccess }] = useUpdateClientMutation();
 
     const [name, setName] = useState('');
@@ -26,6 +21,8 @@ export default function Client({ token }) {
     const [provinceState, setProvinceState] = useState('');
     const [postalCode, setPostalCode] = useState('');
     const [role, setRole] = useState('');
+
+    const [alert, setAlert] = useState({ type: '', message: '' });
 
     useEffect(() => {
         if (clientData) {
@@ -40,6 +37,22 @@ export default function Client({ token }) {
             setRole(clientData.role || 'CLIENT');
         }
     }, [clientData]);
+
+    useEffect(() => {
+        if (error) {
+            setAlert({ type: 'danger', message: error?.data?.detail || 'Failed to load client.' });
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (updateError) {
+            setAlert({ type: 'danger', message: updateError?.data?.detail || 'Failed to update client.' });
+        }
+
+        if (isSuccess) {
+            setAlert({ type: 'success', message: 'Client updated successfully!' });
+        }
+    }, [updateError, isSuccess]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -58,14 +71,6 @@ export default function Client({ token }) {
     };
 
     if (isLoading) return <div>Loading client...</div>;
-
-    if (error) {
-        return (
-            <div className="alert alert-danger mt-4" role="alert">
-                {error?.data?.detail || 'Failed to load client.'}
-            </div>
-        );
-    }
 
     return (
         <>
@@ -86,6 +91,15 @@ export default function Client({ token }) {
                     </li>
                 </ol>
             </nav>
+
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
             <div className="row">
                 <div className="col-12 col-lg-3 mb-4">
                     <div className="text-center shadow p-3 bg-white rounded-4 mb-3">
@@ -108,40 +122,34 @@ export default function Client({ token }) {
 
                 <div className="col-12 col-lg-9">
                     <form onSubmit={handleSubmit}>
-                        {updateError && (
-                            <div className="alert alert-danger mb-3">
-                                {updateError?.data?.detail || 'Failed to update client.'}
-                            </div>
-                        )}
-
-                        {isSuccess && <div className="alert alert-success mb-3">Client updated successfully!</div>}
-
                         <h5>Billing Address</h5>
                         <div className="row mb-3">
                             <div className="col-md-8 mb-3">
-                                <label className="form-label">Street Address</label>
+                                <label className="form-label">Street Address (*)</label>
                                 <input
                                     type="text"
                                     className="form-control"
                                     value={streetAddress}
                                     onChange={(e) => setStreetAddress(e.target.value)}
+                                    required
                                 />
                             </div>
 
                             <div className="col-md-4 mb-3">
-                                <label className="form-label">City</label>
+                                <label className="form-label">City (*)</label>
                                 <input
                                     type="text"
                                     className="form-control"
                                     value={city}
                                     onChange={(e) => setCity(e.target.value)}
+                                    required
                                 />
                             </div>
                         </div>
 
                         <div className="row mb-3">
                             <div className="col-md-4 mb-3">
-                                <label className="form-label">Country</label>
+                                <label className="form-label">Country (*)</label>
                                 <select
                                     className="form-select"
                                     value={country}
@@ -149,6 +157,7 @@ export default function Client({ token }) {
                                         setCountry(e.target.value);
                                         setProvinceState('');
                                     }}
+                                    required
                                 >
                                     {countries.map(({ code, name }) => (
                                         <option key={code} value={code}>
@@ -159,11 +168,12 @@ export default function Client({ token }) {
                             </div>
 
                             <div className="col-md-4 mb-3">
-                                <label className="form-label">Province/State</label>
+                                <label className="form-label">Province/State (*)</label>
                                 <select
                                     className="form-select"
                                     value={provinceState}
                                     onChange={(e) => setProvinceState(e.target.value)}
+                                    required
                                 >
                                     <option value="">Select Province/State</option>
                                     {provinces[country]?.map((prov) => (
@@ -175,12 +185,13 @@ export default function Client({ token }) {
                             </div>
 
                             <div className="col-md-4 mb-3">
-                                <label className="form-label">Postal/ZIP Code</label>
+                                <label className="form-label">Postal/ZIP Code (*)</label>
                                 <input
                                     type="text"
                                     className="form-control"
                                     value={postalCode}
                                     onChange={(e) => setPostalCode(e.target.value)}
+                                    required
                                 />
                             </div>
                         </div>

@@ -13,7 +13,7 @@ import { useFetchServiceQuestionnairesQuery, useDeleteServiceQuestionnaireMutati
 
 import SubmitButton from '../../../../utils/SubmitButton';
 
-export default function ServiceQuestionnairesDatatable({ token }) {
+export default function ServiceQuestionnairesDatatable({ token, setAlert }) {
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
 
@@ -21,15 +21,12 @@ export default function ServiceQuestionnairesDatatable({ token }) {
         data: questionnaireData,
         isLoading,
         error,
-    } = useFetchServiceQuestionnairesQuery(undefined, {
-        skip: !token,
-    });
+    } = useFetchServiceQuestionnairesQuery(undefined, { skip: !token });
 
     const [deleteServiceQuestionnaire, { isLoading: deleting }] = useDeleteServiceQuestionnaireMutation();
 
     const [sortingStateColumnExtensions] = useState([{ columnName: 'actions', sortingEnabled: false }]);
     const [filteringStateColumnExtensions] = useState([{ columnName: 'actions', filteringEnabled: false }]);
-
     const [defaultSorting] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [pageSize, setPageSize] = useState(20);
@@ -45,6 +42,15 @@ export default function ServiceQuestionnairesDatatable({ token }) {
             generateColumns(questionnaireData.columns);
         }
     }, [questionnaireData]);
+
+    useEffect(() => {
+        if (error) {
+            setAlert({
+                type: 'danger',
+                message: error?.data?.detail || 'Failed to load service questionnaires.',
+            });
+        }
+    }, [error]);
 
     const generateColumns = (colsFromBackend) => {
         if (!colsFromBackend) return;
@@ -63,9 +69,11 @@ export default function ServiceQuestionnairesDatatable({ token }) {
 
         try {
             await deleteServiceQuestionnaire(selectedId).unwrap();
+            setAlert({ type: 'success', message: 'Service questionnaire deleted successfully!' });
             setShowModal(false);
             setSelectedId(null);
         } catch (err) {
+            setAlert({ type: 'danger', message: err?.data?.detail || 'Failed to delete service questionnaire.' });
             console.error('Failed to delete service questionnaire:', err);
         }
     };
@@ -115,17 +123,7 @@ export default function ServiceQuestionnairesDatatable({ token }) {
         return <Table.Cell {...props} />;
     };
 
-    if (isLoading) {
-        return <div>Loading data...</div>;
-    }
-
-    if (error) {
-        return (
-            <div className="alert alert-danger" role="alert">
-                {error?.data?.detail || 'Failed to load service questionnaires. Please try again later.'}
-            </div>
-        );
-    }
+    if (isLoading) return <div>Loading data...</div>;
 
     return (
         <>

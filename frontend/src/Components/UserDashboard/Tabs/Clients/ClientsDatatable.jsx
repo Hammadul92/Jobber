@@ -10,20 +10,18 @@ import {
     IntegratedPaging,
 } from '@devexpress/dx-react-grid';
 import { useFetchClientsQuery, useDeleteClientMutation } from '../../../../store';
-
 import SubmitButton from '../../../../utils/SubmitButton';
+import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 export default function ClientsDatatable({ token }) {
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedClientId, setSelectedClientId] = useState(null);
+    const [alert, setAlert] = useState({ type: '', message: '' });
 
-    const {
-        data: clientData,
-        isLoading,
-        error,
-    } = useFetchClientsQuery(undefined, {
-        skip: !token,
-    });
+    const { data: clientData, isLoading, error } = useFetchClientsQuery(undefined, { skip: !token });
+
     const [deleteClient, { isLoading: deleting }] = useDeleteClientMutation();
 
     const [sortingStateColumnExtensions] = useState([{ columnName: 'actions', sortingEnabled: false }]);
@@ -34,15 +32,18 @@ export default function ClientsDatatable({ token }) {
     const [pageSize, setPageSize] = useState(20);
     const [pageSizes] = useState([20, 30, 50]);
 
-    const [showModal, setShowModal] = useState(false);
-    const [selectedClientId, setSelectedClientId] = useState(null);
-
     useEffect(() => {
         if (clientData) {
             setRows(clientData.results);
             generateColumns(clientData.columns);
         }
     }, [clientData]);
+
+    useEffect(() => {
+        if (error) {
+            setAlert({ type: 'danger', message: error?.data?.detail || 'Failed to load client data.' });
+        }
+    }, [error]);
 
     const generateColumns = (columns) => {
         const updatedColumns = [...columns, { name: 'actions', title: 'Actions' }];
@@ -56,14 +57,15 @@ export default function ClientsDatatable({ token }) {
 
     const confirmDelete = async (e) => {
         e.preventDefault();
-
         if (!selectedClientId) return;
 
         try {
             await deleteClient(selectedClientId).unwrap();
+            setAlert({ type: 'success', message: 'Client deleted successfully!' });
             setShowModal(false);
             setSelectedClientId(null);
         } catch (err) {
+            setAlert({ type: 'danger', message: err?.data?.detail || 'Failed to delete client.' });
             console.error('Failed to delete client:', err);
         }
     };
@@ -84,7 +86,7 @@ export default function ClientsDatatable({ token }) {
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary"
                         title="Client Services"
                     >
-                        <i className="fa fa fa-cogs"></i>
+                        <i className="fa fa-cogs"></i>
                     </Link>
                     <button
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary border-0"
@@ -96,38 +98,32 @@ export default function ClientsDatatable({ token }) {
                 </Table.Cell>
             );
         } else if (props.column.name === 'client_name') {
-            if (props.row.is_active === 'True') {
-                return (
-                    <Table.Cell {...props}>
-                        {props.row.client_name} <span className="badge bg-success rounded-pill text-white">ACTIVE</span>
-                    </Table.Cell>
-                );
-            } else {
-                return (
-                    <Table.Cell {...props}>
-                        {props.row.client_name}{' '}
-                        <span className="badge bg-danger rounded-pill text-white">INACTIVE</span>
-                    </Table.Cell>
-                );
-            }
+            return (
+                <Table.Cell {...props}>
+                    {props.row.client_name}{' '}
+                    <span
+                        className={`badge rounded-pill text-white ${props.row.is_active === 'True' ? 'bg-success' : 'bg-danger'}`}
+                    >
+                        {props.row.is_active === 'True' ? 'ACTIVE' : 'INACTIVE'}
+                    </span>
+                </Table.Cell>
+            );
         }
         return <Table.Cell {...props} />;
     };
 
-    if (isLoading) {
-        return <div>Loading data...</div>;
-    }
-
-    if (error) {
-        return (
-            <div className="alert alert-danger" role="alert">
-                {error?.data?.detail || 'Failed to load client data. Please try again later.'}
-            </div>
-        );
-    }
+    if (isLoading) return <div>Loading data...</div>;
 
     return (
         <>
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
             <div className="data-table">
                 <Grid rows={rows} columns={columns}>
                     <SortingState defaultSorting={defaultSorting} columnExtensions={sortingStateColumnExtensions} />
@@ -147,11 +143,11 @@ export default function ClientsDatatable({ token }) {
                     <Table cellComponent={Cell} />
                     <TableHeaderRow showSortingControls />
                     <TableFilterRow />
-
                     <PagingPanel pageSizes={pageSizes} />
                 </Grid>
             </div>
 
+            {/* Delete Modal */}
             {showModal && (
                 <form onSubmit={confirmDelete} className="modal d-block" tabIndex="-1" role="dialog">
                     <div className="modal-dialog modal-dialog-centered" role="document">

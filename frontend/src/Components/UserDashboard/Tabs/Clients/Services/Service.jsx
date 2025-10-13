@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useFetchServiceQuery, useUpdateServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../../utils/SubmitButton';
+import AlertDispatcher from '../../../../../utils/AlertDispatcher';
 
 export default function Service({ token }) {
     const { id } = useParams();
@@ -25,6 +26,9 @@ export default function Service({ token }) {
     const [country, setCountry] = useState('CA');
     const [postalCode, setPostalCode] = useState('');
 
+    const [showError, setShowError] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+
     useEffect(() => {
         if (serviceData) {
             setServiceName(serviceData.service_name || '');
@@ -43,6 +47,11 @@ export default function Service({ token }) {
             setPostalCode(serviceData.postal_code || '');
         }
     }, [serviceData]);
+
+    useEffect(() => {
+        if (updateError) setShowError(true);
+        if (isSuccess) setShowSuccess(true);
+    }, [updateError, isSuccess]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -64,7 +73,6 @@ export default function Service({ token }) {
                 country,
                 postal_code: postalCode,
             }).unwrap();
-            navigate(`/dashboard/client/${serviceData.client}/services`);
         } catch (err) {
             console.error('Failed to update service:', err);
         }
@@ -73,11 +81,7 @@ export default function Service({ token }) {
     if (isLoading) return <div>Loading service...</div>;
 
     if (error) {
-        return (
-            <div className="alert alert-danger" role="alert">
-                {error?.data?.detail || 'Failed to load service.'}
-            </div>
-        );
+        return <AlertDispatcher type="error" message={error?.data?.detail || 'Failed to load service.'} />;
     }
 
     return (
@@ -104,16 +108,23 @@ export default function Service({ token }) {
                     </li>
                 </ol>
             </nav>
+
             <h3 className="mb-4">Edit Service</h3>
 
-            <form onSubmit={handleSubmit}>
-                {updateError && (
-                    <div className="alert alert-danger mb-3">
-                        {updateError?.data?.detail || 'Failed to update service.'}
-                    </div>
-                )}
-                {isSuccess && <div className="alert alert-success mb-3">Service updated successfully!</div>}
+            {updateError && showError && (
+                <AlertDispatcher type="error" message={updateError?.data} onClose={() => setShowError(false)} />
+            )}
 
+            {isSuccess && showSuccess && (
+                <AlertDispatcher
+                    type="success"
+                    message="Service updated successfully!"
+                    autoDismiss={3000}
+                    onClose={() => setShowSuccess(false)}
+                />
+            )}
+
+            <form onSubmit={handleSubmit}>
                 <div className="row">
                     <div className="mb-3 col-md-6">
                         <label className="form-label">Service Name (*)</label>
@@ -188,6 +199,7 @@ export default function Service({ token }) {
                             className="form-select"
                             value={billingCycle || ''}
                             onChange={(e) => setBillingCycle(e.target.value)}
+                            disabled={serviceType === 'ONE_TIME'}
                         >
                             <option value="">Select cycle</option>
                             <option value="MONTHLY">Monthly</option>

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useCreateServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../../utils/SubmitButton';
+import AlertDispatcher from '../../../../../utils/AlertDispatcher';
 import { countries, provinces } from '../../../../../utils/locations';
 
-export default function CreateServiceModal({
+export default function CreateClientServiceForm({
     showModal,
     setShowModal,
     clientId,
@@ -30,6 +31,9 @@ export default function CreateServiceModal({
 
     const [createService, { isLoading, error, isSuccess }] = useCreateServiceMutation();
 
+    const [showError, setShowError] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -52,7 +56,7 @@ export default function CreateServiceModal({
                 postal_code: postalCode,
             }).unwrap();
 
-            // reset
+            // reset form
             setServiceName('');
             setServiceType('ONE_TIME');
             setPrice('');
@@ -68,9 +72,11 @@ export default function CreateServiceModal({
             setProvinceState('');
             setPostalCode('');
 
-            setShowModal(false);
+            setShowSuccess(true);
+            setTimeout(() => setShowModal(false), 1000);
         } catch (err) {
             console.error('Failed to create service:', err);
+            setShowError(true);
         }
     };
 
@@ -91,20 +97,30 @@ export default function CreateServiceModal({
 
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body">
-                                    {error && (
-                                        <div className="alert alert-danger mb-3">
-                                            {error?.data?.detail || 'Failed to add service'}
-                                        </div>
+                                    {/* ✅ Alerts Section */}
+                                    {error && showError && (
+                                        <AlertDispatcher
+                                            type="error"
+                                            message={error?.data}
+                                            onClose={() => setShowError(false)}
+                                        />
                                     )}
-                                    {isSuccess && (
-                                        <div className="alert alert-success mb-3">Service added successfully!</div>
+                                    {isSuccess && showSuccess && (
+                                        <AlertDispatcher
+                                            type="success"
+                                            message="Service added successfully!"
+                                            autoDismiss={3000}
+                                            onClose={() => setShowSuccess(false)}
+                                        />
                                     )}
-
-                                    {loadingOptions && <div className="alert alert-info mb-3">Loading services...</div>}
+                                    {loadingOptions && (
+                                        <AlertDispatcher type="info" message="Loading available services..." />
+                                    )}
                                     {errorOptions && (
-                                        <div className="alert alert-danger mb-3">
-                                            {errorOptions?.data?.detail || 'Failed to load service options'}
-                                        </div>
+                                        <AlertDispatcher
+                                            type="error"
+                                            message={errorOptions?.data?.detail || 'Failed to load service options.'}
+                                        />
                                     )}
 
                                     {/* Service Info */}
@@ -170,6 +186,7 @@ export default function CreateServiceModal({
                                                 className="form-select"
                                                 value={billingCycle}
                                                 onChange={(e) => setBillingCycle(e.target.value)}
+                                                disabled={serviceType === 'ONE_TIME'}
                                             >
                                                 <option value="">-- Select --</option>
                                                 <option value="MONTHLY">Monthly</option>
@@ -204,6 +221,7 @@ export default function CreateServiceModal({
                                                 className="form-select"
                                                 value={status}
                                                 onChange={(e) => setStatus(e.target.value)}
+                                                disabled
                                             >
                                                 <option value="PENDING">Pending</option>
                                                 <option value="ACTIVE">Active</option>

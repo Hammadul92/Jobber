@@ -2,12 +2,15 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetchServicesQuery, useDeleteServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../../utils/SubmitButton';
+import AlertDispatcher from '../../../../../utils/AlertDispatcher';
 import { countries, provinces } from '../../../../../utils/locations';
 
 export default function ClientServicesData({ token, role, clientId }) {
     const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();
     const [showModal, setShowModal] = useState(false);
     const [selectedServiceId, setSelectedServiceId] = useState(null);
+    const [alert, setAlert] = useState({ type: '', message: '' }); // For AlertDispatcher
+
     const queryArg = role === 'CLIENT' ? null : clientId;
 
     const {
@@ -35,8 +38,11 @@ export default function ClientServicesData({ token, role, clientId }) {
             refetch();
             setShowModal(false);
             setSelectedServiceId(null);
+            setAlert({ type: 'success', message: 'Service deleted successfully!' });
         } catch (err) {
             console.error('Failed to delete service:', err);
+            const msg = err?.data?.detail || 'Failed to delete service. Please try again.';
+            setAlert({ type: 'danger', message: msg });
         }
     };
 
@@ -67,8 +73,28 @@ export default function ClientServicesData({ token, role, clientId }) {
         });
     }, [services, statusFilter, typeFilter, countryFilter, provinceFilter]);
 
+    // Display fetch errors
+    if (serviceError && !alert.message) {
+        const msg = Array.isArray(serviceError?.data)
+            ? serviceError.data.join(', ')
+            : typeof serviceError?.data === 'object'
+              ? Object.entries(serviceError.data)
+                    .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+                    .join(' | ')
+              : serviceError?.data?.detail || 'Failed to load services';
+        setAlert({ type: 'danger', message: msg });
+    }
+
     return (
         <>
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
             <div className="mb-4 row g-2">
                 <div className="col-md-3">
                     <select
@@ -127,9 +153,6 @@ export default function ClientServicesData({ token, role, clientId }) {
 
             <div className="row">
                 {loadingServices && <div>Loading services...</div>}
-                {serviceError && (
-                    <div className="alert alert-danger">{serviceError?.data?.detail || 'Failed to load services'}</div>
-                )}
                 {filteredServices?.length === 0 && !loadingServices && <p>No services found.</p>}
 
                 {filteredServices?.map((service) => (
@@ -150,11 +173,11 @@ export default function ClientServicesData({ token, role, clientId }) {
                                     </p>
                                 )}
 
-                                {role === 'MANAGER' ? (
+                                {role === 'MANAGER' && (
                                     <p className="mb-1">
                                         <strong>Price:</strong> ${service.price} {service.currency}
                                     </p>
-                                ) : null}
+                                )}
 
                                 <p className="mb-1">
                                     <strong>Start Date:</strong> {service.start_date}
@@ -168,7 +191,7 @@ export default function ClientServicesData({ token, role, clientId }) {
                                 </p>
 
                                 {service.quotations && service.quotations.length > 0 && (
-                                    <div className="">
+                                    <div>
                                         <strong>Quotations: </strong>
                                         {service.quotations.map((quote, index) => {
                                             const statusClass =
@@ -196,12 +219,13 @@ export default function ClientServicesData({ token, role, clientId }) {
                                 )}
 
                                 <div className="d-flex align-items-center justify-content-between mt-3">
-                                    {service.service_questionnaires ? (
+                                    {service.service_questionnaires?.id ? (
                                         <Link
-                                            to={`/dashboard/service-questionnaire/${service.service_questionnaires.id}/form/${service.id}`}
+                                            to={`/dashboard/service-questionnaire/${service.service_questionnaires?.id}/form/${service.id}`}
                                         >
                                             <span className="badge bg-primary rounded-pill p-2">
-                                                Service Questions: {service.service_questionnaires.questionnaire.length}
+                                                Service Questions:{' '}
+                                                {service.service_questionnaires?.questionnaire?.length}
                                             </span>
                                         </Link>
                                     ) : (
@@ -212,24 +236,24 @@ export default function ClientServicesData({ token, role, clientId }) {
                                     )}
 
                                     <div>
-                                        {role === 'MANAGER' ? (
-                                            <button
-                                                className="btn btn-light rounded-circle py-1 px-2 me-2 border-0 fs-5"
-                                                onClick={() => handleDeleteClick(service.id)}
-                                                title="Delete Service"
-                                            >
-                                                <i className="fa fa-trash-alt"></i>
-                                            </button>
-                                        ) : null}
-                                        {role === 'MANAGER' ? (
-                                            <Link
-                                                className="btn btn-light rounded-circle py-1 px-2 fs-5"
-                                                to={`/dashboard/service/${service.id}`}
-                                                title="Edit Service"
-                                            >
-                                                <i className="fa fa-pencil"></i>
-                                            </Link>
-                                        ) : null}
+                                        {role === 'MANAGER' && (
+                                            <>
+                                                <button
+                                                    className="btn btn-light rounded-circle py-1 px-2 me-2 border-0 fs-5"
+                                                    onClick={() => handleDeleteClick(service.id)}
+                                                    title="Delete Service"
+                                                >
+                                                    <i className="fa fa-trash-alt"></i>
+                                                </button>
+                                                <Link
+                                                    className="btn btn-light rounded-circle py-1 px-2 fs-5"
+                                                    to={`/dashboard/service/${service.id}`}
+                                                    title="Edit Service"
+                                                >
+                                                    <i className="fa fa-pencil"></i>
+                                                </Link>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>

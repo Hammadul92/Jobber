@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useFetchTeamMemberQuery, useUpdateTeamMemberMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 export default function TeamMember({ token }) {
     const { id } = useParams();
-    const navigate = useNavigate();
 
-    const {
-        data: teamMemberData,
-        isLoading,
-        error,
-    } = useFetchTeamMemberQuery(id, {
-        skip: !token,
-    });
+    const { data: teamMemberData, isLoading, error } = useFetchTeamMemberQuery(id, { skip: !token });
 
     const [updateTeamMember, { isLoading: updatingMember }] = useUpdateTeamMemberMutation();
 
@@ -24,6 +18,7 @@ export default function TeamMember({ token }) {
     const [role, setRole] = useState('');
     const [email, setEmail] = useState('');
     const [joinedAt, setJoinedAt] = useState('');
+    const [alert, setAlert] = useState({ type: '', message: '' });
 
     useEffect(() => {
         if (teamMemberData) {
@@ -37,6 +32,16 @@ export default function TeamMember({ token }) {
         }
     }, [teamMemberData]);
 
+    const formatDate = (dateString) => {
+        if (!dateString) return '—';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -46,9 +51,13 @@ export default function TeamMember({ token }) {
                 expertise,
             }).unwrap();
 
-            navigate('/dashboard/team-members');
+            setAlert({ type: 'success', message: 'Team member updated successfully.' });
         } catch (err) {
             console.error('Failed to update:', err);
+            setAlert({
+                type: 'danger',
+                message: err?.data?.detail || 'Failed to update team member. Please try again.',
+            });
         }
     };
 
@@ -56,14 +65,24 @@ export default function TeamMember({ token }) {
 
     if (error) {
         return (
-            <div className="alert alert-danger mt-4" role="alert">
-                {error?.data?.detail || 'Failed to load team member.'}
-            </div>
+            <AlertDispatcher
+                type="danger"
+                message={error?.data?.detail || 'Failed to load team member.'}
+                onClose={() => setAlert({ type: '', message: '' })}
+            />
         );
     }
 
     return (
         <>
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
             <nav aria-label="breadcrumb mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
@@ -81,9 +100,10 @@ export default function TeamMember({ token }) {
                     </li>
                 </ol>
             </nav>
+
             <div className="row">
-                <div className="col-12 col-lg-3 mb-4">
-                    <div className="text-center shadow p-3 bg-white rounded-3 mb-3">
+                <div className="col-12 col-lg-3 mb-3">
+                    <div className="text-center shadow-sm p-3 bg-white rounded-3 mb-3">
                         <img
                             src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=120`}
                             alt={name}
@@ -102,46 +122,37 @@ export default function TeamMember({ token }) {
                             </div>
                             <div>
                                 <i className="bi bi-calendar-event me-2"></i>
-                                Joined: {joinedAt}
+                                Joined: {formatDate(joinedAt)}
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="col-12 col-lg-9">
-                    <form onSubmit={handleSubmit}>
-                        <div className="row">
-                            <div className="mb-3 col-md-12">
-                                <label className="form-label">Job Duties</label>
-                                <textarea
-                                    className="form-control"
-                                    rows="3"
-                                    value={jobDuties}
-                                    onChange={(e) => setJobDuties(e.target.value)}
-                                    placeholder="Describe their responsibilities..."
-                                ></textarea>
-                            </div>
-
-                            <div className="mb-3 col-md-12">
-                                <label className="form-label">Expertise</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={expertise}
-                                    onChange={(e) => setExpertise(e.target.value)}
-                                    placeholder="e.g., Plumbing, Electrical Work"
-                                />
-                            </div>
+                    <form onSubmit={handleSubmit} className="shadow-sm p-3 bg-white rounded">
+                        <div className="field-wrapper">
+                            <textarea
+                                className="form-control"
+                                rows="3"
+                                value={jobDuties}
+                                onChange={(e) => setJobDuties(e.target.value)}
+                                placeholder="Describe their responsibilities..."
+                            ></textarea>
+                            <label className="form-label">Job Duties</label>
                         </div>
 
-                        <div className="d-flex justify-content-end">
-                            <button
-                                type="button"
-                                className="btn btn-dark me-2"
-                                onClick={() => navigate('/dashboard/team-members')}
-                            >
-                                Cancel
-                            </button>
+                        <div className="field-wrapper">
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={expertise}
+                                onChange={(e) => setExpertise(e.target.value)}
+                                placeholder="e.g., Plumbing, Electrical Work"
+                            />
+                            <label className="form-label">Expertise</label>
+                        </div>
+
+                        <div className="d-flex justify-content-end mt-3">
                             <SubmitButton
                                 isLoading={updatingMember}
                                 btnClass="btn btn-success"

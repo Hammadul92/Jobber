@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { useUpdateUserMutation } from '../../../../store';
-
 import SubmitButton from '../../../../utils/SubmitButton';
 
-export default function Credentials() {
+export default function Credentials({ setAlert }) {
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [passwordStrength, setPasswordStrength] = useState('');
-    const [alert, setAlert] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -57,7 +55,10 @@ export default function Credentials() {
             setPasswordStrength('');
         } catch (err) {
             console.error('Password update failed:', err);
-            setAlert({ type: 'danger', message: 'Failed to update password. Please try again.' });
+            setAlert({
+                type: 'danger',
+                message: 'Failed to update password. Please try again.',
+            });
         }
     };
 
@@ -65,11 +66,6 @@ export default function Credentials() {
         <form className="tab-pane active" onSubmit={handleSubmit}>
             <div className="row">
                 <div className="col-md-4">
-                    {alert && (
-                        <div className={`alert alert-${alert.type}`} role="alert">
-                            {alert.message}
-                        </div>
-                    )}
                     {error && (
                         <div className="alert alert-danger" role="alert">
                             {error?.data?.message || 'Failed to update password.'}
@@ -77,7 +73,7 @@ export default function Credentials() {
                     )}
 
                     <div className="mb-3">
-                        <label className="form-label">New Password</label>
+                        <label className="form-label">New Password (*)</label>
                         <div className="input-group">
                             <input
                                 type={showPassword ? 'text' : 'password'}
@@ -111,7 +107,7 @@ export default function Credentials() {
                     </div>
 
                     <div className="mb-3">
-                        <label className="form-label">Confirm New Password</label>
+                        <label className="form-label">Confirm New Password (*)</label>
                         <div className="input-group">
                             <input
                                 type={showConfirmPassword ? 'text' : 'password'}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useCreateUserMutation, useCreateClientMutation, useCheckUserExistsMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import PhoneInputField from '../../../../utils/PhoneInput';
+import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 function generateStrongPassword(length = 12) {
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?';
@@ -19,8 +20,7 @@ export default function CreateClientForm({ showModal, setShowModal }) {
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
 
-    const [apiError, setApiError] = useState(null);
-    const [successMessage, setSuccessMessage] = useState('');
+    const [alert, setAlert] = useState({ type: '', message: '' });
 
     const [createUser, { isLoading: creatingUser }] = useCreateUserMutation();
     const [createClient, { isLoading: creatingClient }] = useCreateClientMutation();
@@ -30,20 +30,17 @@ export default function CreateClientForm({ showModal, setShowModal }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setApiError(null);
-        setSuccessMessage('');
+        setAlert({ type: '', message: '' });
 
         if (!name || !email || !phone) {
-            setApiError('Please fill all required fields.');
+            setAlert({ type: 'danger', message: 'Please fill all required fields.' });
             return;
         }
 
         try {
-            // 1️⃣ Check if user exists
             const checkResponse = await checkUserExists({ email }).unwrap();
             let userId = checkResponse?.id;
 
-            // 2️⃣ If user does not exist, create one
             if (!userId) {
                 const password = generateStrongPassword();
                 const userPayload = { name, email, phone, password, role: 'CLIENT' };
@@ -51,10 +48,9 @@ export default function CreateClientForm({ showModal, setShowModal }) {
                 userId = newUser.id;
             }
 
-            // 3️⃣ Create client with the user ID
             await createClient({ user: userId }).unwrap();
 
-            setSuccessMessage('Client added successfully.');
+            setAlert({ type: 'success', message: 'Client added successfully.' });
             setName('');
             setPhone('');
             setEmail('');
@@ -68,7 +64,7 @@ export default function CreateClientForm({ showModal, setShowModal }) {
                           .join(' | ')
                     : err?.message) ||
                 'Failed to create client. Please try again.';
-            setApiError(message);
+            setAlert({ type: 'danger', message });
             console.error('Create client error:', err);
         }
     };
@@ -96,8 +92,13 @@ export default function CreateClientForm({ showModal, setShowModal }) {
                                         the "Forgot Password" option.
                                     </p>
 
-                                    {apiError && <div className="alert alert-danger mb-3">{apiError}</div>}
-                                    {successMessage && <div className="alert alert-success mb-3">{successMessage}</div>}
+                                    {alert.message && (
+                                        <AlertDispatcher
+                                            type={alert.type}
+                                            message={alert.message}
+                                            onClose={() => setAlert({ type: '', message: '' })}
+                                        />
+                                    )}
 
                                     <div className="row">
                                         <div className="mb-3 col-md-6">

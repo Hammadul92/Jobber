@@ -132,82 +132,86 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
 
 class ServiceSerializer(serializers.ModelSerializer):
-    """ Serializer for services."""
+    """ Serializer for services with optimized validation. """
     quotations = serializers.SerializerMethodField()
     service_questionnaires = serializers.SerializerMethodField()
-    client_name = serializers.CharField(
-        source="client.user.name",
-        read_only=True
-    )
+    client_name = serializers.CharField(source="client.user.name", read_only=True)
 
     class Meta:
         model = Service
         fields = [
             "id", "client", "client_name", "business", "quotations",
-            "service_name", "service_questionnaires", "filled_questionnaire", "description",
-            "start_date", "end_date", "service_type", "price", "currency",
-            "billing_cycle", "status", "street_address", "city", "country",
-            "province_state", "postal_code", "created_at", "updated_at",
+            "service_name", "service_questionnaires", "filled_questionnaire",
+            "description", "start_date", "end_date", "service_type",
+            "price", "currency", "billing_cycle", "status",
+            "street_address", "city", "country", "province_state",
+            "postal_code", "created_at", "updated_at",
         ]
-        read_only_fields = [
-            "id", "client", "business", "created_at", "updated_at"
-        ]
+        read_only_fields = ["created_at", "updated_at"]
 
     def get_quotations(self, obj):
-        """Return related quotes."""
-        quotes = obj.service_quotes.filter(is_active=True).values(
+        """Return related active quotes."""
+        return list(obj.service_quotes.filter(is_active=True).values(
             "id", "quote_number", "status", "valid_until", "created_at"
-        )
-        return list(quotes)
+        ))
 
     def get_service_questionnaires(self, obj):
-        """Return the additional_questions_form of the related service questionnaire."""
+        """Return the questionnaire for this service if exists."""
         questionnaire = obj.business.service_questionnaires.filter(
             service_name=obj.service_name,
             is_active=True
         ).first()
-
         if questionnaire:
             return {
-               'questionnaire': questionnaire.additional_questions_form,
-               'id': questionnaire.id
+                "id": questionnaire.id,
+                "questionnaire": questionnaire.additional_questions_form,
             }
-        return None
+        return {}
 
     def validate(self, data):
         """
         Custom validation:
         - Ensure service_name is valid for the selected business.
         - Ensure client belongs to the same business.
+        - Prevent ACTIVE/COMPLETED status without questionnaire + responses.
         """
-        business = (
-            data.get("business")
-            or getattr(self.instance, "business", None)
-        )
+        business = data.get("business") or getattr(self.instance, "business", None)
         client = data.get("client") or getattr(self.instance, "client", None)
+        status = data.get("status") or getattr(self.instance, "status", None)
+        service_name = data.get("service_name") or getattr(self.instance, "service_name", None)
+        filled_questionnaire = data.get("filled_questionnaire") or getattr(self.instance, "filled_questionnaire", None)
 
-        # Validate service_name
-        if business and data.get("service_name"):
-            allowed = {
-                service.name
-                for service in business.services_offered.all()
-            }
-            if data["service_name"] not in allowed:
-                raise serializers.ValidationError({
-                    "service_name": (
-                        "This service is not offered by the "
-                        "selected business."
-                    )
-                })
+        errors = {}
+
+        # Validate service_name is offered by business
+        if business and service_name:
+            allowed_services = {s.name for s in business.services_offered.all()}
+            if service_name not in allowed_services:
+                errors["service_name"] = "This service is not offered by the selected business."
 
         # Validate client belongs to business
         if business and client and client.business != business:
-            raise serializers.ValidationError({
-                "client": (
-                    "This client does not belong to the selected "
-                    "business."
+            errors["client"] = "This client does not belong to the selected business."
+
+        # Validate status requires questionnaire + response
+        if status in ["ACTIVE", "COMPLETED"]:
+            has_questionnaire = business.service_questionnaires.filter(
+                service_name=service_name,
+                is_active=True
+            ).exists()
+            if not has_questionnaire:
+                errors["status"] = (
+                    "Cannot set status to Active or Completed without an active "
+                    "Service Questionnaire for this service."
                 )
-            })
+            if not filled_questionnaire:
+                errors["filled_questionnaire"] = (
+                    "Cannot set status to Active or Completed without a "
+                    "filled questionnaire response."
+                )
+
+        if errors:
+            raise serializers.ValidationError(errors)
 
         return data
 

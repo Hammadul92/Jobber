@@ -12,7 +12,7 @@ import {
 import { useFetchQuotesQuery, useDeleteQuoteMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 
-export default function QuotesDatatable({ token, role }) {
+export default function QuotesDatatable({ token, role, setAlert }) {
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
 
@@ -58,10 +58,15 @@ export default function QuotesDatatable({ token, role }) {
         if (!selectedQuoteId) return;
         try {
             await deleteQuote(selectedQuoteId).unwrap();
+            setAlert({ type: 'success', message: 'Quote deleted successfully!' });
             setShowModal(false);
             setSelectedQuoteId(null);
         } catch (err) {
             console.error('Failed to delete quote:', err);
+            setAlert({
+                type: 'danger',
+                message: err?.data?.detail || 'Failed to delete quote. Please try again later.',
+            });
         }
     };
 
@@ -119,12 +124,13 @@ export default function QuotesDatatable({ token, role }) {
 
     if (isLoading) return <div>Loading quotes...</div>;
 
-    if (error)
-        return (
-            <div className="alert alert-danger" role="alert">
-                {error?.data?.detail || 'Failed to load quotes. Please try again later.'}
-            </div>
-        );
+    if (error) {
+        setAlert({
+            type: 'danger',
+            message: error?.data?.detail || 'Failed to load quotes. Please try again later.',
+        });
+        return null;
+    }
 
     return (
         <>

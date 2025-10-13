@@ -90,19 +90,6 @@ body {
     text-align: center;
 }
 
-/* .form-control,
-.form-select,
-.btn {
-    border-radius: 0;
-} */
-
-select.form-select:focus,
-input.form-control:focus,
-textarea.form-control:focus {
-    border: 1px solid #cacaca;
-    box-shadow: 0 0 4px #cacaca;
-}
-
 .react-tel-input .flag-dropdown {
     background-color: #fff !important;
     border-right: none !important;
@@ -164,4 +151,83 @@ textarea.form-control:focus {
 
 .accordion-button:not(.collapsed) {
     box-shadow: none;
+}
+
+.alert.alert-custom {
+    position: fixed !important;
+    top: 80px;
+    right: 20px;
+    z-index: 1080;
+    min-width: 300px;
+    max-width: 300px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: alert-slide-in 0.4s ease forwards;
+}
+
+@keyframes alert-slide-in {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert.alert-custom.fade-out {
+    animation: alert-fade-out 0.3s ease forwards;
+}
+
+@keyframes alert-fade-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.alert.alert-custom button.btn-close {
+    outline: none;
+    box-shadow: none;
+}
+
+select.form-select:focus,
+input.form-control:focus,
+textarea.form-control:focus {
+    border: 1px solid #cacaca;
+    box-shadow: 0 0 4px #cacaca;
+}
+
+.field-wrapper {
+    position: relative;
+    margin-top: 2.25rem;
+}
+
+.field-wrapper .form-label {
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    padding: 0px 6px;
+    background: #fff;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    transition: all 0.25s ease;
+    pointer-events: none;
+    color: #374151;
+}
+
+.field-wrapper .form-control:focus + .form-label,
+.field-wrapper .form-select:focus + .form-label {
+    top: -24px;
+    left: 6px;
+    background: none;
+    padding: 0;
+    font-size: 0.9rem;
+    color: #198754;
 }

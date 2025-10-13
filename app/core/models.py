@@ -364,8 +364,7 @@ class Service(models.Model):
 
     def __str__(self):
         return (
-            f"{self.service_name} ({self.get_service_type_display()}) "
-            f"for {self.client.user.name} - {self.get_status_display()}"
+            f"{self.service_name} for {self.client.user.name}"
         )
 
 
@@ -453,12 +452,6 @@ class TeamMember(models.Model):
         return f"{self.employee.name} @ {self.business.name}"
 
 
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from django.db import models
-from django.core.files.base import ContentFile
-import base64
-
 class Quote(models.Model):
     service = models.ForeignKey(
         "Service",
@@ -494,15 +487,16 @@ class Quote(models.Model):
     def clean(self):
         """Ensure only one active (non-declined) quote exists per service."""
         if self.service_id:
-            existing = Quote.objects.filter(
-                service=self.service
+            existing_quotes = Quote.objects.filter(
+                service=self.service,
+                is_active=True
             ).exclude(
                 id=self.id
             ).exclude(
                 status="DECLINED"
             )
 
-            if existing.exists():
+            if existing_quotes.exists():
                 raise ValidationError({
                     "service": (
                         "A quote already exists for this service. "

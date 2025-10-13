@@ -10,20 +10,15 @@ import {
     IntegratedPaging,
 } from '@devexpress/dx-react-grid';
 import { useFetchTeamMembersQuery, useDeleteTeamMemberMutation } from '../../../../store';
-
 import SubmitButton from '../../../../utils/SubmitButton';
+import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 export default function TeamMembersDatatable({ token }) {
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
+    const [alert, setAlert] = useState({ type: '', message: '' });
 
-    const {
-        data: teamMemberData,
-        isLoading,
-        error,
-    } = useFetchTeamMembersQuery(undefined, {
-        skip: !token,
-    });
+    const { data: teamMemberData, isLoading, error } = useFetchTeamMembersQuery(undefined, { skip: !token });
 
     const [deleteTeamMember, { isLoading: deleting }] = useDeleteTeamMemberMutation();
 
@@ -57,15 +52,19 @@ export default function TeamMembersDatatable({ token }) {
 
     const confirmDelete = async (e) => {
         e.preventDefault();
-
         if (!selectedTeamMemberId) return;
 
         try {
             await deleteTeamMember(selectedTeamMemberId).unwrap();
             setShowModal(false);
             setSelectedTeamMemberId(null);
+            setAlert({ type: 'success', message: 'Team member deleted successfully.' });
         } catch (err) {
             console.error('Failed to delete team member:', err);
+            setAlert({
+                type: 'danger',
+                message: err?.data?.detail || 'Failed to delete team member. Please try again.',
+            });
         }
     };
 
@@ -89,47 +88,49 @@ export default function TeamMembersDatatable({ token }) {
                 </Table.Cell>
             );
         } else if (props.column.name === 'employee_name') {
-            if (props.row.is_active === 'True') {
-                return (
-                    <Table.Cell {...props}>
-                        {props.row.employee_name}{' '}
-                        <span className="badge bg-success rounded-pill text-white">ACTIVE</span>
-                    </Table.Cell>
-                );
-            } else {
-                return (
-                    <Table.Cell {...props}>
-                        {props.row.employee_name}{' '}
-                        <span className="badge bg-danger rounded-pill text-white">INACTIVE</span>
-                    </Table.Cell>
-                );
-            }
+            return (
+                <Table.Cell {...props}>
+                    {props.row.employee_name}{' '}
+                    <span
+                        className={`badge rounded-pill text-white ${
+                            props.row.is_active === 'True' ? 'bg-success' : 'bg-danger'
+                        }`}
+                    >
+                        {props.row.is_active === 'True' ? 'ACTIVE' : 'INACTIVE'}
+                    </span>
+                </Table.Cell>
+            );
         }
         return <Table.Cell {...props} />;
     };
 
-    if (isLoading) {
-        return <div>Loading data...</div>;
-    }
+    if (isLoading) return <div>Loading data...</div>;
 
-    if (error) {
+    if (error)
         return (
-            <div className="alert alert-danger" role="alert">
-                {error?.data?.detail || 'Failed to load team member data. Please try again later.'}
-            </div>
+            <AlertDispatcher
+                type="danger"
+                message={error?.data?.detail || 'Failed to load team member data. Please try again later.'}
+                onClose={() => setAlert({ type: '', message: '' })}
+            />
         );
-    }
 
     return (
         <>
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
             <div className="data-table">
                 <Grid rows={rows} columns={columns}>
                     <SortingState defaultSorting={defaultSorting} columnExtensions={sortingStateColumnExtensions} />
                     <IntegratedSorting />
-
                     <FilteringState columnExtensions={filteringStateColumnExtensions} />
                     <IntegratedFiltering />
-
                     <PagingState
                         currentPage={currentPage}
                         onCurrentPageChange={setCurrentPage}
@@ -141,7 +142,6 @@ export default function TeamMembersDatatable({ token }) {
                     <Table cellComponent={Cell} />
                     <TableHeaderRow showSortingControls />
                     <TableFilterRow />
-
                     <PagingPanel pageSizes={pageSizes} />
                 </Grid>
             </div>

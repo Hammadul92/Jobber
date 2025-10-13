@@ -2,23 +2,31 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetchQuoteQuery, useSignQuoteMutation } from '../../../../store';
 import AcceptAndSignQuote from './AcceptAndSignQuote';
+import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 export default function SignQuote({ token }) {
     const { id } = useParams();
     const { data: quote, isLoading, error } = useFetchQuoteQuery(id, { skip: !token });
-    const [signQuote, { isLoading: signing, isSuccess, error: signError }] = useSignQuoteMutation();
+    const [signQuote, { isLoading: signing }] = useSignQuoteMutation();
 
     const [showSignModal, setShowSignModal] = useState(false);
     const [showDeclineModal, setShowDeclineModal] = useState(false);
     const [status, setStatus] = useState('');
     const [timeRemaining, setTimeRemaining] = useState('');
 
+    const [alert, setAlert] = useState({ type: '', message: '' });
+
     const handleDeclineConfirm = async () => {
         try {
             await signQuote({ id, status: 'DECLINED' }).unwrap();
             setStatus('DECLINED');
+            setAlert({ type: 'success', message: 'Quote declined successfully!' });
         } catch (err) {
             console.error('Failed to decline quote:', err);
+            setAlert({
+                type: 'danger',
+                message: err?.data?.detail || 'Failed to decline quote. Please try again.',
+            });
         }
         setShowDeclineModal(false);
     };
@@ -27,8 +35,13 @@ export default function SignQuote({ token }) {
         try {
             await signQuote({ id, status: 'SIGNED', signature }).unwrap();
             setStatus('SIGNED');
+            setAlert({ type: 'success', message: 'Quote signed successfully!' });
         } catch (err) {
             console.error('Failed to sign quote:', err);
+            setAlert({
+                type: 'danger',
+                message: err?.data?.detail || 'Failed to sign quote. Please try again.',
+            });
         }
         setShowSignModal(false);
     };
@@ -84,6 +97,14 @@ export default function SignQuote({ token }) {
 
     return (
         <>
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
             <nav aria-label="breadcrumb mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
@@ -101,6 +122,7 @@ export default function SignQuote({ token }) {
                     </li>
                 </ol>
             </nav>
+
             <div className="shadow p-4 bg-white rounded-4">
                 <div className="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
                     <h3 className="fw-semibold text-dark mb-0">
@@ -131,13 +153,6 @@ export default function SignQuote({ token }) {
                         </div>
                     )}
                 </div>
-
-                {signError && <div className="alert alert-danger">{signError?.data?.detail || 'Action failed.'}</div>}
-                {isSuccess && (
-                    <div className="alert alert-success">
-                        Quote {status === 'SIGNED' ? 'signed' : 'declined'} successfully!
-                    </div>
-                )}
 
                 <div className="row mb-3">
                     <div className="col-md-6 mb-4 mb-md-0">
@@ -233,9 +248,7 @@ export default function SignQuote({ token }) {
                                                     }
                                                     alt="Signed Document"
                                                     className="border rounded bg-white p-2"
-                                                    style={{
-                                                        height: '80px',
-                                                    }}
+                                                    style={{ height: '80px' }}
                                                 />
                                             </div>
                                         )}

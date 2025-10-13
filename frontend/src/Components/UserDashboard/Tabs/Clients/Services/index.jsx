@@ -1,18 +1,16 @@
 import { useState } from 'react';
-import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import CreateClientServiceForm from './CreateClientServiceForm';
 import { useFetchClientQuery, useFetchBusinessQuery } from '../../../../../store';
 import ClientServicesData from './ClientServicesData';
+import AlertDispatcher from '../../../../../utils/AlertDispatcher'; // make sure path is correct
 
 export default function ClientServices({ token, role }) {
-    const { id: clientIdFromUrl } = useParams();
-    const [searchParams] = useSearchParams();
+    const { id: clientId } = useParams();
     const [showModal, setShowModal] = useState(false);
+    const [alert, setAlert] = useState({ type: '', message: '' }); // For AlertDispatcher
 
-    const userIdFromQuery = searchParams.get('user');
-    const isManagerMode = !!clientIdFromUrl;
-    const clientId = clientIdFromUrl || null;
-    const userId = userIdFromQuery || null;
+    const isManagerMode = !!clientId;
 
     const {
         data: client,
@@ -30,6 +28,20 @@ export default function ClientServices({ token, role }) {
 
     const title = isManagerMode ? `Services for ${client?.client_name || 'Client'}` : 'Services';
 
+    const displayError = (error) => {
+        const msg = Array.isArray(error?.data)
+            ? error.data.join(', ')
+            : typeof error?.data === 'object'
+              ? Object.entries(error.data)
+                    .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+                    .join(' | ')
+              : error?.data?.detail || 'Something went wrong';
+        setAlert({ type: 'danger', message: msg });
+    };
+
+    if (clientError && !alert.message) displayError(clientError);
+    if (businessError && !alert.message) displayError(businessError);
+
     return (
         <>
             <nav aria-label="breadcrumb mb-3">
@@ -39,38 +51,39 @@ export default function ClientServices({ token, role }) {
                             Dashboard
                         </Link>
                     </li>
-                    {isManagerMode ? (
+                    {isManagerMode && (
                         <li className="breadcrumb-item">
                             <Link to="/dashboard/clients" className="text-success">
                                 Clients
                             </Link>
                         </li>
-                    ) : null}
-
+                    )}
                     <li className="breadcrumb-item active" aria-current="page">
                         {title}
                     </li>
                 </ol>
             </nav>
 
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
             <div className="clearfix mb-3">
                 {isManagerMode && (
                     <button
                         className="btn btn-success float-end"
                         onClick={() => setShowModal(true)}
-                        disabled={loadingClient || clientError}
+                        disabled={loadingClient || !!clientError}
                     >
                         Add
                     </button>
                 )}
 
                 {loadingClient && isManagerMode && <h3 className="mb-0 text-muted">Loading client...</h3>}
-
-                {clientError && isManagerMode && (
-                    <div className="alert alert-danger mb-0">
-                        {clientError?.data?.detail || 'Failed to load client'}
-                    </div>
-                )}
 
                 <h3 className="mb-0">{title}</h3>
             </div>
@@ -79,11 +92,12 @@ export default function ClientServices({ token, role }) {
                 <CreateClientServiceForm
                     showModal={showModal}
                     setShowModal={setShowModal}
-                    clientId={clientId}
+                    clientId={client?.id}
                     businessId={client?.business}
                     serviceOptions={business?.services_offered || []}
                     loadingOptions={loadingBusiness}
                     errorOptions={businessError}
+                    setAlert={setAlert}
                 />
             )}
 

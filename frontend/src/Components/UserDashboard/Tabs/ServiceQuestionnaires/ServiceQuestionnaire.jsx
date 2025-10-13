@@ -6,34 +6,33 @@ import {
     useFetchBusinessesQuery,
 } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 export default function EditServiceQuestionnairesForm({ token }) {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const { data: questionnaireData, isLoading: isQuestionnaireLoading } = useFetchServiceQuestionnaireQuery(id, {
+    const { data: questionnaireData, isLoading: loadingQ } = useFetchServiceQuestionnaireQuery(id, {
         skip: !token || !id,
     });
+
     const { data: businesses } = useFetchBusinessesQuery(undefined, { skip: !token });
 
-    const [updateServiceQuestionnaire, { isLoading: isUpdating }] = useUpdateServiceQuestionnaireMutation();
+    const [updateServiceQuestionnaire, { isLoading: saving }] = useUpdateServiceQuestionnaireMutation();
 
     const [serviceName, setServiceName] = useState('');
     const [questions, setQuestions] = useState([
         { text: '', type: 'input', inputType: 'text', options: [], required: true },
     ]);
     const [expandedIndex, setExpandedIndex] = useState(0);
-    const [apiError, setApiError] = useState(null);
-    const [successMessage, setSuccessMessage] = useState('');
+    const [alert, setAlert] = useState(null);
 
     const business = businesses?.[0];
     const servicesOffered = business?.services_offered || [];
-    const isSubmitting = isUpdating;
 
     useEffect(() => {
         if (questionnaireData) {
             setServiceName(questionnaireData.service_name || '');
-
             const clonedQuestions = questionnaireData.additional_questions_form?.length
                 ? JSON.parse(JSON.stringify(questionnaireData.additional_questions_form))
                 : [{ text: '', type: 'input', inputType: 'text', options: [], required: true }];
@@ -43,9 +42,7 @@ export default function EditServiceQuestionnairesForm({ token }) {
         }
     }, [questionnaireData]);
 
-    const toggleExpand = (index) => {
-        setExpandedIndex(expandedIndex === index ? null : index);
-    };
+    const toggleExpand = (index) => setExpandedIndex(expandedIndex === index ? null : index);
 
     const handleAddQuestion = () => {
         setQuestions([...questions, { text: '', type: 'input', inputType: 'text', options: [], required: true }]);
@@ -61,11 +58,8 @@ export default function EditServiceQuestionnairesForm({ token }) {
         updated[index][key] = value;
 
         if (key === 'type') {
-            if (value.startsWith('checkbox')) {
-                updated[index].options = [''];
-            } else if (value === 'input') {
-                updated[index].options = [];
-            }
+            if (value.startsWith('checkbox')) updated[index].options = [''];
+            else if (value === 'input') updated[index].options = [];
         }
 
         setQuestions(updated);
@@ -91,11 +85,10 @@ export default function EditServiceQuestionnairesForm({ token }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setApiError(null);
-        setSuccessMessage('');
+        setAlert(null);
 
         if (!serviceName || questions.some((q) => !q.text.trim())) {
-            setApiError('Please fill in all required fields.');
+            setAlert({ type: 'danger', message: 'Please fill in all required fields.' });
             return;
         }
 
@@ -106,27 +99,27 @@ export default function EditServiceQuestionnairesForm({ token }) {
                 additional_questions_form: questions,
             }).unwrap();
 
-            setSuccessMessage('Service questionnaire updated successfully.');
-            navigate('/dashboard/service-questionnaires');
+            setAlert({ type: 'success', message: 'Service questionnaire updated successfully.' });
+            // setTimeout(() => navigate('/dashboard/service-questionnaires'), 1200);
         } catch (err) {
             console.error('Error updating questionnaire:', err);
-            setApiError('Something went wrong. Please try again.');
+            setAlert({ type: 'danger', message: 'Failed to update questionnaire. Please try again.' });
         }
     };
 
-    if (isQuestionnaireLoading) return <div>Loading...</div>;
+    if (loadingQ) return <div className="text-center py-5">Loading questionnaire...</div>;
 
     return (
         <>
             <nav aria-label="breadcrumb mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
-                        <Link to={`/dashboard/home`} className="text-success">
+                        <Link to="/dashboard/home" className="text-success">
                             Dashboard
                         </Link>
                     </li>
                     <li className="breadcrumb-item">
-                        <Link to={`/dashboard/service-questionnaires`} className="text-success">
+                        <Link to="/dashboard/service-questionnaires" className="text-success">
                             Service Questionnaires
                         </Link>
                     </li>
@@ -138,12 +131,11 @@ export default function EditServiceQuestionnairesForm({ token }) {
 
             <h3 className="mb-4">Edit Service Questionnaire</h3>
 
-            <form onSubmit={handleSubmit}>
-                <div className="modal-body">
-                    {apiError && <div className="alert alert-danger">{apiError}</div>}
-                    {successMessage && <div className="alert alert-success">{successMessage}</div>}
+            <div className="shadow bg-white rounded-4 p-4">
+                <AlertDispatcher type={alert?.type} message={alert?.message} setAlert={setAlert} />
 
-                    {/* Service selection */}
+                <form onSubmit={handleSubmit}>
+                    {/* Service Selection */}
                     <div className="row g-3 mb-3">
                         <div className="col-md-6">
                             <label className="form-label">Service Name (*)</label>
@@ -336,20 +328,20 @@ export default function EditServiceQuestionnairesForm({ token }) {
                             ))}
                         </div>
                     </div>
-                </div>
 
-                <div className="d-flex justify-content-end mt-3">
-                    <button
-                        type="button"
-                        className="btn btn-dark me-2"
-                        onClick={() => navigate('/dashboard/service-questionnaires')}
-                        disabled={isSubmitting}
-                    >
-                        Cancel
-                    </button>
-                    <SubmitButton isLoading={isSubmitting} btnClass="btn btn-success" btnName="Save Changes" />
-                </div>
-            </form>
+                    <div className="d-flex justify-content-end mt-3">
+                        <button
+                            type="button"
+                            className="btn btn-dark me-2"
+                            onClick={() => navigate('/dashboard/service-questionnaires')}
+                            disabled={saving}
+                        >
+                            Cancel
+                        </button>
+                        <SubmitButton isLoading={saving} btnClass="btn btn-success" btnName="Save Changes" />
+                    </div>
+                </form>
+            </div>
         </>
     );
 }

@@ -2,18 +2,21 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useFetchQuoteQuery, useUpdateQuoteMutation, useSendQuoteMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 export default function Quote({ token }) {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const { data: quoteData, isLoading, error } = useFetchQuoteQuery(id, { skip: !token });
-    const [updateQuote, { isLoading: updating, error: updateError, isSuccess }] = useUpdateQuoteMutation();
-    const [sendQuote, { isLoading: sending, isSuccess: sentSuccess, error: sendError }] = useSendQuoteMutation();
+    const [updateQuote, { isLoading: updating }] = useUpdateQuoteMutation();
+    const [sendQuote, { isLoading: sending }] = useSendQuoteMutation();
 
     const [validUntil, setValidUntil] = useState('');
     const [termsConditions, setTermsConditions] = useState('');
     const [notes, setNotes] = useState('');
+
+    const [alert, setAlert] = useState({ type: '', message: '' });
 
     useEffect(() => {
         if (quoteData) {
@@ -32,16 +35,33 @@ export default function Quote({ token }) {
                 terms_conditions: termsConditions,
                 notes,
             }).unwrap();
+
+            setAlert({
+                type: 'success',
+                message: 'Quote updated successfully!',
+            });
         } catch (err) {
             console.error('Failed to update quote:', err);
+            setAlert({
+                type: 'danger',
+                message: err?.data?.detail || 'Failed to update quote. Please try again.',
+            });
         }
     };
 
     const handleSendQuote = async () => {
         try {
             await sendQuote(id).unwrap();
+            setAlert({
+                type: 'success',
+                message: 'Quote email sent successfully!',
+            });
         } catch (err) {
             console.error('Failed to send quote:', err);
+            setAlert({
+                type: 'danger',
+                message: err?.data?.detail || 'Failed to send quote email. Please try again.',
+            });
         }
     };
 
@@ -63,7 +83,6 @@ export default function Quote({ token }) {
 
     const disableSendBtn = isSigned || isExpired || isInactiveClient || isServiceInactive || isRequiredFieldsMissing;
 
-    // Collect all reasons for disabling
     const disableReasons = [];
     if (isSigned) disableReasons.push('This quote has already been signed and cannot be resent.');
     if (isExpired) disableReasons.push('This quote has expired. Please update the "Valid Until" date before sending.');
@@ -100,6 +119,15 @@ export default function Quote({ token }) {
                     </li>
                 </ol>
             </nav>
+
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h3 className="mb-0">
                     {quoteData.quote_number}{' '}
@@ -129,32 +157,22 @@ export default function Quote({ token }) {
                 </div>
             </div>
 
-            {sendError && (
-                <div className="alert alert-danger mb-3">
-                    {sendError?.data?.detail || 'Failed to send quote email.'}
+            {disableSendBtn && (
+                <div className="alert alert-warning mb-3">
+                    <strong>Note:</strong>
+                    <ul className="mb-0 ps-3">
+                        {disableReasons.map((reason, idx) => (
+                            <li key={idx}>{reason}</li>
+                        ))}
+                    </ul>
                 </div>
             )}
-            {sentSuccess && <div className="alert alert-success mb-3">Quote email sent successfully!</div>}
 
             <form onSubmit={handleSubmit}>
-                {updateError && (
-                    <div className="alert alert-danger mb-3">
-                        {updateError?.data?.detail || 'Failed to update quote.'}
-                    </div>
-                )}
-                {isSuccess && <div className="alert alert-success mb-3">Quote updated successfully!</div>}
-                {disableSendBtn && (
-                    <div className="alert alert-warning mb-3">
-                        <strong>Note:</strong>
-                        <ul className="mb-0 ps-3">
-                            {disableReasons.map((reason, idx) => (
-                                <li key={idx}>{reason}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
                 <div className="row">
+                    {/* Left Column: Client + Service */}
                     <div className="col-md-4">
+                        {/* Client Details */}
                         <div className="shadow p-3 bg-white rounded-3 mb-3 position-relative">
                             <div className="position-absolute top-0 end-0 mt-2 me-2">
                                 {quoteData.client.is_active === 'True' ? (
@@ -249,6 +267,7 @@ export default function Quote({ token }) {
                         </div>
                     </div>
 
+                    {/* Right Column: Edit Form */}
                     <div className="col-md-8">
                         <div className="row mb-3">
                             <div className="col-md-4">
