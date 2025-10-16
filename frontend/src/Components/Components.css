@@ -1,4 +1,3 @@
-
 body {
     padding-top: 60px;
 }
@@ -25,7 +24,6 @@ body {
 .dashboard-container {
     display: flex;
     overflow: auto;
-    background-color: #f9f9f9;
 }
 
 .tab-container {
@@ -102,8 +100,12 @@ body {
     border-color: #dee2e6 !important;
 }
 
+.table {
+    border: 1px solid #dee2e6;
+}
+
 .table thead th {
-    background-color: transparent;
+    background-color: rgba(248, 249, 250, 1);
     cursor: pointer;
 }
 
@@ -156,7 +158,6 @@ body {
 .disabled .page-link {
     background-color: #fff;
 }
-
 
 .page-link {
     color: #374151;
@@ -218,7 +219,7 @@ select.form-select:focus,
 input.form-control:focus,
 textarea.form-control:focus {
     border: 1px solid #cacaca;
-    box-shadow: 0 0 4px #cacaca;
+    box-shadow: none;
 }
 
 .field-wrapper {
@@ -247,4 +248,17 @@ textarea.form-control:focus {
     padding: 0;
     font-size: 0.9rem;
     color: #198754;
+}
+
+.btn-light {
+    background-color: #f8f9fa;
+    border: 1px solid #f8f9fa;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.btn-light:hover {
+    background-color: #e9ecef;
+    border: 1px solid #e9ecef;
 }

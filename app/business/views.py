@@ -6,11 +6,13 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+
 from core.models import (
-    Business, Client, Job, ServiceQuestionnaire, TeamMember, Service, Quote
+    Business, Client, Job, JobPhoto, ServiceQuestionnaire, TeamMember, Service, Quote
 )
 from business import serializers, paginations, emails
 
@@ -331,3 +333,41 @@ class JobViewSet(viewsets.ModelViewSet):
         # Optional: send notification or email to assigned employee
         # notifications.send_job_assignment_email(job)
         return job
+
+
+class JobPhotoViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing before/after photos attached to jobs."""
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.JobPhotoSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    queryset = (
+        JobPhoto.objects.select_related(
+            "job",
+            "job__service",
+            "job__service__client",
+            "job__service__business",
+            "job__assigned_to",
+            "job__assigned_to__employee",
+        )
+        .order_by("-uploaded_at")
+    )
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = super().get_queryset()
+        job_id = self.request.query_params.get("job")
+
+        if job_id:
+            qs = qs.filter(job_id=job_id)
+
+        if user.role == "MANAGER":
+            qs = qs.filter(job__service__business__owner=user)
+        elif user.role == "CLIENT":
+            qs = qs.filter(job__service__client__user=user)
+        elif user.role == "EMPLOYEE":
+            qs = qs.filter(job__assigned_to__employee=user)
+
+        return qs

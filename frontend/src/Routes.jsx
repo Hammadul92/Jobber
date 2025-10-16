@@ -43,6 +43,7 @@ function App() {
                     <Route path="quote/:id" element={<UserDashboard page="quote" />} />
                     <Route path="quote/sign/:id" element={<UserDashboard page="sign-quote" />} />
                     <Route path="jobs" element={<UserDashboard page="jobs" />} />
+                    <Route path="job/:id" element={<UserDashboard page="job" />} />
                     <Route path="invoices" element={<UserDashboard page="invoices" />} />
                     <Route path="payouts" element={<UserDashboard page="payouts" />} />
                     <Route path="team-members" element={<UserDashboard page="team-members" />} />

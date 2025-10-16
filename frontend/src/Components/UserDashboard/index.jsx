@@ -18,6 +18,7 @@ import Quotes from './Tabs/Quotes';
 import Quote from './Tabs/Quotes/Quote';
 import SignQuote from './Tabs/Quotes/signQuote';
 import Jobs from './Tabs/Jobs';
+import Job from './Tabs/Jobs/Job';
 
 export default function UserDashboard({ page }) {
     const navigate = useNavigate();
@@ -79,6 +80,7 @@ export default function UserDashboard({ page }) {
         else if (page === 'quote') return <Quote token={token} />;
         else if (page === 'sign-quote') return <SignQuote token={token} />;
         else if (page === 'jobs') return <Jobs token={token} role={user.role} />;
+        else if (page === 'job') return <Job token={token} role={user.role} />;
         return null;
     };
 

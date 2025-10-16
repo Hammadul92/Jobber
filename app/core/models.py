@@ -1,7 +1,7 @@
 """
 Database models.
 """
-import base64
+from core.utils import image_from_base64
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -10,9 +10,7 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
 from django.utils import timezone
-
 
 from taggit.managers import TaggableManager
 
@@ -63,6 +61,11 @@ QUOTE_STATUS_CHOICES = [
     ("SENT", "Sent"),
     ("SIGNED", "Signed"),
     ("DECLINED", "Declined")
+]
+
+JOB_PHOTO_TYPE_CHOICES = [
+    ("BEFORE", "Before"),
+    ("AFTER", "After"),
 ]
 
 
@@ -405,17 +408,12 @@ class Job(models.Model):
 
 
 class JobPhoto(models.Model):
-    JOB_PHOTO_TYPE_CHOICES = [
-        ("BEFORE", "Before"),
-        ("AFTER", "After"),
-    ]
-
     job = models.ForeignKey(
         Job,
         related_name="photos",
         on_delete=models.CASCADE,
     )
-    photo = models.ImageField(upload_to="jobs/photos/")
+    photo = models.ImageField(upload_to="job_photos/")
     photo_type = models.CharField(
         max_length=10,
         choices=JOB_PHOTO_TYPE_CHOICES
@@ -530,21 +528,8 @@ class Quote(models.Model):
         return f"{prefix}{new_number:03d}"
 
     def set_signature_from_base64(self, base64_data):
-        """Saves a base64-encoded signature image (PNG) to the `signature` field."""
-        if not base64_data:
-            return
-
-        if not base64_data.startswith("data:image"):
-            raise ValueError("Invalid signature format")
-
         try:
-            format, imgstr = base64_data.split(";base64,")
-            ext = format.split("/")[-1]
-            file_name = f"signature_{self.quote_number}.{ext}"
-            self.signature.save(
-                file_name,
-                ContentFile(base64.b64decode(imgstr)),
-                save=False
-            )
-        except Exception as e:
-            raise ValueError(f"Error decoding signature: {e}")
+            content_file = image_from_base64(base64_data, f"signature_{self.quote_number}")
+            self.signature.save(content_file.name, content_file, save=False)
+        except ValueError as e:
+            raise ValueError(f"Error saving signature: {e}")

@@ -12,6 +12,7 @@ from core.models import (
     Business,
     Client,
     Job,
+    JobPhoto,
     Quote,
     ServiceQuestionnaire,
     Service,
@@ -341,3 +342,16 @@ class JobSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(errors)
 
         return data
+
+
+class JobPhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobPhoto
+        fields = [
+            "id",
+            "job",
+            "photo",
+            "photo_type",
+            "uploaded_at",
+        ]
+        read_only_fields = ["uploaded_at"]

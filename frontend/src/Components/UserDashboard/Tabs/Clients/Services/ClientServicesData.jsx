@@ -12,7 +12,13 @@ export default function ClientServicesData({ token, role, clientId }) {
     const [alert, setAlert] = useState({ type: '', message: '' });
 
     const queryArg = role === 'CLIENT' ? null : clientId;
-    const { data: services = [], isLoading, isError, error, refetch } = useFetchServicesQuery(queryArg, { skip: !token });
+    const {
+        data: services = [],
+        isLoading,
+        isError,
+        error,
+        refetch,
+    } = useFetchServicesQuery(queryArg, { skip: !token });
 
     // Filters
     const [statusFilter, setStatusFilter] = useState('');
@@ -23,9 +29,7 @@ export default function ClientServicesData({ token, role, clientId }) {
     // Handle error
     useEffect(() => {
         if (isError) {
-            const msg =
-                error?.data?.detail ||
-                'Failed to load services. Please try again.';
+            const msg = error?.data?.detail || 'Failed to load services. Please try again.';
             setAlert({ type: 'danger', message: msg });
         }
     }, [isError, error]);
@@ -94,10 +98,10 @@ export default function ClientServicesData({ token, role, clientId }) {
             )}
 
             {/* FILTERS */}
-            <div className="mb-3 shadow-sm p-2 bg-white rounded">
-                <div className="row">
-                    <div className="col-md-3">
-                        <div className='field-wrapper'>
+
+            <div className="row mb-3">
+                <div className="col-md-2 col-6">
+                    <div className="field-wrapper">
                         <select
                             className="form-select"
                             value={statusFilter}
@@ -109,11 +113,11 @@ export default function ClientServicesData({ token, role, clientId }) {
                             <option value="COMPLETED">COMPLETED</option>
                             <option value="CANCELLED">CANCELLED</option>
                         </select>
-                        <label className='form-label'>Status</label>
-                        </div>
+                        <label className="form-label">Status</label>
                     </div>
-                    <div className="col-md-3">
-                        <div className='field-wrapper'>
+                </div>
+                <div className="col-md-2 col-6">
+                    <div className="field-wrapper">
                         <select
                             className="form-select"
                             value={typeFilter}
@@ -123,11 +127,11 @@ export default function ClientServicesData({ token, role, clientId }) {
                             <option value="ONE_TIME">ONE_TIME</option>
                             <option value="SUBSCRIPTION">SUBSCRIPTION</option>
                         </select>
-                        <label className='form-label'>Subscription Type</label>
-                        </div>
+                        <label className="form-label">Subscription Type</label>
                     </div>
-                    <div className="col-md-3">
-                        <div className='field-wrapper'>
+                </div>
+                <div className="col-md-2 col-6">
+                    <div className="field-wrapper">
                         <select
                             className="form-select"
                             value={countryFilter}
@@ -143,11 +147,11 @@ export default function ClientServicesData({ token, role, clientId }) {
                                 </option>
                             ))}
                         </select>
-                        <label className='form-label'>Country</label>
-                        </div>
+                        <label className="form-label">Country</label>
                     </div>
-                    <div className="col-md-3">
-                        <div className='field-wrapper'>
+                </div>
+                <div className="col-md-2 col-6">
+                    <div className="field-wrapper">
                         <select
                             className="form-select"
                             value={provinceFilter}
@@ -161,24 +165,17 @@ export default function ClientServicesData({ token, role, clientId }) {
                                     </option>
                                 ))}
                         </select>
-                        <label className='form-label'>Province/State</label>
-                        </div>
+                        <label className="form-label">Province/State</label>
                     </div>
                 </div>
             </div>
 
             {/* GRID VIEW */}
-            <div className="d-flex flex-nowrap overflow-auto gap-2" style={{ scrollSnapType: 'x mandatory' }}>
+            <div className="d-flex flex-nowrap overflow-auto gap-3" style={{ scrollSnapType: 'x mandatory' }}>
                 {statusColumns.map(({ key, label, color }) => (
-                    <div
-                        key={key}
-                        className="flex-shrink-0"
-                        style={{ minWidth: '319px', scrollSnapAlign: 'start' }}
-                    >
-                        <div className="bg-white rounded p-0 shadow-sm h-100">
-                            <h5 className={`mb-2 text-center ${color} bg-gradient text-white p-3 rounded-top`}>
-                                {label}
-                            </h5>
+                    <div key={key} className="flex-shrink-0" style={{ minWidth: '300px', scrollSnapAlign: 'start' }}>
+                        <div className="h-100">
+                            <h5 className={`mb-2 text-center ${color} bg-gradient text-white p-3 rounded`}>{label}</h5>
 
                             {groupedServices[key].length ? (
                                 groupedServices[key].map((service) => (

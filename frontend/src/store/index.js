@@ -104,4 +104,10 @@ export {
     useCreateJobMutation,
     useUpdateJobMutation,
     useDeleteJobMutation,
+    useFetchJobPhotosQuery,
+    useFetchJobPhotoQuery,
+    useCreateJobPhotoMutation,
+    useUpdateJobPhotoMutation,
+    useReplaceJobPhotoMutation,
+    useDeleteJobPhotoMutation,
 } from './apis/jobApi';

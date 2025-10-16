@@ -29,18 +29,9 @@ export default function JobData({ token, role, setAlert }) {
     }, [isError, error, setAlert]);
 
     // --- Unique options ---
-    const uniqueServices = useMemo(
-        () => [...new Set(jobs.map((j) => j.service_name).filter(Boolean))],
-        [jobs]
-    );
-    const uniqueAssignees = useMemo(
-        () => [...new Set(jobs.map((j) => j.assigned_to_name || 'Unassigned'))],
-        [jobs]
-    );
-    const uniqueStatuses = useMemo(
-        () => [...new Set(jobs.map((j) => j.status).filter(Boolean))],
-        [jobs]
-    );
+    const uniqueServices = useMemo(() => [...new Set(jobs.map((j) => j.service_name).filter(Boolean))], [jobs]);
+    const uniqueAssignees = useMemo(() => [...new Set(jobs.map((j) => j.assigned_to_name || 'Unassigned'))], [jobs]);
+    const uniqueStatuses = useMemo(() => [...new Set(jobs.map((j) => j.status).filter(Boolean))], [jobs]);
 
     // --- Apply filters ---
     const filteredJobs = useMemo(() => {
@@ -120,9 +111,7 @@ export default function JobData({ token, role, setAlert }) {
 
     return (
         <>
-            {/* FILTERS */}
-            <div className='mb-3 shadow-sm p-2 bg-white rounded'>
-            <div className="row">
+            <div className="row mb-3">
                 <div className="col-md-2">
                     <div className="field-wrapper">
                         <select
@@ -177,7 +166,7 @@ export default function JobData({ token, role, setAlert }) {
                     </div>
                 </div>
 
-                <div className="col-md-3">
+                <div className="col-md-2">
                     <div className="field-wrapper">
                         <input
                             type="date"
@@ -189,7 +178,7 @@ export default function JobData({ token, role, setAlert }) {
                     </div>
                 </div>
 
-                <div className="col-md-3">
+                <div className="col-md-2">
                     <div className="field-wrapper">
                         <input
                             type="date"
@@ -201,27 +190,16 @@ export default function JobData({ token, role, setAlert }) {
                     </div>
                 </div>
             </div>
-            </div>
 
-            {/* JOB GRID */}
             <div className="d-flex flex-nowrap overflow-auto gap-2 pb-3" style={{ scrollSnapType: 'x mandatory' }}>
                 {statusColumns.map(({ key, label, color }) => (
-                    <div
-                        key={key}
-                        className="flex-shrink-0"
-                        style={{ minWidth: '319px', scrollSnapAlign: 'start' }}
-                    >
-                        <div className="bg-white rounded p-0 shadow-sm h-100">
-                            <h5 className={`mb-2 text-center ${color} bg-gradient text-white p-3 rounded-top`}>
-                                {label}
-                            </h5>
+                    <div key={key} className="flex-shrink-0" style={{ minWidth: '310px', scrollSnapAlign: 'start' }}>
+                        <div className="h-100">
+                            <h5 className={`mb-2 text-center ${color} bg-gradient text-white p-3 rounded`}>{label}</h5>
 
                             {groupedJobs[key].length ? (
                                 groupedJobs[key].map((job) => (
-                                    <div
-                                        key={job.id}
-                                        className="shadow-sm p-2 m-2 rounded bg-white position-relative"
-                                    >
+                                    <div key={job.id} className="shadow-sm p-2 m-2 rounded bg-white position-relative">
                                         {job.assigned_to_name && (
                                             <div
                                                 className="position-absolute top-0 end-0 mt-2 me-2"
@@ -246,7 +224,7 @@ export default function JobData({ token, role, setAlert }) {
                                         <span className="badge bg-success rounded-pill mb-2">{job.service_name}</span>
 
                                         <p className="mb-1 small">
-                                            <i className='far fa-clock'></i>{' '}
+                                            <i className="far fa-clock"></i>{' '}
                                             {new Date(job.scheduled_date).toLocaleString()}
                                         </p>
 

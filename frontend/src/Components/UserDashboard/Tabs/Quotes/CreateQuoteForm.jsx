@@ -62,7 +62,7 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body">
                                     <div className="row">
-                                        <div className="col-md-6">
+                                        <div className="col-md-8">
                                             <div className="field-wrapper">
                                                 <select
                                                     className="form-select"
@@ -73,7 +73,9 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                                                     <option value="">Select Service</option>
                                                     {services?.map((service) => (
                                                         <option key={service.id} value={service.id}>
-                                                            {service.service_name} for {service.client_name}
+                                                            {service.service_name} - {service.street_address},{' '}
+                                                            {service.city}, {service.province_state},{' '}
+                                                            {service.postal_code}
                                                         </option>
                                                     ))}
                                                 </select>
@@ -81,7 +83,7 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                                             </div>
                                         </div>
 
-                                        <div className="col-md-6">
+                                        <div className="col-md-4">
                                             <div className="field-wrapper">
                                                 <input
                                                     type="date"
