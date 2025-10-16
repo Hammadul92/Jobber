@@ -62,55 +62,63 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body">
                                     <div className="row">
-                                        <div className="mb-3 col-md-8">
-                                            <label className="form-label">Service (*)</label>
-                                            <select
-                                                className="form-select"
-                                                value={serviceId}
-                                                onChange={(e) => setServiceId(e.target.value)}
-                                                required
-                                            >
-                                                <option value="">Select Service</option>
-                                                {services?.map((service) => (
-                                                    <option key={service.id} value={service.id}>
-                                                        {service.service_name} for {service.client_name}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                        <div className="col-md-6">
+                                            <div className="field-wrapper">
+                                                <select
+                                                    className="form-select"
+                                                    value={serviceId}
+                                                    onChange={(e) => setServiceId(e.target.value)}
+                                                    required
+                                                >
+                                                    <option value="">Select Service</option>
+                                                    {services?.map((service) => (
+                                                        <option key={service.id} value={service.id}>
+                                                            {service.service_name} for {service.client_name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <label className="form-label">Service (*)</label>
+                                            </div>
                                         </div>
 
-                                        <div className="mb-3 col-md-4">
-                                            <label className="form-label">Valid Until (*)</label>
-                                            <input
-                                                type="date"
-                                                className="form-control"
-                                                value={validUntil}
-                                                onChange={(e) => setValidUntil(e.target.value)}
-                                                required
-                                            />
+                                        <div className="col-md-6">
+                                            <div className="field-wrapper">
+                                                <input
+                                                    type="date"
+                                                    className="form-control"
+                                                    value={validUntil}
+                                                    onChange={(e) => setValidUntil(e.target.value)}
+                                                    required
+                                                />
+                                                <label className="form-label">Valid Until (*)</label>
+                                            </div>
                                         </div>
 
-                                        <div className="mb-3 col-md-12">
-                                            <label className="form-label">Terms & Conditions (*)</label>
-                                            <textarea
-                                                className="form-control"
-                                                rows="3"
-                                                value={termsConditions}
-                                                onChange={(e) => setTermsConditions(e.target.value)}
-                                                placeholder="Enter any special terms or agreement details"
-                                                required
-                                            ></textarea>
+                                        <div className="col-md-12">
+                                            <div className="field-wrapper">
+                                                <textarea
+                                                    className="form-control"
+                                                    rows="3"
+                                                    value={termsConditions}
+                                                    onChange={(e) => setTermsConditions(e.target.value)}
+                                                    placeholder="Enter any special terms or agreement details"
+                                                    required
+                                                ></textarea>
+                                                <label className="form-label">Terms & Conditions (*)</label>
+                                            </div>
                                         </div>
 
-                                        <div className="mb-3 col-md-12">
-                                            <label className="form-label">Notes</label>
-                                            <textarea
-                                                className="form-control"
-                                                rows="2"
-                                                value={notes}
-                                                onChange={(e) => setNotes(e.target.value)}
-                                                placeholder="Internal notes or remarks"
-                                            ></textarea>
+                                        <div className="col-md-12">
+                                            <div className="field-wrapper">
+                                                <textarea
+                                                    className="form-control"
+                                                    rows="2"
+                                                    value={notes}
+                                                    onChange={(e) => setNotes(e.target.value)}
+                                                    placeholder="Internal notes or remarks"
+                                                ></textarea>
+                                                <label className="form-label">Notes</label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

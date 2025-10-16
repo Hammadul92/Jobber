@@ -86,7 +86,7 @@ export default function CreateClientForm({ showModal, setShowModal }) {
 
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body">
-                                    <p className="p-2 bg-light rounded">
+                                    <p className="mb-0 p-2 bg-light rounded">
                                         Login credentials will be automatically generated, and a confirmation link will
                                         be sent to the client’s email. The client can set their own password later via
                                         the "Forgot Password" option.
@@ -101,29 +101,35 @@ export default function CreateClientForm({ showModal, setShowModal }) {
                                     )}
 
                                     <div className="row">
-                                        <div className="mb-3 col-md-6">
-                                            <label className="form-label">Name (*)</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                value={name}
-                                                onChange={(e) => setName(e.target.value)}
-                                                required
-                                            />
+                                        <div className="col-md-6">
+                                            <div className="field-wrapper">
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={name}
+                                                    onChange={(e) => setName(e.target.value)}
+                                                    required
+                                                />
+                                                <label className="form-label">Name (*)</label>
+                                            </div>
                                         </div>
-                                        <div className="mb-3 col-md-6">
-                                            <label className="form-label">Email (*)</label>
-                                            <input
-                                                type="email"
-                                                className="form-control"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                required
-                                            />
+                                        <div className="col-md-6">
+                                            <div className="field-wrapper">
+                                                <input
+                                                    type="email"
+                                                    className="form-control"
+                                                    value={email}
+                                                    onChange={(e) => setEmail(e.target.value)}
+                                                    required
+                                                />
+                                                <label className="form-label">Email (*)</label>
+                                            </div>
                                         </div>
-                                        <div className="mb-3 col-md-6">
-                                            <label className="form-label">Phone (*)</label>
-                                            <PhoneInputField value={phone} setValue={setPhone} />
+                                        <div className="col-md-6">
+                                            <div className="field-wrapper">
+                                                <PhoneInputField value={phone} setValue={setPhone} />
+                                                <label className="form-label">Phone (*)</label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -7,6 +7,7 @@ import { serviceQuestionnaireApi } from './apis/serviceQuestionnaireApi';
 import { teamMemberApi } from './apis/teamMemberApi';
 import { serviceApi } from './apis/serviceApi';
 import { quoteApi } from './apis/quoteApi';
+import { jobApi } from './apis/jobApi';
 
 const store = configureStore({
     reducer: {
@@ -17,6 +18,7 @@ const store = configureStore({
         [serviceApi.reducerPath]: serviceApi.reducer,
         [quoteApi.reducerPath]: quoteApi.reducer,
         [serviceQuestionnaireApi.reducerPath]: serviceQuestionnaireApi.reducer,
+        [jobApi.reducerPath]: jobApi.reducer,
     },
     middleware: (getDefaultMiddleware) => {
         return getDefaultMiddleware()
@@ -26,13 +28,14 @@ const store = configureStore({
             .concat(serviceQuestionnaireApi.middleware)
             .concat(teamMemberApi.middleware)
             .concat(serviceApi.middleware)
-            .concat(quoteApi.middleware);
+            .concat(quoteApi.middleware)
+            .concat(jobApi.middleware);
     },
 });
 
 setupListeners(store.dispatch);
 
-export { store, userApi, businessApi, clientApi, serviceQuestionnaireApi, teamMemberApi, serviceApi, quoteApi };
+export { store, userApi, businessApi, clientApi, serviceQuestionnaireApi, teamMemberApi, serviceApi, quoteApi, jobApi };
 export {
     useSigninUserMutation,
     useFetchUserQuery,
@@ -94,3 +97,11 @@ export {
     useUpdateServiceQuestionnaireMutation,
     useDeleteServiceQuestionnaireMutation,
 } from './apis/serviceQuestionnaireApi';
+
+export {
+    useFetchJobsQuery,
+    useFetchJobQuery,
+    useCreateJobMutation,
+    useUpdateJobMutation,
+    useDeleteJobMutation,
+} from './apis/jobApi';

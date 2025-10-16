@@ -134,70 +134,72 @@ export default function ServiceQuestionnaireForm({ token, role }) {
                 </ol>
             </nav>
 
-            <h3 className="mb-4">{serviceName} Questionnaire</h3>
+            <h3 className="mb-3">{serviceName} Questionnaire</h3>
 
-            <div className="shadow bg-white rounded-4 p-4">
+            <div className="shadow-sm bg-white rounded p-3">
                 <form onSubmit={isClient ? handleSubmit : undefined}>
-                    {Object.entries(questions).map(([key, q]) => (
-                        <div className="row align-items-center mb-3" key={key}>
-                            <label className="col-sm-4 col-form-label fw-bold">
-                                {q.text}
-                                {q.required && ' (*)'}
-                            </label>
+                    {Object.entries(questions).map(([key, q], index) => (
+                        <div className="mb-3" key={key}>
+                            <div className="row align-items-center">
+                                <label className="col-sm-4 col-form-label fw-bold">
+                                    Q{index + 1}: {q.text}
+                                    {q.required && ' (*)'}
+                                </label>
 
-                            <div className="col-sm-8">
-                                {q.type === 'input' && (
-                                    <input
-                                        type={q.inputType || 'text'}
-                                        className="form-control"
-                                        value={q.answer || ''}
-                                        onChange={(e) => handleChange(key, e.target.value)}
-                                        required={q.required}
-                                        disabled={!isClient}
-                                    />
-                                )}
+                                <div className="col-sm-8">
+                                    {q.type === 'input' && (
+                                        <input
+                                            type={q.inputType || 'text'}
+                                            className="form-control"
+                                            value={q.answer || ''}
+                                            onChange={(e) => handleChange(key, e.target.value)}
+                                            required={q.required}
+                                            disabled={!isClient}
+                                        />
+                                    )}
 
-                                {q.type === 'checkbox-single' && (
-                                    <div className="d-flex flex-wrap gap-3">
-                                        {q.options?.map((opt, i) => (
-                                            <div className="form-check form-check-inline" key={i}>
-                                                <input
-                                                    className="form-check-input"
-                                                    type="radio"
-                                                    name={`q_${key}`}
-                                                    checked={q.answer === opt}
-                                                    onChange={() => handleChange(key, opt)}
-                                                    required={q.required}
-                                                    disabled={!isClient}
-                                                />
-                                                <label className="form-check-label">{opt}</label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                    {q.type === 'checkbox-single' && (
+                                        <div className="d-flex flex-wrap gap-3">
+                                            {q.options?.map((opt, i) => (
+                                                <div className="form-check form-check-inline" key={i}>
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="radio"
+                                                        name={`q_${key}`}
+                                                        checked={q.answer === opt}
+                                                        onChange={() => handleChange(key, opt)}
+                                                        required={q.required}
+                                                        disabled={!isClient}
+                                                    />
+                                                    <label className="form-check-label">{opt}</label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
 
-                                {q.type === 'checkbox-multiple' && (
-                                    <div className="d-flex flex-wrap gap-3">
-                                        {q.options?.map((opt, i) => (
-                                            <div className="form-check form-check-inline" key={i}>
-                                                <input
-                                                    className="form-check-input"
-                                                    type="checkbox"
-                                                    checked={q.answer?.includes(opt) || false}
-                                                    onChange={(e) => {
-                                                        const selected = new Set(q.answer || []);
-                                                        if (e.target.checked) selected.add(opt);
-                                                        else selected.delete(opt);
-                                                        handleChange(key, Array.from(selected));
-                                                    }}
-                                                    required={q.required && !(q.answer?.length > 0)}
-                                                    disabled={!isClient}
-                                                />
-                                                <label className="form-check-label">{opt}</label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                    {q.type === 'checkbox-multiple' && (
+                                        <div className="d-flex flex-wrap gap-3">
+                                            {q.options?.map((opt, i) => (
+                                                <div className="form-check form-check-inline" key={i}>
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="checkbox"
+                                                        checked={q.answer?.includes(opt) || false}
+                                                        onChange={(e) => {
+                                                            const selected = new Set(q.answer || []);
+                                                            if (e.target.checked) selected.add(opt);
+                                                            else selected.delete(opt);
+                                                            handleChange(key, Array.from(selected));
+                                                        }}
+                                                        required={q.required && !(q.answer?.length > 0)}
+                                                        disabled={!isClient}
+                                                    />
+                                                    <label className="form-check-label">{opt}</label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}

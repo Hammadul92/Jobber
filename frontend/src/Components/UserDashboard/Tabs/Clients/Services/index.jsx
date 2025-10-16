@@ -8,7 +8,7 @@ import AlertDispatcher from '../../../../../utils/AlertDispatcher'; // make sure
 export default function ClientServices({ token, role }) {
     const { id: clientId } = useParams();
     const [showModal, setShowModal] = useState(false);
-    const [alert, setAlert] = useState({ type: '', message: '' }); // For AlertDispatcher
+    const [alert, setAlert] = useState({ type: '', message: '' });
 
     const isManagerMode = !!clientId;
 

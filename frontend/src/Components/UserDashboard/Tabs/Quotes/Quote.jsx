@@ -128,10 +128,10 @@ export default function Quote({ token }) {
                 />
             )}
 
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-3">
                 <h3 className="mb-0">
                     {quoteData.quote_number}{' '}
-                    <span className={`badge bg-${statusColor} rounded-pill`}>{quoteData.status}</span>
+                    <span className={`badge bg-gradient bg-${statusColor} rounded-pill`}>{quoteData.status}</span>
                 </h3>
 
                 <div className="text-end">
@@ -170,10 +170,8 @@ export default function Quote({ token }) {
 
             <form onSubmit={handleSubmit}>
                 <div className="row">
-                    {/* Left Column: Client + Service */}
                     <div className="col-md-4">
-                        {/* Client Details */}
-                        <div className="shadow p-3 bg-white rounded-3 mb-3 position-relative">
+                        <div className="shadow-sm p-3 bg-white rounded mb-3 position-relative">
                             <div className="position-absolute top-0 end-0 mt-2 me-2">
                                 {quoteData.client.is_active === 'True' ? (
                                     <span className="badge bg-success rounded-pill">ACTIVE</span>
@@ -207,8 +205,7 @@ export default function Quote({ token }) {
                             </div>
                         </div>
 
-                        {/* Service Info */}
-                        <div className="shadow p-3 bg-white rounded-3 mb-3 position-relative">
+                        <div className="shadow-sm p-3 bg-white rounded mb-3 position-relative">
                             <div className="position-absolute top-0 end-0 mt-2 me-2 d-flex gap-1 flex-wrap justify-content-end">
                                 <span className="badge bg-dark rounded-pill">
                                     {quoteData.service_data.service_type}
@@ -267,66 +264,79 @@ export default function Quote({ token }) {
                         </div>
                     </div>
 
-                    {/* Right Column: Edit Form */}
                     <div className="col-md-8">
-                        <div className="row mb-3">
-                            <div className="col-md-4">
-                                <label className="form-label">Signed At</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={quoteData.signed_at ? new Date(quoteData.signed_at).toLocaleString() : ''}
-                                    disabled
-                                />
+                        <div className="shadow-sm p-3 bg-white rounded">
+                            <div className="row">
+                                <div className="col-md-4">
+                                    <div className="field-wrapper">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            value={
+                                                quoteData.signed_at
+                                                    ? new Date(quoteData.signed_at).toLocaleString()
+                                                    : ''
+                                            }
+                                            readOnly
+                                        />
+                                        <label className="form-label">Signed At</label>
+                                    </div>
+                                </div>
+
+                                <div className="col-md-4">
+                                    <div className="field-wrapper">
+                                        <input
+                                            type="date"
+                                            className="form-control"
+                                            value={validUntil}
+                                            onChange={(e) => setValidUntil(e.target.value)}
+                                            disabled={isSigned}
+                                            required
+                                        />
+                                        <label className="form-label">Valid Until (*)</label>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="col-md-4">
-                                <label className="form-label">Valid Until (*)</label>
-                                <input
-                                    type="date"
+                            <div className="field-wrapper">
+                                <textarea
                                     className="form-control"
-                                    value={validUntil}
-                                    onChange={(e) => setValidUntil(e.target.value)}
+                                    rows="4"
+                                    value={termsConditions}
+                                    onChange={(e) => setTermsConditions(e.target.value)}
                                     disabled={isSigned}
                                     required
-                                />
+                                ></textarea>
+                                <label className="form-label">Terms & Conditions (*)</label>
                             </div>
-                        </div>
 
-                        <div className="mb-3">
-                            <label className="form-label">Terms & Conditions (*)</label>
-                            <textarea
-                                className="form-control"
-                                rows="4"
-                                value={termsConditions}
-                                onChange={(e) => setTermsConditions(e.target.value)}
-                                disabled={isSigned}
-                                required
-                            ></textarea>
-                        </div>
+                            <div className="field-wrapper">
+                                <textarea
+                                    className="form-control"
+                                    rows="3"
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    disabled={isSigned}
+                                ></textarea>
+                                <label className="form-label">Notes</label>
+                            </div>
 
-                        <div className="mb-3">
-                            <label className="form-label">Notes</label>
-                            <textarea
-                                className="form-control"
-                                rows="3"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                disabled={isSigned}
-                            ></textarea>
-                        </div>
-
-                        <div className="d-flex justify-content-end">
-                            <button
-                                type="button"
-                                className="btn btn-dark me-2"
-                                onClick={() => navigate('/dashboard/quotes')}
-                            >
-                                Cancel
-                            </button>
-                            {!isSigned && (
-                                <SubmitButton isLoading={updating} btnClass="btn btn-success" btnName="Save Changes" />
-                            )}
+                            <div className="d-flex justify-content-end mt-3">
+                                <button
+                                    type="button"
+                                    className="btn btn-dark me-2"
+                                    onClick={() => navigate('/dashboard/quotes')}
+                                >
+                                    Cancel
+                                </button>
+                                {!isSigned && (
+                                    <SubmitButton
+                                        isLoading={updating}
+                                        btnClass="btn btn-success"
+                                        btnName="Save Changes"
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

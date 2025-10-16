@@ -92,12 +92,43 @@ class ServiceAdmin(admin.ModelAdmin):
 
 class JobAdmin(admin.ModelAdmin):
     list_display = [
-        'title', 'service', 'assigned_to', 'status',
-        'scheduled_date', 'completed_at'
+        'title',
+        'service',
+        'get_business',
+        'get_client',
+        'assigned_to',
+        'get_assigned_employee',
+        'status',
+        'scheduled_date',
+        'completed_at',
     ]
-    list_filter = ['status', 'scheduled_date']
-    search_fields = ['title', 'description', 'service__service_name']
+    list_filter = ['status', 'scheduled_date', 'service__business']
+    search_fields = [
+        'title',
+        'description',
+        'service__service_name',
+        'service__client__user__name',
+        'assigned_to__employee__name',
+    ]
     readonly_fields = ['created_at', 'updated_at']
+
+    def get_business(self, obj):
+        return obj.service.business.name
+    get_business.short_description = "Business"
+    get_business.admin_order_field = "service__business__name"
+
+    def get_client(self, obj):
+        return obj.service.client.user.name
+    get_client.short_description = "Client"
+    get_client.admin_order_field = "service__client__user__name"
+
+    def get_assigned_employee(self, obj):
+        if obj.assigned_to:
+            return obj.assigned_to.employee.name
+        return "-"
+    get_assigned_employee.short_description = "Assigned Employee"
+    get_assigned_employee.admin_order_field = "assigned_to__employee__name"
+
 
 
 class JobPhotoAdmin(admin.ModelAdmin):

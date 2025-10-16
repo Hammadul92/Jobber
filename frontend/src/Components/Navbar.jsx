@@ -10,6 +10,7 @@ import {
     teamMemberApi,
     serviceApi,
     quoteApi,
+    jobApi,
 } from '../store';
 import { useDispatch } from 'react-redux';
 import './Components.css';
@@ -36,6 +37,7 @@ export default function Navbar() {
         dispatch(teamMemberApi.util.resetApiState());
         dispatch(serviceApi.util.resetApiState());
         dispatch(quoteApi.util.resetApiState());
+        dispatch(jobApi.util.resetApiState());
         navigate('/sign-in');
     };
 

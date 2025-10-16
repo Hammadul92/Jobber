@@ -375,7 +375,7 @@ class Job(models.Model):
         on_delete=models.CASCADE,
     )
     assigned_to = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        "TeamMember",
         related_name="assigned_jobs",
         on_delete=models.SET_NULL,
         null=True,

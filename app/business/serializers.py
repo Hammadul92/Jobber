@@ -11,10 +11,11 @@ from rest_framework import serializers
 from core.models import (
     Business,
     Client,
-    ServiceQuestionnaire,
-    TeamMember,
-    Service,
+    Job,
     Quote,
+    ServiceQuestionnaire,
+    Service,
+    TeamMember,
 )
 
 
@@ -130,9 +131,22 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
         read_only_fields = ["id", "joined_at"]
 
+    def validate(self, attrs):
+        employee = attrs.get("employee")
+        business = attrs.get("business")
+
+        # Prevent adding any business owner as a team member
+        if employee and hasattr(employee, "owned_businesses"):
+            if employee.owned_businesses.exists():
+                raise serializers.ValidationError(
+                    f"User '{employee.name}' is already a business owner and cannot be added as a team member."
+                )
+
+        return attrs
+
 
 class ServiceSerializer(serializers.ModelSerializer):
-    """ Serializer for services with optimized validation. """
+    """Serializer for services with optimized validation."""
     quotations = serializers.SerializerMethodField()
     service_questionnaires = serializers.SerializerMethodField()
     client_name = serializers.CharField(source="client.user.name", read_only=True)
@@ -156,7 +170,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         ))
 
     def get_service_questionnaires(self, obj):
-        """Return the questionnaire for this service if exists."""
+        """Return the active questionnaire for this service if exists."""
         questionnaire = obj.business.service_questionnaires.filter(
             service_name=obj.service_name,
             is_active=True
@@ -168,22 +182,21 @@ class ServiceSerializer(serializers.ModelSerializer):
             }
         return {}
 
+
     def validate(self, data):
         """
-        Custom validation:
-        - Ensure service_name is valid for the selected business.
-        - Ensure client belongs to the same business.
-        - Prevent ACTIVE/COMPLETED status without questionnaire + responses.
+        Validates:
+        - client belongs to business
+        - service_name is offered by business
+        - (questionnaire existence only checked on creation)
         """
         business = data.get("business") or getattr(self.instance, "business", None)
         client = data.get("client") or getattr(self.instance, "client", None)
-        status = data.get("status") or getattr(self.instance, "status", None)
         service_name = data.get("service_name") or getattr(self.instance, "service_name", None)
-        filled_questionnaire = data.get("filled_questionnaire") or getattr(self.instance, "filled_questionnaire", None)
 
         errors = {}
 
-        # Validate service_name is offered by business
+        # Validate service_name is offered by the business
         if business and service_name:
             allowed_services = {s.name for s in business.services_offered.all()}
             if service_name not in allowed_services:
@@ -193,21 +206,16 @@ class ServiceSerializer(serializers.ModelSerializer):
         if business and client and client.business != business:
             errors["client"] = "This client does not belong to the selected business."
 
-        # Validate status requires questionnaire + response
-        if status in ["ACTIVE", "COMPLETED"]:
+        # Only check for questionnaire existence when creating
+        if not self.instance:  # creation only
             has_questionnaire = business.service_questionnaires.filter(
                 service_name=service_name,
                 is_active=True
             ).exists()
             if not has_questionnaire:
-                errors["status"] = (
-                    "Cannot set status to Active or Completed without an active "
-                    "Service Questionnaire for this service."
-                )
-            if not filled_questionnaire:
-                errors["filled_questionnaire"] = (
-                    "Cannot set status to Active or Completed without a "
-                    "filled questionnaire response."
+                errors["service_name"] = (
+                    "Cannot create this service because there is no active "
+                    "questionnaire for the selected service name."
                 )
 
         if errors:
@@ -283,3 +291,53 @@ class ServiceQuestionnaireSerializer(serializers.ModelSerializer):
         if obj.additional_questions_form and isinstance(obj.additional_questions_form, list):
             return len(obj.additional_questions_form)
         return 0
+
+
+class JobSerializer(serializers.ModelSerializer):
+    """Serializer for Job model."""
+
+    service_name = serializers.CharField(source="service.service_name", read_only=True)
+    assigned_to_name = serializers.CharField(
+        source="assigned_to.employee.name", read_only=True
+    )
+    business_name = serializers.CharField(
+        source="service.business.name", read_only=True
+    )
+
+    class Meta:
+        model = Job
+        fields = [
+            "id",
+            "service",
+            "service_name",
+            "assigned_to",
+            "assigned_to_name",
+            "business_name",
+            "title",
+            "description",
+            "scheduled_date",
+            "completed_at",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
+
+    def validate(self, data):
+        """Ensure job assignment is within the same business as service."""
+        service = data.get("service") or getattr(self.instance, "service", None)
+        assigned_to = data.get("assigned_to") or getattr(self.instance, "assigned_to", None)
+
+        errors = {}
+
+        if assigned_to and service:
+            # Validate that assigned team member belongs to same business
+            if assigned_to.business != service.business:
+                errors["assigned_to"] = (
+                    "Assigned team member must belong to the same business as the service."
+                )
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return data

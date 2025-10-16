@@ -123,7 +123,7 @@ export default function SignQuote({ token }) {
                 </ol>
             </nav>
 
-            <div className="shadow p-4 bg-white rounded-4">
+            <div className="shadow p-4 bg-white rounded">
                 <div className="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
                     <h3 className="fw-semibold text-dark mb-0">
                         <i className="far fa-file-text text-secondary me-2"></i>
@@ -156,68 +156,91 @@ export default function SignQuote({ token }) {
 
                 <div className="row mb-3">
                     <div className="col-md-6 mb-4 mb-md-0">
+                        <h5 className="text-muted mb-2">Client Details</h5>
+                        <ul>
+                            <li>
+                                <strong>Name:</strong> {quote.client_name || '_'}
+                            </li>
+                            <li>
+                                <strong>Email:</strong> {quote.client?.client_email || '_'}
+                            </li>
+                            <li>
+                                <strong>Phone:</strong> {quote.client?.client_phone || '_'}
+                            </li>
+                            <li>
+                                <strong>Billing Address:</strong> {quote.client?.street_address || '_'},{' '}
+                                {quote.client?.city || '_'}, {quote.client?.country || '_'},{' '}
+                                {quote.client?.postal_code || '_'}
+                            </li>
+                        </ul>
+
                         <h5 className="text-muted mb-2">Service Details</h5>
-                        <p className="mb-1">
-                            <strong>Service Name:</strong> {quote.service_data?.service_name || '—'}
-                        </p>
-                        <p className="mb-1">
-                            <strong>Description:</strong> {quote.service_data?.description || '—'}
-                        </p>
-                        <p className="mb-1">
-                            <strong>Price:</strong> ${quote.service_data?.price} {quote.service_data?.currency}
-                        </p>
-                        <p className="mb-1">
-                            <strong>Service Type:</strong> {quote.service_data?.service_type}
-                        </p>
-                        <p className="mb-1">
-                            <strong>Billing Cycle:</strong> {quote.service_data?.billing_cycle || '—'}
-                        </p>
-                        <p className="mb-1">
-                            <strong>Start Date:</strong>{' '}
-                            {quote.service_data?.start_date
-                                ? new Date(quote.service_data.start_date).toLocaleDateString()
-                                : '—'}
-                        </p>
-                        <p className="mb-1">
-                            <strong>End Date:</strong>{' '}
-                            {quote.service_data?.end_date
-                                ? new Date(quote.service_data.end_date).toLocaleDateString()
-                                : '—'}
-                        </p>
-                        <p className="mb-1">
-                            <strong>Service Address:</strong> {quote.service_data?.street_address || '_'},{' '}
-                            {quote.service_data?.city || '_'}, {quote.service_data?.country || '_'},{' '}
-                            {quote.service_data?.postal_code || '_'}
-                        </p>
+                        <ul>
+                            <li>
+                                <strong>Service Name:</strong> {quote.service_data?.service_name || '—'}
+                            </li>
+                            <li>
+                                <strong>Description:</strong> {quote.service_data?.description || '—'}
+                            </li>
+                            <li>
+                                <strong>Price:</strong> ${quote.service_data?.price} {quote.service_data?.currency}
+                            </li>
+                            <li>
+                                <strong>Service Type:</strong>{' '}
+                                <span className="badge bg-dark rounded-pill">{quote.service_data?.service_type}</span>
+                            </li>
+                            <li>
+                                <strong>Billing Cycle:</strong> {quote.service_data?.billing_cycle || '—'}
+                            </li>
+                            <li>
+                                <strong>Start Date:</strong>{' '}
+                                {quote.service_data?.start_date
+                                    ? new Date(quote.service_data.start_date).toLocaleDateString()
+                                    : '—'}
+                            </li>
+                            <li>
+                                <strong>End Date:</strong>{' '}
+                                {quote.service_data?.end_date
+                                    ? new Date(quote.service_data.end_date).toLocaleDateString()
+                                    : '—'}
+                            </li>
+                            <li>
+                                <strong>Service Address:</strong> {quote.service_data?.street_address || '_'},{' '}
+                                {quote.service_data?.city || '_'}, {quote.service_data?.country || '_'},{' '}
+                                {quote.service_data?.postal_code || '_'}
+                            </li>
+                            <li>
+                                <strong>Notes:</strong> {quote.notes || 'No notes added.'}
+                            </li>
+                        </ul>
                     </div>
 
                     <div className="col-md-6">
-                        <h5 className="text-muted mb-2">Client Details</h5>
-                        <p className="mb-1">
-                            <strong>Name:</strong> {quote.client_name || '_'}
-                        </p>
-                        <p className="mb-1">
-                            <strong>Email:</strong> {quote.client?.client_email || '_'}
-                        </p>
-                        <p className="mb-1">
-                            <strong>Phone:</strong> {quote.client?.client_phone || '_'}
-                        </p>
-                        <p className="mb-1">
-                            <strong>Billing Address:</strong> {quote.client?.street_address || '_'},{' '}
-                            {quote.client?.city || '_'}, {quote.client?.country || '_'},{' '}
-                            {quote.client?.postal_code || '_'}
-                        </p>
+                        <div>
+                            <h5 className="text-muted mb-2">Service Questionnaire Responses</h5>
+                            <ul>
+                                {quote?.service_data?.filled_questionnaire &&
+                                Object.keys(quote.service_data.filled_questionnaire).length > 0 ? (
+                                    Object.entries(quote.service_data.filled_questionnaire).map(([q, a]) => (
+                                        <li className="mb-2" key={q}>
+                                            <strong className="text-dark">{q}:</strong>{' '}
+                                            {Array.isArray(a) ? a.join(', ') : a}
+                                        </li>
+                                    ))
+                                ) : (
+                                    <i>
+                                        <i className="fa fa-info-circle me-2"></i>
+                                        No questionnaire responses available.
+                                    </i>
+                                )}
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
                 <div className="mb-4">
                     <h5 className="text-muted">Terms & Conditions</h5>
-                    <p className="bg-light p-3 rounded">{quote.terms_conditions || '_'}</p>
-                </div>
-
-                <div className="mb-4">
-                    <h5 className="text-muted">Notes</h5>
-                    <p className="bg-light p-3 rounded">{quote.notes || 'No notes added.'}</p>
+                    <p>{quote.terms_conditions || '_'}</p>
                 </div>
 
                 <div>

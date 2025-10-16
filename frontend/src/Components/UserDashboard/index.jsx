@@ -17,6 +17,7 @@ import TeamMember from './Tabs/TeamMembers/TeamMember';
 import Quotes from './Tabs/Quotes';
 import Quote from './Tabs/Quotes/Quote';
 import SignQuote from './Tabs/Quotes/signQuote';
+import Jobs from './Tabs/Jobs';
 
 export default function UserDashboard({ page }) {
     const navigate = useNavigate();
@@ -45,6 +46,7 @@ export default function UserDashboard({ page }) {
                 'service',
                 'service-questionnaires',
                 'service-questionnaire',
+                'quote',
                 'team-members',
                 'team-member',
                 'payouts',
@@ -70,18 +72,19 @@ export default function UserDashboard({ page }) {
         else if (page === 'service-questionnaires') return <ServiceQuestionnaires token={token} />;
         else if (page === 'service-questionnaire') return <ServiceQuestionnaire token={token} />;
         else if (page === 'service-questionnaire-form')
-            return <ServiceQuestionnaireForm token={token} role={user.role} />;
+            return <ServiceQuestionnaireForm token={token} role={user?.role} />;
         else if (page === 'team-members') return <TeamMembers token={token} />;
         else if (page === 'team-member') return <TeamMember token={token} />;
         else if (page === 'quotes') return <Quotes token={token} role={user.role} />;
         else if (page === 'quote') return <Quote token={token} />;
         else if (page === 'sign-quote') return <SignQuote token={token} />;
+        else if (page === 'jobs') return <Jobs token={token} role={user.role} />;
         return null;
     };
 
     return (
         <div className="dashboard-container">
-            <SideNav role={user.role} userId={user.id} />
+            <SideNav role={user?.role} userId={user?.id} />
             <main className="container tab-container py-4">{renderTab()}</main>
         </div>
     );

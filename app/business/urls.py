@@ -17,6 +17,7 @@ router.register('service-questionnaire', views.ServiceQuestionnaireViewSet)
 router.register('team-member', views.TeamMemberViewSet)
 router.register('service', views.ServiceViewSet)
 router.register('quote', views.QuoteViewSet)
+router.register('job', views.JobViewSet)
 
 app_name = 'business'
 

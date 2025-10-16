@@ -102,7 +102,7 @@ export default function Client({ token }) {
 
             <div className="row">
                 <div className="col-12 col-lg-3 mb-4">
-                    <div className="text-center shadow p-3 bg-white rounded-4 mb-3">
+                    <div className="text-center shadow-sm p-3 bg-white rounded mb-3">
                         <img
                             src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=120`}
                             alt={name}
@@ -121,82 +121,92 @@ export default function Client({ token }) {
                 </div>
 
                 <div className="col-12 col-lg-9">
-                    <form onSubmit={handleSubmit}>
-                        <h5>Billing Address</h5>
-                        <div className="row mb-3">
-                            <div className="col-md-8 mb-3">
-                                <label className="form-label">Street Address (*)</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={streetAddress}
-                                    onChange={(e) => setStreetAddress(e.target.value)}
-                                    required
-                                />
+                    <form onSubmit={handleSubmit} className="shadow-sm bg-white p-3 rounded">
+                        <h5 className="mb-0">Billing Address</h5>
+                        <div className="row">
+                            <div className="col-md-8">
+                                <div className="field-wrapper">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={streetAddress}
+                                        onChange={(e) => setStreetAddress(e.target.value)}
+                                        required
+                                    />
+                                    <label className="form-label">Street Address (*)</label>
+                                </div>
                             </div>
 
-                            <div className="col-md-4 mb-3">
-                                <label className="form-label">City (*)</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={city}
-                                    onChange={(e) => setCity(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="row mb-3">
-                            <div className="col-md-4 mb-3">
-                                <label className="form-label">Country (*)</label>
-                                <select
-                                    className="form-select"
-                                    value={country}
-                                    onChange={(e) => {
-                                        setCountry(e.target.value);
-                                        setProvinceState('');
-                                    }}
-                                    required
-                                >
-                                    {countries.map(({ code, name }) => (
-                                        <option key={code} value={code}>
-                                            {name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="col-md-4 mb-3">
-                                <label className="form-label">Province/State (*)</label>
-                                <select
-                                    className="form-select"
-                                    value={provinceState}
-                                    onChange={(e) => setProvinceState(e.target.value)}
-                                    required
-                                >
-                                    <option value="">Select Province/State</option>
-                                    {provinces[country]?.map((prov) => (
-                                        <option key={prov.code} value={prov.code}>
-                                            {prov.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="col-md-4 mb-3">
-                                <label className="form-label">Postal/ZIP Code (*)</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={postalCode}
-                                    onChange={(e) => setPostalCode(e.target.value)}
-                                    required
-                                />
+                            <div className="col-md-4">
+                                <div className="field-wrapper">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={city}
+                                        onChange={(e) => setCity(e.target.value)}
+                                        required
+                                    />
+                                    <label className="form-label">City (*)</label>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="d-flex justify-content-end">
+                        <div className="row">
+                            <div className="col-md-4">
+                                <div className="field-wrapper">
+                                    <select
+                                        className="form-select"
+                                        value={country}
+                                        onChange={(e) => {
+                                            setCountry(e.target.value);
+                                            setProvinceState('');
+                                        }}
+                                        required
+                                    >
+                                        {countries.map(({ code, name }) => (
+                                            <option key={code} value={code}>
+                                                {name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <label className="form-label">Country (*)</label>
+                                </div>
+                            </div>
+
+                            <div className="col-md-4">
+                                <div className="field-wrapper">
+                                    <select
+                                        className="form-select"
+                                        value={provinceState}
+                                        onChange={(e) => setProvinceState(e.target.value)}
+                                        required
+                                    >
+                                        <option value="">Select Province/State</option>
+                                        {provinces[country]?.map((prov) => (
+                                            <option key={prov.code} value={prov.code}>
+                                                {prov.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <label className="form-label">Province/State (*)</label>
+                                </div>
+                            </div>
+
+                            <div className="col-md-4">
+                                <div className="field-wrapper">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={postalCode}
+                                        onChange={(e) => setPostalCode(e.target.value)}
+                                        required
+                                    />
+                                    <label className="form-label">Postal/ZIP Code (*)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="d-flex justify-content-end mt-3">
                             <button
                                 type="button"
                                 className="btn btn-dark me-2"

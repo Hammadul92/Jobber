@@ -9,7 +9,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import Business, Client, ServiceQuestionnaire, TeamMember, Service, Quote
+from core.models import (
+    Business, Client, Job, ServiceQuestionnaire, TeamMember, Service, Quote
+)
 from business import serializers, paginations, emails
 
 
@@ -101,27 +103,21 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
 
         return qs.none()
 
-    def destroy(self, request, *args, **kwargs):
-        """Instead of deleting, mark team member as inactive"""
-        instance = self.get_object()
-        instance.is_active = False
-        instance.save(update_fields=["is_active"])
-        return Response(
-            {"detail": "Team member deleted successfully."},
-            status=status.HTTP_204_NO_CONTENT
-        )
-
 
 class ServiceViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-
-    queryset = Service.objects.filter(is_active=True).select_related("client", "business")
     serializer_class = serializers.ServiceSerializer
+
+    queryset = (
+        Service.objects.filter(is_active=True)
+        .select_related("client", "business")
+        .order_by("-id")
+    )
 
     def get_queryset(self):
         user = self.request.user
-        qs = super().get_queryset().order_by("-id")
+        qs = super().get_queryset()
 
         client_id = self.request.query_params.get("client")
         if client_id:
@@ -134,6 +130,20 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
         return qs
 
+    def perform_create(self, serializer):
+        """Create service and send questionnaire email to client."""
+        service = serializer.save()
+
+        questionnaire = service.business.service_questionnaires.filter(
+            service_name=service.service_name,
+            is_active=True
+        ).first()
+
+        if questionnaire:
+            emails.send_service_questionnaire_email(
+                service=service,
+                questionnaire=questionnaire
+            )
 
 
 class QuoteViewSet(viewsets.ModelViewSet):
@@ -281,3 +291,43 @@ class ServiceQuestionnaireViewSet(viewsets.ModelViewSet):
             return qs.filter(business__clients__user=user).order_by('-id')
 
         return qs.none()
+
+
+class JobViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing jobs related to services."""
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.JobSerializer
+
+    queryset = (
+        Job.objects.select_related(
+            "service",
+            "service__client",
+            "service__business",
+            "assigned_to",
+            "assigned_to__employee",
+        ).order_by("-id")
+    )
+
+    def get_queryset(self):
+        """Filter queryset based on user role and optional query params."""
+
+        user = self.request.user
+        qs = super().get_queryset()
+
+        if user.role == "MANAGER":
+            qs = qs.filter(service__business__owner=user)
+        elif user.role == "CLIENT":
+            qs = qs.filter(service__client__user=user)
+        elif user.role == "EMPLOYEE":
+            qs = qs.filter(assigned_to__employee=user)
+
+        return qs
+
+    def perform_create(self, serializer):
+        """Handle job creation logic."""
+        job = serializer.save()
+        # Optional: send notification or email to assigned employee
+        # notifications.send_job_assignment_email(job)
+        return job

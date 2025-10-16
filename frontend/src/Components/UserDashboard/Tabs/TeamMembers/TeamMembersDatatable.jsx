@@ -92,7 +92,7 @@ export default function TeamMembersDatatable({ token }) {
                 <Table.Cell {...props}>
                     {props.row.employee_name}{' '}
                     <span
-                        className={`badge rounded-pill text-white ${
+                        className={`badge rounded-pill bg-gradient ${
                             props.row.is_active === 'True' ? 'bg-success' : 'bg-danger'
                         }`}
                     >

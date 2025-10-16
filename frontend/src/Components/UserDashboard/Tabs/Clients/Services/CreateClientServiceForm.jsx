@@ -20,7 +20,6 @@ export default function CreateClientServiceForm({
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [billingCycle, setBillingCycle] = useState('');
-    const [status, setStatus] = useState('PENDING');
     const [description, setDescription] = useState('');
 
     const [streetAddress, setStreetAddress] = useState('');
@@ -47,7 +46,6 @@ export default function CreateClientServiceForm({
                 start_date: startDate,
                 end_date: endDate || null,
                 billing_cycle: billingCycle || null,
-                status,
                 description,
                 street_address: streetAddress,
                 city,
@@ -56,7 +54,6 @@ export default function CreateClientServiceForm({
                 postal_code: postalCode,
             }).unwrap();
 
-            // reset form
             setServiceName('');
             setServiceType('ONE_TIME');
             setPrice('');
@@ -64,7 +61,6 @@ export default function CreateClientServiceForm({
             setStartDate('');
             setEndDate('');
             setBillingCycle('');
-            setStatus('PENDING');
             setDescription('');
             setStreetAddress('');
             setCity('');
@@ -123,196 +119,207 @@ export default function CreateClientServiceForm({
                                         />
                                     )}
 
-                                    {/* Service Info */}
                                     <div className="row">
-                                        <div className="mb-3 col-md-6 col-lg-3">
-                                            <label className="form-label">Service Name (*)</label>
-                                            <select
-                                                className="form-select"
-                                                value={serviceName}
-                                                onChange={(e) => setServiceName(e.target.value)}
-                                                required
-                                                disabled={loadingOptions || errorOptions}
-                                            >
-                                                <option value="">-- Select Service --</option>
-                                                {serviceOptions.map((service) => (
-                                                    <option key={service} value={service}>
-                                                        {service}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                        <div className="col-md-6 col-lg-3">
+                                            <div className="field-wrapper">
+                                                <select
+                                                    className="form-select"
+                                                    value={serviceName}
+                                                    onChange={(e) => setServiceName(e.target.value)}
+                                                    required
+                                                    disabled={loadingOptions || errorOptions}
+                                                >
+                                                    <option value="">-- Select Service --</option>
+                                                    {serviceOptions.map((service) => (
+                                                        <option key={service} value={service}>
+                                                            {service}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <label className="form-label">Service Name (*)</label>
+                                            </div>
                                         </div>
 
-                                        <div className="mb-3 col-md-6 col-lg-3">
-                                            <label className="form-label">Service Type (*)</label>
-                                            <select
-                                                className="form-select"
-                                                value={serviceType}
-                                                onChange={(e) => setServiceType(e.target.value)}
-                                            >
-                                                <option value="ONE_TIME">One Time</option>
-                                                <option value="SUBSCRIPTION">Subscription</option>
-                                            </select>
+                                        <div className="col-md-6 col-lg-3">
+                                            <div className="field-wrapper">
+                                                <select
+                                                    className="form-select"
+                                                    value={serviceType}
+                                                    onChange={(e) => {
+                                                        setServiceType(e.target.value);
+                                                        setBillingCycle('');
+                                                    }}
+                                                >
+                                                    <option value="ONE_TIME">One Time</option>
+                                                    <option value="SUBSCRIPTION">Subscription</option>
+                                                </select>
+                                                <label className="form-label">Service Type (*)</label>
+                                            </div>
                                         </div>
 
-                                        <div className="mb-3 col-md-6 col-lg-3">
-                                            <label className="form-label">Price (*)</label>
-                                            <input
-                                                type="number"
-                                                className="form-control"
-                                                value={price}
-                                                onChange={(e) => setPrice(e.target.value)}
-                                                required
-                                            />
+                                        <div className="col-md-6 col-lg-3">
+                                            <div className="field-wrapper">
+                                                <input
+                                                    type="number"
+                                                    className="form-control"
+                                                    value={price}
+                                                    onChange={(e) => setPrice(e.target.value)}
+                                                    required
+                                                />
+                                                <label className="form-label">Price (*)</label>
+                                            </div>
                                         </div>
 
-                                        <div className="mb-3 col-md-6 col-lg-3">
-                                            <label className="form-label">Currency</label>
-                                            <select
-                                                className="form-select"
-                                                value={currency}
-                                                onChange={(e) => setCurrency(e.target.value)}
-                                            >
-                                                <option value="CAD">CAD</option>
-                                                <option value="USD">USD</option>
-                                            </select>
+                                        <div className="col-md-6 col-lg-3">
+                                            <div className="field-wrapper">
+                                                <select
+                                                    className="form-select"
+                                                    value={currency}
+                                                    onChange={(e) => setCurrency(e.target.value)}
+                                                >
+                                                    <option value="CAD">CAD</option>
+                                                    <option value="USD">USD</option>
+                                                </select>
+                                                <label className="form-label">Currency</label>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div className="row">
-                                        <div className="mb-3 col-md-6 col-lg-3">
-                                            <label className="form-label">Billing Cycle</label>
-                                            <select
-                                                className="form-select"
-                                                value={billingCycle}
-                                                onChange={(e) => setBillingCycle(e.target.value)}
-                                                disabled={serviceType === 'ONE_TIME'}
-                                            >
-                                                <option value="">-- Select --</option>
-                                                <option value="MONTHLY">Monthly</option>
-                                                <option value="YEARLY">Yearly</option>
-                                            </select>
+                                        {serviceType !== 'ONE_TIME' ? (
+                                            <div className="col-md-6 col-lg-3">
+                                                <div className="field-wrapper">
+                                                    <select
+                                                        className="form-select"
+                                                        value={billingCycle}
+                                                        onChange={(e) => setBillingCycle(e.target.value)}
+                                                    >
+                                                        <option value="">-- Select --</option>
+                                                        <option value="MONTHLY">Monthly</option>
+                                                        <option value="YEARLY">Yearly</option>
+                                                    </select>
+                                                    <label className="form-label">Billing Cycle</label>
+                                                </div>
+                                            </div>
+                                        ) : null}
+
+                                        <div className="col-md-6 col-lg-3">
+                                            <div className="field-wrapper">
+                                                <input
+                                                    type="date"
+                                                    className="form-control"
+                                                    value={startDate}
+                                                    onChange={(e) => setStartDate(e.target.value)}
+                                                    required
+                                                />
+                                                <label className="form-label">Start Date (*)</label>
+                                            </div>
                                         </div>
 
-                                        <div className="mb-3 col-md-6 col-lg-3">
-                                            <label className="form-label">Start Date (*)</label>
-                                            <input
-                                                type="date"
-                                                className="form-control"
-                                                value={startDate}
-                                                onChange={(e) => setStartDate(e.target.value)}
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="mb-3 col-md-6 col-lg-3">
-                                            <label className="form-label">End Date</label>
-                                            <input
-                                                type="date"
-                                                className="form-control"
-                                                value={endDate}
-                                                onChange={(e) => setEndDate(e.target.value)}
-                                            />
-                                        </div>
-
-                                        <div className="mb-3 col-md-6 col-lg-3">
-                                            <label className="form-label">Status</label>
-                                            <select
-                                                className="form-select"
-                                                value={status}
-                                                onChange={(e) => setStatus(e.target.value)}
-                                                disabled
-                                            >
-                                                <option value="PENDING">Pending</option>
-                                                <option value="ACTIVE">Active</option>
-                                                <option value="COMPLETED">Completed</option>
-                                                <option value="CANCELLED">Cancelled</option>
-                                            </select>
+                                        <div className="col-md-6 col-lg-3">
+                                            <div className="field-wrapper">
+                                                <label className="form-label">End Date</label>
+                                                <input
+                                                    type="date"
+                                                    className="form-control"
+                                                    value={endDate}
+                                                    onChange={(e) => setEndDate(e.target.value)}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Address */}
-                                    <h6 className="mt-4">Service Address</h6>
+                                    <h6 className="mb-0 mt-4">Service Address</h6>
                                     <div className="row">
-                                        <div className="mb-3 col-md-8 col-lg-9">
-                                            <label className="form-label">Street Address (*)</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                value={streetAddress}
-                                                onChange={(e) => setStreetAddress(e.target.value)}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="mb-3 col-md-4 col-lg-3">
-                                            <label className="form-label">City (*)</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                value={city}
-                                                onChange={(e) => setCity(e.target.value)}
-                                                required
-                                            />
+                                        <div className="col-md-12 col-lg-12">
+                                            <div className="field-wrapper">
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={streetAddress}
+                                                    onChange={(e) => setStreetAddress(e.target.value)}
+                                                    required
+                                                />
+                                                <label className="form-label">Street Address (*)</label>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div className="row">
-                                        <div className="mb-3 col-md-4 col-lg-3">
-                                            <label className="form-label">Country (*)</label>
-                                            <select
-                                                className="form-select"
-                                                value={country}
-                                                onChange={(e) => {
-                                                    setCountry(e.target.value);
-                                                    setProvinceState('');
-                                                }}
-                                                required
-                                            >
-                                                {countries.map(({ code, name }) => (
-                                                    <option value={code} key={code}>
-                                                        {name}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                        <div className="col-md-3 col-lg-3">
+                                            <div className="field-wrapper">
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={city}
+                                                    onChange={(e) => setCity(e.target.value)}
+                                                    required
+                                                />
+                                                <label className="form-label">City (*)</label>
+                                            </div>
+                                        </div>
+                                        <div className="col-md-3 col-lg-3">
+                                            <div className="field-wrapper">
+                                                <select
+                                                    className="form-select"
+                                                    value={country}
+                                                    onChange={(e) => {
+                                                        setCountry(e.target.value);
+                                                        setProvinceState('');
+                                                    }}
+                                                    required
+                                                >
+                                                    {countries.map(({ code, name }) => (
+                                                        <option value={code} key={code}>
+                                                            {name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <label className="form-label">Country (*)</label>
+                                            </div>
+                                        </div>
+
+                                        <div className="col-md-3 col-lg-3">
+                                            <div className="field-wrapper">
+                                                <select
+                                                    className="form-select"
+                                                    value={provinceState}
+                                                    onChange={(e) => setProvinceState(e.target.value)}
+                                                    required
+                                                >
+                                                    <option value="">Select Province/State</option>
+                                                    {provinces[country].map((prov) => (
+                                                        <option key={prov.code} value={prov.code}>
+                                                            {prov.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <label className="form-label">Province/State (*)</label>
+                                            </div>
                                         </div>
 
                                         <div className="mb-3 col-md-4 col-lg-3">
-                                            <label className="form-label">Province/State (*)</label>
-                                            <select
-                                                className="form-select"
-                                                value={provinceState}
-                                                onChange={(e) => setProvinceState(e.target.value)}
-                                                required
-                                            >
-                                                <option value="">Select Province/State</option>
-                                                {provinces[country].map((prov) => (
-                                                    <option key={prov.code} value={prov.code}>
-                                                        {prov.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        <div className="mb-3 col-md-4 col-lg-3">
-                                            <label className="form-label">Postal/ZIP Code (*)</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                value={postalCode}
-                                                onChange={(e) => setPostalCode(e.target.value)}
-                                                required
-                                            />
+                                            <div className="field-wrapper">
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={postalCode}
+                                                    onChange={(e) => setPostalCode(e.target.value)}
+                                                    required
+                                                />
+                                                <label className="form-label">Postal/ZIP Code (*)</label>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="mb-3">
-                                        <label className="form-label">Description</label>
+                                    <div className="field-wrapper">
                                         <textarea
                                             className="form-control"
                                             rows="3"
                                             value={description}
                                             onChange={(e) => setDescription(e.target.value)}
                                         ></textarea>
+                                        <label className="form-label">Description</label>
                                     </div>
                                 </div>
 

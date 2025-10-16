@@ -112,9 +112,9 @@ export default function ServiceQuestionnairesDatatable({ token, setAlert }) {
                 <Table.Cell {...props}>
                     {props.row.service_name}{' '}
                     {props.row.is_active ? (
-                        <span className="badge bg-success rounded-pill">ACTIVE</span>
+                        <span className="badge bg-gradient bg-success rounded-pill">ACTIVE</span>
                     ) : (
-                        <span className="badge bg-danger rounded-pill">INACTIVE</span>
+                        <span className="badge bg-gradient bg-danger rounded-pill">INACTIVE</span>
                     )}
                 </Table.Cell>
             );

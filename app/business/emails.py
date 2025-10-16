@@ -30,3 +30,30 @@ def send_quote_email(quote):
         [quote.service.client.user.email],
         fail_silently=False,
     )
+
+
+def send_service_questionnaire_email(service, questionnaire):
+    """Send email to client with questionnaire link."""
+
+    subject = "Please Fill Out Your Service Questionnaire"
+    questionnaire_link = (
+        f"{settings.FRONTEND_URL}/dashboard/service-questionnaire/"
+        f"{questionnaire.id}/form/{service.id}/"
+    )
+
+    message = (
+        f"Hi {service.client.user.name},\n\n"
+        f"Thank you for choosing our services! "
+        f"Please fill out your service questionnaire by clicking the link below:\n\n"
+        f"{questionnaire_link}\n\n"
+        f"Best regards,\n"
+        f"The {service.business.name} Team"
+    )
+
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [service.client.user.email],
+        fail_silently=False,
+    )

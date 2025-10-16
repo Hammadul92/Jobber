@@ -102,7 +102,7 @@ export default function ClientsDatatable({ token }) {
                 <Table.Cell {...props}>
                     {props.row.client_name}{' '}
                     <span
-                        className={`badge rounded-pill text-white ${props.row.is_active === 'True' ? 'bg-success' : 'bg-danger'}`}
+                        className={`badge rounded-pill bg-gradient ${props.row.is_active === 'True' ? 'bg-success' : 'bg-danger'}`}
                     >
                         {props.row.is_active === 'True' ? 'ACTIVE' : 'INACTIVE'}
                     </span>
