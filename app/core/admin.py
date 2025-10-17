@@ -8,6 +8,47 @@ from django.utils.translation import gettext_lazy as _
 from core import models
 
 
+@admin.action(description="Restore selected records")
+def restore_selected(modeladmin, request, queryset):
+    """Admin action to restore soft-deleted objects."""
+    for obj in queryset:
+        if hasattr(obj, "restore"):
+            obj.restore()
+
+
+class SoftDeletableAdminMixin:
+    """
+    Adds soft deletion info to Django admin:
+    - Shows 'is_deleted', 'deleted_at', and 'deleted_by'
+    - Allows filtering by deleted state
+    - Includes a restore action
+    """
+    actions = [restore_selected]
+
+    def get_list_display(self, request):
+        """Append soft delete fields to list_display if not already included."""
+        base_fields = list(super().get_list_display(request))
+        for field in ("is_deleted",):
+            if field not in base_fields:
+                base_fields.append(field)
+        return tuple(base_fields)
+
+    def get_list_filter(self, request):
+        """Append is_deleted to filters if not already included."""
+        base_filters = list(super().get_list_filter(request))
+        if "is_deleted" not in base_filters:
+            base_filters.append("is_deleted")
+        return tuple(base_filters)
+
+    def get_readonly_fields(self, request, obj=None):
+        """Include deleted_at and deleted_by as readonly fields."""
+        base_fields = list(super().get_readonly_fields(request, obj))
+        for field in ("deleted_at", "deleted_by"):
+            if field not in base_fields:
+                base_fields.append(field)
+        return tuple(base_fields)
+
+
 class UserAdmin(BaseUserAdmin):
     """Define the admin pages for users."""
     ordering = ['id']
@@ -51,26 +92,21 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
-class BusinessAdmin(admin.ModelAdmin):
-    list_display = [
-        'name', 'email', 'phone', 'owner',
-        'is_active', 'created_at'
-    ]
+class BusinessAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
+    list_display = ['name', 'email', 'phone', 'owner', 'is_active', 'created_at']
     list_filter = ['is_active', 'country', 'province_state']
     search_fields = ['name', 'email', 'phone', 'business_number']
     readonly_fields = ['created_at', 'updated_at']
 
 
-class ClientAdmin(admin.ModelAdmin):
-    list_display = [
-        'user', 'business', 'is_active', 'created_at'
-    ]
+class ClientAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
+    list_display = ['user', 'business', 'is_active', 'created_at']
     list_filter = ['is_active', 'business', 'country', 'province_state']
     search_fields = ['user__name', 'user__email', 'user__phone']
     readonly_fields = ['created_at', 'updated_at']
 
 
-class BankingInformationAdmin(admin.ModelAdmin):
+class BankingInformationAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     list_display = [
         'business', 'client', 'payment_method_type',
         'bank_name', 'card_brand', 'is_default', 'is_active'
@@ -80,7 +116,7 @@ class BankingInformationAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at']
 
 
-class ServiceAdmin(admin.ModelAdmin):
+class ServiceAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     list_display = [
         'service_name', 'client', 'business', 'service_type',
         'status', 'price', 'currency'
@@ -90,7 +126,7 @@ class ServiceAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at']
 
 
-class JobAdmin(admin.ModelAdmin):
+class JobAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     list_display = [
         'title',
         'service',
@@ -130,29 +166,22 @@ class JobAdmin(admin.ModelAdmin):
     get_assigned_employee.admin_order_field = "assigned_to__employee__name"
 
 
-
-class JobPhotoAdmin(admin.ModelAdmin):
+class JobPhotoAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     list_display = ['job', 'photo_type', 'uploaded_at']
     list_filter = ['photo_type']
     search_fields = ['job__title']
     readonly_fields = ['uploaded_at']
 
 
-class TeamMemberAdmin(admin.ModelAdmin):
-    list_display = [
-        'employee', 'business', 'expertise',
-        'is_active', 'joined_at'
-    ]
+class TeamMemberAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
+    list_display = ['employee', 'business', 'expertise', 'is_active', 'joined_at']
     list_filter = ['is_active', 'business']
     search_fields = ['employee__name', 'employee__email', 'business__name']
     readonly_fields = ['joined_at']
 
 
-class QuoteAdmin(admin.ModelAdmin):
-    list_display = [
-        'quote_number', 'service', 'status', 'valid_until',
-        'is_active', 'created_at'
-    ]
+class QuoteAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
+    list_display = ['quote_number', 'service', 'status', 'valid_until', 'is_active', 'created_at']
     list_filter = ['status', 'is_active', 'valid_until']
     search_fields = ['quote_number', 'service__service_name']
     readonly_fields = ['quote_number', 'created_at', 'updated_at', 'signed_at']
@@ -160,14 +189,8 @@ class QuoteAdmin(admin.ModelAdmin):
     ordering = ['-created_at']
 
 
-class ServiceQuestionnaireAdmin(admin.ModelAdmin):
-    list_display = [
-        'service_name',
-        'business',
-        'is_active',
-        'created_at',
-        'updated_at',
-    ]
+class ServiceQuestionnaireAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
+    list_display = ['service_name', 'business', 'is_active', 'created_at', 'updated_at']
     list_filter = ['is_active', 'business']
     search_fields = ['service_name', 'business__name']
     readonly_fields = ['created_at', 'updated_at']
@@ -175,7 +198,6 @@ class ServiceQuestionnaireAdmin(admin.ModelAdmin):
     ordering = ['-created_at']
 
 
-# Register models
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Business, BusinessAdmin)
 admin.site.register(models.Client, ClientAdmin)

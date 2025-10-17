@@ -248,7 +248,7 @@ export default function Job({ token, role }) {
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
                                             placeholder="Enter job title"
-                                            disabled={role !== "MANAGER"}
+                                            disabled={role !== 'MANAGER'}
                                         />
                                         <label className="form-label">Title</label>
                                     </div>
@@ -276,7 +276,7 @@ export default function Job({ token, role }) {
                                             className="form-select"
                                             value={assignedTo}
                                             onChange={(e) => setAssignedTo(e.target.value)}
-                                            disabled={role !== "MANAGER"}
+                                            disabled={role !== 'MANAGER'}
                                         >
                                             <option value="">Unassigned</option>
                                             {teamMembers?.results?.map((m) => (
@@ -296,7 +296,7 @@ export default function Job({ token, role }) {
                                             className="form-control"
                                             value={scheduledDate}
                                             onChange={(e) => setScheduledDate(e.target.value)}
-                                            disabled={role !== "MANAGER"}
+                                            disabled={role !== 'MANAGER'}
                                         />
                                         <label className="form-label">Scheduled Date</label>
                                     </div>
@@ -310,7 +310,7 @@ export default function Job({ token, role }) {
                                             value={description}
                                             onChange={(e) => setDescription(e.target.value)}
                                             placeholder="Job description..."
-                                            disabled={role !== "MANAGER"}
+                                            disabled={role !== 'MANAGER'}
                                         ></textarea>
                                         <label className="form-label">Description</label>
                                     </div>

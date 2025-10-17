@@ -110,7 +110,42 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
 
 
-class Business(models.Model):
+class SoftDeletableModel(models.Model):
+    is_deleted = models.BooleanField(default=False)
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="deleted_%(class)s_records"
+    )
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+    def soft_delete(self, user=None):
+        self.is_deleted = True
+        self.deleted_by = user
+        self.deleted_at = timezone.now()
+        self.save(update_fields=["is_deleted", "deleted_by", "deleted_at"])
+
+    def restore(self):
+        if self.is_deleted:
+            self.is_deleted = False
+            self.deleted_by = None
+            self.deleted_at = None
+            self.save(update_fields=["is_deleted", "deleted_by", "deleted_at"])
+
+
+class ActiveManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
+class Business(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="owned_businesses",
@@ -121,6 +156,11 @@ class Business(models.Model):
     phone = models.CharField(max_length=20)
     email = models.EmailField(max_length=50)
     business_description = models.TextField(max_length=1000)
+    logo = models.ImageField(
+        upload_to="business_logo/",
+        null=True,
+        blank=True
+    )
 
     street_address = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
@@ -149,7 +189,10 @@ class Business(models.Model):
         return self.name
 
 
-class Client(models.Model):
+class Client(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     business = models.ForeignKey(
         Business,
         related_name="clients",
@@ -179,7 +222,10 @@ class Client(models.Model):
         return f"{self.user.name} ({self.business.name})"
 
 
-class BankingInformation(models.Model):
+class BankingInformation(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     business = models.ForeignKey(
         Business,
         related_name="banking_information",
@@ -260,7 +306,9 @@ class BankingInformation(models.Model):
         )
 
 
-class ServiceQuestionnaire(models.Model):
+class ServiceQuestionnaire(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
 
     business = models.ForeignKey(
         'Business',
@@ -302,7 +350,10 @@ class ServiceQuestionnaire(models.Model):
         super().save(*args, **kwargs)
 
 
-class Service(models.Model):
+class Service(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     client = models.ForeignKey(
         Client,
         related_name="client_services",
@@ -371,7 +422,10 @@ class Service(models.Model):
         )
 
 
-class Job(models.Model):
+class Job(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     service = models.ForeignKey(
         Service,
         related_name="jobs",
@@ -407,7 +461,10 @@ class Job(models.Model):
         )
 
 
-class JobPhoto(models.Model):
+class JobPhoto(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     job = models.ForeignKey(
         Job,
         related_name="photos",
@@ -425,7 +482,10 @@ class JobPhoto(models.Model):
         return f"{self.photo_type} photo for Job {self.job.id}"
 
 
-class TeamMember(models.Model):
+class TeamMember(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     business = models.ForeignKey(
         Business,
         related_name="team_members",
@@ -450,7 +510,10 @@ class TeamMember(models.Model):
         return f"{self.employee.name} @ {self.business.name}"
 
 
-class Quote(models.Model):
+class Quote(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     service = models.ForeignKey(
         "Service",
         on_delete=models.CASCADE,

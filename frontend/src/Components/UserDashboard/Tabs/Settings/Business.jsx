@@ -19,13 +19,13 @@ export default function Business({ token, setAlert }) {
     const [taxRate, setTaxRate] = useState(0);
     const [timezone, setTimezone] = useState('America/Edmonton');
     const [selectedServices, setSelectedServices] = useState([]);
+    const [logo, setLogo] = useState(null);
 
     const { data: businessData, isLoading, refetch } = useFetchBusinessesQuery(undefined, { skip: !token });
 
     const [createBusiness, { isLoading: isCreating }] = useCreateBusinessMutation();
     const [updateBusiness, { isLoading: isUpdating }] = useUpdateBusinessMutation();
 
-    // Load existing business
     useEffect(() => {
         if (businessData?.length > 0) {
             const b = businessData[0];
@@ -43,6 +43,7 @@ export default function Business({ token, setAlert }) {
             setTaxRate(b.tax_rate || 0);
             setTimezone(b.timezone || 'America/Edmonton');
             setSelectedServices(b.services_offered || []);
+            setLogo(b.logo || null);
         }
     }, [businessData]);
 
@@ -75,6 +76,9 @@ export default function Business({ token, setAlert }) {
             formData.append('tax_rate', parseInt(taxRate));
             formData.append('timezone', timezone);
             formData.append('services_offered', JSON.stringify(selectedServices));
+            if (logo && typeof logo !== 'string') {
+                formData.append('logo', logo);
+            }
 
             if (businessId) {
                 await updateBusiness({ id: businessId, data: formData }).unwrap();
@@ -122,7 +126,7 @@ export default function Business({ token, setAlert }) {
     if (isLoading) return <div>Loading business data...</div>;
 
     return (
-        <form onSubmit={handleSubmit} className="tab-pane active">
+        <form onSubmit={handleSubmit} className="tab-pane active" encType="multipart/form-data">
             <div className="row">
                 <div className="col-md-4">
                     <div className="field-wrapper">
@@ -133,7 +137,7 @@ export default function Business({ token, setAlert }) {
                             onChange={(e) => setName(e.target.value)}
                             required
                         />
-                        <label className="form-label">Business Name (*)</label>
+                        <label className="form-label">Name (*)</label>
                     </div>
                 </div>
 
@@ -146,14 +150,14 @@ export default function Business({ token, setAlert }) {
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
-                        <label className="form-label">Business Email (*)</label>
+                        <label className="form-label">Email (*)</label>
                     </div>
                 </div>
 
                 <div className="col-md-4">
                     <div className="field-wrapper">
                         <PhoneInputField value={phone} setValue={setPhone} />
-                        <label className="form-label">Business Phone (*)</label>
+                        <label className="form-label">Phone (*)</label>
                     </div>
                 </div>
 
@@ -177,7 +181,6 @@ export default function Business({ token, setAlert }) {
 
                 <div className="col-md-4">
                     <div className="field-wrapper">
-                        <label className="form-label">Business Number (*)</label>
                         <input
                             type="text"
                             className="form-control"
@@ -185,6 +188,7 @@ export default function Business({ token, setAlert }) {
                             onChange={(e) => setBusinessNumber(e.target.value)}
                             required
                         />
+                        <label className="form-label">GST/Tax Number (*)</label>
                     </div>
                 </div>
 
@@ -202,16 +206,52 @@ export default function Business({ token, setAlert }) {
                     </div>
                 </div>
 
-                <div className="col-md-12">
+                <div className="col-md-8">
                     <div className="field-wrapper">
                         <textarea
                             className="form-control"
-                            rows={2}
+                            rows={5}
                             value={businessDescription}
                             onChange={(e) => setBusinessDescription(e.target.value)}
                             required
                         />
-                        <label className="form-label">Business Description (*)</label>
+                        <label className="form-label">Description (*)</label>
+                    </div>
+                </div>
+                <div className="col-md-4">
+                    <div className="card border-0 shadow-sm p-3 mt-3">
+                        <div
+                            className="position-relative d-flex align-items-center justify-content-center bg-light rounded"
+                            style={{ height: '120px', border: '2px dashed #dee2e6' }}
+                        >
+                            {logo ? (
+                                <img
+                                    src={typeof logo === 'string' ? logo : URL.createObjectURL(logo)}
+                                    alt="Business Logo"
+                                    className="img-fluid rounded"
+                                    style={{
+                                        maxHeight: '110px',
+                                        maxWidth: '100%',
+                                        objectFit: 'contain',
+                                    }}
+                                />
+                            ) : (
+                                <div className="text-muted small">
+                                    <i className="bi bi-image" style={{ fontSize: '2rem' }}></i>
+                                    <div>Upload your logo</div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="field-wrapper">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="form-control"
+                                onChange={(e) => setLogo(e.target.files[0])}
+                            />
+                            <label className="form-label">Business Logo</label>
+                        </div>
                     </div>
                 </div>
             </div>

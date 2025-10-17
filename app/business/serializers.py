@@ -27,7 +27,7 @@ class BusinessSerializer(serializers.ModelSerializer):
     class Meta:
         model = Business
         fields = ['id', 'owner', 'name', 'phone', 'email',
-                  'business_description', 'street_address',
+                  'business_description', 'logo', 'street_address',
                   'city', 'country', 'province_state',
                   'postal_code', 'business_number', 'tax_rate',
                   'services_offered', 'timezone', 'created_at',
