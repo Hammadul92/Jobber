@@ -222,7 +222,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
             )
 
         new_status = request.data.get("status")
-        signature_data = request.data.get("signature")
+        signature = request.data.get("signature")
 
         if new_status not in ["SIGNED", "DECLINED"]:
             return Response(
@@ -237,7 +237,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
             )
 
         if new_status == "SIGNED":
-            if not signature_data:
+            if not signature:
                 return Response(
                     {"detail": "Signature is required."},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -245,14 +245,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
             quote.signed_at = timezone.now()
             quote.status = "SIGNED"
-
-            try:
-                quote.set_signature_from_base64(signature_data)
-            except ValueError as e:
-                return Response(
-                    {"detail": str(e)},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            quote.signature = signature
 
         elif new_status == "DECLINED":
             quote.status = "DECLINED"

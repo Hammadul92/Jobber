@@ -89,17 +89,6 @@ body {
     text-align: center;
 }
 
-.react-tel-input .flag-dropdown {
-    background-color: #fff !important;
-    border-right: none !important;
-    border-color: #dee2e6 !important;
-}
-
-.react-tel-input .form-control {
-    width: 100% !important;
-    border-color: #dee2e6 !important;
-}
-
 .table {
     border: 1px solid #dee2e6;
 }
@@ -261,4 +250,65 @@ textarea.form-control:focus {
 .btn-light:hover {
     background-color: #e9ecef;
     border: 1px solid #e9ecef;
+}
+
+.step-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.step-item {
+    position: relative;
+    padding: 15px 25px;
+    background-color: #dee2e6;
+    color: #212529;
+    font-weight: 500;
+    min-width: 160px;
+    text-align: center;
+    cursor: pointer;
+    clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%, 15px 50%);
+    transition: all 0.3s ease;
+}
+
+.step-item:not(:last-child) {
+    margin-right: -15px;
+}
+
+.step-item.active {
+    background-color: #198754;
+    color: #fff;
+}
+
+.step-item.completed {
+    background-color: #7cc49a;
+    color: #fff;
+}
+
+.step-item:hover {
+    filter: brightness(1.1);
+}
+
+@media (max-width: 576px) {
+    .step-item {
+        padding: 10px 20px;
+        min-width: 90px;
+        font-size: 12px;
+    }
+}
+
+.form-check-input:checked {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+    border-color: #198754 !important;
+}
+
+.form-check-input:disabled:checked {
+    background-color: #7ac89b !important;
+    border-color: #7ac89b !important;
 }

@@ -19,7 +19,7 @@ export default function ForgotPassword() {
 
     return (
         <div className="my-5 container">
-            <h2 className="text-center mb-4">Forgot Password</h2>
+            <h2 className="text-center mb-4 text-success fw-bold">Forgot Password</h2>
 
             <form onSubmit={handleSubmit} className="row">
                 <div className="col-md-4 offset-md-4">
@@ -36,7 +36,7 @@ export default function ForgotPassword() {
                     )}
 
                     <div className="mb-3">
-                        <label htmlFor="email" className="mb-2">
+                        <label htmlFor="email" className="form-label fw-bold">
                             Enter Your Email (*)
                         </label>
                         <input
@@ -45,20 +45,23 @@ export default function ForgotPassword() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="form-control"
+                            className="form-control form-control-lg"
                         />
                     </div>
 
                     <div className="text-center mb-3">
                         <SubmitButton
                             isLoading={isLoading}
-                            btnClass="btn btn-success w-100"
+                            btnClass="btn btn-lg btn-success w-100"
                             btnName="Send Reset Link"
                         />
                     </div>
 
                     <p className="text-center">
-                        Remember your password? <Link to="/sign-in">Sign In</Link>
+                        Remember your password?{' '}
+                        <Link to="/sign-in" className="text-success text-decoration-none fw-semibold">
+                            Sign In
+                        </Link>
                     </p>
                 </div>
             </form>

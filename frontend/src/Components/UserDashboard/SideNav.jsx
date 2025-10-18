@@ -39,7 +39,6 @@ export default function SideNav({ role, userId }) {
             icon: 'fa-user-friends',
             is_visible: role === 'MANAGER',
         },
-        { name: 'Settings', path: '/dashboard/settings', icon: 'fa-cog', is_visible: true },
     ];
 
     return (

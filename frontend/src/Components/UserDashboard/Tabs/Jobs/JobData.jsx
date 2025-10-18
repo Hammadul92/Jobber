@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetchJobsQuery, useDeleteJobMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import { formatDate } from '../../../../utils/formatDate';
 
 export default function JobData({ token, role, setAlert }) {
     const [deleteJob, { isLoading: deleting }] = useDeleteJobMutation();
@@ -191,10 +192,10 @@ export default function JobData({ token, role, setAlert }) {
                 </div>
             </div>
 
-            <div className="d-flex flex-nowrap overflow-auto gap-2 pb-3" style={{ scrollSnapType: 'x mandatory' }}>
+            <div className="d-flex flex-nowrap overflow-auto gap-1 pb-3" style={{ scrollSnapType: 'x mandatory' }}>
                 {statusColumns.map(({ key, label, color }) => (
                     <div key={key} className="flex-shrink-0" style={{ minWidth: '310px', scrollSnapAlign: 'start' }}>
-                        <div className="h-100">
+                        <div className="h-100 shadow-sm">
                             <h5 className={`mb-2 text-center ${color} bg-gradient text-white p-3 rounded`}>{label}</h5>
 
                             {groupedJobs[key].length ? (
@@ -220,12 +221,11 @@ export default function JobData({ token, role, setAlert }) {
                                             </div>
                                         )}
 
-                                        <h6 className="mb-1">{job.title}</h6>
+                                        <h5>{job.title}</h5>
                                         <span className="badge bg-success rounded-pill mb-2">{job.service_name}</span>
 
-                                        <p className="mb-1 small">
-                                            <i className="far fa-clock"></i>{' '}
-                                            {new Date(job.scheduled_date).toLocaleString()}
+                                        <p className="mb-1">
+                                            <strong>Scheduled Date:</strong> {formatDate(job.scheduled_date)}
                                         </p>
 
                                         {role === 'MANAGER' && (

@@ -1,30 +1,49 @@
-import base64
-from django.core.files.base import ContentFile
+import pytz
+from django.utils import timezone
+from rest_framework import serializers
 
 
-def image_from_base64(base64_data, filename_prefix="uploaded_image"):
+class BusinessTimezoneMixin:
     """
-    Converts a base64-encoded image string into a Django ContentFile.
-
-    Args:
-        base64_data (str): base64 string like "data:image/png;base64,...."
-        filename_prefix (str): prefix for the generated file name.
-
-    Returns:
-        ContentFile: ready to assign to an ImageField.
-    Raises:
-        ValueError: if the base64 string is invalid or cannot be decoded.
+    Converts datetime fields from UTC → business timezone
+    when serializing output.
     """
-    if not base64_data:
-        raise ValueError("No base64 data provided")
 
-    if not base64_data.startswith("data:image"):
-        raise ValueError("Invalid signature format")
+    def _get_business_timezone(self, instance):
+        if hasattr(instance, "business") and getattr(instance.business, "timezone", None):
+            return instance.business.timezone
 
-    try:
-        format, imgstr = base64_data.split(";base64,")
-        ext = format.split("/")[-1]
-        file_name = f"{filename_prefix}.{ext}"
-        return ContentFile(base64.b64decode(imgstr), name=file_name)
-    except Exception as e:
-        raise ValueError(f"Error decoding base64 image: {e}")
+        if hasattr(instance, "service") and getattr(instance.service.business, "timezone", None):
+            return instance.service.business.timezone
+
+        if hasattr(instance, "client") and getattr(instance.client.business, "timezone", None):
+            return instance.client.business.timezone
+
+        if hasattr(instance, "owned_businesses"):
+            biz = instance.owned_businesses.first()
+            if biz and biz.timezone:
+                return biz.timezone
+
+        return None
+
+    def to_representation(self, instance):
+        """Convert UTC datetimes → business timezone when returning response"""
+        data = super().to_representation(instance)
+        tz_name = self._get_business_timezone(instance)
+        if not tz_name:
+            return data
+
+        tz = pytz.timezone(tz_name)
+
+        for field_name, field in self.fields.items():
+            if isinstance(field, serializers.DateTimeField):
+                raw_value = getattr(instance, field_name, None)
+                if raw_value:
+                    if timezone.is_naive(raw_value):
+                        raw_value = timezone.make_aware(raw_value, timezone.utc)
+
+                    localized = raw_value.astimezone(tz)
+
+                    data[field_name] = localized.strftime("%Y-%m-%d %H:%M:%S")
+
+        return data

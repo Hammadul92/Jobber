@@ -11,49 +11,57 @@ export default function Register() {
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [passwordStrength, setPasswordStrength] = useState('');
     const [alert, setAlert] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const [agreeTerms, setAgreeTerms] = useState(false);
+    const [agreeOffers, setAgreeOffers] = useState(false);
+
+    const [passwordRules, setPasswordRules] = useState({
+        length: false,
+        uppercase: false,
+        number: false,
+        special: false,
+    });
+
     const [createUser, { isLoading, error }] = useCreateUserMutation();
 
-    const checkPasswordStrength = (pwd) => {
-        let strength = '';
-        const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-        if (pwd.length < 6) {
-            strength = 'Too short';
-        } else if (!/[A-Z]/.test(pwd)) {
-            strength = 'Must include uppercase letter';
-        } else if (!/[0-9]/.test(pwd)) {
-            strength = 'Must include a number';
-        } else if (!/[!@#$%^&*]/.test(pwd)) {
-            strength = 'Must include special character';
-        } else if (strongRegex.test(pwd)) {
-            strength = 'Strong Password';
-        }
-        setPasswordStrength(strength);
+    const checkPasswordRules = (pwd) => {
+        const rules = {
+            length: pwd.length >= 8,
+            uppercase: /[A-Z]/.test(pwd),
+            number: /[0-9]/.test(pwd),
+            special: /[!@#$%^&*(),.?":{}|<>]/.test(pwd),
+        };
+        setPasswordRules(rules);
     };
+
+    const isStrongPassword = Object.values(passwordRules).every(Boolean);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!agreeTerms) {
+            setAlert({ type: 'danger', message: 'You must agree to the Terms & Conditions to register.' });
+            return;
+        }
 
         if (password !== confirmPassword) {
             setAlert({ type: 'danger', message: 'Passwords do not match!' });
             return;
         }
 
-        if (passwordStrength !== 'Strong Password') {
+        if (!isStrongPassword) {
             setAlert({
                 type: 'danger',
-                message: 'Password is not strong enough!',
+                message: 'Password does not meet all requirements!',
             });
             return;
         }
 
         try {
-            await createUser({ name, email, phone, password }).unwrap();
+            await createUser({ name, email, phone, password, agreeOffers }).unwrap();
 
             setAlert({
                 type: 'success',
@@ -62,144 +70,220 @@ export default function Register() {
 
             setName('');
             setEmail('');
+            setPhone('');
             setPassword('');
             setConfirmPassword('');
-            setPasswordStrength('');
+            setAgreeTerms(false);
+            setAgreeOffers(false);
+            setPasswordRules({
+                length: false,
+                uppercase: false,
+                number: false,
+                special: false,
+            });
         } catch (err) {
             console.error('Registration failed:', err);
         }
     };
 
     return (
-        <div className="my-5 container">
-            <h2 className="text-center mb-4">Register</h2>
+        <div className="container my-5">
+            <h2 className="text-center mb-4 fw-bold text-success">Create Your Account</h2>
 
-            <form onSubmit={handleSubmit} className="row">
-                <div className="col-md-4 offset-md-4">
-                    {alert && (
-                        <div className={`alert alert-${alert.type}`} role="alert">
-                            {alert.message}
-                        </div>
-                    )}
-                    {error && (
-                        <div className="alert alert-danger" role="alert">
-                            {error?.data?.message || 'Registration failed. Please try again.'}
-                        </div>
-                    )}
-
-                    {/* Name */}
-                    <div className="mb-3">
-                        <label htmlFor="name" className="mb-2">
-                            Name (*)
-                        </label>
-                        <input
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            className="form-control"
-                        />
+            <div className="row justify-content-center">
+                {/* Password Rules */}
+                <div className="col-md-5 mb-4">
+                    <div className="h-100">
+                        <h5 className="fw-bold mb-3 text-center text-success">Password Requirements</h5>
+                        <ul className="list-unstyled fs-6">
+                            <li className={`mb-2 ${passwordRules.length ? 'text-success' : 'text-secondary'}`}>
+                                <i
+                                    className={`fa ${passwordRules.length ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
+                                ></i>
+                                At least 8 characters long
+                            </li>
+                            <li className={`mb-2 ${passwordRules.uppercase ? 'text-success' : 'text-secondary'}`}>
+                                <i
+                                    className={`fa ${passwordRules.uppercase ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
+                                ></i>
+                                Contains at least one uppercase letter
+                            </li>
+                            <li className={`mb-2 ${passwordRules.number ? 'text-success' : 'text-secondary'}`}>
+                                <i
+                                    className={`fa ${passwordRules.number ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
+                                ></i>
+                                Contains at least one number
+                            </li>
+                            <li className={`mb-2 ${passwordRules.special ? 'text-success' : 'text-secondary'}`}>
+                                <i
+                                    className={`fa ${passwordRules.special ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
+                                ></i>
+                                Contains at least one special character
+                            </li>
+                        </ul>
+                        <p className="small text-muted mt-3 text-center">
+                            Your password must satisfy all of the above to be considered strong.
+                        </p>
                     </div>
-
-                    {/* Email */}
-                    <div className="mb-3">
-                        <label htmlFor="email" className="mb-2">
-                            Email (*)
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="form-control"
-                        />
-                    </div>
-
-                    <div className="mb-3">
-                        <label htmlFor="email" className="mb-2">
-                            Phone (*)
-                        </label>
-                        <PhoneInputField value={phone} setValue={setPhone} />
-                    </div>
-
-                    {/* Password */}
-                    <div className="mb-3">
-                        <label htmlFor="password" className="mb-2">
-                            Password (*)
-                        </label>
-                        <div className="input-group">
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                id="password"
-                                value={password}
-                                onChange={(e) => {
-                                    setPassword(e.target.value);
-                                    checkPasswordStrength(e.target.value);
-                                }}
-                                required
-                                className="form-control"
-                            />
-                            <button
-                                type="button"
-                                className="btn btn-success"
-                                onClick={() => setShowPassword(!showPassword)}
-                                tabIndex={-1}
-                            >
-                                <i className={`fa ${!showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                            </button>
-                        </div>
-                        {password && (
-                            <small
-                                className={`d-block mt-1 fw-bold ${
-                                    passwordStrength === 'Strong Password' ? 'text-success' : 'text-danger'
-                                }`}
-                            >
-                                {passwordStrength}
-                            </small>
-                        )}
-                    </div>
-
-                    {/* Confirm Password */}
-                    <div className="mb-3">
-                        <label htmlFor="confirmPassword" className="mb-2">
-                            Confirm Password (*)
-                        </label>
-                        <div className="input-group">
-                            <input
-                                type={showConfirmPassword ? 'text' : 'password'}
-                                id="confirmPassword"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                required
-                                className="form-control"
-                            />
-                            <button
-                                type="button"
-                                className="btn btn-success"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                tabIndex={-1}
-                            >
-                                <i className={`fa ${!showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="text-center mb-3">
-                        <SubmitButton
-                            isLoading={isLoading}
-                            btnClass="btn btn-success w-100"
-                            btnName="Register"
-                            isDisabled={passwordStrength !== 'Strong Password'}
-                        />
-                    </div>
-
-                    <p className="text-center">
-                        Already have an account? <Link to="/sign-in">Sign In</Link>
-                    </p>
                 </div>
-            </form>
+
+                {/* Registration Form */}
+                <div className="col-md-5">
+                    <form onSubmit={handleSubmit}>
+                        {alert && (
+                            <div className={`alert alert-${alert.type}`} role="alert">
+                                {alert.message}
+                            </div>
+                        )}
+                        {error && (
+                            <div className="alert alert-danger" role="alert">
+                                {error?.data?.message || 'Registration failed. Please try again.'}
+                            </div>
+                        )}
+
+                        {/* Name */}
+                        <div className="mb-3">
+                            <label htmlFor="name" className="form-label fw-medium">
+                                Name (*)
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                className="form-control form-control-lg"
+                            />
+                        </div>
+
+                        {/* Email */}
+                        <div className="mb-3">
+                            <label htmlFor="email" className="form-label fw-medium">
+                                Email (*)
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                className="form-control form-control-lg"
+                            />
+                        </div>
+
+                        {/* Phone */}
+                        <div className="mb-3">
+                            <label htmlFor="phone" className="form-label fw-medium">
+                                Phone (*)
+                            </label>
+                            <PhoneInputField value={phone} setValue={setPhone} formLarge />
+                        </div>
+
+                        {/* Password */}
+                        <div className="mb-3">
+                            <label htmlFor="password" className="form-label fw-medium">
+                                Password (*)
+                            </label>
+                            <div className="input-group">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    id="password"
+                                    value={password}
+                                    onChange={(e) => {
+                                        setPassword(e.target.value);
+                                        checkPasswordRules(e.target.value);
+                                    }}
+                                    required
+                                    className="form-control form-control-lg"
+                                />
+                                <button
+                                    type="button"
+                                    className="btn btn-success btn-lg"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    tabIndex={-1}
+                                >
+                                    <i className={`fa ${!showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div className="mb-3">
+                            <label htmlFor="confirmPassword" className="form-label fw-medium">
+                                Confirm Password (*)
+                            </label>
+                            <div className="input-group">
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    id="confirmPassword"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required
+                                    className="form-control form-control-lg"
+                                />
+                                <button
+                                    type="button"
+                                    className="btn btn-success btn-lg"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    tabIndex={-1}
+                                >
+                                    <i className={`fa ${!showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Checkboxes */}
+                        <div className="form-check mb-2">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="agreeTerms"
+                                checked={agreeTerms}
+                                onChange={(e) => setAgreeTerms(e.target.checked)}
+                                required
+                            />
+                            <label className="form-check-label" htmlFor="agreeTerms">
+                                I agree to the{' '}
+                                <Link to="/terms" className="text-success text-decoration-none fw-semibold">
+                                    Terms & Conditions
+                                </Link>
+                                .
+                            </label>
+                        </div>
+
+                        <div className="form-check mb-3">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="agreeOffers"
+                                checked={agreeOffers}
+                                onChange={(e) => setAgreeOffers(e.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor="agreeOffers">
+                                I agree to receive regular emails with offers and updates.
+                            </label>
+                        </div>
+
+                        {/* Submit */}
+                        <div className="text-center mb-3">
+                            <SubmitButton
+                                isLoading={isLoading}
+                                btnClass="btn btn-success btn-lg w-100"
+                                btnName="Register"
+                                isDisabled={!isStrongPassword}
+                            />
+                        </div>
+
+                        {/* Sign In link */}
+                        <p className="text-center">
+                            Already have an account?{' '}
+                            <Link to="/sign-in" className="text-success text-decoration-none fw-semibold">
+                                Sign In
+                            </Link>
+                        </p>
+                    </form>
+                </div>
+            </div>
         </div>
     );
 }

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useResetPasswordMutation } from '../../store';
-
 import SubmitButton from '../../utils/SubmitButton';
 
 export default function ResetPassword() {
@@ -11,28 +10,31 @@ export default function ResetPassword() {
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [passwordStrength, setPasswordStrength] = useState('');
     const [alert, setAlert] = useState(null);
+
+    const [passwordRules, setPasswordRules] = useState({
+        length: false,
+        uppercase: false,
+        number: false,
+        special: false,
+    });
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [resetPassword, { isLoading, error }] = useResetPasswordMutation();
 
-    const checkPasswordStrength = (pwd) => {
-        let strength = '';
-        const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-        if (pwd.length < 6) {
-            strength = 'Too short';
-        } else if (!/[A-Z]/.test(pwd)) {
-            strength = 'Must include uppercase letter';
-        } else if (!/[0-9]/.test(pwd)) {
-            strength = 'Must include a number';
-        } else if (!/[!@#$%^&*]/.test(pwd)) {
-            strength = 'Must include special character';
-        } else if (strongRegex.test(pwd)) {
-            strength = 'Strong Password';
-        }
-        setPasswordStrength(strength);
+    const checkPasswordRules = (pwd) => {
+        const rules = {
+            length: pwd.length >= 8,
+            uppercase: /[A-Z]/.test(pwd),
+            number: /[0-9]/.test(pwd),
+            special: /[!@#$%^&*(),.?":{}|<>]/.test(pwd),
+        };
+        setPasswordRules(rules);
     };
+
+    const isStrongPassword = Object.values(passwordRules).every(Boolean);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -47,8 +49,8 @@ export default function ResetPassword() {
             return;
         }
 
-        if (passwordStrength !== 'Strong Password') {
-            setAlert({ type: 'danger', message: 'Password is not strong enough!' });
+        if (!isStrongPassword) {
+            setAlert({ type: 'danger', message: 'Password does not meet all requirements!' });
             return;
         }
 
@@ -56,7 +58,7 @@ export default function ResetPassword() {
             await resetPassword({ token, password }).unwrap();
             setAlert({
                 type: 'success',
-                message: 'Password reset successfully! Redirecting to login...',
+                message: 'Password reset successfully! Redirecting to sign in...',
             });
 
             setTimeout(() => navigate('/sign-in'), 2000);
@@ -66,72 +68,139 @@ export default function ResetPassword() {
     };
 
     return (
-        <div className="my-5 container">
-            <h2 className="text-center mb-4">Reset Password</h2>
+        <div className="container my-5">
+            <h2 className="text-center mb-4 fw-bold text-success">Reset Your Password</h2>
 
-            <form onSubmit={handleSubmit} className="row">
-                <div className="col-md-4 offset-md-4">
-                    {alert && (
-                        <div className={`alert alert-${alert.type}`} role="alert">
-                            {alert.message}
-                        </div>
-                    )}
-                    {error && (
-                        <div className="alert alert-danger" role="alert">
-                            {error?.data?.detail || 'Password reset failed. Try again.'}
-                        </div>
-                    )}
-
-                    {/* Password field */}
-                    <div className="mb-3">
-                        <label htmlFor="password" className="mb-2">
-                            New Password (*)
-                        </label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                checkPasswordStrength(e.target.value);
-                            }}
-                            required
-                            className="form-control"
-                        />
-                        {password && (
-                            <small
-                                className={`d-block mt-1 fw-bold ${
-                                    passwordStrength === 'Strong Password' ? 'text-success' : 'text-danger'
-                                }`}
-                            >
-                                {passwordStrength}
-                            </small>
-                        )}
+            <div className="row justify-content-center">
+                {/* Left: Password Rules */}
+                <div className="col-md-5 mb-4">
+                    <div className="h-100">
+                        <h5 className="fw-bold mb-3 text-center text-success">Password Requirements</h5>
+                        <ul className="list-unstyled fs-6">
+                            <li className={`mb-2 ${passwordRules.length ? 'text-success' : 'text-secondary'}`}>
+                                <i
+                                    className={`fa ${
+                                        passwordRules.length ? 'fa-check-circle' : 'fa-times-circle'
+                                    } me-2`}
+                                ></i>
+                                At least 8 characters long
+                            </li>
+                            <li className={`mb-2 ${passwordRules.uppercase ? 'text-success' : 'text-secondary'}`}>
+                                <i
+                                    className={`fa ${
+                                        passwordRules.uppercase ? 'fa-check-circle' : 'fa-times-circle'
+                                    } me-2`}
+                                ></i>
+                                Contains at least one uppercase letter
+                            </li>
+                            <li className={`mb-2 ${passwordRules.number ? 'text-success' : 'text-secondary'}`}>
+                                <i
+                                    className={`fa ${
+                                        passwordRules.number ? 'fa-check-circle' : 'fa-times-circle'
+                                    } me-2`}
+                                ></i>
+                                Contains at least one number
+                            </li>
+                            <li className={`mb-2 ${passwordRules.special ? 'text-success' : 'text-secondary'}`}>
+                                <i
+                                    className={`fa ${
+                                        passwordRules.special ? 'fa-check-circle' : 'fa-times-circle'
+                                    } me-2`}
+                                ></i>
+                                Contains at least one special character
+                            </li>
+                        </ul>
+                        <p className="small text-muted mt-3 text-center">
+                            Your password must satisfy all of the above to be considered strong.
+                        </p>
                     </div>
-
-                    <div className="mb-3">
-                        <label htmlFor="confirmPassword" className="mb-2">
-                            Confirm New Password (*)
-                        </label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                            className="form-control"
-                        />
-                    </div>
-
-                    <div className="text-center mb-3">
-                        <SubmitButton isLoading={isLoading} btnClass="btn btn-success w-100" btnName="Reset Password" />
-                    </div>
-
-                    <p className="text-center">
-                        Remembered your password? <Link to="/sign-in">Sign In</Link>
-                    </p>
                 </div>
-            </form>
+
+                {/* Right: Reset Form */}
+                <div className="col-md-5">
+                    <form onSubmit={handleSubmit}>
+                        {alert && (
+                            <div className={`alert alert-${alert.type}`} role="alert">
+                                {alert.message}
+                            </div>
+                        )}
+                        {error && (
+                            <div className="alert alert-danger" role="alert">
+                                {error?.data?.detail || 'Password reset failed. Please try again.'}
+                            </div>
+                        )}
+
+                        {/* New Password */}
+                        <div className="mb-3">
+                            <label htmlFor="password" className="form-label fw-medium">
+                                New Password (*)
+                            </label>
+                            <div className="input-group">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    id="password"
+                                    value={password}
+                                    onChange={(e) => {
+                                        setPassword(e.target.value);
+                                        checkPasswordRules(e.target.value);
+                                    }}
+                                    required
+                                    className="form-control form-control-lg"
+                                />
+                                <button
+                                    type="button"
+                                    className="btn btn-success btn-lg"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    tabIndex={-1}
+                                >
+                                    <i className={`fa ${!showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div className="mb-3">
+                            <label htmlFor="confirmPassword" className="form-label fw-medium">
+                                Confirm New Password (*)
+                            </label>
+                            <div className="input-group">
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    id="confirmPassword"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required
+                                    className="form-control form-control-lg"
+                                />
+                                <button
+                                    type="button"
+                                    className="btn btn-success btn-lg"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    tabIndex={-1}
+                                >
+                                    <i className={`fa ${!showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="text-center mb-3">
+                            <SubmitButton
+                                isLoading={isLoading}
+                                btnClass="btn btn-success btn-lg w-100"
+                                btnName="Reset Password"
+                                isDisabled={!isStrongPassword}
+                            />
+                        </div>
+
+                        <p className="text-center">
+                            Remember your password?{' '}
+                            <Link to="/sign-in" className="text-success text-decoration-none fw-semibold">
+                                Sign In
+                            </Link>
+                        </p>
+                    </form>
+                </div>
+            </div>
         </div>
     );
 }

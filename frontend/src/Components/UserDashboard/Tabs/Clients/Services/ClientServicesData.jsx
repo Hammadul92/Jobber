@@ -4,6 +4,7 @@ import { useFetchServicesQuery, useDeleteServiceMutation } from '../../../../../
 import SubmitButton from '../../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../../utils/AlertDispatcher';
 import { countries, provinces } from '../../../../../utils/locations';
+import { formatDate } from '../../../../../utils/formatDate';
 
 export default function ClientServicesData({ token, role, clientId }) {
     const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();
@@ -171,38 +172,38 @@ export default function ClientServicesData({ token, role, clientId }) {
             </div>
 
             {/* GRID VIEW */}
-            <div className="d-flex flex-nowrap overflow-auto gap-3" style={{ scrollSnapType: 'x mandatory' }}>
+            <div className="d-flex flex-nowrap overflow-auto gap-1" style={{ scrollSnapType: 'x mandatory' }}>
                 {statusColumns.map(({ key, label, color }) => (
                     <div key={key} className="flex-shrink-0" style={{ minWidth: '300px', scrollSnapAlign: 'start' }}>
-                        <div className="h-100">
+                        <div className="h-100 shadow-sm">
                             <h5 className={`mb-2 text-center ${color} bg-gradient text-white p-3 rounded`}>{label}</h5>
 
                             {groupedServices[key].length ? (
                                 groupedServices[key].map((service) => (
                                     <div key={service.id} className={`shadow-sm p-2 m-2 rounded`}>
                                         <div className="clearfix mb-2">
-                                            <span className="badge bg-dark rounded-pill float-end me-2">
+                                            <span className="badge bg-dark bg-gradient rounded-pill float-end me-2">
                                                 {service.service_type}
                                             </span>
-                                            <h6 className="fw-bold mb-0">{service.service_name}</h6>
+                                            <h5 className="fw-bold mb-0">{service.service_name}</h5>
                                         </div>
 
                                         {['ACTIVE', 'COMPLETED'].includes(service.status) && (
-                                            <p className="mb-1 small">
+                                            <p className="mb-1">
                                                 <strong>Price:</strong> ${service.price} {service.currency}
                                             </p>
                                         )}
 
-                                        <p className="mb-1 small">
-                                            <strong>Start:</strong> {service.start_date}
+                                        <p className="mb-1">
+                                            <strong>Start:</strong> {formatDate(service.start_date, false)}
                                         </p>
                                         {service.end_date && (
-                                            <p className="mb-1 small">
-                                                <strong>End:</strong> {service.end_date}
+                                            <p className="mb-1">
+                                                <strong>End:</strong> {formatDate(service.end_date, false)}
                                             </p>
                                         )}
 
-                                        <p className="mb-1 small text-muted">
+                                        <p className="mb-1 small">
                                             <i className="fa fa-map-marker-alt me-1"></i>
                                             {service.street_address}, {service.city}, {service.province_state},{' '}
                                             {service.country}
@@ -240,7 +241,7 @@ export default function ClientServicesData({ token, role, clientId }) {
                                                 <Link
                                                     to={`/dashboard/service-questionnaire/${service.service_questionnaires?.id}/form/${service.id}`}
                                                 >
-                                                    <span className="badge bg-primary rounded-pill p-2">
+                                                    <span className="badge bg-primary bg-gradient rounded-pill">
                                                         {service.filled_questionnaire && (
                                                             <i className="fa fa-check me-1"></i>
                                                         )}

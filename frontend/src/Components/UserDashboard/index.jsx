@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFetchUserQuery } from '../../store';
 
 import SideNav from './SideNav';
 import DashboardHome from './Tabs/Home/';
-import Settings from './Tabs/Settings/';
 import Clients from './Tabs/Clients';
 import Client from './Tabs/Clients/Client';
 import ClientServices from './Tabs/Clients/Services';
@@ -20,24 +18,8 @@ import SignQuote from './Tabs/Quotes/signQuote';
 import Jobs from './Tabs/Jobs';
 import Job from './Tabs/Jobs/Job';
 
-export default function UserDashboard({ page }) {
+export default function UserDashboard({ page, token, user }) {
     const navigate = useNavigate();
-    const token = localStorage.getItem('token');
-
-    const { data: user, isFetching, isError, error } = useFetchUserQuery(undefined, { skip: !token });
-
-    useEffect(() => {
-        const currentPath = window.location.pathname + window.location.search;
-        const isAuthPage = ['/sign-in', '/register', '/forgot-password'].some((path) =>
-            window.location.pathname.startsWith(path)
-        );
-
-        if (!token || (isError && error?.status === 401)) {
-            if (!isAuthPage) {
-                navigate(`/sign-in?next=${encodeURIComponent(currentPath)}`, { replace: true });
-            }
-        }
-    }, [token, isError, error, navigate]);
 
     useEffect(() => {
         if (user?.role === 'CLIENT') {
@@ -59,13 +41,8 @@ export default function UserDashboard({ page }) {
         }
     }, [user, page, navigate]);
 
-    if (isFetching) {
-        return <div className="text-center py-5">Loading...</div>;
-    }
-
     const renderTab = () => {
         if (page === 'home') return <DashboardHome token={token} role={user.role} />;
-        else if (page === 'settings') return <Settings token={token} role={user.role} />;
         else if (page === 'clients') return <Clients token={token} />;
         else if (page === 'client') return <Client token={token} />;
         else if (page === 'client-services') return <ClientServices token={token} role={user.role} />;

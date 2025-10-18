@@ -18,7 +18,11 @@ export default function SignQuote({ token }) {
 
     const handleDeclineConfirm = async () => {
         try {
-            await signQuote({ id, status: 'DECLINED' }).unwrap();
+            const formData = new FormData();
+            formData.append('status', 'DECLINED');
+
+            await signQuote({ id, formData }).unwrap();
+
             setStatus('DECLINED');
             setAlert({ type: 'success', message: 'Quote declined successfully!' });
         } catch (err) {
@@ -33,7 +37,20 @@ export default function SignQuote({ token }) {
 
     const handleSignSubmit = async ({ signature }) => {
         try {
-            await signQuote({ id, status: 'SIGNED', signature }).unwrap();
+            const formData = new FormData();
+            formData.append('status', 'SIGNED');
+
+            if (signature) {
+                if (typeof signature === 'string' && signature.startsWith('data:image')) {
+                    const blob = await fetch(signature).then((res) => res.blob());
+                    formData.append('signature', blob, 'signature.png');
+                } else {
+                    formData.append('signature', signature);
+                }
+            }
+
+            await signQuote({ id, formData }).unwrap();
+
             setStatus('SIGNED');
             setAlert({ type: 'success', message: 'Quote signed successfully!' });
         } catch (err) {
@@ -125,10 +142,10 @@ export default function SignQuote({ token }) {
 
             <div className="shadow p-4 bg-white rounded">
                 <div className="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-                    <h3 className="fw-semibold text-dark mb-0">
+                    <h4 className="mb-0 fw-semibold">
                         <i className="far fa-file-text text-secondary me-2"></i>
-                        Quote ({quote.quote_number})
-                    </h3>
+                        {quote.business_name} (Quote # {quote.quote_number})
+                    </h4>
 
                     {quote.valid_until && status === 'SENT' && (
                         <div className="text-end">
@@ -156,8 +173,8 @@ export default function SignQuote({ token }) {
 
                 <div className="row mb-3">
                     <div className="col-md-6 mb-4 mb-md-0">
-                        <h5 className="text-muted mb-2">Client Details</h5>
-                        <ul>
+                        <h6 className="text-muted mb-2">Client Details</h6>
+                        <ul className="list-unstyled">
                             <li>
                                 <strong>Name:</strong> {quote.client_name || '_'}
                             </li>
@@ -174,8 +191,8 @@ export default function SignQuote({ token }) {
                             </li>
                         </ul>
 
-                        <h5 className="text-muted mb-2">Service Details</h5>
-                        <ul>
+                        <h6 className="text-muted mb-2">Service Details</h6>
+                        <ul className="list-unstyled">
                             <li>
                                 <strong>Service Name:</strong> {quote.service_data?.service_name || '—'}
                             </li>
@@ -217,8 +234,8 @@ export default function SignQuote({ token }) {
 
                     <div className="col-md-6">
                         <div>
-                            <h5 className="text-muted mb-2">Service Questionnaire Responses</h5>
-                            <ul>
+                            <h6 className="text-muted mb-2">Service Questionnaire Responses</h6>
+                            <ul className="list-unstyled">
                                 {quote?.service_data?.filled_questionnaire &&
                                 Object.keys(quote.service_data.filled_questionnaire).length > 0 ? (
                                     Object.entries(quote.service_data.filled_questionnaire).map(([q, a]) => (

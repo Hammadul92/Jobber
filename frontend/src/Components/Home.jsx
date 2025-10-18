@@ -173,14 +173,6 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-
-            {/* Footer */}
-            <footer className="bg-dark text-light py-4 text-center">
-                <div className="container">
-                    <p className="mb-1">© {new Date().getFullYear()} ZS Projects. All rights reserved.</p>
-                    <p className="mb-0">Developed by ZS Projects</p>
-                </div>
-            </footer>
         </div>
     );
 }

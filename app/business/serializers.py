@@ -3,10 +3,11 @@ Serializers for business APIs
 """
 
 import json
+from core.utils import BusinessTimezoneMixin
 from django.utils import timezone
-
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+
 
 from core.models import (
     Business,
@@ -20,7 +21,7 @@ from core.models import (
 )
 
 
-class BusinessSerializer(serializers.ModelSerializer):
+class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     """ Serializer for businesses."""
     services_offered = serializers.SerializerMethodField()
 
@@ -146,7 +147,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class ServiceSerializer(serializers.ModelSerializer):
+class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     """Serializer for services with optimized validation."""
     quotations = serializers.SerializerMethodField()
     service_questionnaires = serializers.SerializerMethodField()
@@ -294,7 +295,7 @@ class ServiceQuestionnaireSerializer(serializers.ModelSerializer):
         return 0
 
 
-class JobSerializer(serializers.ModelSerializer):
+class JobSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     """Serializer for Job model."""
 
     service_name = serializers.CharField(source="service.service_name", read_only=True)

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useFetchQuoteQuery, useUpdateQuoteMutation, useSendQuoteMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import { formatDate } from '../../../../utils/formatDate';
 
 export default function Quote({ token }) {
     const { id } = useParams();
@@ -272,11 +273,7 @@ export default function Quote({ token }) {
                                         <input
                                             type="text"
                                             className="form-control"
-                                            value={
-                                                quoteData.signed_at
-                                                    ? new Date(quoteData.signed_at).toLocaleString()
-                                                    : ''
-                                            }
+                                            value={formatDate(quoteData.signed_at)}
                                             readOnly
                                         />
                                         <label className="form-label">Signed At</label>

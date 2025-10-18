@@ -1,7 +1,6 @@
 """
 Database models.
 """
-from core.utils import image_from_base64
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -589,10 +588,3 @@ class Quote(SoftDeletableModel):
             new_number = 1
 
         return f"{prefix}{new_number:03d}"
-
-    def set_signature_from_base64(self, base64_data):
-        try:
-            content_file = image_from_base64(base64_data, f"signature_{self.quote_number}")
-            self.signature.save(content_file.name, content_file, save=False)
-        except ValueError as e:
-            raise ValueError(f"Error saving signature: {e}")

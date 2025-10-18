@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 
-export default function PhoneInputField({ country, value, setValue, optional }) {
+export default function PhoneInputField({ value, setValue, optional, formLarge }) {
     const [error, setError] = useState('');
 
-    // Strict North American regex requiring +1 at the start
     const phoneRegex = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
 
     const handleChange = (e) => {
         let inputVal = e.target.value;
 
-        // Auto-add "+1" if user deletes it
         if (!inputVal.startsWith('+1')) {
             inputVal = '+1 ' + inputVal.replace(/^\+?1?\s*/, '');
         }
@@ -31,7 +29,7 @@ export default function PhoneInputField({ country, value, setValue, optional }) 
         <>
             <input
                 type="tel"
-                className={`form-control ${error ? 'is-invalid' : ''}`}
+                className={`form-control ${formLarge ? 'form-control-lg' : ''} ${error ? 'is-invalid' : ''}`}
                 name="phone"
                 required={!optional}
                 placeholder="+1 555-555-5555"

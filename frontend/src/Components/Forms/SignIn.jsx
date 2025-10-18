@@ -45,7 +45,7 @@ export default function SignIn() {
 
     return (
         <div className="my-5 container">
-            <h2 className="text-center mb-4">Sign In</h2>
+            <h2 className="text-center fw-bold mb-4 text-success">Sign In</h2>
 
             {token && (
                 <div className="mb-4 col-md-4 offset-md-4">
@@ -70,7 +70,7 @@ export default function SignIn() {
                     )}
 
                     <div className="mb-3">
-                        <label htmlFor="email" className="mb-2">
+                        <label htmlFor="email" className="form-label fw-medium">
                             Email (*)
                         </label>
                         <input
@@ -79,12 +79,12 @@ export default function SignIn() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="form-control"
+                            className="form-control form-control-lg"
                         />
                     </div>
 
                     <div className="mb-3">
-                        <label htmlFor="password" className="mb-2">
+                        <label htmlFor="password" className="form-label fw-medium">
                             Password (*)
                         </label>
                         <div className="input-group">
@@ -94,11 +94,11 @@ export default function SignIn() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="form-control"
+                                className="form-control form-control-lg"
                             />
                             <button
                                 type="button"
-                                className="btn btn-outline-success"
+                                className="btn btn-success"
                                 onClick={() => setShowPassword(!showPassword)}
                                 tabIndex={-1}
                             >
@@ -108,15 +108,24 @@ export default function SignIn() {
                     </div>
 
                     <div className="text-center mb-3">
-                        <SubmitButton isLoading={signinLoading} btnClass="btn btn-success w-100" btnName="Sign In" />
-                    </div>
-
-                    <div className="text-center mb-3">
-                        <Link to="/forgot-password">Forgot Password?</Link>
+                        <SubmitButton
+                            isLoading={signinLoading}
+                            btnClass="btn btn-lg btn-success w-100"
+                            btnName="Sign In"
+                        />
                     </div>
 
                     <p className="text-center">
-                        Don’t have an account? <Link to="/register">Register</Link>
+                        <Link to="/forgot-password" className="text-success fw-semibold text-decoration-none">
+                            Forgot Password?
+                        </Link>
+                    </p>
+
+                    <p className="text-center">
+                        Don’t have an account?{' '}
+                        <Link to="/register" className="text-success fw-semibold text-decoration-none">
+                            Register
+                        </Link>
                     </p>
                 </div>
             </form>

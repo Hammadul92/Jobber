@@ -8,22 +8,17 @@ from django.utils.translation import gettext_lazy as _
 from core import models
 
 
-@admin.action(description="Restore selected records")
-def restore_selected(modeladmin, request, queryset):
-    """Admin action to restore soft-deleted objects."""
-    for obj in queryset:
-        if hasattr(obj, "restore"):
-            obj.restore()
-
-
 class SoftDeletableAdminMixin:
     """
     Adds soft deletion info to Django admin:
     - Shows 'is_deleted', 'deleted_at', and 'deleted_by'
     - Allows filtering by deleted state
-    - Includes a restore action
     """
-    actions = [restore_selected]
+
+    def get_queryset(self, request):
+        """Include soft-deleted records in admin list."""
+        qs = self.model.all_objects.all()
+        return qs
 
     def get_list_display(self, request):
         """Append soft delete fields to list_display if not already included."""
