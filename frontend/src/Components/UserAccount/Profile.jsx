@@ -41,13 +41,13 @@ export default function Profile({ token, setAlert }) {
 
     return (
         <form className="tab-pane active" onSubmit={submitHandler}>
-            <h3 className="fw-bold text-success">Profile</h3>
+            <h3 className="fw-bold text-success mb-0">Profile</h3>
             <div className="row mb-4">
                 <div className="col-md-6">
                     <div className="field-wrapper">
                         <input
                             type="text"
-                            className="form-control form-control-lg"
+                            className="form-control"
                             value={name}
                             onChange={(e) => setUserName(e.target.value)}
                             required
@@ -59,7 +59,7 @@ export default function Profile({ token, setAlert }) {
                     <div className="field-wrapper">
                         <input
                             type="email"
-                            className="form-control form-control-lg"
+                            className="form-control"
                             value={email}
                             onChange={(e) => setUserEmail(e.target.value)}
                             required
@@ -70,7 +70,7 @@ export default function Profile({ token, setAlert }) {
                 </div>
                 <div className="col-md-6">
                     <div className="field-wrapper">
-                        <PhoneInputField value={phone} setValue={setUserPhone} formLarge />
+                        <PhoneInputField value={phone} setValue={setUserPhone} />
                         <label className="form-label">Phone (*)</label>
                     </div>
                 </div>
@@ -78,7 +78,7 @@ export default function Profile({ token, setAlert }) {
                     <div className="field-wrapper">
                         <input
                             type="text"
-                            className="form-control form-control-lg"
+                            className="form-control"
                             value={formatDate(user?.last_login) || ''}
                             readOnly
                         />

@@ -132,11 +132,11 @@ export default function Credentials({ setAlert }) {
                                 }}
                                 required
                                 disabled={isLoading}
-                                className="form-control form-control-lg"
+                                className="form-control"
                             />
                             <button
                                 type="button"
-                                className="btn btn-success btn-lg"
+                                className="btn btn-success"
                                 onClick={() => setShowPassword(!showPassword)}
                                 tabIndex={-1}
                             >
@@ -158,11 +158,11 @@ export default function Credentials({ setAlert }) {
                                 onChange={(e) => setConfirmNewPassword(e.target.value)}
                                 required
                                 disabled={isLoading}
-                                className="form-control form-control-lg"
+                                className="form-control"
                             />
                             <button
                                 type="button"
-                                className="btn btn-success btn-lg"
+                                className="btn btn-success"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 tabIndex={-1}
                             >
@@ -171,10 +171,10 @@ export default function Credentials({ setAlert }) {
                         </div>
                     </div>
 
-                    <div className="text-center">
+                    <div>
                         <SubmitButton
                             isLoading={isLoading}
-                            btnClass="btn btn-success btn-lg w-100"
+                            btnClass="btn btn-success"
                             btnName="Save Changes"
                             isDisabled={!isStrongPassword}
                         />

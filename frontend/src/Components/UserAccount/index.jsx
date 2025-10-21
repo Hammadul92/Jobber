@@ -1,26 +1,26 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import AlertDispatcher from '../../utils/AlertDispatcher';
 import Profile from './Profile';
 import Business from './Business';
 import Credentials from './Credentials';
 
-export default function AccountSettings({ token, user }) {
-    const location = useLocation();
+export default function UserAccount({ token, user }) {
+    const { tab } = useParams();
     const [alert, setAlert] = useState({ type: '', message: '' });
 
-    // Extract active tab from URL — e.g., "/user-account/profile" → "profile"
-    const activeTab = location.pathname.split('/').pop() || 'profile';
+    const activeTab = tab || 'profile';
 
     const menuItems = [
         { key: 'profile', label: 'Profile', icon: 'fa-user' },
         ...(user.role === 'MANAGER' ? [{ key: 'business', label: 'Business', icon: 'fa-briefcase' }] : []),
         { key: 'banking', label: 'Banking', icon: 'fa-building-columns' },
-        { key: 'credentials', label: 'Credentials', icon: 'fa-lock' },
+        { key: 'credentials', label: 'Credentials', icon: 'fa-key' },
     ];
 
     return (
         <div className="container my-5">
+            {/* Alert Section */}
             {alert.message && (
                 <AlertDispatcher
                     type={alert.type}
@@ -37,8 +37,13 @@ export default function AccountSettings({ token, user }) {
                             ZS Projects
                         </Link>
                     </li>
+                    <li className="breadcrumb-item">
+                        <Link to="/user-account/profile" className="text-success text-decoration-none">
+                            User Account
+                        </Link>
+                    </li>
                     <li className="breadcrumb-item active" aria-current="page">
-                        User Account
+                        {activeTab}
                     </li>
                 </ol>
             </nav>
@@ -46,14 +51,14 @@ export default function AccountSettings({ token, user }) {
             <h2 className="mb-4 text-success fw-bold">User Account</h2>
 
             <div className="row">
-                {/* Sidebar */}
+                {/* Sidebar Menu */}
                 <div className="col-md-3 mb-3 mb-md-0">
                     <div className="list-group shadow-sm rounded-3">
                         {menuItems.map((item) => (
                             <Link
                                 to={`/user-account/${item.key}`}
                                 key={item.key}
-                                className={`list-group-item list-group-item-action d-flex align-items-center gap-2 py-3 ${
+                                className={`list-group-item list-group-item-action d-flex align-items-center gap-1 ${
                                     activeTab === item.key
                                         ? 'bg-success bg-gradient text-white border-success'
                                         : 'text-dark'
@@ -66,7 +71,7 @@ export default function AccountSettings({ token, user }) {
                     </div>
                 </div>
 
-                {/* Content */}
+                {/* Content Section */}
                 <div className="col-md-9">
                     <div className="p-3 pt-0 bg-white rounded-sm shadow-sm">
                         {activeTab === 'profile' && <Profile token={token} setAlert={setAlert} />}

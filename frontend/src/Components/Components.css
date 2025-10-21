@@ -312,3 +312,15 @@ textarea.form-control:focus {
     background-color: #7ac89b !important;
     border-color: #7ac89b !important;
 }
+
+.list-group-item {
+    padding: 6px 15px;
+}
+
+.list-group-item:hover {
+    background: #f9f9f9;
+}
+
+.offcanvas.offcanvas-end {
+    width: 330px;
+}

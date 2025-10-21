@@ -7,7 +7,6 @@ import PhoneInputField from '../../utils/PhoneInput';
 export default function Business({ token, setAlert }) {
     const [step, setStep] = useState(1);
     const totalSteps = 4;
-    const [visitedSteps, setVisitedSteps] = useState([1]);
 
     const [businessId, setBusinessId] = useState(null);
     const [name, setName] = useState('');
@@ -94,19 +93,22 @@ export default function Business({ token, setAlert }) {
             case 3:
                 return selectedServices.length > 0;
             case 4:
-                return !!logo;
+                return true;
             default:
                 return false;
         }
     };
 
-    // Automatically mark steps complete when their fields are valid
+    const isStepVisuallyComplete = (stepNum) => {
+        if (stepNum === 4) return !!logo;
+        return isStepComplete(stepNum);
+    };
+
     useEffect(() => {
         const completed = [];
         for (let i = 1; i <= totalSteps; i++) {
             if (isStepComplete(i)) completed.push(i);
         }
-        setVisitedSteps((prev) => Array.from(new Set([...prev, ...completed])));
     }, [
         name,
         email,
@@ -130,7 +132,6 @@ export default function Business({ token, setAlert }) {
         if (validateStep()) {
             const next = Math.min(step + 1, totalSteps);
             setStep(next);
-            if (!visitedSteps.includes(next)) setVisitedSteps([...visitedSteps, next]);
         } else {
             setAlert({ type: 'danger', message: 'Please fill all required fields before continuing.' });
         }
@@ -179,17 +180,40 @@ export default function Business({ token, setAlert }) {
 
     return (
         <>
-            {/* Stepper */}
             <div className="step-container mb-4">
                 {steps.map((label, index) => {
                     const stepNum = index + 1;
                     const isActive = stepNum === step;
-                    const isCompleted = visitedSteps.includes(stepNum) && stepNum !== step;
+                    const isCompleted = stepNum !== step && isStepVisuallyComplete(stepNum);
+
                     return (
                         <div
                             key={label}
                             className={`step-item ${isActive ? 'active' : isCompleted ? 'completed' : ''}`}
-                            onClick={() => setStep(stepNum)}
+                            onClick={() => {
+                                if (stepNum < step) {
+                                    // Go back freely
+                                    setStep(stepNum);
+                                } else if (stepNum > step) {
+                                    // Validate all previous steps before jumping forward
+                                    let canProceed = true;
+                                    for (let i = step; i < stepNum; i++) {
+                                        if (!isStepComplete(i)) {
+                                            canProceed = false;
+                                            break;
+                                        }
+                                    }
+
+                                    if (canProceed) {
+                                        setStep(stepNum);
+                                    } else {
+                                        setAlert({
+                                            type: 'danger',
+                                            message: 'Please fill all required fields before continuing.',
+                                        });
+                                    }
+                                }
+                            }}
                         >
                             <span>{label}</span>
                             {isCompleted && <i className="fa fa-check ms-2 text-success"></i>}
@@ -199,14 +223,13 @@ export default function Business({ token, setAlert }) {
             </div>
 
             <form onSubmit={handleSubmit}>
-                {/* === STEP 1 === */}
                 {step === 1 && (
                     <div className="row">
                         <div className="col-md-6">
                             <div className="field-wrapper">
                                 <input
                                     type="text"
-                                    className="form-control form-control-lg"
+                                    className="form-control"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     required
@@ -218,7 +241,7 @@ export default function Business({ token, setAlert }) {
                             <div className="field-wrapper">
                                 <input
                                     type="email"
-                                    className="form-control form-control-lg"
+                                    className="form-control"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -235,7 +258,7 @@ export default function Business({ token, setAlert }) {
                         <div className="col-md-6">
                             <div className="field-wrapper">
                                 <select
-                                    className="form-select form-select-lg"
+                                    className="form-select"
                                     value={timezone}
                                     onChange={(e) => setTimezone(e.target.value)}
                                     required
@@ -253,7 +276,7 @@ export default function Business({ token, setAlert }) {
                             <div className="field-wrapper">
                                 <input
                                     type="text"
-                                    className="form-control form-control-lg"
+                                    className="form-control"
                                     value={businessNumber}
                                     onChange={(e) => setBusinessNumber(e.target.value)}
                                     required
@@ -265,7 +288,7 @@ export default function Business({ token, setAlert }) {
                             <div className="field-wrapper">
                                 <input
                                     type="number"
-                                    className="form-control form-control-lg"
+                                    className="form-control"
                                     value={taxRate}
                                     onChange={(e) => setTaxRate(e.target.value)}
                                     required
@@ -276,7 +299,7 @@ export default function Business({ token, setAlert }) {
                         <div className="col-md-12">
                             <div className="field-wrapper">
                                 <textarea
-                                    className="form-control form-control-lg"
+                                    className="form-control"
                                     rows={3}
                                     value={businessDescription}
                                     onChange={(e) => setBusinessDescription(e.target.value)}
@@ -288,14 +311,13 @@ export default function Business({ token, setAlert }) {
                     </div>
                 )}
 
-                {/* === STEP 2 === */}
                 {step === 2 && (
                     <div className="row">
                         <div className="col-md-6">
                             <div className="field-wrapper">
                                 <input
                                     type="text"
-                                    className="form-control form-control-lg"
+                                    className="form-control"
                                     value={streetAddress}
                                     onChange={(e) => setStreetAddress(e.target.value)}
                                     required
@@ -307,7 +329,7 @@ export default function Business({ token, setAlert }) {
                             <div className="field-wrapper">
                                 <input
                                     type="text"
-                                    className="form-control form-control-lg"
+                                    className="form-control"
                                     value={city}
                                     onChange={(e) => setCity(e.target.value)}
                                     required
@@ -318,7 +340,7 @@ export default function Business({ token, setAlert }) {
                         <div className="col-md-6">
                             <div className="field-wrapper">
                                 <select
-                                    className="form-select form-select-lg"
+                                    className="form-select"
                                     value={country}
                                     onChange={(e) => setCountry(e.target.value)}
                                     required
@@ -335,7 +357,7 @@ export default function Business({ token, setAlert }) {
                         <div className="col-md-6">
                             <div className="field-wrapper">
                                 <select
-                                    className="form-select form-select-lg"
+                                    className="form-select"
                                     value={provinceState}
                                     onChange={(e) => setProvinceState(e.target.value)}
                                     required
@@ -354,7 +376,7 @@ export default function Business({ token, setAlert }) {
                             <div className="field-wrapper">
                                 <input
                                     type="text"
-                                    className="form-control form-control-lg"
+                                    className="form-control"
                                     value={postalCode}
                                     onChange={(e) => setPostalCode(e.target.value)}
                                     required
@@ -365,7 +387,6 @@ export default function Business({ token, setAlert }) {
                     </div>
                 )}
 
-                {/* === STEP 3 === */}
                 {step === 3 && (
                     <div>
                         <div className="row g-2">
@@ -384,7 +405,6 @@ export default function Business({ token, setAlert }) {
                     </div>
                 )}
 
-                {/* === STEP 4 === */}
                 {step === 4 && (
                     <div>
                         <div
@@ -405,27 +425,25 @@ export default function Business({ token, setAlert }) {
                                 </div>
                             )}
                         </div>
-                        <div className="field-wrapper">
+                        <div>
                             <input
                                 type="file"
                                 accept="image/*"
-                                className="form-control form-control-lg"
+                                className="form-control w-50"
                                 onChange={(e) => setLogo(e.target.files[0])}
                             />
-                            <label className="form-label">Upload Logo</label>
                         </div>
                     </div>
                 )}
 
-                {/* === Controls === */}
                 <div className="d-flex justify-content-between mt-4">
                     {step > 1 && (
-                        <button type="button" className="btn bg-gradient btn-dark" onClick={prevStep}>
+                        <button type="button" className="btn bg-gradient btn-sm btn-dark" onClick={prevStep}>
                             <i className="fa fa-chevron-left me-2"></i>Back
                         </button>
                     )}
                     {step < totalSteps ? (
-                        <button type="button" className="btn bg-gradient btn-success ms-auto" onClick={nextStep}>
+                        <button type="button" className="btn bg-gradient btn-sm btn-success ms-auto" onClick={nextStep}>
                             Next <i className="fa fa-chevron-right ms-2"></i>
                         </button>
                     ) : (

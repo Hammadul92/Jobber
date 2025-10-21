@@ -57,23 +57,7 @@ function MainApp() {
                 <Route path="/reset-password" element={<ResetPassword />} />
 
                 {/* User account */}
-                <Route path="/user-account" element={<UserAccount token={token} user={user} page="profile" />} />
-                <Route
-                    path="/user-account/profile"
-                    element={<UserAccount token={token} user={user} page="profile" />}
-                />
-                <Route
-                    path="/user-account/business"
-                    element={<UserAccount token={token} user={user} page="business" />}
-                />
-                <Route
-                    path="/user-account/banking"
-                    element={<UserAccount token={token} user={user} page="banking" />}
-                />
-                <Route
-                    path="/user-account/credentials"
-                    element={<UserAccount token={token} user={user} page="credentials" />}
-                />
+                <Route path="/user-account/:tab" element={<UserAccount token={token} user={user} />} />
 
                 {/* Dashboard routes */}
                 <Route path="/dashboard">

@@ -19,11 +19,6 @@ class BusinessTimezoneMixin:
         if hasattr(instance, "client") and getattr(instance.client.business, "timezone", None):
             return instance.client.business.timezone
 
-        if hasattr(instance, "owned_businesses"):
-            biz = instance.owned_businesses.first()
-            if biz and biz.timezone:
-                return biz.timezone
-
         return None
 
     def to_representation(self, instance):
