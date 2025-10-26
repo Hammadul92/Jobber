@@ -111,7 +111,7 @@ export default function Client({ token }) {
                             height="90"
                         />
                         <h4 className="mb-1">{name}</h4>
-                        <span className="badge rounded-pill bg-dark p-2">{role}</span>
+                        <span className="badge rounded-pill bg-dark bg-gradient p-2">{role}</span>
 
                         <div className="d-flex flex-column align-items-center small text-muted mt-2">
                             <div>{email}</div>

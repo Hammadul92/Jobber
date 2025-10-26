@@ -85,7 +85,7 @@ export default function ClientServices({ token, role }) {
 
                 {loadingClient && isManagerMode && <h3 className="mb-0 text-muted">Loading client...</h3>}
 
-                <h3 className="mb-0">{title}</h3>
+                <h3 className="mb-0 fw-bold text-success">{title}</h3>
             </div>
 
             {isManagerMode && (

@@ -44,7 +44,8 @@ def send_service_questionnaire_email(service, questionnaire):
     message = (
         f"Hi {service.client.user.name},\n\n"
         f"Thank you for choosing our services! "
-        f"Please fill out your service questionnaire by clicking the link below:\n\n"
+        f"Please fill out your service questionnaire by clicking "
+        f"the link below:\n\n"
         f"{questionnaire_link}\n\n"
         f"Best regards,\n"
         f"The {service.business.name} Team"

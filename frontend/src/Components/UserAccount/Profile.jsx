@@ -41,7 +41,6 @@ export default function Profile({ token, setAlert }) {
 
     return (
         <form className="tab-pane active" onSubmit={submitHandler}>
-            <h3 className="fw-bold text-success mb-0">Profile</h3>
             <div className="row mb-4">
                 <div className="col-md-6">
                     <div className="field-wrapper">

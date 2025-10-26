@@ -133,46 +133,6 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-
-            {/* Contact Form */}
-            <section id="contact" className="py-5 bg-light">
-                <div className="container">
-                    <h2 className="text-center mb-4">Let’s Talk About Your Business</h2>
-                    <div className="row justify-content-center">
-                        <div className="col-md-8">
-                            <form className="p-4 border rounded bg-white shadow-sm">
-                                <div className="mb-3">
-                                    <label className="form-label">Full Name</label>
-                                    <input type="text" className="form-control" placeholder="Your name" />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Business Name</label>
-                                    <input type="text" className="form-control" placeholder="Your business" />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Email Address</label>
-                                    <input type="email" className="form-control" placeholder="Your email" />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Phone</label>
-                                    <input type="tel" className="form-control" placeholder="Your phone number" />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Message</label>
-                                    <textarea
-                                        className="form-control"
-                                        rows={4}
-                                        placeholder="Tell us about your needs"
-                                    ></textarea>
-                                </div>
-                                <button type="submit" className="btn btn-primary w-100">
-                                    Submit Request
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </section>
         </div>
     );
 }

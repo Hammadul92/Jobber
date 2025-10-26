@@ -14,11 +14,6 @@ const jobApi = createApi({
     }),
     tagTypes: ['Job', 'JobPhoto'],
     endpoints: (builder) => ({
-        /* ======================
-         *       JOB ENDPOINTS
-         * ====================== */
-
-        // Fetch all jobs (optionally filtered by service)
         fetchJobs: builder.query({
             query: (serviceId) => {
                 let url = '/job/';
@@ -30,13 +25,11 @@ const jobApi = createApi({
             providesTags: ['Job'],
         }),
 
-        // Fetch a single job by ID
         fetchJob: builder.query({
             query: (id) => `/job/${id}/`,
             providesTags: (result, error, id) => [{ type: 'Job', id }],
         }),
 
-        // Create a new job
         createJob: builder.mutation({
             query: (data) => ({
                 url: '/job/',
@@ -46,7 +39,6 @@ const jobApi = createApi({
             invalidatesTags: ['Job'],
         }),
 
-        // Update a job (partial update)
         updateJob: builder.mutation({
             query: (data) => ({
                 url: `/job/${data.id}/`,
@@ -56,7 +48,6 @@ const jobApi = createApi({
             invalidatesTags: (result, error, data) => ['Job', { type: 'Job', id: data.id }],
         }),
 
-        // Replace a job (full update)
         replaceJob: builder.mutation({
             query: (data) => ({
                 url: `/job/${data.id}/`,
@@ -66,7 +57,6 @@ const jobApi = createApi({
             invalidatesTags: (result, error, data) => ['Job', { type: 'Job', id: data.id }],
         }),
 
-        // Delete a job
         deleteJob: builder.mutation({
             query: (id) => ({
                 url: `/job/${id}/`,
@@ -79,7 +69,6 @@ const jobApi = createApi({
          *   JOB PHOTO ENDPOINTS
          * ====================== */
 
-        // Fetch all job photos (optionally filtered by job ID)
         fetchJobPhotos: builder.query({
             query: (jobId) => {
                 let url = '/job-photo/';
@@ -91,23 +80,20 @@ const jobApi = createApi({
             providesTags: ['JobPhoto'],
         }),
 
-        // Fetch a single job photo
         fetchJobPhoto: builder.query({
             query: (id) => `/job-photo/${id}/`,
             providesTags: (result, error, id) => [{ type: 'JobPhoto', id }],
         }),
 
-        // Create a job photo (base64 image upload)
         createJobPhoto: builder.mutation({
             query: (data) => ({
                 url: '/job-photo/',
                 method: 'POST',
-                body: data, // expects { job, photo_type, photo: base64string }
+                body: data,
             }),
             invalidatesTags: ['JobPhoto'],
         }),
 
-        // Update (partial) a job photo (e.g., change type)
         updateJobPhoto: builder.mutation({
             query: (data) => ({
                 url: `/job-photo/${data.id}/`,
@@ -117,7 +103,6 @@ const jobApi = createApi({
             invalidatesTags: (result, error, data) => ['JobPhoto', { type: 'JobPhoto', id: data.id }],
         }),
 
-        // Replace a job photo (full PUT)
         replaceJobPhoto: builder.mutation({
             query: (data) => ({
                 url: `/job-photo/${data.id}/`,
@@ -127,7 +112,6 @@ const jobApi = createApi({
             invalidatesTags: (result, error, data) => ['JobPhoto', { type: 'JobPhoto', id: data.id }],
         }),
 
-        // Delete a job photo
         deleteJobPhoto: builder.mutation({
             query: (id) => ({
                 url: `/job-photo/${id}/`,

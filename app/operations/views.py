@@ -1,5 +1,5 @@
 """
-Views for business APIs.
+Views for operations APIs.
 """
 from django.utils import timezone
 from rest_framework import status, viewsets
@@ -19,7 +19,7 @@ from core.models import (
     Service,
     Quote,
 )
-from business import serializers, paginations, emails
+from operations import serializers, paginations, emails
 
 
 class BusinessViewSet(viewsets.ModelViewSet):

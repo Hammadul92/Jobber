@@ -4,6 +4,7 @@ import AlertDispatcher from '../../utils/AlertDispatcher';
 import Profile from './Profile';
 import Business from './Business';
 import Credentials from './Credentials';
+import BankingInformation from './BankingInformation';
 
 export default function UserAccount({ token, user }) {
     const { tab } = useParams();
@@ -79,12 +80,7 @@ export default function UserAccount({ token, user }) {
                             <Business token={token} setAlert={setAlert} />
                         )}
                         {activeTab === 'credentials' && <Credentials setAlert={setAlert} />}
-                        {activeTab === 'banking' && (
-                            <div className="text-muted text-center py-5">
-                                <i className="fa fa-building-columns fa-2x mb-3 text-success"></i>
-                                <p className="mb-0">Banking section coming soon...</p>
-                            </div>
-                        )}
+                        {activeTab === 'banking' && <BankingInformation token={token} setAlert={setAlert} />}
                     </div>
                 </div>
             </div>

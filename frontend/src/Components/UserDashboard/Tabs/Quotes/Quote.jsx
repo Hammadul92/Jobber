@@ -175,9 +175,9 @@ export default function Quote({ token }) {
                         <div className="shadow-sm p-3 bg-white rounded mb-3 position-relative">
                             <div className="position-absolute top-0 end-0 mt-2 me-2">
                                 {quoteData.client.is_active === 'True' ? (
-                                    <span className="badge bg-success rounded-pill">ACTIVE</span>
+                                    <span className="badge bg-success rounded-pill bg-gradient">ACTIVE</span>
                                 ) : (
-                                    <span className="badge bg-danger rounded-pill">INACTIVE</span>
+                                    <span className="badge bg-danger rounded-pill bg-gradient">INACTIVE</span>
                                 )}
                             </div>
 
@@ -208,11 +208,11 @@ export default function Quote({ token }) {
 
                         <div className="shadow-sm p-3 bg-white rounded mb-3 position-relative">
                             <div className="position-absolute top-0 end-0 mt-2 me-2 d-flex gap-1 flex-wrap justify-content-end">
-                                <span className="badge bg-dark rounded-pill">
+                                <span className="badge bg-dark rounded-pill bg-gradient">
                                     {quoteData.service_data.service_type}
                                 </span>
                                 <span
-                                    className={`badge rounded-pill ${
+                                    className={`badge rounded-pill bg-gradient ${
                                         ['ACTIVE', 'COMPLETED'].includes(quoteData.service_data.status)
                                             ? 'bg-success'
                                             : quoteData.service_data.status === 'PENDING'

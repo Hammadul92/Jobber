@@ -204,7 +204,9 @@ export default function SignQuote({ token }) {
                             </li>
                             <li>
                                 <strong>Service Type:</strong>{' '}
-                                <span className="badge bg-dark rounded-pill">{quote.service_data?.service_type}</span>
+                                <span className="badge bg-dark rounded-pill bg-gradient">
+                                    {quote.service_data?.service_type}
+                                </span>
                             </li>
                             <li>
                                 <strong>Billing Cycle:</strong> {quote.service_data?.billing_cycle || '—'}

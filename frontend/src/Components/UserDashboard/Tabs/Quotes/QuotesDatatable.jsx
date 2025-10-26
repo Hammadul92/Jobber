@@ -114,7 +114,7 @@ export default function QuotesDatatable({ token, role, setAlert }) {
             return (
                 <Table.Cell {...props}>
                     {props.row.quote_number}{' '}
-                    <span className={`badge rounded-pill ms-2 ${badgeClass}`}>{props.row.status}</span>
+                    <span className={`badge rounded-pill bg-gradient ms-2 ${badgeClass}`}>{props.row.status}</span>
                 </Table.Cell>
             );
         }

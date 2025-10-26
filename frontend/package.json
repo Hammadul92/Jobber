@@ -16,6 +16,7 @@
         "@devexpress/dx-react-grid": "^4.0.11",
         "@devexpress/dx-react-grid-bootstrap4": "^4.0.11",
         "@reduxjs/toolkit": "^2.8.2",
+        "@stripe/react-stripe-js": "^5.2.0",
         "@tanstack/react-table": "^8.21.3",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",

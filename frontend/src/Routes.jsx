@@ -46,7 +46,7 @@ function MainApp() {
 
     return (
         <>
-            <Navbar />
+            {!isDashboardRoute && <Navbar />}
 
             <Routes>
                 {/* Public routes */}

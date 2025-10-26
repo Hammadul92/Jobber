@@ -135,13 +135,13 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         employee = attrs.get("employee")
-        business = attrs.get("business")
 
         # Prevent adding any business owner as a team member
         if employee and hasattr(employee, "owned_businesses"):
             if employee.owned_businesses.exists():
                 raise serializers.ValidationError(
-                    f"User '{employee.name}' is already a business owner and cannot be added as a team member."
+                    f"User '{employee.name}' is already a business owner "
+                    f"and cannot be added as a team member."
                 )
 
         return attrs
@@ -151,7 +151,10 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     """Serializer for services with optimized validation."""
     quotations = serializers.SerializerMethodField()
     service_questionnaires = serializers.SerializerMethodField()
-    client_name = serializers.CharField(source="client.user.name", read_only=True)
+    client_name = serializers.CharField(
+        source="client.user.name",
+        read_only=True
+    )
 
     class Meta:
         model = Service
@@ -184,7 +187,6 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             }
         return {}
 
-
     def validate(self, data):
         """
         Validates:
@@ -192,21 +194,33 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         - service_name is offered by business
         - (questionnaire existence only checked on creation)
         """
-        business = data.get("business") or getattr(self.instance, "business", None)
+        business = (
+            data.get("business") or
+            getattr(self.instance, "business", None)
+        )
         client = data.get("client") or getattr(self.instance, "client", None)
-        service_name = data.get("service_name") or getattr(self.instance, "service_name", None)
+        service_name = (
+            data.get("service_name") or
+            getattr(self.instance, "service_name", None)
+        )
 
         errors = {}
 
         # Validate service_name is offered by the business
         if business and service_name:
-            allowed_services = {s.name for s in business.services_offered.all()}
+            allowed_services = {
+                s.name for s in business.services_offered.all()
+            }
             if service_name not in allowed_services:
-                errors["service_name"] = "This service is not offered by the selected business."
+                errors["service_name"] = (
+                    "This service is not offered by the selected business."
+                )
 
         # Validate client belongs to business
         if business and client and client.business != business:
-            errors["client"] = "This client does not belong to the selected business."
+            errors["client"] = (
+                "This client does not belong to the selected business."
+            )
 
         # Only check for questionnaire existence when creating
         if not self.instance:  # creation only
@@ -265,7 +279,10 @@ class QuoteSerializer(serializers.ModelSerializer):
 
 
 class ServiceQuestionnaireSerializer(serializers.ModelSerializer):
-    business_name = serializers.CharField(source='business.name', read_only=True)
+    business_name = serializers.CharField(
+        source='business.name',
+        read_only=True
+    )
     no_of_questions = serializers.SerializerMethodField()
 
     class Meta:
@@ -290,7 +307,10 @@ class ServiceQuestionnaireSerializer(serializers.ModelSerializer):
 
     def get_no_of_questions(self, obj):
         """Return the count of questions in the questionnaire."""
-        if obj.additional_questions_form and isinstance(obj.additional_questions_form, list):
+        if (
+            obj.additional_questions_form and
+            isinstance(obj.additional_questions_form, list)
+        ):
             return len(obj.additional_questions_form)
         return 0
 
@@ -298,12 +318,17 @@ class ServiceQuestionnaireSerializer(serializers.ModelSerializer):
 class JobSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     """Serializer for Job model."""
 
-    service_name = serializers.CharField(source="service.service_name", read_only=True)
+    service_name = serializers.CharField(
+        source="service.service_name",
+        read_only=True
+    )
     assigned_to_name = serializers.CharField(
-        source="assigned_to.employee.name", read_only=True
+        source="assigned_to.employee.name",
+        read_only=True
     )
     business_name = serializers.CharField(
-        source="service.business.name", read_only=True
+        source="service.business.name",
+        read_only=True
     )
 
     class Meta:
@@ -327,8 +352,14 @@ class JobSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
     def validate(self, data):
         """Ensure job assignment is within the same business as service."""
-        service = data.get("service") or getattr(self.instance, "service", None)
-        assigned_to = data.get("assigned_to") or getattr(self.instance, "assigned_to", None)
+        service = (
+            data.get("service")
+            or getattr(self.instance, "service", None)
+        )
+        assigned_to = (
+            data.get("assigned_to")
+            or getattr(self.instance, "assigned_to", None)
+        )
 
         errors = {}
 
@@ -336,7 +367,8 @@ class JobSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             # Validate that assigned team member belongs to same business
             if assigned_to.business != service.business:
                 errors["assigned_to"] = (
-                    "Assigned team member must belong to the same business as the service."
+                    "Assigned team member must belong to the same "
+                    "business as the service."
                 )
 
         if errors:

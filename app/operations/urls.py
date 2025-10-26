@@ -1,5 +1,5 @@
 """
-URL mappings for the business app.
+URL mappings for the operations app.
 """
 from django.urls import (
     path,
@@ -8,7 +8,7 @@ from django.urls import (
 
 from rest_framework.routers import DefaultRouter
 
-from business import views
+from . import views
 
 router = DefaultRouter()
 router.register('business', views.BusinessViewSet)
@@ -20,7 +20,7 @@ router.register('quote', views.QuoteViewSet)
 router.register('job', views.JobViewSet)
 router.register('job-photo', views.JobPhotoViewSet)
 
-app_name = 'business'
+app_name = 'operations'
 
 urlpatterns = [
     path('', include(router.urls)),

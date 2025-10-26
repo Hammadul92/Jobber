@@ -31,7 +31,7 @@ export default function Clients({ token }) {
                 />
             )}
             <div className="d-flex align-items-center justify-content-between mb-3">
-                <h3 className="mb-0">Clients</h3>
+                <h3 className="mb-0 fw-bold text-success">Clients</h3>
                 <button className="btn btn-success" onClick={() => setShowModal(true)}>
                     Add
                 </button>

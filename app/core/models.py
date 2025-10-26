@@ -67,6 +67,11 @@ JOB_PHOTO_TYPE_CHOICES = [
     ("AFTER", "After"),
 ]
 
+ACCOUNT_HOLDER_CHOICES = [
+    ("individual", "Individual"),
+    ("company", "Company")
+]
+
 
 class UserManager(BaseUserManager):
     """Manager for users."""
@@ -140,6 +145,7 @@ class SoftDeletableModel(models.Model):
 class ActiveManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False)
+
 
 class Business(SoftDeletableModel):
     objects = ActiveManager()
@@ -243,66 +249,60 @@ class BankingInformation(SoftDeletableModel):
     payment_method_type = models.CharField(
         max_length=20,
         choices=PAYMENT_METHOD_CHOICES,
+        default="CARD"
     )
 
-    # Bank account details
     bank_name = models.CharField(max_length=100, blank=True, null=True)
-    account_holder_name = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True
-    )
-    transit_number = models.CharField(max_length=10, blank=True, null=True)
-    account_number_last4 = models.CharField(
-        max_length=4,
-        blank=True,
-        null=True
-    )
-    routing_number = models.CharField(max_length=20, blank=True, null=True)
+    account_holder_name = models.CharField(max_length=100, blank=True, null=True)
 
-    # Card details
+    account_holder_type = models.CharField(
+        max_length=20,
+        choices=ACCOUNT_HOLDER_CHOICES,
+        blank=True,
+        null=True,
+    )
+
+    stripe_bank_account_id = models.CharField(max_length=255, blank=True, null=True)
+
+    country = models.CharField(max_length=2, blank=True, null=True)
+    currency = models.CharField(max_length=10, blank=True, null=True)
+
+    transit_number = models.CharField(max_length=10, blank=True, null=True)
+    routing_number = models.CharField(max_length=20, blank=True, null=True)
+    account_number_last4 = models.CharField(max_length=4, blank=True, null=True)
+
     card_brand = models.CharField(max_length=50, blank=True, null=True)
     card_last4 = models.CharField(max_length=4, blank=True, null=True)
     card_exp_month = models.IntegerField(blank=True, null=True)
     card_exp_year = models.IntegerField(blank=True, null=True)
 
-    # Stripe references
-    stripe_customer_id = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True
-    )
-    stripe_payment_method_id = models.CharField(
+    # --- Stripe references
+    stripe_customer_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_payment_method_id = models.CharField(max_length=255, blank=True, null=True)
+
+    stripe_connected_account_id = models.CharField(
         max_length=255,
         blank=True,
         null=True,
+        help_text="The Stripe connected account this bank account belongs to."
     )
 
     is_active = models.BooleanField(default=True)
-    is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def clean(self):
-        """Ensure either business or client is set, not both or neither."""
         if not self.business and not self.client:
-            raise ValueError(
-                "Banking Info must be linked to either a Business or a Client."
-            )
+            raise ValueError("Banking Info must be linked to either a Business or a Client.")
         if self.business and self.client:
-            raise ValueError(
-                "Banking Info cannot belong to both Business and Client."
-            )
+            raise ValueError("Banking Info cannot belong to both Business and Client.")
 
     def __str__(self):
-        owner = self.business.name if self.business else self.client.name
+        owner = self.business.name if self.business else self.client.user.name
         if self.payment_method_type == "BANK_ACCOUNT":
             return f"Bank ••••{self.account_number_last4 or '----'} ({owner})"
+        return f"{self.card_brand or 'Card'} ••••{self.card_last4 or '----'} ({owner})"
 
-        return (
-            f"{self.card_brand or 'Card'} ••••{self.card_last4 or '----'} "
-            f"({owner})"
-        )
 
 
 class ServiceQuestionnaire(SoftDeletableModel):

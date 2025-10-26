@@ -28,7 +28,7 @@ export default function Questionnaires({ token }) {
                 <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
                     Add
                 </button>
-                <h3 className="mb-0">Service Questionnaires</h3>
+                <h3 className="mb-0 fw-bold text-success">Service Questionnaires</h3>
             </div>
 
             {alert.message && (

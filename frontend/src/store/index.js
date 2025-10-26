@@ -8,6 +8,7 @@ import { teamMemberApi } from './apis/teamMemberApi';
 import { serviceApi } from './apis/serviceApi';
 import { quoteApi } from './apis/quoteApi';
 import { jobApi } from './apis/jobApi';
+import { bankingInformationApi } from './apis/bankingInformationApi';
 
 const store = configureStore({
     reducer: {
@@ -19,6 +20,7 @@ const store = configureStore({
         [quoteApi.reducerPath]: quoteApi.reducer,
         [serviceQuestionnaireApi.reducerPath]: serviceQuestionnaireApi.reducer,
         [jobApi.reducerPath]: jobApi.reducer,
+        [bankingInformationApi.reducerPath]: bankingInformationApi.reducer,
     },
     middleware: (getDefaultMiddleware) => {
         return getDefaultMiddleware()
@@ -29,13 +31,25 @@ const store = configureStore({
             .concat(teamMemberApi.middleware)
             .concat(serviceApi.middleware)
             .concat(quoteApi.middleware)
-            .concat(jobApi.middleware);
+            .concat(jobApi.middleware)
+            .concat(bankingInformationApi.middleware);
     },
 });
 
 setupListeners(store.dispatch);
 
-export { store, userApi, businessApi, clientApi, serviceQuestionnaireApi, teamMemberApi, serviceApi, quoteApi, jobApi };
+export {
+    store,
+    userApi,
+    businessApi,
+    clientApi,
+    serviceQuestionnaireApi,
+    teamMemberApi,
+    serviceApi,
+    quoteApi,
+    jobApi,
+    bankingInformationApi,
+};
 export {
     useSigninUserMutation,
     useFetchUserQuery,
@@ -111,3 +125,14 @@ export {
     useReplaceJobPhotoMutation,
     useDeleteJobPhotoMutation,
 } from './apis/jobApi';
+
+export {
+    useFetchBankingInformationListQuery,
+    useFetchBankingInformationQuery,
+    useCreateBankingInformationMutation,
+    useUpdateBankingInformationMutation,
+    useDeleteBankingInformationMutation,
+    useCreateSetupIntentMutation,
+    useSavePaymentMethodMutation,
+    useAddBankAccountMutation,
+} from './apis/bankingInformationApi';

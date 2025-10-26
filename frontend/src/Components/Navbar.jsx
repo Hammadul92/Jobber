@@ -12,6 +12,7 @@ import {
     serviceApi,
     quoteApi,
     jobApi,
+    bankingInformationApi,
 } from '../store';
 import { useDispatch } from 'react-redux';
 import './Components.css';
@@ -40,6 +41,7 @@ export default function Navbar() {
         dispatch(serviceApi.util.resetApiState());
         dispatch(quoteApi.util.resetApiState());
         dispatch(jobApi.util.resetApiState());
+        dispatch(bankingInformationApi.util.resetApiState());
         navigate('/sign-in');
         setShowOffcanvas(false);
     };
@@ -56,34 +58,18 @@ export default function Navbar() {
 
     return (
         <>
+            <div style={{ height: 63 }}></div>
             <nav className="navbar navbar-expand-lg fixed-top bg-white py-1 shadow-sm">
-                <div className="container-fluid">
-                    {/* Brand / Logo */}
-                    <Link to="/" className="navbar-brand d-flex align-items-center gap-2">
+                <div className="container">
+                    <Link to="/" className="navbar-brand d-flex align-items-center">
                         <img src={logo} alt="logo" height="44" />
                     </Link>
 
-                    {/* Mobile Menu Toggle */}
                     <button className="navbar-toggler border-0" type="button" onClick={() => setIsOpen(!isOpen)}>
                         <i className="fa fa-bars fs-4"></i>
                     </button>
 
-                    {/* Navbar Content */}
                     <div className={`collapse navbar-collapse ${isOpen ? 'show' : ''}`}>
-                        <form
-                            className="d-flex mx-auto my-2 flex-grow-1"
-                            style={{ maxWidth: '500px' }}
-                            onSubmit={handleSearch}
-                        >
-                            <input
-                                type="search"
-                                className="form-control"
-                                placeholder="Search ..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </form>
-
                         <ul className="navbar-nav ms-auto align-items-center gap-2">
                             {isFetchingUser || isFetchingBusiness ? (
                                 <li className="nav-item">
@@ -92,12 +78,12 @@ export default function Navbar() {
                             ) : !token || !user ? (
                                 <>
                                     <li className="nav-item">
-                                        <Link className="btn btn-outline-success btn-sm px-3" to="/register">
-                                            Register
+                                        <Link className="btn btn-outline-success" to="/register">
+                                            Start Free Trial
                                         </Link>
                                     </li>
                                     <li className="nav-item">
-                                        <Link className="btn btn-success btn-sm px-3" to="/sign-in">
+                                        <Link className="btn btn-success" to="/sign-in">
                                             Sign In
                                         </Link>
                                     </li>
@@ -110,7 +96,7 @@ export default function Navbar() {
                                         type="button"
                                         onClick={() => setShowOffcanvas(true)}
                                     >
-                                        <i className="far fa-user-circle fs-4 text-success"></i>
+                                        <i className="far fa-user-circle fs-4"></i>
                                         <span className="fw-medium">{user.name}</span>
                                     </button>
                                 </li>
@@ -149,7 +135,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/user-account/profile"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>
@@ -163,7 +149,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/user-account/business"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>
@@ -177,7 +163,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/user-account/banking"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>
@@ -191,7 +177,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/user-account/credentials"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>
@@ -209,7 +195,7 @@ export default function Navbar() {
                                     <li className="list-group-item">
                                         <Link
                                             to="/dashboard/home"
-                                            className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                            className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                             onClick={() => setShowOffcanvas(false)}
                                         >
                                             <span>
@@ -224,7 +210,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/dashboard/clients"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>
@@ -238,7 +224,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/dashboard/service-questionnaires"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>
@@ -252,7 +238,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/dashboard/quotes"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>
@@ -266,7 +252,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/dashboard/jobs"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>
@@ -280,7 +266,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/dashboard/invoices"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>
@@ -294,7 +280,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/dashboard/payouts"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>
@@ -308,7 +294,7 @@ export default function Navbar() {
                                 <li className="list-group-item">
                                     <Link
                                         to="/dashboard/team-members"
-                                        className="text-decoration-none text-success d-flex justify-content-between align-items-center"
+                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
                                         onClick={() => setShowOffcanvas(false)}
                                     >
                                         <span>

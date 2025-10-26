@@ -10,13 +10,22 @@ class BusinessTimezoneMixin:
     """
 
     def _get_business_timezone(self, instance):
-        if hasattr(instance, "business") and getattr(instance.business, "timezone", None):
+        if (
+            hasattr(instance, "business") and
+            getattr(instance.business, "timezone", None)
+        ):
             return instance.business.timezone
 
-        if hasattr(instance, "service") and getattr(instance.service.business, "timezone", None):
+        if (
+            hasattr(instance, "service") and
+            getattr(instance.service.business, "timezone", None)
+        ):
             return instance.service.business.timezone
 
-        if hasattr(instance, "client") and getattr(instance.client.business, "timezone", None):
+        if (
+            hasattr(instance, "client") and
+            getattr(instance.client.business, "timezone", None)
+        ):
             return instance.client.business.timezone
 
         return None
@@ -35,7 +44,10 @@ class BusinessTimezoneMixin:
                 raw_value = getattr(instance, field_name, None)
                 if raw_value:
                     if timezone.is_naive(raw_value):
-                        raw_value = timezone.make_aware(raw_value, timezone.utc)
+                        raw_value = timezone.make_aware(
+                            raw_value,
+                            timezone.utc
+                        )
 
                     localized = raw_value.astimezone(tz)
 

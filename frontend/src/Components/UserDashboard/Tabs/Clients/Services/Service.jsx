@@ -110,8 +110,6 @@ export default function Service({ token }) {
                 </ol>
             </nav>
 
-            <h3 className="mb-3">Edit Service</h3>
-
             {updateError && showError && (
                 <AlertDispatcher type="error" message={updateError?.data} onClose={() => setShowError(false)} />
             )}

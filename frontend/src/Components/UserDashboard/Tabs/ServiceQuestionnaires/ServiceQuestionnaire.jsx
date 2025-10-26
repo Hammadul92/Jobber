@@ -129,8 +129,6 @@ export default function EditServiceQuestionnairesForm({ token }) {
                 </ol>
             </nav>
 
-            <h3 className="mb-4">Edit Service Questionnaire</h3>
-
             <div className="shadow bg-white rounded p-4">
                 <AlertDispatcher type={alert?.type} message={alert?.message} setAlert={setAlert} />
 

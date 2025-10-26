@@ -1,8 +1,5 @@
-import pytz
-from datetime import datetime
 from django.core import signing
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 
 
 def generate_email_token(user):

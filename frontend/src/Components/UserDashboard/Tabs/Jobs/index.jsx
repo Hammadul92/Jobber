@@ -25,7 +25,7 @@ export default function Jobs({ token, role }) {
             </nav>
 
             <div className="d-flex align-items-center justify-content-between mb-3">
-                <h3 className="mb-0">Jobs</h3>
+                <h3 className="mb-0 fw-bold text-success">Jobs</h3>
                 {role === 'MANAGER' && (
                     <button className="btn btn-success" onClick={() => setShowModal(true)}>
                         Add

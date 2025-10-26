@@ -21,7 +21,9 @@ class SoftDeletableAdminMixin:
         return qs
 
     def get_list_display(self, request):
-        """Append soft delete fields to list_display if not already included."""
+        """
+        Append soft delete fields to list_display if not already included.
+        """
         base_fields = list(super().get_list_display(request))
         for field in ("is_deleted",):
             if field not in base_fields:
@@ -88,7 +90,9 @@ class UserAdmin(BaseUserAdmin):
 
 
 class BusinessAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
-    list_display = ['name', 'email', 'phone', 'owner', 'is_active', 'created_at']
+    list_display = [
+        'name', 'email', 'phone', 'owner', 'is_active', 'created_at'
+    ]
     list_filter = ['is_active', 'country', 'province_state']
     search_fields = ['name', 'email', 'phone', 'business_number']
     readonly_fields = ['created_at', 'updated_at']
@@ -104,9 +108,9 @@ class ClientAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
 class BankingInformationAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     list_display = [
         'business', 'client', 'payment_method_type',
-        'bank_name', 'card_brand', 'is_default', 'is_active'
+        'bank_name', 'card_brand', 'is_active'
     ]
-    list_filter = ['payment_method_type', 'is_active', 'is_default']
+    list_filter = ['payment_method_type', 'is_active']
     search_fields = ['bank_name', 'account_holder_name', 'card_brand']
     readonly_fields = ['created_at', 'updated_at']
 
@@ -169,14 +173,19 @@ class JobPhotoAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
 
 
 class TeamMemberAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
-    list_display = ['employee', 'business', 'expertise', 'is_active', 'joined_at']
+    list_display = [
+        'employee', 'business', 'expertise', 'is_active', 'joined_at'
+    ]
     list_filter = ['is_active', 'business']
     search_fields = ['employee__name', 'employee__email', 'business__name']
     readonly_fields = ['joined_at']
 
 
 class QuoteAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
-    list_display = ['quote_number', 'service', 'status', 'valid_until', 'is_active', 'created_at']
+    list_display = [
+        'quote_number', 'service', 'status', 'valid_until',
+        'is_active', 'created_at'
+    ]
     list_filter = ['status', 'is_active', 'valid_until']
     search_fields = ['quote_number', 'service__service_name']
     readonly_fields = ['quote_number', 'created_at', 'updated_at', 'signed_at']
@@ -185,7 +194,10 @@ class QuoteAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
 
 
 class ServiceQuestionnaireAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
-    list_display = ['service_name', 'business', 'is_active', 'created_at', 'updated_at']
+    list_display = [
+        'service_name', 'business', 'is_active',
+        'created_at', 'updated_at'
+    ]
     list_filter = ['is_active', 'business']
     search_fields = ['service_name', 'business__name']
     readonly_fields = ['created_at', 'updated_at']

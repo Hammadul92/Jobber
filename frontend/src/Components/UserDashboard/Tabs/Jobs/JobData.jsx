@@ -222,7 +222,9 @@ export default function JobData({ token, role, setAlert }) {
                                         )}
 
                                         <h5>{job.title}</h5>
-                                        <span className="badge bg-success rounded-pill mb-2">{job.service_name}</span>
+                                        <span className="badge bg-success bg-gradient rounded-pill mb-2">
+                                            {job.service_name}
+                                        </span>
 
                                         <p className="mb-1">
                                             <strong>Scheduled Date:</strong> {formatDate(job.scheduled_date)}
