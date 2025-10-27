@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import { useCreateServiceQuestionnaireMutation, useFetchBusinessesQuery } from '../../../../store';
+import {
+    useFetchServiceQuestionnairesQuery,
+    useCreateServiceQuestionnaireMutation,
+    useFetchBusinessesQuery,
+} from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 
 export default function CreateServiceQuestionnairesForm({ token, showModal, setShowModal, setAlert }) {
@@ -15,6 +19,12 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
     const business = businesses?.[0];
     const servicesOffered = business?.services_offered || [];
     const isSubmitting = isCreating;
+
+    const {
+        data: questionnaireData,
+        isLoading,
+        error,
+    } = useFetchServiceQuestionnairesQuery(undefined, { skip: !token });
 
     const toggleExpand = (index) => setExpandedIndex(expandedIndex === index ? null : index);
 
@@ -109,11 +119,14 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
                                             required
                                         >
                                             <option value="">Select Service</option>
-                                            {servicesOffered.map((service, i) => (
-                                                <option key={i} value={service}>
-                                                    {service}
-                                                </option>
-                                            ))}
+                                            {servicesOffered.map(
+                                                (service, i) =>
+                                                    !questionnaireData.find((q) => q.service_name === service) && (
+                                                        <option key={i} value={service}>
+                                                            {service}
+                                                        </option>
+                                                    )
+                                            )}
                                         </select>
                                     </div>
                                 </div>

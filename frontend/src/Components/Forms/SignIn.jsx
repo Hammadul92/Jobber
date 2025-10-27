@@ -45,7 +45,7 @@ export default function SignIn() {
 
     return (
         <div className="my-5 container">
-            <h2 className="text-center fw-bold mb-4 text-success">Sign In</h2>
+            <h2 className="text-center mb-3 fw-bold">Sign In</h2>
 
             {token && (
                 <div className="mb-4 col-md-4 offset-md-4">

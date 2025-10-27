@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import {
     useFetchUserQuery,
     useLogoutUserMutation,
@@ -14,17 +15,14 @@ import {
     jobApi,
     bankingInformationApi,
 } from '../store';
-import { useDispatch } from 'react-redux';
 import './Components.css';
 import logo from './images/logo.png';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [showOffcanvas, setShowOffcanvas] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
     const dispatch = useDispatch();
-
     const token = localStorage.getItem('token');
 
     const { data: user, isFetching: isFetchingUser } = useFetchUserQuery(undefined, { skip: !token });
@@ -33,32 +31,82 @@ export default function Navbar() {
 
     const handleLogout = async () => {
         await logoutUser();
-        dispatch(userApi.util.resetApiState());
-        dispatch(businessApi.util.resetApiState());
-        dispatch(clientApi.util.resetApiState());
-        dispatch(serviceQuestionnaireApi.util.resetApiState());
-        dispatch(teamMemberApi.util.resetApiState());
-        dispatch(serviceApi.util.resetApiState());
-        dispatch(quoteApi.util.resetApiState());
-        dispatch(jobApi.util.resetApiState());
-        dispatch(bankingInformationApi.util.resetApiState());
+        [
+            userApi,
+            businessApi,
+            clientApi,
+            serviceQuestionnaireApi,
+            teamMemberApi,
+            serviceApi,
+            quoteApi,
+            jobApi,
+            bankingInformationApi,
+        ].forEach((api) => dispatch(api.util.resetApiState()));
+
+        localStorage.removeItem('token');
         navigate('/sign-in');
         setShowOffcanvas(false);
     };
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (searchTerm.trim()) {
-            navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
-            setSearchTerm('');
-        }
-    };
+    const business = businesses?.[0] ?? null;
+    const loading = isFetchingUser || isFetchingBusiness;
 
-    const business = businesses && businesses.length > 0 ? businesses[0] : null;
+    const renderLink = (to, icon, label) => (
+        <li className="list-group-item">
+            <Link
+                to={to}
+                className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
+                onClick={() => setShowOffcanvas(false)}
+            >
+                <span>
+                    <i className={`${icon} me-2`}></i>
+                    {label}
+                </span>
+                <i className="fa fa-arrow-right"></i>
+            </Link>
+        </li>
+    );
+
+    const managerMenu = (
+        <>
+            {renderLink('/dashboard/home', 'fas fa-chart-line', 'Dashboard')}
+            {renderLink('/dashboard/clients', 'fas fa-users', 'Clients')}
+            {renderLink('/dashboard/service-questionnaires', 'fas fa-list-check', 'Questionnaires')}
+            {renderLink('/dashboard/quotes', 'fas fa-file-signature', 'Quotes')}
+            {renderLink('/dashboard/jobs', 'fas fa-clipboard-check', 'Jobs')}
+            {renderLink('/dashboard/invoices', 'fas fa-file-invoice', 'Invoices')}
+            {renderLink('/dashboard/payouts', 'fas fa-credit-card', 'Payouts')}
+            {renderLink('/dashboard/team-members', 'fas fa-user-friends', 'Team Members')}
+        </>
+    );
+
+    const clientMenu = (
+        <>
+            {renderLink('/dashboard/services', 'fas fa-cogs', 'Services')}
+            {renderLink('/dashboard/quotes', 'fas fa-file-signature', 'Quotes')}
+            {renderLink('/dashboard/jobs', 'fas fa-clipboard-check', 'Jobs')}
+            {renderLink('/dashboard/invoices', 'fas fa-file-invoice', 'Invoices')}
+        </>
+    );
+
+    const employeeMenu = (
+        <>
+            {renderLink('/dashboard/jobs', 'fas fa-clipboard-check', 'Jobs')}
+            {renderLink('/dashboard/team-members', 'fas fa-user-friends', 'Team Members')}
+        </>
+    );
+
+    const roleMenus = {
+        MANAGER: managerMenu,
+        CLIENT: clientMenu,
+        EMPLOYEE: employeeMenu,
+    };
 
     return (
         <>
+            {/* Spacer for fixed navbar */}
             <div style={{ height: 63 }}></div>
+
             <nav className="navbar navbar-expand-lg fixed-top bg-white py-1 shadow-sm">
                 <div className="container">
                     <Link to="/" className="navbar-brand d-flex align-items-center">
@@ -71,7 +119,7 @@ export default function Navbar() {
 
                     <div className={`collapse navbar-collapse ${isOpen ? 'show' : ''}`}>
                         <ul className="navbar-nav ms-auto align-items-center gap-2">
-                            {isFetchingUser || isFetchingBusiness ? (
+                            {loading ? (
                                 <li className="nav-item">
                                     <span className="nav-link disabled">Loading...</span>
                                 </li>
@@ -90,7 +138,6 @@ export default function Navbar() {
                                 </>
                             ) : (
                                 <li className="nav-item">
-                                    {/* React-controlled offcanvas trigger */}
                                     <button
                                         className="btn d-flex align-items-center gap-2 border-0"
                                         type="button"
@@ -106,16 +153,14 @@ export default function Navbar() {
                 </div>
             </nav>
 
+            {/* Offcanvas */}
             {showOffcanvas && (
                 <>
                     <div className="offcanvas-backdrop fade show" onClick={() => setShowOffcanvas(false)}></div>
 
                     <div
-                        className={`offcanvas offcanvas-end show`}
-                        style={{
-                            visibility: 'visible',
-                            transform: 'translateX(0)',
-                        }}
+                        className="offcanvas offcanvas-end show"
+                        style={{ visibility: 'visible', transform: 'translateX(0)' }}
                     >
                         <div className="offcanvas-header bg-success bg-gradient text-white">
                             <h5 className="offcanvas-title">
@@ -132,181 +177,27 @@ export default function Navbar() {
                         <div className="offcanvas-body">
                             <h5 className="fw-bold">My Account</h5>
                             <ul className="list-group mb-4">
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/user-account/profile"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fas fa-user me-2"></i>
-                                            Profile
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
-
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/user-account/business"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fa fa-briefcase me-2"></i>
-                                            Business
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
-
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/user-account/banking"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fa fa-building-columns me-2"></i>
-                                            Banking
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
-
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/user-account/credentials"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fa fa-key me-2"></i>
-                                            Credentials
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
+                                {renderLink('/user-account/profile', 'fas fa-user', 'Profile')}
+                                {(user.role === 'USER' || user.role === 'MANAGER') &&
+                                    renderLink('/user-account/business', 'fa fa-briefcase', 'Business')}
+                                {renderLink('/user-account/banking', 'fa fa-building-columns', 'Banking')}
+                                {renderLink('/user-account/credentials', 'fa fa-key', 'Credentials')}
                             </ul>
 
-                            {business && <h5 className="fw-bold">{business.name || 'Client Portal'}</h5>}
-                            <ul className="list-group">
-                                {business && (
-                                    <li className="list-group-item">
-                                        <Link
-                                            to="/dashboard/home"
-                                            className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                            onClick={() => setShowOffcanvas(false)}
-                                        >
-                                            <span>
-                                                <i className="fas fa-chart-line me-2"></i>
-                                                Dashboard
-                                            </span>
-                                            <i className="fa fa-arrow-right"></i>
-                                        </Link>
-                                    </li>
-                                )}
+                            {user.role && user.role !== 'USER' && (
+                                <>
+                                    <h5 className="fw-bold">
+                                        {user.role === 'MANAGER'
+                                            ? business?.name
+                                            : user.role === 'CLIENT'
+                                              ? 'Client Portal'
+                                              : 'Employee Portal'}
+                                    </h5>
+                                    <ul className="list-group mb-3">{roleMenus[user.role]}</ul>
+                                </>
+                            )}
 
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/dashboard/clients"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fas fa-users me-2"></i>
-                                            Clients
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
-
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/dashboard/service-questionnaires"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fas fa-list-check me-2"></i>
-                                            Questionnaires
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
-
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/dashboard/quotes"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fas fa-file-signature me-2"></i>
-                                            Quotes
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
-
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/dashboard/jobs"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fas fa-clipboard-check me-2"></i>
-                                            Jobs
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
-
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/dashboard/invoices"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fas fa-file-invoice me-2"></i>
-                                            Invoices
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
-
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/dashboard/payouts"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fas fa-credit-card me-2"></i>
-                                            Payouts
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
-
-                                <li className="list-group-item">
-                                    <Link
-                                        to="/dashboard/team-members"
-                                        className="text-decoration-none text-dark d-flex justify-content-between align-items-center"
-                                        onClick={() => setShowOffcanvas(false)}
-                                    >
-                                        <span>
-                                            <i className="fas fa-user-friends me-2"></i>
-                                            Team Members
-                                        </span>
-                                        <i className="fa fa-arrow-right"></i>
-                                    </Link>
-                                </li>
-                            </ul>
-
-                            <button onClick={handleLogout} className="btn btn-danger bg-gradient mt-4">
+                            <button onClick={handleLogout} className="btn btn-danger bg-gradient w-100">
                                 <i className="fa fa-power-off me-2"></i> Logout
                             </button>
                         </div>

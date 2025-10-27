@@ -1,17 +1,29 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+const rawBaseQuery = fetchBaseQuery({
+    baseUrl: 'http://localhost:8000/api/ops',
+    prepareHeaders: (headers) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            headers.set('authorization', `Token ${token}`);
+        }
+        return headers;
+    },
+});
+
+const baseQueryWithReauth = async (args, api, extraOptions) => {
+    const result = await rawBaseQuery(args, api, extraOptions);
+    if (result?.error?.status === 401) {
+        localStorage.removeItem('token');
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
+    }
+    return result;
+};
+
 const jobApi = createApi({
     reducerPath: 'jobApi',
-    baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:8000/api/ops',
-        prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                headers.set('authorization', `Token ${token}`);
-            }
-            return headers;
-        },
-    }),
+    baseQuery: baseQueryWithReauth,
     tagTypes: ['Job', 'JobPhoto'],
     endpoints: (builder) => ({
         fetchJobs: builder.query({
@@ -64,10 +76,6 @@ const jobApi = createApi({
             }),
             invalidatesTags: ['Job'],
         }),
-
-        /* ======================
-         *   JOB PHOTO ENDPOINTS
-         * ====================== */
 
         fetchJobPhotos: builder.query({
             query: (jobId) => {
@@ -123,15 +131,12 @@ const jobApi = createApi({
 });
 
 export const {
-    // Job endpoints
     useFetchJobsQuery,
     useFetchJobQuery,
     useCreateJobMutation,
     useUpdateJobMutation,
     useReplaceJobMutation,
     useDeleteJobMutation,
-
-    // Job Photo endpoints
     useFetchJobPhotosQuery,
     useFetchJobPhotoQuery,
     useCreateJobPhotoMutation,

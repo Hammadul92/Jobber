@@ -1,29 +1,39 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+const rawBaseQuery = fetchBaseQuery({
+    baseUrl: 'http://localhost:8000/api/ops',
+    prepareHeaders: (headers) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            headers.set('authorization', `Token ${token}`);
+        }
+        return headers;
+    },
+});
+
+const baseQueryWithReauth = async (args, api, extraOptions) => {
+    const result = await rawBaseQuery(args, api, extraOptions);
+    if (result?.error?.status === 401) {
+        localStorage.removeItem('token');
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
+    }
+    return result;
+};
+
 const quoteApi = createApi({
     reducerPath: 'quoteApi',
-    baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:8000/api/ops',
-        prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                headers.set('authorization', `Token ${token}`);
-            }
-            return headers;
-        },
-    }),
+    baseQuery: baseQueryWithReauth,
     tagTypes: ['Quote'],
     endpoints: (builder) => ({
         fetchQuotes: builder.query({
             query: () => '/quote/',
             providesTags: ['Quote'],
         }),
-
         fetchQuote: builder.query({
             query: (id) => `/quote/${id}/`,
             providesTags: (result, error, arg) => [{ type: 'Quote', id: arg }],
         }),
-
         createQuote: builder.mutation({
             query: (data) => ({
                 url: '/quote/',
@@ -32,7 +42,6 @@ const quoteApi = createApi({
             }),
             invalidatesTags: ['Quote'],
         }),
-
         updateQuote: builder.mutation({
             query: (data) => ({
                 url: `/quote/${data.id}/`,
@@ -54,14 +63,6 @@ const quoteApi = createApi({
                 method: 'POST',
             }),
             invalidatesTags: (result, error, id) => ['Quote', { type: 'Quote', id }],
-        }),
-        signQuote: builder.mutation({
-            query: ({ id, formData }) => ({
-                url: `/quote/${id}/sign-quote/`,
-                method: 'POST',
-                body: formData, // send FormData directly
-            }),
-            invalidatesTags: (result, error, { id }) => ['Quote', { type: 'Quote', id }],
         }),
         signQuote: builder.mutation({
             query: ({ id, formData }) => ({

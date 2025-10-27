@@ -43,6 +43,10 @@ class BusinessViewSet(viewsets.ModelViewSet):
             employee=user,
         )
 
+        if user.role != "MANAGER":
+            user.role = "MANAGER"
+            user.save(update_fields=["role"])
+
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
 
@@ -266,7 +270,6 @@ class ServiceQuestionnaireViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = ServiceQuestionnaire.objects.all().select_related("business")
     serializer_class = serializers.ServiceQuestionnaireSerializer
-    pagination_class = paginations.ServiceQuestionnairePagination
 
     def get_queryset(self):
         user = self.request.user

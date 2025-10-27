@@ -30,7 +30,7 @@ export default function Quotes({ token, role }) {
                         Add
                     </button>
                 )}
-                <h3 className="mb-0 fw-bold text-success">Quotes</h3>
+                <h3 className="mb-0 fw-bold">Quotes</h3>
             </div>
 
             {alert.message && (

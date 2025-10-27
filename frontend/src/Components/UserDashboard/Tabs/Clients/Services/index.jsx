@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import CreateClientServiceForm from './CreateClientServiceForm';
 import { useFetchClientQuery, useFetchBusinessQuery } from '../../../../../store';
 import ClientServicesData from './ClientServicesData';
-import AlertDispatcher from '../../../../../utils/AlertDispatcher'; // make sure path is correct
+import AlertDispatcher from '../../../../../utils/AlertDispatcher';
 
 export default function ClientServices({ token, role }) {
     const { id: clientId } = useParams();
@@ -72,7 +72,7 @@ export default function ClientServices({ token, role }) {
                 />
             )}
 
-            <div className="clearfix mb-3">
+            <div className="clearfix">
                 {isManagerMode && (
                     <button
                         className="btn btn-success float-end"
@@ -83,9 +83,7 @@ export default function ClientServices({ token, role }) {
                     </button>
                 )}
 
-                {loadingClient && isManagerMode && <h3 className="mb-0 text-muted">Loading client...</h3>}
-
-                <h3 className="mb-0 fw-bold text-success">{title}</h3>
+                <h3 className="mb-0 fw-bold">{title}</h3>
             </div>
 
             {isManagerMode && (
@@ -101,7 +99,12 @@ export default function ClientServices({ token, role }) {
                 />
             )}
 
-            <ClientServicesData token={token} role={role} clientId={isManagerMode ? clientId : null} />
+            <ClientServicesData
+                token={token}
+                role={role}
+                clientId={isManagerMode ? clientId : null}
+                setAlert={setAlert}
+            />
         </>
     );
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import CreateServiceQuestionnairesForm from './CreateServiceQuestionnairesForm';
-import DataTable from './ServiceQuestionnairesDatatable';
+import ServiceQuestionnairesData from './ServiceQuestionnairesData';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
 export default function Questionnaires({ token }) {
@@ -28,7 +28,7 @@ export default function Questionnaires({ token }) {
                 <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
                     Add
                 </button>
-                <h3 className="mb-0 fw-bold text-success">Service Questionnaires</h3>
+                <h3 className="mb-0 fw-bold">Service Questionnaires</h3>
             </div>
 
             {alert.message && (
@@ -46,7 +46,7 @@ export default function Questionnaires({ token }) {
                 setAlert={setAlert}
             />
 
-            <DataTable token={token} setAlert={setAlert} />
+            <ServiceQuestionnairesData token={token} setAlert={setAlert} />
         </div>
     );
 }

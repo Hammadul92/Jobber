@@ -5,11 +5,17 @@ export default function SideNav({ role, userId }) {
     const [collapsed, setCollapsed] = useState(false);
 
     const navItems = [
-        { name: 'Dashboard', path: '/dashboard/home', icon: 'fa-chart-line', is_visible: true },
+        { name: 'Dashboard', path: '/dashboard/home', icon: 'fa-chart-line', is_visible: role === 'MANAGER' },
+        {
+            name: 'Team Members',
+            path: '/dashboard/team-members',
+            icon: 'fa-user-friends',
+            is_visible: role === 'EMPLOYEE' || role === 'MANAGER',
+        },
         { name: 'Clients', path: '/dashboard/clients', icon: 'fa-users', is_visible: role === 'MANAGER' },
         {
             name: 'Services',
-            path: `/dashboard/services`,
+            path: '/dashboard/services',
             icon: 'fa-cogs',
             is_visible: role === 'CLIENT',
         },
@@ -23,21 +29,20 @@ export default function SideNav({ role, userId }) {
             name: 'Quotes',
             path: '/dashboard/quotes',
             icon: 'fa-file-signature',
-            is_visible: true,
+            is_visible: role === 'CLIENT' || role === 'MANAGER',
         },
-        { name: 'Jobs', path: '/dashboard/jobs', icon: 'fa-clipboard-check', is_visible: true },
+        {
+            name: 'Jobs',
+            path: '/dashboard/jobs',
+            icon: 'fa-clipboard-check',
+            is_visible: ['CLIENT', 'MANAGER', 'EMPLOYEE'].includes(role),
+        },
+        { name: 'Payouts', path: '/dashboard/payouts', icon: 'fa-credit-card', is_visible: role === 'MANAGER' },
         {
             name: 'Invoices',
             path: '/dashboard/invoices',
             icon: 'fa-file-invoice',
-            is_visible: role !== 'EMPLOYEE',
-        },
-        { name: 'Payouts', path: '/dashboard/payouts', icon: 'fa-credit-card', is_visible: role === 'MANAGER' },
-        {
-            name: 'Team Members',
-            path: '/dashboard/team-members',
-            icon: 'fa-user-friends',
-            is_visible: role === 'MANAGER',
+            is_visible: role === 'CLIENT' || role === 'MANAGER',
         },
     ];
 
@@ -50,7 +55,7 @@ export default function SideNav({ role, userId }) {
                 {navItems.map(
                     (item) =>
                         item.is_visible && (
-                            <li className={`nav-item mb-2`} key={item.path}>
+                            <li className="nav-item mb-2" key={item.path}>
                                 <NavLink
                                     to={item.path}
                                     className={({ isActive }) =>

@@ -133,7 +133,6 @@ export default function EditServiceQuestionnairesForm({ token }) {
                 <AlertDispatcher type={alert?.type} message={alert?.message} setAlert={setAlert} />
 
                 <form onSubmit={handleSubmit}>
-                    {/* Service Selection */}
                     <div className="row g-3 mb-3">
                         <div className="col-md-6">
                             <label className="form-label">Service Name (*)</label>
@@ -142,6 +141,7 @@ export default function EditServiceQuestionnairesForm({ token }) {
                                 value={serviceName}
                                 onChange={(e) => setServiceName(e.target.value)}
                                 required
+                                disabled
                             >
                                 <option value="">Select Service</option>
                                 {servicesOffered.map((service, i) => (

@@ -19,7 +19,7 @@ export default function ForgotPassword() {
 
     return (
         <div className="my-5 container">
-            <h2 className="text-center mb-4 text-success fw-bold">Forgot Password</h2>
+            <h2 className="text-center mb-3 fw-bold">Forgot Password</h2>
 
             <form onSubmit={handleSubmit} className="row">
                 <div className="col-md-4 offset-md-4">
@@ -37,7 +37,7 @@ export default function ForgotPassword() {
 
                     <div className="mb-3">
                         <label htmlFor="email" className="form-label fw-bold">
-                            Enter Your Email (*)
+                            Email (*)
                         </label>
                         <input
                             type="email"

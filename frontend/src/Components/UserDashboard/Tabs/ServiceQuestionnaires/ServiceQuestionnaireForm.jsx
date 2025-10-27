@@ -134,7 +134,7 @@ export default function ServiceQuestionnaireForm({ token, role }) {
                 </ol>
             </nav>
 
-            <div className="shadow-sm bg-white rounded p-3">
+            <div className="shadow bg-white rounded p-3">
                 <form onSubmit={isClient ? handleSubmit : undefined}>
                     {Object.entries(questions).map(([key, q], index) => (
                         <div className="mb-3" key={key}>

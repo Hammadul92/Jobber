@@ -2,32 +2,21 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetchServicesQuery, useDeleteServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../../utils/SubmitButton';
-import AlertDispatcher from '../../../../../utils/AlertDispatcher';
 import { countries, provinces } from '../../../../../utils/locations';
 import { formatDate } from '../../../../../utils/formatDate';
 
-export default function ClientServicesData({ token, role, clientId }) {
+export default function ClientServicesData({ token, role, clientId, setAlert }) {
     const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();
     const [showModal, setShowModal] = useState(false);
     const [selectedServiceId, setSelectedServiceId] = useState(null);
-    const [alert, setAlert] = useState({ type: '', message: '' });
 
     const queryArg = role === 'CLIENT' ? null : clientId;
-    const {
-        data: services = [],
-        isLoading,
-        isError,
-        error,
-        refetch,
-    } = useFetchServicesQuery(queryArg, { skip: !token });
+    const { data: services = [], isLoading, isError, error } = useFetchServicesQuery(queryArg, { skip: !token });
 
-    // Filters
-    const [statusFilter, setStatusFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
     const [countryFilter, setCountryFilter] = useState('');
     const [provinceFilter, setProvinceFilter] = useState('');
 
-    // Handle error
     useEffect(() => {
         if (isError) {
             const msg = error?.data?.detail || 'Failed to load services. Please try again.';
@@ -35,17 +24,15 @@ export default function ClientServicesData({ token, role, clientId }) {
         }
     }, [isError, error]);
 
-    // Filter services
     const filteredServices = useMemo(() => {
         return services.filter((service) => {
             return (
-                (!statusFilter || service.status === statusFilter) &&
                 (!typeFilter || service.service_type === typeFilter) &&
                 (!countryFilter || service.country === countryFilter) &&
                 (!provinceFilter || service.province_state === provinceFilter)
             );
         });
-    }, [services, statusFilter, typeFilter, countryFilter, provinceFilter]);
+    }, [services, typeFilter, countryFilter, provinceFilter]);
 
     // Group services by status
     const groupedServices = useMemo(() => {
@@ -67,10 +54,8 @@ export default function ClientServicesData({ token, role, clientId }) {
         if (!selectedServiceId) return;
         try {
             await deleteService(selectedServiceId).unwrap();
-            refetch();
             setAlert({ type: 'success', message: 'Service deleted successfully!' });
         } catch (err) {
-            console.error('Failed to delete service:', err);
             const msg = err?.data?.detail || 'Failed to delete service. Please try again.';
             setAlert({ type: 'danger', message: msg });
         } finally {
@@ -90,34 +75,9 @@ export default function ClientServicesData({ token, role, clientId }) {
 
     return (
         <>
-            {alert.message && (
-                <AlertDispatcher
-                    type={alert.type}
-                    message={alert.message}
-                    onClose={() => setAlert({ type: '', message: '' })}
-                />
-            )}
-
             {/* FILTERS */}
-
             <div className="row mb-3">
-                <div className="col-md-2 col-6">
-                    <div className="field-wrapper">
-                        <select
-                            className="form-select"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                            <option value="">All Statuses</option>
-                            <option value="ACTIVE">ACTIVE</option>
-                            <option value="PENDING">PENDING</option>
-                            <option value="COMPLETED">COMPLETED</option>
-                            <option value="CANCELLED">CANCELLED</option>
-                        </select>
-                        <label className="form-label">Status</label>
-                    </div>
-                </div>
-                <div className="col-md-2 col-6">
+                <div className="col-md-3 col-6">
                     <div className="field-wrapper">
                         <select
                             className="form-select"
@@ -131,7 +91,7 @@ export default function ClientServicesData({ token, role, clientId }) {
                         <label className="form-label">Subscription Type</label>
                     </div>
                 </div>
-                <div className="col-md-2 col-6">
+                <div className="col-md-3 col-6">
                     <div className="field-wrapper">
                         <select
                             className="form-select"
@@ -151,7 +111,7 @@ export default function ClientServicesData({ token, role, clientId }) {
                         <label className="form-label">Country</label>
                     </div>
                 </div>
-                <div className="col-md-2 col-6">
+                <div className="col-md-3 col-6">
                     <div className="field-wrapper">
                         <select
                             className="form-select"
@@ -174,67 +134,41 @@ export default function ClientServicesData({ token, role, clientId }) {
             {/* GRID VIEW */}
             <div className="d-flex flex-nowrap overflow-auto gap-1" style={{ scrollSnapType: 'x mandatory' }}>
                 {statusColumns.map(({ key, label, color }) => (
-                    <div key={key} className="flex-shrink-0" style={{ minWidth: '300px', scrollSnapAlign: 'start' }}>
+                    <div
+                        key={key}
+                        className="flex-shrink-0"
+                        style={{ minWidth: '300px', maxWidth: '300px', scrollSnapAlign: 'start' }}
+                    >
                         <div className="h-100 shadow-sm">
                             <h5 className={`mb-2 text-center ${color} bg-gradient text-white p-3 rounded`}>{label}</h5>
 
                             {groupedServices[key].length ? (
                                 groupedServices[key].map((service) => (
                                     <div key={service.id} className={`shadow-sm p-2 m-2 rounded`}>
-                                        <div className="clearfix mb-2">
-                                            <span className="badge bg-dark bg-gradient rounded-pill float-end me-2">
+                                        <div className="mb-2 d-flex justify-content-between">
+                                            <h6 className="fw-bold text-muted mb-0">{service.service_name}</h6>
+                                            <span className="badge bg-dark bg-gradient rounded-pill">
                                                 {service.service_type}
                                             </span>
-                                            <h5 className="fw-bold mb-0">{service.service_name}</h5>
                                         </div>
 
                                         {['ACTIVE', 'COMPLETED'].includes(service.status) && (
-                                            <p className="mb-1">
-                                                <strong>Price:</strong> ${service.price} {service.currency}
+                                            <p className="mb-1 small">
+                                                Price: ${service.price} {service.currency}
                                             </p>
                                         )}
 
-                                        <p className="mb-1">
-                                            <strong>Start:</strong> {formatDate(service.start_date, false)}
+                                        <p className="mb-1 small d-flex justify-content-between">
+                                            <span>Start: {formatDate(service.start_date, false)}</span>
+                                            {service.end_date && (
+                                                <span>End: {formatDate(service.end_date, false)}</span>
+                                            )}
                                         </p>
-                                        {service.end_date && (
-                                            <p className="mb-1">
-                                                <strong>End:</strong> {formatDate(service.end_date, false)}
-                                            </p>
-                                        )}
 
                                         <p className="mb-1 small">
-                                            <i className="fa fa-map-marker-alt me-1"></i>
-                                            {service.street_address}, {service.city}, {service.province_state},{' '}
-                                            {service.country}
+                                            Service Address: {service.street_address}, {service.city},{' '}
+                                            {service.province_state}, {service.country}
                                         </p>
-
-                                        {role === 'MANAGER' && service.quotations?.length > 0 && (
-                                            <p className="small mb-1">
-                                                <strong>Quotations: </strong>
-                                                {service.quotations.map((quote, i) => {
-                                                    const statusClass =
-                                                        quote.status === 'SIGNED'
-                                                            ? 'success'
-                                                            : quote.status === 'SENT'
-                                                              ? 'primary'
-                                                              : quote.status === 'EXPIRED'
-                                                                ? 'danger'
-                                                                : 'secondary';
-                                                    return (
-                                                        <span key={quote.id}>
-                                                            <Link
-                                                                to={`/dashboard/quote/${quote.id}`}
-                                                                className={`text-${statusClass} text-decoration-none fw-semibold`}
-                                                            >
-                                                                {quote.quote_number}
-                                                            </Link>
-                                                            {i < service.quotations.length - 1 && ', '}
-                                                        </span>
-                                                    );
-                                                })}
-                                            </p>
-                                        )}
 
                                         <div className="d-flex justify-content-between align-items-center mt-2">
                                             {service.service_questionnaires?.id ? (
@@ -243,7 +177,7 @@ export default function ClientServicesData({ token, role, clientId }) {
                                                 >
                                                     <span className="badge bg-primary bg-gradient rounded-pill">
                                                         {service.filled_questionnaire && (
-                                                            <i className="fa fa-check me-1"></i>
+                                                            <i className="fas fa-check-circle me-1"></i>
                                                         )}
                                                         Service Qs:{' '}
                                                         {service.service_questionnaires?.questionnaire?.length}
@@ -254,6 +188,21 @@ export default function ClientServicesData({ token, role, clientId }) {
                                                     No Questionnaire
                                                 </span>
                                             )}
+
+                                            {role === 'MANAGER' &&
+                                                service.quotations?.length > 0 &&
+                                                service.quotations.map((quote, i) => {
+                                                    return (
+                                                        <Link
+                                                            key={quote.id}
+                                                            to={`/dashboard/quote/${quote.id}`}
+                                                            title={`Quotation: ${quote.quote_number}`}
+                                                            className={`badge bg-info bg-gradient rounded-pill text-decoration-none me-1`}
+                                                        >
+                                                            {quote.quote_number}
+                                                        </Link>
+                                                    );
+                                                })}
 
                                             {role === 'MANAGER' && (
                                                 <div>

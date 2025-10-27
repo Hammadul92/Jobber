@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { useCreateServiceMutation } from '../../../../../store';
+import { useCreateServiceMutation, useFetchServicesQuery } from '../../../../../store';
 import SubmitButton from '../../../../../utils/SubmitButton';
-import AlertDispatcher from '../../../../../utils/AlertDispatcher';
 import { countries, provinces } from '../../../../../utils/locations';
 
 export default function CreateClientServiceForm({
@@ -12,6 +11,7 @@ export default function CreateClientServiceForm({
     serviceOptions = [],
     loadingOptions,
     errorOptions,
+    setAlert,
 }) {
     const [serviceName, setServiceName] = useState('');
     const [serviceType, setServiceType] = useState('ONE_TIME');
@@ -28,10 +28,19 @@ export default function CreateClientServiceForm({
     const [provinceState, setProvinceState] = useState('');
     const [postalCode, setPostalCode] = useState('');
 
-    const [createService, { isLoading, error, isSuccess }] = useCreateServiceMutation();
+    const [createService, { isLoading }] = useCreateServiceMutation();
 
-    const [showError, setShowError] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
+    const {
+        data: clientServices = [],
+        isLoading: loadingClientServices,
+        isError: fetchError,
+    } = useFetchServicesQuery(clientId, { skip: !clientId });
+
+    const existingServiceNames = clientServices.map((svc) => svc.service_name?.toLowerCase().trim());
+
+    const filteredServiceOptions = serviceOptions.filter(
+        (name) => !existingServiceNames.includes(name.toLowerCase().trim())
+    );
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -54,6 +63,13 @@ export default function CreateClientServiceForm({
                 postal_code: postalCode,
             }).unwrap();
 
+            // ✅ Success alert
+            setAlert({
+                type: 'success',
+                message: 'Service created successfully!',
+            });
+
+            // Reset form
             setServiceName('');
             setServiceType('ONE_TIME');
             setPrice('');
@@ -68,11 +84,22 @@ export default function CreateClientServiceForm({
             setProvinceState('');
             setPostalCode('');
 
-            setShowSuccess(true);
-            setTimeout(() => setShowModal(false), 1000);
+            setShowModal(false);
         } catch (err) {
-            console.error('Failed to create service:', err);
-            setShowError(true);
+            const msg = Array.isArray(err?.data)
+                ? err.data.join(', ')
+                : typeof err?.data === 'object'
+                  ? Object.entries(err.data)
+                        .map(
+                            ([field, messages]) =>
+                                `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`
+                        )
+                        .join(' | ')
+                  : err?.data?.detail || 'Failed to create service.';
+            setAlert({
+                type: 'danger',
+                message: msg,
+            });
         }
     };
 
@@ -80,7 +107,7 @@ export default function CreateClientServiceForm({
         <>
             {showModal && (
                 <div className="modal d-block" tabIndex="-1" role="dialog">
-                    <div className="modal-dialog modal-xl" role="document">
+                    <div className="modal-dialog modal-lg" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h5 className="modal-title">Add Service</h5>
@@ -93,32 +120,6 @@ export default function CreateClientServiceForm({
 
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body">
-                                    {/* ✅ Alerts Section */}
-                                    {error && showError && (
-                                        <AlertDispatcher
-                                            type="error"
-                                            message={error?.data}
-                                            onClose={() => setShowError(false)}
-                                        />
-                                    )}
-                                    {isSuccess && showSuccess && (
-                                        <AlertDispatcher
-                                            type="success"
-                                            message="Service added successfully!"
-                                            autoDismiss={3000}
-                                            onClose={() => setShowSuccess(false)}
-                                        />
-                                    )}
-                                    {loadingOptions && (
-                                        <AlertDispatcher type="info" message="Loading available services..." />
-                                    )}
-                                    {errorOptions && (
-                                        <AlertDispatcher
-                                            type="error"
-                                            message={errorOptions?.data?.detail || 'Failed to load service options.'}
-                                        />
-                                    )}
-
                                     <div className="row">
                                         <div className="col-md-6 col-lg-3">
                                             <div className="field-wrapper">
@@ -127,14 +128,20 @@ export default function CreateClientServiceForm({
                                                     value={serviceName}
                                                     onChange={(e) => setServiceName(e.target.value)}
                                                     required
-                                                    disabled={loadingOptions || errorOptions}
+                                                    disabled={loadingOptions || errorOptions || loadingClientServices}
                                                 >
                                                     <option value="">-- Select Service --</option>
-                                                    {serviceOptions.map((service) => (
-                                                        <option key={service} value={service}>
-                                                            {service}
+                                                    {filteredServiceOptions.length > 0 ? (
+                                                        filteredServiceOptions.map((service) => (
+                                                            <option key={service} value={service}>
+                                                                {service}
+                                                            </option>
+                                                        ))
+                                                    ) : (
+                                                        <option disabled value="">
+                                                            No new services available
                                                         </option>
-                                                    ))}
+                                                    )}
                                                 </select>
                                                 <label className="form-label">Service Name (*)</label>
                                             </div>
@@ -185,8 +192,9 @@ export default function CreateClientServiceForm({
                                         </div>
                                     </div>
 
+                                    {/* 🧩 Billing & Dates */}
                                     <div className="row">
-                                        {serviceType !== 'ONE_TIME' ? (
+                                        {serviceType !== 'ONE_TIME' && (
                                             <div className="col-md-6 col-lg-3">
                                                 <div className="field-wrapper">
                                                     <select
@@ -201,7 +209,7 @@ export default function CreateClientServiceForm({
                                                     <label className="form-label">Billing Cycle</label>
                                                 </div>
                                             </div>
-                                        ) : null}
+                                        )}
 
                                         <div className="col-md-6 col-lg-3">
                                             <div className="field-wrapper">
@@ -231,7 +239,7 @@ export default function CreateClientServiceForm({
 
                                     <h6 className="mb-0 mt-4">Service Address</h6>
                                     <div className="row">
-                                        <div className="col-md-12 col-lg-12">
+                                        <div className="col-md-12">
                                             <div className="field-wrapper">
                                                 <input
                                                     type="text"
@@ -246,7 +254,7 @@ export default function CreateClientServiceForm({
                                     </div>
 
                                     <div className="row">
-                                        <div className="col-md-3 col-lg-3">
+                                        <div className="col-md-3">
                                             <div className="field-wrapper">
                                                 <input
                                                     type="text"
@@ -258,7 +266,8 @@ export default function CreateClientServiceForm({
                                                 <label className="form-label">City (*)</label>
                                             </div>
                                         </div>
-                                        <div className="col-md-3 col-lg-3">
+
+                                        <div className="col-md-3">
                                             <div className="field-wrapper">
                                                 <select
                                                     className="form-select"
@@ -279,7 +288,7 @@ export default function CreateClientServiceForm({
                                             </div>
                                         </div>
 
-                                        <div className="col-md-3 col-lg-3">
+                                        <div className="col-md-3">
                                             <div className="field-wrapper">
                                                 <select
                                                     className="form-select"
@@ -298,7 +307,7 @@ export default function CreateClientServiceForm({
                                             </div>
                                         </div>
 
-                                        <div className="mb-3 col-md-4 col-lg-3">
+                                        <div className="col-md-3">
                                             <div className="field-wrapper">
                                                 <input
                                                     type="text"

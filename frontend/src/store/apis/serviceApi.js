@@ -1,17 +1,29 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+const rawBaseQuery = fetchBaseQuery({
+    baseUrl: 'http://localhost:8000/api/ops',
+    prepareHeaders: (headers) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            headers.set('authorization', `Token ${token}`);
+        }
+        return headers;
+    },
+});
+
+const baseQueryWithReauth = async (args, api, extraOptions) => {
+    const result = await rawBaseQuery(args, api, extraOptions);
+    if (result?.error?.status === 401) {
+        localStorage.removeItem('token');
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
+    }
+    return result;
+};
+
 const serviceApi = createApi({
     reducerPath: 'serviceApi',
-    baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:8000/api/ops',
-        prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                headers.set('authorization', `Token ${token}`);
-            }
-            return headers;
-        },
-    }),
+    baseQuery: baseQueryWithReauth,
     tagTypes: ['Service'],
     endpoints: (builder) => ({
         fetchServices: builder.query({
@@ -24,12 +36,10 @@ const serviceApi = createApi({
             },
             providesTags: ['Service'],
         }),
-
         fetchService: builder.query({
             query: (id) => `/service/${id}/`,
             providesTags: (result, error, arg) => [{ type: 'Service', id: arg }],
         }),
-
         createService: builder.mutation({
             query: (data) => ({
                 url: '/service/',
@@ -38,7 +48,6 @@ const serviceApi = createApi({
             }),
             invalidatesTags: ['Service'],
         }),
-
         updateService: builder.mutation({
             query: (data) => ({
                 url: `/service/${data.id}/`,
@@ -47,7 +56,6 @@ const serviceApi = createApi({
             }),
             invalidatesTags: (result, error, arg) => ['Service', { type: 'Service', id: arg.id }],
         }),
-
         deleteService: builder.mutation({
             query: (id) => ({
                 url: `/service/${id}/`,

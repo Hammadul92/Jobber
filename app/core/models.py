@@ -18,7 +18,8 @@ ROLE_CHOICES = [
     ("ADMIN", "Admin"),
     ("MANAGER", "Manager"),
     ("EMPLOYEE", "Employee"),
-    ("CLIENT", "Client")
+    ("CLIENT", "Client"),
+    ("USER", "User")
 ]
 
 PAYMENT_METHOD_CHOICES = [
@@ -104,7 +105,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
-        default="MANAGER"
+        default="USER"
     )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -128,18 +129,56 @@ class SoftDeletableModel(models.Model):
     class Meta:
         abstract = True
 
-    def soft_delete(self, user=None):
+    def soft_delete(self, user=None, cascade=True):
+        """Soft delete the object and optionally its related dependents."""
+        if self.is_deleted:
+            return
+
         self.is_deleted = True
         self.deleted_by = user
         self.deleted_at = timezone.now()
         self.save(update_fields=["is_deleted", "deleted_by", "deleted_at"])
 
-    def restore(self):
-        if self.is_deleted:
-            self.is_deleted = False
-            self.deleted_by = None
-            self.deleted_at = None
-            self.save(update_fields=["is_deleted", "deleted_by", "deleted_at"])
+        if cascade:
+            for related in self._meta.related_objects:
+                related_name = related.get_accessor_name()
+                related_manager = getattr(self, related_name, None)
+
+                if related_manager is None:
+                    continue
+
+                # Handle OneToOne and ForeignKey reverse relations
+                if isinstance(related_manager, models.Model):
+                    related_manager.soft_delete(user=user, cascade=True)
+                else:
+                    # Handle reverse FK / M2M managers
+                    for obj in related_manager.all():
+                        if hasattr(obj, "soft_delete"):
+                            obj.soft_delete(user=user, cascade=True)
+
+    def restore(self, cascade=True):
+        """Restore a soft-deleted object and optionally its related dependents."""
+        if not self.is_deleted:
+            return
+
+        self.is_deleted = False
+        self.deleted_by = None
+        self.deleted_at = None
+        self.save(update_fields=["is_deleted", "deleted_by", "deleted_at"])
+
+        if cascade:
+            for related in self._meta.related_objects:
+                related_name = related.get_accessor_name()
+                related_manager = getattr(self, related_name, None)
+                if related_manager is None:
+                    continue
+
+                if isinstance(related_manager, models.Model):
+                    related_manager.restore(cascade=True)
+                else:
+                    for obj in related_manager.all():
+                        if hasattr(obj, "restore"):
+                            obj.restore(cascade=True)
 
 
 class ActiveManager(models.Manager):
@@ -328,7 +367,6 @@ class ServiceQuestionnaire(SoftDeletableModel):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('business', 'service_name')
         ordering = ['business', 'service_name']
 
     def __str__(self):

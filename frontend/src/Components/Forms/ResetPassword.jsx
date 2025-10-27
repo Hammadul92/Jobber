@@ -69,13 +69,13 @@ export default function ResetPassword() {
 
     return (
         <div className="container my-5">
-            <h2 className="text-center mb-4 fw-bold text-success">Reset Your Password</h2>
+            <h2 className="text-center mb-3 fw-bold">Reset Your Password</h2>
 
             <div className="row justify-content-center">
                 {/* Left: Password Rules */}
                 <div className="col-md-5 mb-4">
                     <div className="h-100">
-                        <h5 className="fw-bold mb-3 text-center text-success">Password Requirements</h5>
+                        <h5 className="fw-bold mb-3">Password Requirements</h5>
                         <ul className="list-unstyled fs-6">
                             <li className={`mb-2 ${passwordRules.length ? 'text-success' : 'text-secondary'}`}>
                                 <i

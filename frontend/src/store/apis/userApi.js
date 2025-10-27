@@ -1,18 +1,29 @@
-// userApi.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+const rawBaseQuery = fetchBaseQuery({
+    baseUrl: 'http://localhost:8000/api/user',
+    prepareHeaders: (headers) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            headers.set('authorization', `Token ${token}`);
+        }
+        return headers;
+    },
+});
+
+const baseQueryWithReauth = async (args, api, extraOptions) => {
+    const result = await rawBaseQuery(args, api, extraOptions);
+    if (result?.error?.status === 401) {
+        localStorage.removeItem('token');
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
+    }
+    return result;
+};
 
 const userApi = createApi({
     reducerPath: 'userApi',
-    baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:8000/api/user',
-        prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                headers.set('authorization', `Token ${token}`);
-            }
-            return headers;
-        },
-    }),
+    baseQuery: baseQueryWithReauth,
     endpoints: (builder) => ({
         createUser: builder.mutation({
             query: (data) => ({
@@ -37,9 +48,7 @@ const userApi = createApi({
                 try {
                     const { data } = await queryFulfilled;
                     localStorage.setItem('token', data.token);
-                } catch (err) {
-                    console.error('Login failed:', err);
-                }
+                } catch (err) {}
             },
         }),
         updateUser: builder.mutation({

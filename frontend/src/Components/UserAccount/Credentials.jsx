@@ -74,7 +74,7 @@ export default function Credentials({ setAlert }) {
         <div className="row justify-content-center">
             <div className="col-md-5 mb-4">
                 <div className="h-100">
-                    <h5 className="fw-bold mb-3 text-center text-success">Password Requirements</h5>
+                    <h5 className="fw-bold mb-3">Password Requirements</h5>
                     <ul className="list-unstyled fs-6">
                         <li className={`mb-2 ${passwordRules.length ? 'text-success' : 'text-secondary'}`}>
                             <i

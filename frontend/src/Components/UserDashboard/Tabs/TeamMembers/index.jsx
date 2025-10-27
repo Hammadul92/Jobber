@@ -35,7 +35,7 @@ export default function TeamMembers({ token }) {
                 <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
                     Add
                 </button>
-                <h3 className="mb-0 fw-bold text-success">Team Members</h3>
+                <h3 className="mb-0">Team Members</h3>
             </div>
 
             <CreateTeamMemberForm token={token} showModal={showModal} setShowModal={setShowModal} setAlert={setAlert} />
