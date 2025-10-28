@@ -248,13 +248,6 @@ class Client(SoftDeletableModel):
         on_delete=models.CASCADE,
     )
 
-    # Billing Address
-    street_address = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=100, blank=True, null=True)
-    country = models.CharField(max_length=2, default="CA")
-    province_state = models.CharField(max_length=2, blank=True, null=True)
-    postal_code = models.CharField(max_length=10, blank=True, null=True)
-
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

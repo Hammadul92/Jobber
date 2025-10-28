@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useFetchServicesQuery, useCreateQuoteMutation } from '../../../../store';
+import { useFetchQuotesQuery, useFetchServicesQuery, useCreateQuoteMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 
 export default function CreateQuoteForm({ token, showModal, setShowModal, setAlert }) {
@@ -8,8 +8,13 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
     const [termsConditions, setTermsConditions] = useState('');
     const [notes, setNotes] = useState('');
 
+    const { data: quoteData } = useFetchQuotesQuery(undefined, { skip: !token });
     const { data: services } = useFetchServicesQuery(undefined, { skip: !token });
     const [createQuote, { isLoading: isCreating }] = useCreateQuoteMutation();
+
+    const quotedServiceIds = quoteData?.map((q) => q.service) || [];
+
+    const availableServices = services?.filter((service) => !quotedServiceIds.includes(service.id));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -31,18 +36,15 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
             setValidUntil('');
             setTermsConditions('');
             setNotes('');
+            setShowModal(false);
         } catch (err) {
-            console.error('Create quote error:', err);
             setAlert({
                 type: 'danger',
                 message: 'Something went wrong while creating the quote. Please try again.',
             });
+            setShowModal(false);
         }
-
-        setShowModal(false);
     };
-
-    const isSubmitting = isCreating;
 
     return (
         <>
@@ -71,13 +73,15 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                                                     required
                                                 >
                                                     <option value="">Select Service</option>
-                                                    {services?.map((service) => (
-                                                        <option key={service.id} value={service.id}>
-                                                            {service.service_name} - {service.street_address},{' '}
-                                                            {service.city}, {service.province_state},{' '}
-                                                            {service.postal_code}
-                                                        </option>
-                                                    ))}
+                                                    {availableServices?.map(
+                                                        (service) =>
+                                                            service.status === 'ACTIVE' && (
+                                                                <option key={service.id} value={service.id}>
+                                                                    {service.service_name} ({service.client_name} -{' '}
+                                                                    {service.street_address})
+                                                                </option>
+                                                            )
+                                                    )}
                                                 </select>
                                                 <label className="form-label">Service (*)</label>
                                             </div>
@@ -130,12 +134,12 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                                         type="button"
                                         className="btn btn-sm btn-dark"
                                         onClick={() => setShowModal(false)}
-                                        disabled={isSubmitting}
+                                        disabled={isCreating}
                                     >
                                         Cancel
                                     </button>
                                     <SubmitButton
-                                        isLoading={isSubmitting}
+                                        isLoading={isCreating}
                                         btnClass="btn btn-sm btn-success"
                                         btnName="Create Quote"
                                     />

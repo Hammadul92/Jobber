@@ -27,8 +27,7 @@ export default function Service({ token }) {
     const [country, setCountry] = useState('CA');
     const [postalCode, setPostalCode] = useState('');
 
-    const [showError, setShowError] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
+    const [alert, setAlert] = useState({ type: '', message: '' });
 
     useEffect(() => {
         if (serviceData) {
@@ -50,9 +49,16 @@ export default function Service({ token }) {
     }, [serviceData]);
 
     useEffect(() => {
-        if (updateError) setShowError(true);
-        if (isSuccess) setShowSuccess(true);
-    }, [updateError, isSuccess]);
+        if (updateError) {
+            const message = updateError?.data?.detail || updateError?.data?.status || 'Failed to update service.';
+            setAlert({ type: 'danger', message });
+        } else if (isSuccess) {
+            setAlert({
+                type: 'success',
+                message: 'Service updated successfully!',
+            });
+        }
+    }, [updateError, isSuccess, serviceData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -75,18 +81,22 @@ export default function Service({ token }) {
                 postal_code: postalCode,
             }).unwrap();
         } catch (err) {
-            console.error('Failed to update service:', err);
+            setAlert({ type: 'danger', message: `Failed to update service: ${err}` });
         }
     };
 
     if (isLoading) return <div>Loading service...</div>;
 
-    if (error) {
-        return <AlertDispatcher type="error" message={error?.data?.detail || 'Failed to load service.'} />;
-    }
-
     return (
         <>
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
             <nav aria-label="breadcrumb mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
@@ -109,18 +119,6 @@ export default function Service({ token }) {
                     </li>
                 </ol>
             </nav>
-
-            {updateError && showError && (
-                <AlertDispatcher type="error" message={updateError?.data} onClose={() => setShowError(false)} />
-            )}
-            {isSuccess && showSuccess && (
-                <AlertDispatcher
-                    type="success"
-                    message="Service updated successfully!"
-                    autoDismiss={3000}
-                    onClose={() => setShowSuccess(false)}
-                />
-            )}
 
             <form onSubmit={handleSubmit} className="rounded shadow-sm p-3 bg-white">
                 <div className="row">

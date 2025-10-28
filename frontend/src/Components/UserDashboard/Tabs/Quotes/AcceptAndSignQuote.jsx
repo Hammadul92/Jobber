@@ -100,7 +100,7 @@ export default function AcceptAndSignQuote({ setShowSignModal, handleSignSubmit,
                         <div className="modal-footer">
                             <button
                                 type="button"
-                                className="btn btn-sm btn-secondary"
+                                className="btn btn-sm btn-dark"
                                 onClick={() => setShowSignModal(false)}
                             >
                                 Cancel

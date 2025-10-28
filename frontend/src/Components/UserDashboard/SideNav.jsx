@@ -5,7 +5,12 @@ export default function SideNav({ role, userId }) {
     const [collapsed, setCollapsed] = useState(false);
 
     const navItems = [
-        { name: 'Dashboard', path: '/dashboard/home', icon: 'fa-chart-line', is_visible: role === 'MANAGER' },
+        {
+            name: 'Dashboard',
+            path: '/dashboard/home',
+            icon: 'fa-chart-line',
+            is_visible: ['CLIENT', 'MANAGER', 'EMPLOYEE'].includes(role),
+        },
         {
             name: 'Team Members',
             path: '/dashboard/team-members',

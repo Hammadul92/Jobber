@@ -58,7 +58,6 @@ export default function Quote({ token }) {
                 message: 'Quote email sent successfully!',
             });
         } catch (err) {
-            console.error('Failed to send quote:', err);
             setAlert({
                 type: 'danger',
                 message: err?.data?.detail || 'Failed to send quote email. Please try again.',
@@ -138,7 +137,7 @@ export default function Quote({ token }) {
                 <div className="text-end">
                     <button
                         type="button"
-                        className="btn btn-primary"
+                        className="btn btn-primary bg-gradient"
                         onClick={handleSendQuote}
                         disabled={disableSendBtn || sending}
                     >
@@ -149,10 +148,10 @@ export default function Quote({ token }) {
                                     role="status"
                                     aria-hidden="true"
                                 ></span>
-                                Sending...
+                                Sending Quote...
                             </>
                         ) : (
-                            <>Send Quote</>
+                            'Send Quote'
                         )}
                     </button>
                 </div>
@@ -172,7 +171,7 @@ export default function Quote({ token }) {
             <form onSubmit={handleSubmit}>
                 <div className="row">
                     <div className="col-md-4">
-                        <div className="shadow-sm p-3 bg-white rounded mb-3 position-relative">
+                        <div className="shadow-sm p-3 rounded mb-3 position-relative">
                             <div className="position-absolute top-0 end-0 mt-2 me-2">
                                 {quoteData.client.is_active === 'True' ? (
                                     <span className="badge bg-success rounded-pill bg-gradient">ACTIVE</span>
@@ -181,32 +180,14 @@ export default function Quote({ token }) {
                                 )}
                             </div>
 
-                            <h6 className="text-muted">Client Details</h6>
+                            <h5>Client Details</h5>
 
-                            <div className="mb-1">
-                                <strong>Name: </strong>
-                                <Link
-                                    to={`/dashboard/client/${quoteData.client.id}`}
-                                    className="text-success text-decoration-none"
-                                >
-                                    {quoteData.client_name}
-                                </Link>
-                            </div>
-                            <div className="mb-1">
-                                <strong>Email: </strong> {quoteData.client.client_email}
-                            </div>
-                            <div className="mb-1">
-                                <strong>Phone: </strong> {quoteData.client.client_phone}
-                            </div>
-                            <div className="mb-1">
-                                <strong>Billing Address: </strong>
-                                {quoteData.client.street_address}, {quoteData.client.city},{' '}
-                                {quoteData.client.province_state}, {quoteData.client.country},{' '}
-                                {quoteData.client.postal_code}
-                            </div>
+                            <p className="mb-1 small text-muted">Name: {quoteData.client_name}</p>
+                            <p className="mb-1 small text-muted">Email: {quoteData.client.client_email}</p>
+                            <p className="mb-1 small text-muted">Phone: {quoteData.client.client_phone}</p>
                         </div>
 
-                        <div className="shadow-sm p-3 bg-white rounded mb-3 position-relative">
+                        <div className="shadow-sm p-3 rounded mb-3 position-relative">
                             <div className="position-absolute top-0 end-0 mt-2 me-2 d-flex gap-1 flex-wrap justify-content-end">
                                 <span className="badge bg-dark rounded-pill bg-gradient">
                                     {quoteData.service_data.service_type}
@@ -224,44 +205,37 @@ export default function Quote({ token }) {
                                 </span>
                             </div>
 
-                            <h6 className="text-muted">Service Details</h6>
+                            <h5>Service Details</h5>
 
-                            <div className="mb-2">
-                                <strong>Name: </strong>
-                                <Link
-                                    to={`/dashboard/service/${quoteData.service_data.id}`}
-                                    className="text-decoration-none text-success"
-                                >
+                            <p className="mb-1 small text-muted">
+                                Name:{' '}
+                                <Link to={`/dashboard/service/${quoteData.service_data.id}`} className="text-success">
                                     {quoteData.service_data.service_name}
                                 </Link>
-                            </div>
+                            </p>
 
                             {quoteData.service_data.description && (
-                                <p className="bg-light p-2 mb-2 rounded">
+                                <p className="mb-1 small p-2 bg-light rounded-3">
                                     <i className="fa fa-info"></i> {quoteData.service_data.description}
                                 </p>
                             )}
-                            <div className="mb-1">
-                                <strong>Price: </strong> ${quoteData.service_data.price}{' '}
-                                {quoteData.service_data.currency}
+                            <p className="mb-1 small text-muted">
+                                Price: ${quoteData.service_data.price} {quoteData.service_data.currency}
+                            </p>
+                            <p className="mb-1 small text-muted">
+                                Billing Cycle: {quoteData.service_data.billing_cycle || '-'}
+                            </p>
+                            <div className="d-flex justify-content-between align-items-center mb-1">
+                                <p className="small text-muted mb-0">Start Date: {quoteData.service_data.start_date}</p>
+                                <p className="small text-muted mb-0">
+                                    End Date: {quoteData.service_data.end_date || '-'}
+                                </p>
                             </div>
-                            <div className="mb-1">
-                                <strong>Billing Cycle: </strong> {quoteData.service_data.billing_cycle || '-'}
-                            </div>
-                            <div className="mb-1 row">
-                                <div className="col-md-6">
-                                    <strong>Start Date: </strong> {quoteData.service_data.start_date}
-                                </div>
-                                <div className="col-md-6">
-                                    <strong>End Date: </strong> {quoteData.service_data.end_date || '-'}
-                                </div>
-                            </div>
-                            <div className="mb-1">
-                                <strong>Service Address: </strong>
-                                {quoteData.service_data.street_address}, {quoteData.service_data.city},{' '}
+                            <p className="mb-1 small text-muted">
+                                Service Address: {quoteData.service_data.street_address}, {quoteData.service_data.city},{' '}
                                 {quoteData.service_data.province_state}, {quoteData.service_data.country},{' '}
                                 {quoteData.service_data.postal_code}
-                            </div>
+                            </p>
                         </div>
                     </div>
 
@@ -274,7 +248,7 @@ export default function Quote({ token }) {
                                             type="text"
                                             className="form-control"
                                             value={formatDate(quoteData.signed_at)}
-                                            readOnly
+                                            disabled
                                         />
                                         <label className="form-label">Signed At</label>
                                     </div>

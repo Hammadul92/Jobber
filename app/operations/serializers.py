@@ -91,8 +91,7 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = ['id', 'user', 'business', 'client_name',
                   'client_email', 'client_phone', 'is_active',
-                  'street_address', 'city', 'country', 'province_state',
-                  'postal_code', 'created_at', 'updated_at']
+                  'created_at', 'updated_at']
 
         read_only_fields = [
             'id', 'user', 'business', 'created_at', 'updated_at'
@@ -192,7 +191,9 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         Validates:
         - client belongs to business
         - service_name is offered by business
-        - (questionnaire existence only checked on creation)
+        - questionnaire existence on creation
+        - cannot activate until questionnaire is filled
+        - no duplicate address for same service_name within a business
         """
         business = (
             data.get("business") or
@@ -208,22 +209,16 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
         # Validate service_name is offered by the business
         if business and service_name:
-            allowed_services = {
-                s.name for s in business.services_offered.all()
-            }
+            allowed_services = {s.name for s in business.services_offered.all()}
             if service_name not in allowed_services:
-                errors["service_name"] = (
-                    "This service is not offered by the selected business."
-                )
+                errors["service_name"] = "This service is not offered by the selected business."
 
         # Validate client belongs to business
         if business and client and client.business != business:
-            errors["client"] = (
-                "This client does not belong to the selected business."
-            )
+            errors["client"] = "This client does not belong to the selected business."
 
         # Only check for questionnaire existence when creating
-        if not self.instance:  # creation only
+        if not self.instance:
             has_questionnaire = business.service_questionnaires.filter(
                 service_name=service_name,
                 is_active=True
@@ -234,11 +229,54 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                     "questionnaire for the selected service name."
                 )
 
+        # Prevent activation before questionnaire is filled
+        if self.instance:
+            new_status = data.get("status")
+            filled_questionnaire = (
+                data.get("filled_questionnaire")
+                or getattr(self.instance, "filled_questionnaire", None)
+            )
+
+            if new_status == "ACTIVE" and not filled_questionnaire:
+                errors["status"] = (
+                    "Cannot mark this service as active until the client "
+                    "has filled out the questionnaire."
+                )
+
+        # Prevent duplicate address for same service_name within a business
+        if business and service_name:
+            street = data.get("street_address") or getattr(self.instance, "street_address", None)
+            city = data.get("city") or getattr(self.instance, "city", None)
+            province = data.get("province_state") or getattr(self.instance, "province_state", None)
+            postal = data.get("postal_code") or getattr(self.instance, "postal_code", None)
+            country = data.get("country") or getattr(self.instance, "country", None)
+
+            duplicate_qs = Service.objects.filter(
+                business=business,
+                client=client,
+                service_name=service_name,
+                street_address__iexact=street.strip() if street else "",
+                city__iexact=city.strip() if city else "",
+                province_state__iexact=province.strip() if province else "",
+                postal_code__iexact=postal.strip() if postal else "",
+                country__iexact=country.strip() if country else "",
+                is_active=True,
+            )
+
+            # Exclude current instance if updating
+            if self.instance:
+                duplicate_qs = duplicate_qs.exclude(pk=self.instance.pk)
+
+            if duplicate_qs.exists():
+                errors["street_address"] = (
+                    "A service with this address and service name already exists "
+                    "for this client."
+                )
+
         if errors:
             raise serializers.ValidationError(errors)
 
         return data
-
 
 class QuoteSerializer(serializers.ModelSerializer):
     """ Serializer for quotes."""

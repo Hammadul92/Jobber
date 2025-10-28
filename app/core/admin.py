@@ -100,7 +100,7 @@ class BusinessAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
 
 class ClientAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     list_display = ['user', 'business', 'is_active', 'created_at']
-    list_filter = ['is_active', 'business', 'country', 'province_state']
+    list_filter = ['is_active', 'business']
     search_fields = ['user__name', 'user__email', 'user__phone']
     readonly_fields = ['created_at', 'updated_at']
 

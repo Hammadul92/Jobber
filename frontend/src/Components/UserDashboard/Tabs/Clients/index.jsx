@@ -11,7 +11,15 @@ export default function Clients({ token }) {
 
     return (
         <>
-            <nav aria-label="breadcrumb mb-3">
+            {alert.message && (
+                <AlertDispatcher
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ type: '', message: '' })}
+                />
+            )}
+
+            <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
                         <Link to={`/dashboard/home`} className="text-success">
@@ -23,14 +31,8 @@ export default function Clients({ token }) {
                     </li>
                 </ol>
             </nav>
-            {alert.message && (
-                <AlertDispatcher
-                    type={alert.type}
-                    message={alert.message}
-                    onClose={() => setAlert({ type: '', message: '' })}
-                />
-            )}
-            <div className="d-flex align-items-center justify-content-between mb-3">
+
+            <div className="d-flex align-items-center justify-content-between mb-3 mt-4">
                 <h3 className="mb-0">Clients</h3>
                 <button className="btn btn-success" onClick={() => setShowModal(true)}>
                     Add

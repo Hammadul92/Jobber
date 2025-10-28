@@ -83,7 +83,7 @@ export default function TeamMember({ token }) {
                 />
             )}
 
-            <nav aria-label="breadcrumb mb-3">
+            <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
                         <Link to={`/dashboard/home`} className="text-success">
@@ -101,9 +101,9 @@ export default function TeamMember({ token }) {
                 </ol>
             </nav>
 
-            <div className="row">
+            <div className="row mt-4">
                 <div className="col-12 col-lg-3 mb-3">
-                    <div className="text-center shadow-sm p-3 bg-white rounded-3 mb-3">
+                    <div className="text-center shadow-sm p-3 rounded">
                         <img
                             src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=120`}
                             alt={name}
@@ -129,7 +129,7 @@ export default function TeamMember({ token }) {
                 </div>
 
                 <div className="col-12 col-lg-9">
-                    <form onSubmit={handleSubmit} className="shadow-sm p-3 bg-white rounded">
+                    <form onSubmit={handleSubmit} className="shadow-sm p-3 rounded">
                         <div className="field-wrapper">
                             <textarea
                                 className="form-control"

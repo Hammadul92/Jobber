@@ -54,8 +54,8 @@ export default function ServiceQuestionnairesData({ token, setAlert }) {
 
     return (
         <>
-            <p className='text-muted'>
-                <i className='fa fa-info me-1'></i>
+            <p className="text-muted">
+                <i className="fa fa-info me-1"></i>
                 Please create questionnaires for each service your business offers. These questionnaires will be sent to
                 clients when a service is added, allowing them to provide necessary details. Note that you cannot assign
                 a service to a client unless a corresponding questionnaire has been created.
@@ -67,7 +67,7 @@ export default function ServiceQuestionnairesData({ token, setAlert }) {
             ) : (
                 <div className="row">
                     {questionnaires.map((q) => (
-                        <div key={q.id} className="col-md-6 col-lg-4 mb-4">
+                        <div key={q.id} className="col-md-6 col-lg-3 mb-3">
                             <div className="card shadow-sm border-0 h-100">
                                 <div className="card-body">
                                     <div className="d-flex justify-content-between align-items-start mb-2">
@@ -79,7 +79,7 @@ export default function ServiceQuestionnairesData({ token, setAlert }) {
                                         </span>
                                     </div>
 
-                                    <p className="text-muted small mb-3">
+                                    <p className="text-muted small">
                                         No. of questions: {q.additional_questions_form?.length || 0}
                                     </p>
 

@@ -173,8 +173,8 @@ export default function SignQuote({ token }) {
 
                 <div className="row mb-3">
                     <div className="col-md-6 mb-4 mb-md-0">
-                        <h6 className="text-muted mb-2">Client Details</h6>
-                        <ul className="list-unstyled">
+                        <h5 className="mb-2">Client Details</h5>
+                        <ul className="list-unstyled small text-muted">
                             <li>
                                 <strong>Name:</strong> {quote.client_name || '_'}
                             </li>
@@ -184,15 +184,10 @@ export default function SignQuote({ token }) {
                             <li>
                                 <strong>Phone:</strong> {quote.client?.client_phone || '_'}
                             </li>
-                            <li>
-                                <strong>Billing Address:</strong> {quote.client?.street_address || '_'},{' '}
-                                {quote.client?.city || '_'}, {quote.client?.country || '_'},{' '}
-                                {quote.client?.postal_code || '_'}
-                            </li>
                         </ul>
 
-                        <h6 className="text-muted mb-2">Service Details</h6>
-                        <ul className="list-unstyled">
+                        <h5 className="mb-2">Service Details</h5>
+                        <ul className="list-unstyled small text-muted">
                             <li>
                                 <strong>Service Name:</strong> {quote.service_data?.service_name || '—'}
                             </li>
@@ -236,8 +231,8 @@ export default function SignQuote({ token }) {
 
                     <div className="col-md-6">
                         <div>
-                            <h6 className="text-muted mb-2">Service Questionnaire Responses</h6>
-                            <ul className="list-unstyled">
+                            <h5 className="mb-2">Service Questionnaire Responses</h5>
+                            <ul className="list-unstyled small text-muted">
                                 {quote?.service_data?.filled_questionnaire &&
                                 Object.keys(quote.service_data.filled_questionnaire).length > 0 ? (
                                     Object.entries(quote.service_data.filled_questionnaire).map(([q, a]) => (
@@ -311,14 +306,14 @@ export default function SignQuote({ token }) {
                     ) : (
                         <div className="d-flex justify-content-end gap-2 mt-3">
                             <button
-                                className="btn btn-danger"
+                                className="btn btn-danger bg-gradient"
                                 onClick={() => setShowDeclineModal(true)}
                                 disabled={signing || timeRemaining === 'Expired'}
                             >
                                 Decline
                             </button>
                             <button
-                                className="btn btn-success"
+                                className="btn btn-success bg-gradient"
                                 onClick={() => setShowSignModal(true)}
                                 disabled={signing || timeRemaining === 'Expired' || status !== 'SENT'}
                             >

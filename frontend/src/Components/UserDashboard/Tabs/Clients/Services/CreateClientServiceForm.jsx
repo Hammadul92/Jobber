@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCreateServiceMutation, useFetchServicesQuery } from '../../../../../store';
+import { useCreateServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../../utils/SubmitButton';
 import { countries, provinces } from '../../../../../utils/locations';
 
@@ -29,18 +29,6 @@ export default function CreateClientServiceForm({
     const [postalCode, setPostalCode] = useState('');
 
     const [createService, { isLoading }] = useCreateServiceMutation();
-
-    const {
-        data: clientServices = [],
-        isLoading: loadingClientServices,
-        isError: fetchError,
-    } = useFetchServicesQuery(clientId, { skip: !clientId });
-
-    const existingServiceNames = clientServices.map((svc) => svc.service_name?.toLowerCase().trim());
-
-    const filteredServiceOptions = serviceOptions.filter(
-        (name) => !existingServiceNames.includes(name.toLowerCase().trim())
-    );
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -128,11 +116,11 @@ export default function CreateClientServiceForm({
                                                     value={serviceName}
                                                     onChange={(e) => setServiceName(e.target.value)}
                                                     required
-                                                    disabled={loadingOptions || errorOptions || loadingClientServices}
+                                                    disabled={loadingOptions || errorOptions}
                                                 >
                                                     <option value="">-- Select Service --</option>
-                                                    {filteredServiceOptions.length > 0 ? (
-                                                        filteredServiceOptions.map((service) => (
+                                                    {serviceOptions.length > 0 ? (
+                                                        serviceOptions.map((service) => (
                                                             <option key={service} value={service}>
                                                                 {service}
                                                             </option>

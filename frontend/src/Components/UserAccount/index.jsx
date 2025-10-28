@@ -12,13 +12,18 @@ export default function UserAccount({ token, user }) {
 
     const activeTab = tab || 'profile';
 
-    if ((user?.role !== 'MANAGER' || user?.role !== 'USER') && activeTab === 'business') {
+    if (!['MANAGER', 'USER'].includes(user?.role) && activeTab === 'business') {
         return <Navigate to="/user-account/profile" replace />;
     }
 
     const menuItems = [
         { key: 'profile', label: 'Profile', icon: 'fa-user', is_visible: true },
-        { key: 'business', label: 'Business', icon: 'fa-briefcase', is_visible: user?.role !== 'CLIENT' },
+        {
+            key: 'business',
+            label: 'Business',
+            icon: 'fa-briefcase',
+            is_visible: ['MANAGER', 'USER'].includes(user?.role),
+        },
         { key: 'banking', label: 'Banking', icon: 'fa-building-columns', is_visible: true },
         { key: 'credentials', label: 'Credentials', icon: 'fa-key', is_visible: true },
     ];

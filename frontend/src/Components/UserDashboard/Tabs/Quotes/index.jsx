@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import CreateQuoteForm from './CreateQuoteForm';
-import DataTable from './QuotesDatatable';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import QuotesData from './QuotesData';
 
 export default function Quotes({ token, role }) {
     const [showModal, setShowModal] = useState(false);
@@ -11,7 +11,7 @@ export default function Quotes({ token, role }) {
 
     return (
         <>
-            <nav aria-label="breadcrumb mb-3">
+            <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
                         <Link to={`/dashboard/home`} className="text-success">
@@ -24,13 +24,13 @@ export default function Quotes({ token, role }) {
                 </ol>
             </nav>
 
-            <div className="clearfix mb-3">
+            <div className="d-flex align-items-center justify-content-between mb-3 mt-4">
+                <h3 className="mb-0 fw-bold">Quotes</h3>
                 {role === 'MANAGER' && (
                     <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
                         Add
                     </button>
                 )}
-                <h3 className="mb-0 fw-bold">Quotes</h3>
             </div>
 
             {alert.message && (
@@ -46,7 +46,7 @@ export default function Quotes({ token, role }) {
             )}
 
             <div>
-                <DataTable token={token} role={role} setAlert={setAlert} />
+                <QuotesData token={token} role={role} setAlert={setAlert} />
             </div>
         </>
     );

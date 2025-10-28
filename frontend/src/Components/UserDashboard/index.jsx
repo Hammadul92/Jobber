@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import SideNav from './SideNav';
 import DashboardHome from './Tabs/Home/';
 import Clients from './Tabs/Clients';
-import Client from './Tabs/Clients/Client';
 import ClientServices from './Tabs/Clients/Services';
 import Service from './Tabs/Clients/Services/Service';
 import ServiceQuestionnaires from './Tabs/ServiceQuestionnaires';
@@ -23,7 +22,7 @@ export default function UserDashboard({ page, token, user }) {
 
     const accessRules = useMemo(
         () => [
-            { page: 'home', roles: ['MANAGER'] },
+            { page: 'home', roles: ['CLIENT', 'MANAGER', 'EMPLOYEE'] },
             { page: 'team-members', roles: ['EMPLOYEE', 'MANAGER'] },
             { page: 'team-member', roles: ['EMPLOYEE', 'MANAGER'] },
             { page: 'clients', roles: ['MANAGER'] },
@@ -32,7 +31,7 @@ export default function UserDashboard({ page, token, user }) {
             { page: 'client-services', roles: ['MANAGER', 'CLIENT'] },
             { page: 'service-questionnaires', roles: ['MANAGER'] },
             { page: 'service-questionnaire', roles: ['MANAGER'] },
-            { page: 'service-questionnaire-form', roles: ['MANAGER', 'CLIENT']},
+            { page: 'service-questionnaire-form', roles: ['MANAGER', 'CLIENT'] },
             { page: 'quotes', roles: ['CLIENT', 'MANAGER'] },
             { page: 'quote', roles: ['CLIENT', 'MANAGER'] },
             { page: 'sign-quote', roles: ['CLIENT'] },
@@ -45,6 +44,13 @@ export default function UserDashboard({ page, token, user }) {
     );
 
     useEffect(() => {
+        const currentPath = window.location.pathname + window.location.search;
+
+        if (!token) {
+            navigate(`/sign-in?next=${encodeURIComponent(currentPath)}`, { replace: true });
+            return;
+        }
+
         const userRole = user?.role;
         if (!userRole || userRole === 'USER') {
             navigate('/', { replace: true });
@@ -63,8 +69,6 @@ export default function UserDashboard({ page, token, user }) {
                 return <DashboardHome token={token} role={user?.role} />;
             case 'clients':
                 return <Clients token={token} />;
-            case 'client':
-                return <Client token={token} />;
             case 'client-services':
                 return <ClientServices token={token} role={user?.role} />;
             case 'service':

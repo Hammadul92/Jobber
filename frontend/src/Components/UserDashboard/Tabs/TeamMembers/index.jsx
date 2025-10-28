@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 import CreateTeamMemberForm from './CreateTeamMemberForm';
-import DataTable from './TeamMembersDatatable';
+import TeamMembersData from './TeamMembersData';
 
 export default function TeamMembers({ token }) {
     const [showModal, setShowModal] = useState(false);
@@ -18,7 +18,7 @@ export default function TeamMembers({ token }) {
                 />
             )}
 
-            <nav aria-label="breadcrumb mb-3">
+            <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
                         <Link to={`/dashboard/home`} className="text-success">
@@ -31,18 +31,16 @@ export default function TeamMembers({ token }) {
                 </ol>
             </nav>
 
-            <div className="clearfix mb-3">
+            <div className="d-flex align-items-center justify-content-between mb-3 mt-4">
+                <h3 className="mb-0 fw-bold">Team Members</h3>
                 <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
                     Add
                 </button>
-                <h3 className="mb-0">Team Members</h3>
             </div>
 
             <CreateTeamMemberForm token={token} showModal={showModal} setShowModal={setShowModal} setAlert={setAlert} />
 
-            <div>
-                <DataTable token={token} />
-            </div>
+            <TeamMembersData token={token} setAlert={setAlert} />
         </div>
     );
 }

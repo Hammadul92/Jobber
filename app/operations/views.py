@@ -96,7 +96,6 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
         .order_by("-id")
     )
     serializer_class = serializers.TeamMemberSerializer
-    pagination_class = paginations.TeamMemberPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -163,7 +162,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.QuoteSerializer
     queryset = Quote.objects.filter(is_active=True).select_related("service")
-    pagination_class = paginations.QuotePagination
+    # pagination_class = paginations.QuotePagination
 
     def get_queryset(self):
         user = self.request.user

@@ -75,13 +75,6 @@ export default function ClientsDatatable({ token }) {
             return (
                 <Table.Cell {...props}>
                     <Link
-                        to={`/dashboard/client/${props.row.id}`}
-                        className="badge bg-light rounded-circle p-2 me-2 text-secondary"
-                        title="Edit Client"
-                    >
-                        <i className="fa fa-pencil"></i>
-                    </Link>
-                    <Link
                         to={`/dashboard/client/${props.row.id}/services`}
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary"
                         title="Client Services"
