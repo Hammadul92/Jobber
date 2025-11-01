@@ -12,6 +12,7 @@ from . import views
 
 router = DefaultRouter()
 router.register('banking-information', views.BankingInformationViewSet)
+router.register('invoice', views.InvoiceViewSet)
 
 app_name = 'finance'
 

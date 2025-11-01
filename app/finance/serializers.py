@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 # from core.utils import BusinessTimezoneMixin
-from core.models import BankingInformation
+from core.models import BankingInformation, Invoice
 
 
 class BankingInformationSerializer(serializers.ModelSerializer):
@@ -28,3 +28,11 @@ class BankingInformationSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = ['created_at', 'updated_at']
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Invoice
+        fields = "__all__"
+        read_only_fields = ["invoice_number", "created_at", "updated_at"]

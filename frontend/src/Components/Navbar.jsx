@@ -14,6 +14,7 @@ import {
     quoteApi,
     jobApi,
     bankingInformationApi,
+    invoiceApi,
 } from '../store';
 import './Components.css';
 import logo from './images/logo.png';
@@ -41,6 +42,7 @@ export default function Navbar() {
             quoteApi,
             jobApi,
             bankingInformationApi,
+            invoiceApi,
         ].forEach((api) => dispatch(api.util.resetApiState()));
 
         localStorage.removeItem('token');

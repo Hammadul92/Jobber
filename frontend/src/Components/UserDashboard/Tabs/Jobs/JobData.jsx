@@ -12,7 +12,6 @@ export default function JobData({ token, role, setAlert }) {
     // --- Filters ---
     const [serviceFilter, setServiceFilter] = useState('');
     const [assignedToFilter, setAssignedToFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
     const [startDateFilter, setStartDateFilter] = useState('');
     const [endDateFilter, setEndDateFilter] = useState('');
 
@@ -32,7 +31,6 @@ export default function JobData({ token, role, setAlert }) {
     // --- Unique options ---
     const uniqueServices = useMemo(() => [...new Set(jobs.map((j) => j.service_name).filter(Boolean))], [jobs]);
     const uniqueAssignees = useMemo(() => [...new Set(jobs.map((j) => j.assigned_to_name || 'Unassigned'))], [jobs]);
-    const uniqueStatuses = useMemo(() => [...new Set(jobs.map((j) => j.status).filter(Boolean))], [jobs]);
 
     // --- Apply filters ---
     const filteredJobs = useMemo(() => {
@@ -42,14 +40,12 @@ export default function JobData({ token, role, setAlert }) {
                 !assignedToFilter ||
                 (assignedToFilter === 'Unassigned' && !job.assigned_to_name) ||
                 job.assigned_to_name === assignedToFilter;
-            const matchStatus = !statusFilter || job.status === statusFilter;
             const matchStart = !startDateFilter || new Date(job.scheduled_date) >= new Date(startDateFilter);
             const matchEnd = !endDateFilter || new Date(job.scheduled_date) <= new Date(endDateFilter);
             return matchService && matchAssigned && matchStatus && matchStart && matchEnd;
         });
-    }, [jobs, serviceFilter, assignedToFilter, statusFilter, startDateFilter, endDateFilter]);
+    }, [jobs, serviceFilter, assignedToFilter, startDateFilter, endDateFilter]);
 
-    // --- Group by status ---
     const groupedJobs = useMemo(() => {
         const groups = { PENDING: [], IN_PROGRESS: [], COMPLETED: [], CANCELLED: [] };
         filteredJobs.forEach((job) => {
@@ -146,24 +142,6 @@ export default function JobData({ token, role, setAlert }) {
                             ))}
                         </select>
                         <label className="form-label">Assigned To</label>
-                    </div>
-                </div>
-
-                <div className="col-md-2">
-                    <div className="field-wrapper">
-                        <select
-                            className="form-select"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                            <option value="">All Statuses</option>
-                            {uniqueStatuses.map((status, idx) => (
-                                <option key={idx} value={status}>
-                                    {status}
-                                </option>
-                            ))}
-                        </select>
-                        <label className="form-label">Status</label>
                     </div>
                 </div>
 

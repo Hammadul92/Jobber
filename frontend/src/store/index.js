@@ -9,6 +9,7 @@ import { serviceApi } from './apis/serviceApi';
 import { quoteApi } from './apis/quoteApi';
 import { jobApi } from './apis/jobApi';
 import { bankingInformationApi } from './apis/bankingInformationApi';
+import { invoiceApi } from './apis/invoiceApi';
 
 const store = configureStore({
     reducer: {
@@ -21,6 +22,7 @@ const store = configureStore({
         [serviceQuestionnaireApi.reducerPath]: serviceQuestionnaireApi.reducer,
         [jobApi.reducerPath]: jobApi.reducer,
         [bankingInformationApi.reducerPath]: bankingInformationApi.reducer,
+        [invoiceApi.reducerPath]: invoiceApi.reducer,
     },
     middleware: (getDefaultMiddleware) => {
         return getDefaultMiddleware()
@@ -32,7 +34,8 @@ const store = configureStore({
             .concat(serviceApi.middleware)
             .concat(quoteApi.middleware)
             .concat(jobApi.middleware)
-            .concat(bankingInformationApi.middleware);
+            .concat(bankingInformationApi.middleware)
+            .concat(invoiceApi.middleware);
     },
 });
 
@@ -49,6 +52,7 @@ export {
     quoteApi,
     jobApi,
     bankingInformationApi,
+    invoiceApi,
 };
 export {
     useSigninUserMutation,
@@ -136,3 +140,12 @@ export {
     useSavePaymentMethodMutation,
     useAddBankAccountMutation,
 } from './apis/bankingInformationApi';
+
+export {
+    useFetchInvoicesQuery,
+    useFetchInvoiceQuery,
+    useCreateInvoiceMutation,
+    useUpdateInvoiceMutation,
+    useReplaceInvoiceMutation,
+    useDeleteInvoiceMutation,
+} from './apis/invoiceApi';

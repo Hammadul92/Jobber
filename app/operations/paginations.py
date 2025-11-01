@@ -17,6 +17,7 @@ class ClientPagination(pagination.PageNumberPagination):
                 {'name': 'client_name', 'title': 'Name'},
                 {'name': 'client_email', 'title': 'Email'},
                 {'name': 'client_phone', 'title': 'Phone'},
+                {'name': 'payment_method', 'title': 'Payment Method'},
             ],
             'results': data,
         })

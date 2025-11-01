@@ -16,6 +16,8 @@ import Quote from './Tabs/Quotes/Quote';
 import SignQuote from './Tabs/Quotes/signQuote';
 import Jobs from './Tabs/Jobs';
 import Job from './Tabs/Jobs/Job';
+import Invoices from './Tabs/Invoices';
+import Payouts from './Tabs/Payouts';
 
 export default function UserDashboard({ page, token, user }) {
     const navigate = useNavigate();
@@ -93,6 +95,10 @@ export default function UserDashboard({ page, token, user }) {
                 return <Jobs token={token} role={user?.role} />;
             case 'job':
                 return <Job token={token} role={user?.role} />;
+            case 'invoices':
+                return <Invoices token={token} role={user?.role} />;
+            case 'payouts':
+                return <Payouts token={token} />;
             default:
                 return null;
         }

@@ -73,6 +73,20 @@ ACCOUNT_HOLDER_CHOICES = [
     ("company", "Company")
 ]
 
+INVOICE_STATUS_CHOICES = [
+    ("DRAFT", "Draft"),
+    ("SENT", "Sent"),
+    ("PAID", "Paid"),
+    ("CANCELLED", "Cancelled"),
+]
+
+PAYOUT_STATUS_CHOICES = [
+    ("PENDING", "Pending"),
+    ("PROCESSING", "Processing"),
+    ("PAID", "Paid"),
+    ("FAILED", "Failed"),
+]
+
 
 class UserManager(BaseUserManager):
     """Manager for users."""
@@ -147,11 +161,9 @@ class SoftDeletableModel(models.Model):
                 if related_manager is None:
                     continue
 
-                # Handle OneToOne and ForeignKey reverse relations
                 if isinstance(related_manager, models.Model):
                     related_manager.soft_delete(user=user, cascade=True)
                 else:
-                    # Handle reverse FK / M2M managers
                     for obj in related_manager.all():
                         if hasattr(obj, "soft_delete"):
                             obj.soft_delete(user=user, cascade=True)
@@ -619,3 +631,128 @@ class Quote(SoftDeletableModel):
             new_number = 1
 
         return f"{prefix}{new_number:03d}"
+
+
+class Invoice(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
+    business = models.ForeignKey(
+        Business,
+        related_name="invoices",
+        on_delete=models.CASCADE,
+    )
+    client = models.ForeignKey(
+        Client,
+        related_name="invoices",
+        on_delete=models.CASCADE,
+    )
+    service = models.ForeignKey(
+        Service,
+        related_name="invoices",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    invoice_number = models.CharField(max_length=20, unique=True, editable=False)
+    issue_date = models.DateField(default=timezone.now)
+    due_date = models.DateField()
+    status = models.CharField(
+        max_length=20,
+        choices=INVOICE_STATUS_CHOICES,
+        default="DRAFT"
+    )
+
+    currency = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default="CAD"
+    )
+
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    notes = models.TextField(blank=True, null=True)
+
+    stripe_invoice_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_payment_intent_id = models.CharField(max_length=255, blank=True, null=True)
+
+    paid_at = models.DateTimeField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Invoice {self.invoice_number} for {self.client.user.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.invoice_number:
+            self.invoice_number = self.generate_invoice_number()
+        super().save(*args, **kwargs)
+
+    def generate_invoice_number(self):
+        year = timezone.now().year
+        prefix = f"INV-{year}-"
+        last_invoice = Invoice.objects.filter(
+            invoice_number__startswith=prefix
+        ).order_by("invoice_number").last()
+        new_number = 1
+        if last_invoice:
+            try:
+                last_number = int(last_invoice.invoice_number.split("-")[-1])
+                new_number = last_number + 1
+            except ValueError:
+                pass
+        return f"{prefix}{new_number:03d}"
+
+
+class Payout(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
+    business = models.ForeignKey(
+        Business,
+        related_name="payouts",
+        on_delete=models.CASCADE,
+    )
+    invoice = models.ForeignKey(
+        Invoice,
+        related_name="payouts",
+        on_delete=models.CASCADE,
+    )
+
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default="CAD"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=PAYOUT_STATUS_CHOICES,
+        default="PENDING"
+    )
+
+    banking_information = models.ForeignKey(
+        BankingInformation,
+        related_name="payouts",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    stripe_payout_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_balance_transaction_id = models.CharField(max_length=255, blank=True, null=True)
+
+    initiated_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(blank=True, null=True)
+    failure_reason = models.TextField(blank=True, null=True)
+
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Payout {self.id} for {self.invoice.invoice_number} ({self.get_status_display()})"

@@ -1,21 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetchQuotesQuery, useDeleteQuoteMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import { formatDate } from '../../../../utils/formatDate';
 
 export default function QuotesData({ token, role, setAlert }) {
-    const {
-        data: quoteData,
-        isLoading,
-        error,
-    } = useFetchQuotesQuery(undefined, {
-        skip: !token,
-    });
+    const { data: quoteData, isLoading, error, refetch } = useFetchQuotesQuery(undefined, { skip: !token });
 
     const [deleteQuote, { isLoading: deleting }] = useDeleteQuoteMutation();
     const [showModal, setShowModal] = useState(false);
     const [selectedQuoteId, setSelectedQuoteId] = useState(null);
+
+    // --- Filters ---
+    const [serviceFilter, setServiceFilter] = useState('');
+    const [clientFilter, setClientFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+
+    const quotes = quoteData || [];
+
+    const uniqueServices = useMemo(() => [...new Set(quotes.map((q) => q.service_name).filter(Boolean))], [quotes]);
+    const uniqueClients = useMemo(() => [...new Set(quotes.map((q) => q.client_name).filter(Boolean))], [quotes]);
+    const uniqueStatuses = useMemo(() => [...new Set(quotes.map((q) => q.status).filter(Boolean))], [quotes]);
+
+    const filteredQuotes = useMemo(() => {
+        return quotes.filter((q) => {
+            const matchService = !serviceFilter || q.service_name === serviceFilter;
+            const matchClient = !clientFilter || q.client_name === clientFilter;
+            const matchStatus = !statusFilter || q.status === statusFilter;
+            return matchService && matchClient && matchStatus;
+        });
+    }, [quotes, serviceFilter, clientFilter, statusFilter]);
+
+    useEffect(() => {
+        if (error) {
+            setAlert({
+                type: 'danger',
+                message: error?.data?.detail || 'Failed to load quotes. Please try again later.',
+            });
+        }
+    }, [error, setAlert]);
 
     const handleDeleteClick = (id) => {
         setSelectedQuoteId(id);
@@ -30,6 +53,7 @@ export default function QuotesData({ token, role, setAlert }) {
             setAlert({ type: 'success', message: 'Quote deleted successfully!' });
             setShowModal(false);
             setSelectedQuoteId(null);
+            refetch();
         } catch (err) {
             console.error('Failed to delete quote:', err);
             setAlert({
@@ -41,26 +65,74 @@ export default function QuotesData({ token, role, setAlert }) {
 
     if (isLoading) return <div>Loading quotes...</div>;
 
-    if (error) {
-        setAlert({
-            type: 'danger',
-            message: error?.data?.detail || 'Failed to load quotes. Please try again later.',
-        });
-        return null;
-    }
-
-    const quotes = quoteData || [];
     const today = new Date();
 
     return (
         <>
-            {quotes.length === 0 ? (
+            {/* --- FILTER BAR --- */}
+            <div className="row mb-3">
+                <div className="col-md-2">
+                    <div className="field-wrapper">
+                        <select
+                            className="form-select"
+                            value={serviceFilter}
+                            onChange={(e) => setServiceFilter(e.target.value)}
+                        >
+                            <option value="">All Services</option>
+                            {uniqueServices.map((name, idx) => (
+                                <option key={idx} value={name}>
+                                    {name}
+                                </option>
+                            ))}
+                        </select>
+                        <label className="form-label">Service</label>
+                    </div>
+                </div>
+
+                <div className="col-md-2">
+                    <div className="field-wrapper">
+                        <select
+                            className="form-select"
+                            value={clientFilter}
+                            onChange={(e) => setClientFilter(e.target.value)}
+                        >
+                            <option value="">All Clients</option>
+                            {uniqueClients.map((name, idx) => (
+                                <option key={idx} value={name}>
+                                    {name}
+                                </option>
+                            ))}
+                        </select>
+                        <label className="form-label">Client</label>
+                    </div>
+                </div>
+
+                <div className="col-md-2">
+                    <div className="field-wrapper">
+                        <select
+                            className="form-select"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="">All Statuses</option>
+                            {uniqueStatuses.map((status, idx) => (
+                                <option key={idx} value={status}>
+                                    {status}
+                                </option>
+                            ))}
+                        </select>
+                        <label className="form-label">Status</label>
+                    </div>
+                </div>
+            </div>
+
+            {filteredQuotes.length === 0 ? (
                 <div className="text-center py-5 text-muted">
                     <p className="mb-0">No quotes found.</p>
                 </div>
             ) : (
                 <div className="row">
-                    {quotes.map((quote) => {
+                    {filteredQuotes.map((quote) => {
                         const validUntilDate = quote.valid_until ? new Date(quote.valid_until) : null;
                         const isExpired = validUntilDate && validUntilDate < today;
 
@@ -121,9 +193,9 @@ export default function QuotesData({ token, role, setAlert }) {
 
                                         <div className="d-flex justify-content-between align-items-center gap-2">
                                             <div>
-                                                {quote.signature ? (
+                                                {quote.signature && (
                                                     <img src={quote.signature} height={36} alt="signature" />
-                                                ) : null}
+                                                )}
                                             </div>
                                             <div>
                                                 {role === 'MANAGER' && (
@@ -136,7 +208,7 @@ export default function QuotesData({ token, role, setAlert }) {
                                                     </Link>
                                                 )}
 
-                                                {!isExpired && quote.status !== 'DRAFT' && (
+                                                {!isExpired && quote.status === 'SENT' && role === 'CLIENT' && (
                                                     <Link
                                                         to={`/dashboard/quote/sign/${quote.id}`}
                                                         className="btn btn-light rounded-circle py-1 px-2 border-0 fs-6 me-2"
@@ -144,16 +216,6 @@ export default function QuotesData({ token, role, setAlert }) {
                                                     >
                                                         <i className="fas fa-file-signature" />
                                                     </Link>
-                                                )}
-
-                                                {isExpired && quote.status !== 'SIGNED' && (
-                                                    <button
-                                                        className="btn btn-light rounded-circle py-1 px-2 border-0 fs-6 me-2 text-muted"
-                                                        title="Quote expired"
-                                                        disabled
-                                                    >
-                                                        <i className="fas fa-clock" />
-                                                    </button>
                                                 )}
 
                                                 {role === 'MANAGER' && (
@@ -175,6 +237,7 @@ export default function QuotesData({ token, role, setAlert }) {
                 </div>
             )}
 
+            {/* --- DELETE MODAL --- */}
             {showModal && (
                 <form onSubmit={confirmDelete} className="modal d-block" tabIndex="-1" role="dialog">
                     <div className="modal-dialog modal-dialog-centered" role="document">

@@ -48,7 +48,6 @@ export default function CreateJobForm({ token, showModal, setShowModal, setAlert
             setAssignedTo('');
             setShowModal(false);
         } catch (err) {
-            console.error('Create job error:', err);
             const errorMessage =
                 err?.data?.error ||
                 err?.data?.detail ||
@@ -80,7 +79,6 @@ export default function CreateJobForm({ token, showModal, setShowModal, setAlert
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body">
                                     <div className="row">
-                                        {/* Service Select */}
                                         <div className="col-md-6">
                                             <div className="field-wrapper">
                                                 <select
@@ -92,11 +90,14 @@ export default function CreateJobForm({ token, showModal, setShowModal, setAlert
                                                     <option value="">Select Service</option>
                                                     {!loadingServices &&
                                                         services &&
-                                                        services.map((service) => (
-                                                            <option key={service.id} value={service.id}>
-                                                                {service.service_name} ({service.client_name})
-                                                            </option>
-                                                        ))}
+                                                        services.map(
+                                                            (service) =>
+                                                                service.status === 'ACTIVE' && (
+                                                                    <option key={service.id} value={service.id}>
+                                                                        {service.service_name} ({service.client_name})
+                                                                    </option>
+                                                                )
+                                                        )}
                                                 </select>
 
                                                 <label className="form-label">Service (*)</label>
@@ -113,18 +114,6 @@ export default function CreateJobForm({ token, showModal, setShowModal, setAlert
                                                     required
                                                 />
                                                 <label className="form-label">Job Title (*)</label>
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-12">
-                                            <div className="field-wrapper">
-                                                <textarea
-                                                    className="form-control"
-                                                    rows="3"
-                                                    value={description}
-                                                    onChange={(e) => setDescription(e.target.value)}
-                                                ></textarea>
-                                                <label className="form-label">Description</label>
                                             </div>
                                         </div>
 
@@ -147,18 +136,33 @@ export default function CreateJobForm({ token, showModal, setShowModal, setAlert
                                                     className="form-select"
                                                     value={assignedTo}
                                                     onChange={(e) => setAssignedTo(e.target.value)}
+                                                    required
                                                 >
                                                     <option value="">Select</option>
                                                     {!loadingTeam &&
                                                         teamMembers &&
-                                                        teamMembers.results.map((member) => (
-                                                            <option key={member.id} value={member.id}>
-                                                                {member.employee_name}
-                                                            </option>
-                                                        ))}
+                                                        teamMembers.map(
+                                                            (member) =>
+                                                                member.is_active === 'True' && (
+                                                                    <option key={member.id} value={member.id}>
+                                                                        {member.employee_name}
+                                                                    </option>
+                                                                )
+                                                        )}
                                                 </select>
 
-                                                <label className="form-label">Assigned To</label>
+                                                <label className="form-label">Assigned To (*)</label>
+                                            </div>
+                                        </div>
+                                        <div className="col-md-12">
+                                            <div className="field-wrapper">
+                                                <textarea
+                                                    className="form-control"
+                                                    rows="3"
+                                                    value={description}
+                                                    onChange={(e) => setDescription(e.target.value)}
+                                                ></textarea>
+                                                <label className="form-label">Description</label>
                                             </div>
                                         </div>
                                     </div>

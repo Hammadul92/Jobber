@@ -22,6 +22,11 @@ export default function Clients({ token }) {
             <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
+                        <Link to={`/`} className="text-success">
+                            Contractorz
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
                         <Link to={`/dashboard/home`} className="text-success">
                             Dashboard
                         </Link>
@@ -33,7 +38,7 @@ export default function Clients({ token }) {
             </nav>
 
             <div className="d-flex align-items-center justify-content-between mb-3 mt-4">
-                <h3 className="mb-0">Clients</h3>
+                <h3 className="mb-0 fw-bold">Clients</h3>
                 <button className="btn btn-success" onClick={() => setShowModal(true)}>
                     Add
                 </button>

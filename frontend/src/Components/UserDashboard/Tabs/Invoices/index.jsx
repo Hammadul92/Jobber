@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import CreateJobForm from './CreateJobForm';
-import JobData from './JobData';
+import CreateInvoiceForm from './CreateInvoiceForm';
+import InvoiceData from './InvoiceData';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
-export default function Jobs({ token, role }) {
+export default function Invoices({ token, role }) {
     const [showModal, setShowModal] = useState(false);
     const [alert, setAlert] = useState({ type: '', message: '' });
 
@@ -23,13 +23,13 @@ export default function Jobs({ token, role }) {
                         </Link>
                     </li>
                     <li className="breadcrumb-item active" aria-current="page">
-                        Jobs
+                        Invoices
                     </li>
                 </ol>
             </nav>
 
             <div className="d-flex align-items-center justify-content-between mb-3 mt-4">
-                <h3 className="mb-0 fw-bold">Jobs</h3>
+                <h3 className="mb-0 fw-bold">Invoices</h3>
                 {role === 'MANAGER' && (
                     <button className="btn btn-success" onClick={() => setShowModal(true)}>
                         Add
@@ -46,10 +46,15 @@ export default function Jobs({ token, role }) {
             )}
 
             {role === 'MANAGER' && (
-                <CreateJobForm token={token} showModal={showModal} setShowModal={setShowModal} setAlert={setAlert} />
+                <CreateInvoiceForm
+                    token={token}
+                    showModal={showModal}
+                    setShowModal={setShowModal}
+                    setAlert={setAlert}
+                />
             )}
 
-            <JobData role={role} token={token} setAlert={setAlert} />
+            <InvoiceData role={role} token={token} setAlert={setAlert} />
         </>
     );
 }

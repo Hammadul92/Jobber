@@ -21,6 +21,11 @@ export default function TeamMembers({ token }) {
             <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
+                        <Link to={`/`} className="text-success">
+                            Contractorz
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
                         <Link to={`/dashboard/home`} className="text-success">
                             Dashboard
                         </Link>

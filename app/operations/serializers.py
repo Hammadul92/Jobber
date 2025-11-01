@@ -82,6 +82,7 @@ class ClientSerializer(serializers.ModelSerializer):
         source="user.phone",
         read_only=True
     )
+    payment_method = serializers.SerializerMethodField()
     is_active = serializers.CharField(
         source="user.is_active",
         read_only=True
@@ -91,11 +92,22 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = ['id', 'user', 'business', 'client_name',
                   'client_email', 'client_phone', 'is_active',
-                  'created_at', 'updated_at']
+                  'payment_method', 'created_at', 'updated_at']
 
         read_only_fields = [
             'id', 'user', 'business', 'created_at', 'updated_at'
         ]
+
+    def get_payment_method(self, obj):
+        """
+        Return client's active payment method details if available.
+        """
+        banking_info = obj.banking_information.filter(is_active=True).order_by('-created_at').first()
+
+        if not banking_info or banking_info.payment_method_type != "CARD":
+            return "-"
+
+        return banking_info.payment_method_type
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):
@@ -150,6 +162,7 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     """Serializer for services with optimized validation."""
     quotations = serializers.SerializerMethodField()
     service_questionnaires = serializers.SerializerMethodField()
+    tax_rate = serializers.SerializerMethodField()
     client_name = serializers.CharField(
         source="client.user.name",
         read_only=True
@@ -161,7 +174,7 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             "id", "client", "client_name", "business", "quotations",
             "service_name", "service_questionnaires", "filled_questionnaire",
             "description", "start_date", "end_date", "service_type",
-            "price", "currency", "billing_cycle", "status",
+            "price", "currency", "billing_cycle", "status", "tax_rate",
             "street_address", "city", "country", "province_state",
             "postal_code", "created_at", "updated_at",
         ]
@@ -185,6 +198,10 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                 "questionnaire": questionnaire.additional_questions_form,
             }
         return {}
+
+    def get_tax_rate(self, obj):
+        """Return the business tax rate associated with this service."""
+        return round(float(obj.business.tax_rate/100), 2)
 
     def validate(self, data):
         """

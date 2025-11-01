@@ -6,6 +6,11 @@ export default function DashboardHome({ token, role }) {
             <nav aria-label="breadcrumb mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
+                        <Link to={`/`} className="text-success">
+                            Contractorz
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
                         <Link to={`/dashboard/home`} className="text-success">
                             Dashboard
                         </Link>
