@@ -5,7 +5,7 @@ import CreateClientForm from './CreateClientForm';
 import DataTable from './ClientsDatatable';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
-export default function Clients({ token }) {
+export default function Clients({ token, business }) {
     const [showModal, setShowModal] = useState(false);
     const [alert, setAlert] = useState({ type: '', message: '' });
 
@@ -27,8 +27,13 @@ export default function Clients({ token }) {
                         </Link>
                     </li>
                     <li className="breadcrumb-item">
-                        <Link to={`/dashboard/home`} className="text-success">
-                            Dashboard
+                        <Link to="/dashboard/home" className="text-success">
+                            {business?.name ||
+                                (role === 'CLIENT'
+                                    ? 'Client Portal'
+                                    : role === 'EMPLOYEE'
+                                      ? 'Employee Portal'
+                                      : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item active" aria-current="page">

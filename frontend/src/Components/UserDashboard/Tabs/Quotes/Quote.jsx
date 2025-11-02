@@ -85,7 +85,8 @@ export default function Quote({ token }) {
 
     const disableReasons = [];
     if (isSigned) disableReasons.push('This quote has already been signed and cannot be resent.');
-    if (isExpired) disableReasons.push('This quote has expired. Please update the "Valid Until" date before sending.');
+    if (isExpired && !isSigned)
+        disableReasons.push('This quote has expired. Please update the "Valid Until" date before sending.');
     if (isInactiveClient) disableReasons.push('The client is inactive. Reactivate the client before sending.');
     if (isServiceInactive) disableReasons.push('The linked service is inactive. Please ensure it is active.');
     if (isRequiredFieldsMissing)

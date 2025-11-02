@@ -5,7 +5,7 @@ import CreateQuoteForm from './CreateQuoteForm';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 import QuotesData from './QuotesData';
 
-export default function Quotes({ token, role }) {
+export default function Quotes({ token, role, business }) {
     const [showModal, setShowModal] = useState(false);
     const [alert, setAlert] = useState({ type: '', message: '' });
 
@@ -14,8 +14,18 @@ export default function Quotes({ token, role }) {
             <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
-                        <Link to={`/dashboard/home`} className="text-success">
-                            Dashboard
+                        <Link to={`/`} className="text-success">
+                            Contractorz
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
+                        <Link to="/dashboard/home" className="text-success">
+                            {business?.name ||
+                                (role === 'CLIENT'
+                                    ? 'Client Portal'
+                                    : role === 'EMPLOYEE'
+                                      ? 'Employee Portal'
+                                      : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item active" aria-current="page">

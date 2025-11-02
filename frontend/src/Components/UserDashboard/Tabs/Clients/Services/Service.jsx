@@ -5,7 +5,7 @@ import SubmitButton from '../../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../../utils/AlertDispatcher';
 import { countries, provinces } from '../../../../../utils/locations';
 
-export default function Service({ token }) {
+export default function Service({ token, business }) {
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -100,8 +100,18 @@ export default function Service({ token }) {
             <nav aria-label="breadcrumb mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
-                        <Link to={`/dashboard/home`} className="text-success">
-                            Dashboard
+                        <Link to={`/`} className="text-success">
+                            Contractorz
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
+                        <Link to="/dashboard/home" className="text-success">
+                            {business?.name ||
+                                (role === 'CLIENT'
+                                    ? 'Client Portal'
+                                    : role === 'EMPLOYEE'
+                                      ? 'Employee Portal'
+                                      : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item">

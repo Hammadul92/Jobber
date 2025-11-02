@@ -169,7 +169,10 @@ class SoftDeletableModel(models.Model):
                             obj.soft_delete(user=user, cascade=True)
 
     def restore(self, cascade=True):
-        """Restore a soft-deleted object and optionally its related dependents."""
+        """
+        Restore a soft-deleted object and optionally
+        its related dependents.
+        """
         if not self.is_deleted:
             return
 
@@ -225,7 +228,7 @@ class Business(SoftDeletableModel):
     postal_code = models.CharField(max_length=10)
 
     business_number = models.CharField(max_length=20, null=False)
-    tax_rate = models.IntegerField(default=0)
+    tax_rate = models.DecimalField(max_digits=4, default=0, decimal_places=2)
 
     services_offered = TaggableManager(
         blank=True,
@@ -297,7 +300,9 @@ class BankingInformation(SoftDeletableModel):
     )
 
     bank_name = models.CharField(max_length=100, blank=True, null=True)
-    account_holder_name = models.CharField(max_length=100, blank=True, null=True)
+    account_holder_name = models.CharField(
+        max_length=100, blank=True, null=True
+    )
 
     account_holder_type = models.CharField(
         max_length=20,
@@ -306,23 +311,26 @@ class BankingInformation(SoftDeletableModel):
         null=True,
     )
 
-    stripe_bank_account_id = models.CharField(max_length=255, blank=True, null=True)
-
     country = models.CharField(max_length=2, blank=True, null=True)
     currency = models.CharField(max_length=10, blank=True, null=True)
 
     transit_number = models.CharField(max_length=10, blank=True, null=True)
     routing_number = models.CharField(max_length=20, blank=True, null=True)
-    account_number_last4 = models.CharField(max_length=4, blank=True, null=True)
+    account_number_last4 = models.CharField(
+        max_length=4, blank=True, null=True
+    )
 
     card_brand = models.CharField(max_length=50, blank=True, null=True)
     card_last4 = models.CharField(max_length=4, blank=True, null=True)
     card_exp_month = models.IntegerField(blank=True, null=True)
     card_exp_year = models.IntegerField(blank=True, null=True)
 
-    # --- Stripe references
-    stripe_customer_id = models.CharField(max_length=255, blank=True, null=True)
-    stripe_payment_method_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_customer_id = models.CharField(
+        max_length=255, blank=True, null=True
+    )
+    stripe_payment_method_id = models.CharField(
+        max_length=255, blank=True, null=True
+    )
 
     stripe_connected_account_id = models.CharField(
         max_length=255,
@@ -337,16 +345,22 @@ class BankingInformation(SoftDeletableModel):
 
     def clean(self):
         if not self.business and not self.client:
-            raise ValueError("Banking Info must be linked to either a Business or a Client.")
+            raise ValueError(
+                "Banking Info must be linked to either a Business or a Client."
+            )
         if self.business and self.client:
-            raise ValueError("Banking Info cannot belong to both Business and Client.")
+            raise ValueError(
+                "Banking Info cannot belong to both Business and Client."
+            )
 
     def __str__(self):
         owner = self.business.name if self.business else self.client.user.name
         if self.payment_method_type == "BANK_ACCOUNT":
             return f"Bank ••••{self.account_number_last4 or '----'} ({owner})"
-        return f"{self.card_brand or 'Card'} ••••{self.card_last4 or '----'} ({owner})"
-
+        return (
+            f"{self.card_brand or 'Card'} ••••"
+            f"{self.card_last4 or '----'} ({owner})"
+        )
 
 
 class ServiceQuestionnaire(SoftDeletableModel):
@@ -655,8 +669,9 @@ class Invoice(SoftDeletableModel):
         blank=True,
     )
 
-    invoice_number = models.CharField(max_length=20, unique=True, editable=False)
-    issue_date = models.DateField(default=timezone.now)
+    invoice_number = models.CharField(
+        max_length=20, unique=True, editable=False
+    )
     due_date = models.DateField()
     status = models.CharField(
         max_length=20,
@@ -671,12 +686,25 @@ class Invoice(SoftDeletableModel):
     )
 
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    tax_rate = models.DecimalField(
+        max_digits=4, default=0, decimal_places=2
+    )
+    tax_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     notes = models.TextField(blank=True, null=True)
 
-    stripe_invoice_id = models.CharField(max_length=255, blank=True, null=True)
-    stripe_payment_intent_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_payment_intent_id = models.CharField(
+        max_length=255, blank=True, null=True
+    )
+    payment_method = models.ForeignKey(
+        BankingInformation,
+        related_name="invoices",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     paid_at = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -740,11 +768,18 @@ class Payout(SoftDeletableModel):
         related_name="payouts",
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
+        blank=True
     )
 
-    stripe_payout_id = models.CharField(max_length=255, blank=True, null=True)
-    stripe_balance_transaction_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_payout_id = models.CharField(
+        max_length=255, blank=True, null=True
+    )
+    stripe_transfer_id = models.CharField(
+        max_length=255, blank=True, null=True
+    )
+    stripe_balance_transaction_id = models.CharField(
+        max_length=255, blank=True, null=True
+    )
 
     initiated_at = models.DateTimeField(auto_now_add=True)
     processed_at = models.DateTimeField(blank=True, null=True)
@@ -755,4 +790,7 @@ class Payout(SoftDeletableModel):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Payout {self.id} for {self.invoice.invoice_number} ({self.get_status_display()})"
+        return (
+            f"Payout {self.id} for {self.invoice.invoice_number}"
+            f" ({self.get_status_display()})"
+        )

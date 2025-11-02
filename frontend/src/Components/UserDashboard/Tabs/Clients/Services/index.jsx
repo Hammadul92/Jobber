@@ -53,7 +53,7 @@ export default function ClientServices({ token, role }) {
                     </li>
                     <li className="breadcrumb-item">
                         <Link to="/dashboard/home" className="text-success">
-                            Dashboard
+                            {isManagerMode ? business?.name : 'Client Portal'}
                         </Link>
                     </li>
                     {isManagerMode && (

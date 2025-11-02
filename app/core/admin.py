@@ -205,6 +205,22 @@ class ServiceQuestionnaireAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     ordering = ['-created_at']
 
 
+class InvoiceAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
+    list_display = [
+        'invoice_number', 'business', 'client', 'service',
+        'subtotal', 'tax_rate', 'tax_amount', 'total_amount',
+        'status', 'currency', 'paid_at', 'is_active', 'created_at'
+    ]
+    list_filter = ['status', 'currency', 'is_active', 'business']
+    search_fields = [
+        'invoice_number', 'business__name', 'client__user__name',
+        'service__service_name'
+    ]
+    readonly_fields = ['invoice_number', 'created_at', 'updated_at']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+
+
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Business, BusinessAdmin)
 admin.site.register(models.Client, ClientAdmin)
@@ -215,3 +231,4 @@ admin.site.register(models.JobPhoto, JobPhotoAdmin)
 admin.site.register(models.TeamMember, TeamMemberAdmin)
 admin.site.register(models.Quote, QuoteAdmin)
 admin.site.register(models.ServiceQuestionnaire, ServiceQuestionnaireAdmin)
+admin.site.register(models.Invoice, InvoiceAdmin)

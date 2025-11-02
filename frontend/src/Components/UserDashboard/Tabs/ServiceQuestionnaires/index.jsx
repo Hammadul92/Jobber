@@ -5,7 +5,7 @@ import CreateServiceQuestionnairesForm from './CreateServiceQuestionnairesForm';
 import ServiceQuestionnairesData from './ServiceQuestionnairesData';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
-export default function Questionnaires({ token }) {
+export default function Questionnaires({ token, business }) {
     const [showModal, setShowModal] = useState(false);
     const [alert, setAlert] = useState({ type: '', message: '' });
 
@@ -19,8 +19,13 @@ export default function Questionnaires({ token }) {
                         </Link>
                     </li>
                     <li className="breadcrumb-item">
-                        <Link to={`/dashboard/home`} className="text-success">
-                            Dashboard
+                        <Link to="/dashboard/home" className="text-success">
+                            {business?.name ||
+                                (role === 'CLIENT'
+                                    ? 'Client Portal'
+                                    : role === 'EMPLOYEE'
+                                      ? 'Employee Portal'
+                                      : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item active" aria-current="page">

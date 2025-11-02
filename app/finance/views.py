@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.models import BankingInformation, Business, Client, Invoice
-from finance import serializers
+from finance import serializers, paginations
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -18,7 +18,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 class BankingInformationViewSet(viewsets.ModelViewSet):
     """View for manage banking information APIs."""
     serializer_class = serializers.BankingInformationSerializer
-    queryset = BankingInformation.objects.all()
+    queryset = BankingInformation.objects.filter(is_active=True)
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -179,11 +179,13 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
         business = Business.objects.filter(owner=user).first()
         if not business:
             return Response(
-                {"detail": "Only business owners can add a payout bank account."},
+                {"detail": "Only business owners can add a bank account."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        required_fields = ["account_holder_name", "country", "currency", "account_number"]
+        required_fields = [
+            "account_holder_name", "country", "currency", "account_number"
+        ]
         for field in required_fields:
             if not data.get(field):
                 return Response(
@@ -210,7 +212,10 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                     type="custom",
                     country=country,
                     email=business.email,
-                    business_type="company" if account_holder_type == "company" else "individual",
+                    business_type=(
+                        "company" if account_holder_type == "company"
+                        else "individual"
+                    ),
                     capabilities={
                         "transfers": {"requested": True},
                     },
@@ -262,7 +267,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                 )
             else:
                 return Response(
-                    {"detail": "Unsupported country. Only US and CA are supported."},
+                    {"detail": "Unsupported country."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         except stripe.StripeError as e:
@@ -300,6 +305,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     queryset = Invoice.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    pagination_class = paginations.InvoicePagination
 
     def get_queryset(self):
         """Return invoices linked to the logged-in user."""
@@ -307,23 +313,21 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
         business = Business.objects.filter(owner=user).first()
         if business:
-            return self.queryset.filter(business=business, is_active=True).order_by("-id")
+            return self.queryset \
+                .filter(business=business, is_active=True).order_by("-id")
 
         client = Client.objects.filter(user=user).first()
         if client:
-            return self.queryset.filter(client=client, is_active=True).order_by("-id")
+            return self.queryset.filter(client=client, is_active=True) \
+                .order_by("-id")
 
         return self.queryset.none()
 
     def perform_create(self, serializer):
-        """Attach business/client/service/quote properly before saving."""
-        user = self.request.user
-        business = Business.objects.filter(owner=user).first()
-        if not business:
-            raise ValidationError("Only business owners can create invoices.")
+        """Attach business/client/service properly before saving."""
 
         validated_data = serializer.validated_data
-
+        business = validated_data.get("business")
         client = validated_data.get("client")
         service = validated_data.get("service")
 
@@ -332,7 +336,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
         if service:
             if service.business != business or service.client != client:
-                raise ValidationError("Service must belong to the same business and client.")
+                raise ValidationError(
+                    "Service must belong to the same business and client."
+                )
 
         serializer.save(
             business=business,
@@ -343,99 +349,3 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         """Soft delete the invoice instead of hard deleting."""
         instance.soft_delete(user=self.request.user)
-
-    @action(detail=True, methods=["post"], url_path="create-stripe-invoice")
-    def create_stripe_invoice(self, request, pk=None):
-        """
-        Create a Stripe invoice for this invoice record.
-        Only allowed for Businesses.
-        """
-        user = request.user
-        business = Business.objects.filter(owner=user).first()
-        if not business:
-            return Response(
-                {"detail": "Only business owners can create Stripe invoices."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        invoice = self.get_object()
-        if not invoice.client or not invoice.client.user.email:
-            return Response(
-                {"detail": "Invoice must be linked to a client with an email."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            customer = stripe.Customer.create(
-                name=invoice.client.user.name,
-                email=invoice.client.user.email,
-            )
-
-            stripe_invoice_item = stripe.InvoiceItem.create(
-                customer=customer.id,
-                amount=int(invoice.total_amount * 100),
-                currency=invoice.currency.lower(),
-                description=f"Invoice {invoice.invoice_number}",
-            )
-
-            stripe_invoice = stripe.Invoice.create(
-                customer=customer.id,
-                auto_advance=True,
-            )
-
-            invoice.stripe_invoice_id = stripe_invoice.id
-            invoice.save(update_fields=["stripe_invoice_id"])
-
-            return Response(
-                {"detail": "Stripe invoice created successfully.", "stripe_invoice_id": stripe_invoice.id},
-                status=status.HTTP_201_CREATED,
-            )
-
-        except stripe.StripeError as e:
-            return Response(
-                {"detail": f"Stripe error: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-    @action(detail=True, methods=["post"], url_path="mark-as-paid")
-    def mark_as_paid(self, request, pk=None):
-        """Mark invoice as paid manually (if offline payment)."""
-        invoice = self.get_object()
-
-        if invoice.status == "PAID":
-            return Response(
-                {"detail": "Invoice already marked as paid."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        invoice.status = "PAID"
-        invoice.paid_at = timezone.now()
-        invoice.save(update_fields=["status", "paid_at"])
-
-        return Response(
-            {"detail": "Invoice marked as paid successfully."},
-            status=status.HTTP_200_OK,
-        )
-
-    @action(detail=True, methods=["get"], url_path="stripe-status")
-    def stripe_status(self, request, pk=None):
-        """Fetch the current Stripe invoice status."""
-        invoice = self.get_object()
-
-        if not invoice.stripe_invoice_id:
-            return Response(
-                {"detail": "No Stripe invoice linked."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        try:
-            stripe_invoice = stripe.Invoice.retrieve(invoice.stripe_invoice_id)
-            return Response(
-                {"stripe_status": stripe_invoice.get("status")},
-                status=status.HTTP_200_OK,
-            )
-        except stripe.StripeError as e:
-            return Response(
-                {"detail": f"Stripe error: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )

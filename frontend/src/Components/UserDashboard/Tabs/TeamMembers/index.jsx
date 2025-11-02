@@ -4,7 +4,7 @@ import AlertDispatcher from '../../../../utils/AlertDispatcher';
 import CreateTeamMemberForm from './CreateTeamMemberForm';
 import TeamMembersData from './TeamMembersData';
 
-export default function TeamMembers({ token }) {
+export default function TeamMembers({ token, business }) {
     const [showModal, setShowModal] = useState(false);
     const [alert, setAlert] = useState({ type: '', message: '' });
 
@@ -26,8 +26,13 @@ export default function TeamMembers({ token }) {
                         </Link>
                     </li>
                     <li className="breadcrumb-item">
-                        <Link to={`/dashboard/home`} className="text-success">
-                            Dashboard
+                        <Link to="/dashboard/home" className="text-success">
+                            {business?.name ||
+                                (role === 'CLIENT'
+                                    ? 'Client Portal'
+                                    : role === 'EMPLOYEE'
+                                      ? 'Employee Portal'
+                                      : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item active" aria-current="page">

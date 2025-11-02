@@ -102,7 +102,8 @@ class ClientSerializer(serializers.ModelSerializer):
         """
         Return client's active payment method details if available.
         """
-        banking_info = obj.banking_information.filter(is_active=True).order_by('-created_at').first()
+        banking_info = obj.banking_information.filter(is_active=True) \
+            .order_by('-created_at').first()
 
         if not banking_info or banking_info.payment_method_type != "CARD":
             return "-"
@@ -224,15 +225,19 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
         errors = {}
 
-        # Validate service_name is offered by the business
         if business and service_name:
-            allowed_services = {s.name for s in business.services_offered.all()}
+            allowed_services = {
+                s.name for s in business.services_offered.all()
+            }
             if service_name not in allowed_services:
-                errors["service_name"] = "This service is not offered by the selected business."
+                errors["service_name"] = (
+                    "This service is not offered by the selected business."
+                )
 
-        # Validate client belongs to business
         if business and client and client.business != business:
-            errors["client"] = "This client does not belong to the selected business."
+            errors["client"] = (
+                "This client does not belong to the selected business."
+            )
 
         # Only check for questionnaire existence when creating
         if not self.instance:
@@ -262,11 +267,25 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
         # Prevent duplicate address for same service_name within a business
         if business and service_name:
-            street = data.get("street_address") or getattr(self.instance, "street_address", None)
-            city = data.get("city") or getattr(self.instance, "city", None)
-            province = data.get("province_state") or getattr(self.instance, "province_state", None)
-            postal = data.get("postal_code") or getattr(self.instance, "postal_code", None)
-            country = data.get("country") or getattr(self.instance, "country", None)
+            street = (
+                data.get("street_address") or
+                getattr(self.instance, "street_address", None)
+            )
+            city = (
+                data.get("city") or
+                getattr(self.instance, "city", None)
+            )
+            province = (
+                data.get("province_state") or
+                getattr(self.instance, "province_state", None)
+            )
+            postal = (
+                data.get("postal_code") or
+                getattr(self.instance, "postal_code", None)
+            )
+            country = (
+                data.get("country") or getattr(self.instance, "country", None)
+            )
 
             duplicate_qs = Service.objects.filter(
                 business=business,
@@ -280,20 +299,20 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                 is_active=True,
             )
 
-            # Exclude current instance if updating
             if self.instance:
                 duplicate_qs = duplicate_qs.exclude(pk=self.instance.pk)
 
             if duplicate_qs.exists():
                 errors["street_address"] = (
-                    "A service with this address and service name already exists "
-                    "for this client."
+                    "A service with this address and service name already "
+                    "exists for this client."
                 )
 
         if errors:
             raise serializers.ValidationError(errors)
 
         return data
+
 
 class QuoteSerializer(serializers.ModelSerializer):
     """ Serializer for quotes."""

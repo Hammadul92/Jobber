@@ -2,24 +2,23 @@ import { useState, useEffect } from 'react';
 import { useFetchClientsQuery, useFetchServicesQuery, useCreateInvoiceMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 
-export default function CreateInvoiceForm({ token, showModal, setShowModal, setAlert }) {
+export default function CreateInvoiceForm({ token, showModal, setShowModal, setAlert, business }) {
     const [clientId, setClientId] = useState('');
     const [serviceId, setServiceId] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [currency, setCurrency] = useState('CAD');
     const [subtotal, setSubtotal] = useState('');
+    const [taxRate, setTaxRate] = useState('');
     const [taxAmount, setTaxAmount] = useState('');
     const [totalAmount, setTotalAmount] = useState('');
     const [notes, setNotes] = useState('');
 
-    // Fetch clients
     const {
         data: clients = [],
         isLoading: loadingClients,
         isError: errorClients,
     } = useFetchClientsQuery(undefined, { skip: !token });
 
-    // Fetch services for selected client
     const {
         data: services = [],
         isLoading: loadingServices,
@@ -30,21 +29,19 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
 
     useEffect(() => {
         if (errorClients) setAlert({ type: 'danger', message: 'Failed to load clients. Please refresh.' });
-        if (errorServices)
-            setAlert({
-                type: 'danger',
-                message: 'Failed to load services for selected client.',
-            });
+        if (errorServices) setAlert({ type: 'danger', message: 'Failed to load services for selected client.' });
     }, [errorClients, errorServices]);
 
     useEffect(() => {
         if (serviceId && services.length) {
             const selectedService = services.find((s) => s.id === Number(serviceId));
             if (selectedService) {
-                const price = parseFloat(selectedService.price);
-                const tax = (price * selectedService.tax_rate).toFixed(2);
+                const taxRatePercent = (selectedService.tax_rate || 0) * 100;
+                const price = parseFloat(selectedService.price) || 0;
+                const tax = ((price * taxRatePercent) / 100).toFixed(2);
                 const total = (price + parseFloat(tax)).toFixed(2);
                 setSubtotal(price);
+                setTaxRate(taxRatePercent);
                 setTaxAmount(tax);
                 setTotalAmount(total);
                 setCurrency(selectedService.currency || 'CAD');
@@ -53,36 +50,47 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
     }, [serviceId, services]);
 
     useEffect(() => {
-        if (subtotal && taxAmount) {
-            const total = (parseFloat(subtotal) + parseFloat(taxAmount)).toFixed(2);
+        if (subtotal !== '' && taxRate !== '') {
+            const tax = ((parseFloat(subtotal) * parseFloat(taxRate)) / 100).toFixed(2);
+            const total = (parseFloat(subtotal) + parseFloat(tax)).toFixed(2);
+            setTaxAmount(tax);
             setTotalAmount(total);
         }
-    }, [subtotal, taxAmount]);
+    }, [subtotal, taxRate]);
+
+    useEffect(() => {
+        if (!serviceId) {
+            setSubtotal('');
+            setTaxRate('');
+            setTaxAmount('');
+            setTotalAmount('');
+            setCurrency('CAD');
+        }
+    }, [serviceId]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             await createInvoice({
+                business: business?.id,
                 client: clientId,
                 service: serviceId,
                 due_date: dueDate,
                 currency,
                 subtotal,
+                tax_rate: taxRate,
                 tax_amount: taxAmount,
                 total_amount: totalAmount,
                 notes,
             }).unwrap();
 
-            setAlert({
-                type: 'success',
-                message: 'Invoice created successfully!',
-            });
+            setAlert({ type: 'success', message: 'Invoice created successfully!' });
 
-            // reset form
             setClientId('');
             setServiceId('');
             setDueDate('');
             setSubtotal('');
+            setTaxRate('');
             setTaxAmount('');
             setTotalAmount('');
             setCurrency('CAD');
@@ -112,7 +120,7 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body">
                                     <div className="row">
-                                        <div className="col-md-6">
+                                        <div className="col-md-4">
                                             <div className="field-wrapper">
                                                 <select
                                                     className="form-select"
@@ -135,7 +143,7 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
                                             </div>
                                         </div>
 
-                                        <div className="col-md-6">
+                                        <div className="col-md-8">
                                             <div className="field-wrapper">
                                                 <select
                                                     className="form-select"
@@ -150,9 +158,11 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
                                                     {!loadingServices &&
                                                         services.map(
                                                             (s) =>
-                                                                s.status === 'ACTIVE' && (
+                                                                s.status === 'ACTIVE' &&
+                                                                s?.quotations.find((q) => q.status === 'SIGNED') && (
                                                                     <option key={s.id} value={s.id}>
-                                                                        {s.service_name} — {s.price} {s.currency}
+                                                                        {s.service_name} ({s.client_name} -{' '}
+                                                                        {s.street_address})
                                                                     </option>
                                                                 )
                                                         )}
@@ -161,7 +171,7 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
                                             </div>
                                         </div>
 
-                                        <div className="col-md-6">
+                                        <div className="col-md-4">
                                             <div className="field-wrapper">
                                                 <input
                                                     type="date"
@@ -197,7 +207,20 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
                                                     onChange={(e) => setSubtotal(e.target.value)}
                                                     required
                                                 />
-                                                <label className="form-label">Subtotal</label>
+                                                <label className="form-label">Subtotal (*)</label>
+                                            </div>
+                                        </div>
+
+                                        <div className="col-md-4">
+                                            <div className="field-wrapper">
+                                                <input
+                                                    type="number"
+                                                    className="form-control"
+                                                    value={taxRate}
+                                                    onChange={(e) => setTaxRate(e.target.value)}
+                                                    required
+                                                />
+                                                <label className="form-label">Tax Rate (%) (*)</label>
                                             </div>
                                         </div>
 
@@ -207,10 +230,10 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
                                                     type="number"
                                                     className="form-control"
                                                     value={taxAmount}
-                                                    onChange={(e) => setTaxAmount(e.target.value)}
+                                                    readOnly
                                                     required
                                                 />
-                                                <label className="form-label">Tax Amount</label>
+                                                <label className="form-label">Tax Amount (*)</label>
                                             </div>
                                         </div>
 
@@ -220,10 +243,10 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
                                                     type="number"
                                                     className="form-control"
                                                     value={totalAmount}
-                                                    onChange={(e) => setTotalAmount(e.target.value)}
+                                                    readOnly
                                                     required
                                                 />
-                                                <label className="form-label">Total Amount</label>
+                                                <label className="form-label">Total Amount (*)</label>
                                             </div>
                                         </div>
 

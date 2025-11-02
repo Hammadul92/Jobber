@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-export default function DashboardHome({ token, role }) {
+export default function DashboardHome({ token, role, business }) {
     return (
         <>
             <nav aria-label="breadcrumb mb-3">
@@ -11,8 +11,13 @@ export default function DashboardHome({ token, role }) {
                         </Link>
                     </li>
                     <li className="breadcrumb-item">
-                        <Link to={`/dashboard/home`} className="text-success">
-                            Dashboard
+                        <Link to="/dashboard/home" className="text-success">
+                            {business?.name ||
+                                (role === 'CLIENT'
+                                    ? 'Client Portal'
+                                    : role === 'EMPLOYEE'
+                                      ? 'Employee Portal'
+                                      : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item active" aria-current="page">

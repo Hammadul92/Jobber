@@ -69,7 +69,6 @@ export default function QuotesData({ token, role, setAlert }) {
 
     return (
         <>
-            {/* --- FILTER BAR --- */}
             <div className="row mb-3">
                 <div className="col-md-2">
                     <div className="field-wrapper">
@@ -179,7 +178,7 @@ export default function QuotesData({ token, role, setAlert }) {
                                             <p className="text-muted small mb-1">
                                                 Valid Until: {formatDate(quote.valid_until)}
                                             </p>
-                                        ) : isExpired ? (
+                                        ) : isExpired && quote.status !== 'SIGNED' ? (
                                             <p className="text-danger small mb-1">
                                                 Expired on: {formatDate(quote.valid_until)}
                                             </p>

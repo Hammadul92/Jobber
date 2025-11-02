@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import {
-    useFetchServiceQuestionnaireQuery,
-    useUpdateServiceQuestionnaireMutation,
-    useFetchBusinessesQuery,
-} from '../../../../store';
+import { useFetchServiceQuestionnaireQuery, useUpdateServiceQuestionnaireMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
-export default function EditServiceQuestionnairesForm({ token }) {
+export default function EditServiceQuestionnairesForm({ token, business }) {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const { data: questionnaireData, isLoading: loadingQ } = useFetchServiceQuestionnaireQuery(id, {
         skip: !token || !id,
     });
-
-    const { data: businesses } = useFetchBusinessesQuery(undefined, { skip: !token });
 
     const [updateServiceQuestionnaire, { isLoading: saving }] = useUpdateServiceQuestionnaireMutation();
 
@@ -27,7 +21,6 @@ export default function EditServiceQuestionnairesForm({ token }) {
     const [expandedIndex, setExpandedIndex] = useState(0);
     const [alert, setAlert] = useState(null);
 
-    const business = businesses?.[0];
     const servicesOffered = business?.services_offered || [];
 
     useEffect(() => {
@@ -119,7 +112,7 @@ export default function EditServiceQuestionnairesForm({ token }) {
                     </li>
                     <li className="breadcrumb-item">
                         <Link to="/dashboard/home" className="text-success">
-                            Dashboard
+                            {business?.name}
                         </Link>
                     </li>
                     <li className="breadcrumb-item">

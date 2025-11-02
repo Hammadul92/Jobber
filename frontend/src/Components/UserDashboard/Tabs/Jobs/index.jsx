@@ -4,7 +4,7 @@ import CreateJobForm from './CreateJobForm';
 import JobData from './JobData';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
-export default function Jobs({ token, role }) {
+export default function Jobs({ token, role, business }) {
     const [showModal, setShowModal] = useState(false);
     const [alert, setAlert] = useState({ type: '', message: '' });
 
@@ -19,7 +19,12 @@ export default function Jobs({ token, role }) {
                     </li>
                     <li className="breadcrumb-item">
                         <Link to="/dashboard/home" className="text-success">
-                            Dashboard
+                            {business?.name ||
+                                (role === 'CLIENT'
+                                    ? 'Client Portal'
+                                    : role === 'EMPLOYEE'
+                                      ? 'Employee Portal'
+                                      : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item active" aria-current="page">

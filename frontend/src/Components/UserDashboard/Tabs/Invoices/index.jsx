@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import CreateInvoiceForm from './CreateInvoiceForm';
-import InvoiceData from './InvoiceData';
+import InvoiceDatatable from './InvoiceDatatable';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 
-export default function Invoices({ token, role }) {
+export default function Invoices({ token, role, business }) {
     const [showModal, setShowModal] = useState(false);
     const [alert, setAlert] = useState({ type: '', message: '' });
 
@@ -19,7 +19,12 @@ export default function Invoices({ token, role }) {
                     </li>
                     <li className="breadcrumb-item">
                         <Link to="/dashboard/home" className="text-success">
-                            Dashboard
+                            {business?.name ||
+                                (role === 'CLIENT'
+                                    ? 'Client Portal'
+                                    : role === 'EMPLOYEE'
+                                      ? 'Employee Portal'
+                                      : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item active" aria-current="page">
@@ -51,10 +56,11 @@ export default function Invoices({ token, role }) {
                     showModal={showModal}
                     setShowModal={setShowModal}
                     setAlert={setAlert}
+                    business={business}
                 />
             )}
 
-            <InvoiceData role={role} token={token} setAlert={setAlert} />
+            <InvoiceDatatable role={role} token={token} setAlert={setAlert} />
         </>
     );
 }

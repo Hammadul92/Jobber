@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useFetchBusinessesQuery } from '../../store';
 
 import SideNav from './SideNav';
 import DashboardHome from './Tabs/Home/';
@@ -63,46 +64,59 @@ export default function UserDashboard({ page, token, user }) {
         if (rule && !rule.roles.includes(userRole)) {
             navigate('/dashboard/home', { replace: true });
         }
-    }, [user, page, navigate, accessRules]);
+    }, [user, page, navigate, accessRules, token]);
+
+    const {
+        data: businessesData,
+        isLoading: loadingBusiness,
+        isError: errorBusiness,
+    } = useFetchBusinessesQuery(undefined, {
+        skip: user?.role !== 'MANAGER' || !token,
+    });
+
+    const business = businessesData ? businessesData[0] : null;
 
     const renderTab = () => {
         switch (page) {
             case 'home':
-                return <DashboardHome token={token} role={user?.role} />;
+                return <DashboardHome token={token} role={user?.role} business={business} />;
             case 'clients':
-                return <Clients token={token} />;
+                return <Clients token={token} business={business} />;
             case 'client-services':
-                return <ClientServices token={token} role={user?.role} />;
+                return <ClientServices token={token} role={user?.role} business={business} />;
             case 'service':
-                return <Service token={token} />;
+                return <Service token={token} business={business} />;
             case 'service-questionnaires':
-                return <ServiceQuestionnaires token={token} />;
+                return <ServiceQuestionnaires token={token} business={business} />;
             case 'service-questionnaire':
-                return <ServiceQuestionnaire token={token} />;
+                return <ServiceQuestionnaire token={token} business={business} />;
             case 'service-questionnaire-form':
-                return <ServiceQuestionnaireForm token={token} role={user?.role} />;
+                return <ServiceQuestionnaireForm token={token} role={user?.role} business={business} />;
             case 'team-members':
-                return <TeamMembers token={token} />;
+                return <TeamMembers token={token} business={business} />;
             case 'team-member':
-                return <TeamMember token={token} />;
+                return <TeamMember token={token} business={business} />;
             case 'quotes':
-                return <Quotes token={token} role={user?.role} />;
+                return <Quotes token={token} role={user?.role} business={business} />;
             case 'quote':
-                return <Quote token={token} />;
+                return <Quote token={token} business={business} />;
             case 'sign-quote':
                 return <SignQuote token={token} />;
             case 'jobs':
-                return <Jobs token={token} role={user?.role} />;
+                return <Jobs token={token} role={user?.role} business={business} />;
             case 'job':
-                return <Job token={token} role={user?.role} />;
+                return <Job token={token} role={user?.role} business={business} />;
             case 'invoices':
-                return <Invoices token={token} role={user?.role} />;
+                return <Invoices token={token} role={user?.role} business={business} />;
             case 'payouts':
-                return <Payouts token={token} />;
+                return <Payouts token={token} business={business} />;
             default:
                 return null;
         }
     };
+
+    if (loadingBusiness) return <div className="text-center mt-5">Loading business info...</div>;
+    if (errorBusiness) return <div className="text-danger text-center mt-5">Failed to load business info.</div>;
 
     return (
         <div className="dashboard-container">

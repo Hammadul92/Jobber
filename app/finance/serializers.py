@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-# from core.utils import BusinessTimezoneMixin
+from core.utils import BusinessTimezoneMixin
 from core.models import BankingInformation, Invoice
 
 
@@ -23,16 +23,35 @@ class BankingInformationSerializer(serializers.ModelSerializer):
             'card_exp_month',
             'card_exp_year',
             'is_active',
-            'created_at',
-            'updated_at',
         ]
 
         read_only_fields = ['created_at', 'updated_at']
 
 
-class InvoiceSerializer(serializers.ModelSerializer):
+class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
+    business_name = serializers.CharField(
+        source="business.name",
+        read_only=True
+    )
+    client_name = serializers.CharField(
+        source="client.user.name",
+        read_only=True
+    )
+    service_name = serializers.CharField(
+        source="service.service_name",
+        read_only=True
+    )
+    invoice_total = serializers.SerializerMethodField()
 
     class Meta:
         model = Invoice
-        fields = "__all__"
-        read_only_fields = ["invoice_number", "created_at", "updated_at"]
+        fields = [
+            'id', 'invoice_number', 'status', 'due_date', 'business_name',
+            'subtotal', 'tax_rate', 'tax_amount', 'total_amount',
+            'client_name', 'service_name', 'currency', 'invoice_total',
+            'business', 'client', 'service', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['invoice_number', 'created_at', 'updated_at']
+
+    def get_invoice_total(self, obj):
+        return f"{obj.total_amount} {obj.currency}"
