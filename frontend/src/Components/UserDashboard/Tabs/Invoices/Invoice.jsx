@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useFetchInvoiceQuery, useUpdateInvoiceMutation, useMakePaymentMutation } from '../../../../store';
+import {
+    useFetchInvoiceQuery,
+    useUpdateInvoiceMutation,
+    useMakePaymentMutation,
+} from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
@@ -45,6 +49,15 @@ export default function Invoice({ token, role, business }) {
         }
     }, [invoiceData]);
 
+    useEffect(() => {
+        // Auto calculate tax and total whenever subtotal or taxRate changes
+        const sub = parseFloat(subtotal) || 0;
+        const rate = parseFloat(taxRate) || 0;
+        const tax = (sub * rate) / 100;
+        setTaxAmount(tax.toFixed(2));
+        setTotalAmount((sub + tax).toFixed(2));
+    }, [subtotal, taxRate]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -60,7 +73,6 @@ export default function Invoice({ token, role, business }) {
             }).unwrap();
             setAlert({ type: 'success', message: 'Invoice updated successfully.' });
         } catch (err) {
-            console.error('Failed to update invoice:', err);
             setAlert({
                 type: 'danger',
                 message: err?.data?.detail || 'Failed to update invoice. Please try again.',
@@ -96,7 +108,7 @@ export default function Invoice({ token, role, business }) {
     };
 
     const isOverdue = () => {
-        if (!dueDate || status === 'PAID') return false;
+        if (!dueDate || status === 'PAID' || status === 'CANCELLED') return false;
         const today = new Date();
         const due = new Date(dueDate);
         return due < today;
@@ -137,8 +149,8 @@ export default function Invoice({ token, role, business }) {
                                 (role === 'CLIENT'
                                     ? 'Client Portal'
                                     : role === 'EMPLOYEE'
-                                      ? 'Employee Portal'
-                                      : 'Dashboard')}
+                                    ? 'Employee Portal'
+                                    : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item">
@@ -153,32 +165,34 @@ export default function Invoice({ token, role, business }) {
             </nav>
 
             <div className="row">
-                {/* Left panel */}
-                <div className="col-12 col-lg-3 mb-3">
-                    <div className="text-center shadow-sm p-3 rounded">
-                        <h4 className="mb-1">
-                            {invoiceNumber}{' '}
-                            <span className={`badge bg-gradient rounded-pill p-2 bg-${statusColor(status)}`}>
-                                {status}
-                            </span>
-                        </h4>
-                        <div className="mt-2 text-muted">
-                            <div>
-                                <strong>Business:</strong> {businessName}
+                {/* Left panel (only for Manager) */}
+                {role === 'MANAGER' && (
+                    <div className="col-12 col-lg-3 mb-3">
+                        <div className="text-center shadow-sm p-3 rounded">
+                            <h4 className="mb-1">
+                                {invoiceNumber}{' '}
+                                <span
+                                    className={`badge bg-gradient rounded-pill p-2 bg-${statusColor(status)}`}
+                                >
+                                    {status}
+                                </span>
+                            </h4>
+                            <div className="mt-2 text-muted small text-start">
+                                <div>
+                                    <strong>Business:</strong> {businessName}
+                                </div>
+                                <div>
+                                    <strong>Client:</strong> {clientName}
+                                </div>
+                                <div>
+                                    <strong>Service:</strong> {serviceName}
+                                </div>
+                                <div>
+                                    <strong>Currency:</strong> {currency}
+                                </div>
                             </div>
-                            <div>
-                                <strong>Client:</strong> {clientName}
-                            </div>
-                            <div>
-                                <strong>Service:</strong> {serviceName}
-                            </div>
-                            <div>
-                                <strong>Currency:</strong> {currency}
-                            </div>
-                        </div>
 
-                        {role === 'MANAGER' && (
-                            <div className="d-flex justify-content-center gap-2 mt-2">
+                            <div className="d-flex justify-content-center gap-2 mt-3">
                                 <button
                                     className="btn btn-primary btn-sm bg-gradient"
                                     disabled={status === 'SENT'}
@@ -201,50 +215,18 @@ export default function Invoice({ token, role, business }) {
                                     Cancel
                                 </button>
                             </div>
-                        )}
 
-                        {role === 'CLIENT' && status !== 'PAID' && (
-                            <div className="mt-3">
-                                {invoiceData?.has_payment_method ? (
-                                    <button
-                                        className="btn btn-success btn-sm bg-gradient"
-                                        onClick={handlePayment}
-                                        disabled={processingPayment}
-                                    >
-                                        {processingPayment ? 'Processing...' : 'Make Payment'}
-                                    </button>
-                                ) : (
-                                    <i>
-                                        No active payment method found. Please{' '}
-                                        <Link to="/user-account/banking" className="text-success">
-                                            add a payment method
-                                        </Link>{' '}
-                                        to make payment.
-                                    </i>
-                                )}
-                            </div>
-                        )}
-
-                        {status === 'PAID' && paidAt && (
-                            <div className="mt-3 text-muted">
-                                <strong>Paid on:</strong> {formatDate(paidAt)}
-                            </div>
-                        )}
+                            {status === 'PAID' && paidAt && (
+                                <div className="mt-3 text-muted">
+                                    <strong>Paid on:</strong> {formatDate(paidAt)}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
 
-                {/* Right panel */}
-                <div className="col-12 col-lg-9">
+                <div className={role === 'MANAGER' ? 'col-12 col-lg-9' : 'col-12'}>
                     <div className="shadow-sm p-3 rounded position-relative">
-                        {isOverdue() && (
-                            <span
-                                className="badge bg-danger bg-gradient rounded-pill fs-6 position-absolute"
-                                style={{ top: '10px', right: '10px' }}
-                            >
-                                Overdue
-                            </span>
-                        )}
-
                         {role === 'MANAGER' ? (
                             <form onSubmit={handleSubmit} className="row">
                                 <div className="col-md-4">
@@ -267,7 +249,6 @@ export default function Invoice({ token, role, business }) {
                                             className="form-control"
                                             value={subtotal}
                                             onChange={(e) => setSubtotal(e.target.value)}
-                                            placeholder="Subtotal"
                                             required
                                         />
                                         <label className="form-label">Subtotal (*)</label>
@@ -281,7 +262,7 @@ export default function Invoice({ token, role, business }) {
                                             className="form-control"
                                             value={taxRate}
                                             onChange={(e) => setTaxRate(e.target.value)}
-                                            placeholder="Tax Rate (%)"
+                                            required
                                         />
                                         <label className="form-label">Tax Rate (%) (*)</label>
                                     </div>
@@ -290,7 +271,6 @@ export default function Invoice({ token, role, business }) {
                                     <div className="field-wrapper">
                                         <input
                                             type="number"
-                                            step="0.01"
                                             className="form-control"
                                             value={taxAmount}
                                             readOnly
@@ -302,7 +282,6 @@ export default function Invoice({ token, role, business }) {
                                     <div className="field-wrapper">
                                         <input
                                             type="number"
-                                            step="0.01"
                                             className="form-control"
                                             value={totalAmount}
                                             readOnly
@@ -317,8 +296,8 @@ export default function Invoice({ token, role, business }) {
                                             rows="3"
                                             value={notes}
                                             onChange={(e) => setNotes(e.target.value)}
-                                            placeholder="Optional notes or invoice description"
-                                        ></textarea>
+                                            placeholder="Optional notes"
+                                        />
                                         <label className="form-label">Notes</label>
                                     </div>
                                 </div>
@@ -332,23 +311,113 @@ export default function Invoice({ token, role, business }) {
                                 </div>
                             </form>
                         ) : (
-                            <div className="text-muted">
-                                <h4 className="mb-3">Invoice Details</h4>
-                                <div>
-                                    <strong>Due Date:</strong> {formatDate(dueDate)}
-                                </div>
-                                <div>
-                                    <strong>Subtotal:</strong> {subtotal} {currency}
-                                </div>
-                                <div>
-                                    <strong>Tax:</strong> ({taxRate}%) {taxAmount} {currency}
-                                </div>
-                                <div>
-                                    <strong>Total:</strong> {totalAmount} {currency}
-                                </div>
-                                {notes && (
+                            <div>
+                                <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                                     <div>
-                                        <strong>Notes:</strong> {notes}
+                                        <h3 className="fw-bold mb-1">Invoice</h3>
+                                        <small className="text-muted">#{invoiceNumber}</small>
+                                    </div>
+                                    <div className="text-end">
+                                        <h5 className="fw-bold mb-1">{businessName}</h5>
+                                        <small className="text-muted">
+                                            {formatDate(invoiceData?.created_at)}
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div className="row mb-4">
+                                    <div className="col-6">
+                                        <h6 className="text-success fw-bold mb-1">Bill From</h6>
+                                        <small className='text-muted'>{businessName}</small>
+                                    </div>
+                                    <div className="col-6 text-end">
+                                        <h6 className="text-success fw-bold mb-1">Bill To</h6>
+                                        <small className='text-muted'>{clientName}</small>
+                                    </div>
+                                </div>
+
+                                <div className="table-responsive mb-4">
+                                    <table className="table table-bordered align-middle">
+                                        <thead className="table-light">
+                                            <tr>
+                                                <th>Service</th>
+                                                <th className="text-end">Subtotal</th>
+                                                <th className="text-end">Tax ({taxRate}%)</th>
+                                                <th className="text-end">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{serviceName}</td>
+                                                <td className="text-end">
+                                                    {subtotal} {currency}
+                                                </td>
+                                                <td className="text-end">
+                                                    {taxAmount} {currency}
+                                                </td>
+                                                <td className="text-end fw-bold">
+                                                    {totalAmount} {currency}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Summary */}
+                                <div className="d-flex justify-content-end mb-4">
+                                    <div className="text-end">
+                                        <div>
+                                            <strong>Due Date:</strong> {formatDate(dueDate)}
+                                        </div>
+                                        {isOverdue() && (
+                                            <span className="badge bg-danger bg-gradient rounded-pill ms-2">
+                                                Overdue
+                                            </span>
+                                        )}
+
+                                        {status === 'PAID' && paidAt && (
+                                            <p className="mb-1">
+                                                <strong>Paid On:</strong> {formatDate(paidAt)}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Notes */}
+                                {notes && (
+                                    <div className="border-top pt-3">
+                                        <h6 className="fw-bold">Notes</h6>
+                                        <p className="text-muted">{notes}</p>
+                                    </div>
+                                )}
+
+                                {/* Payment Action */}
+                                {status !== 'PAID' && (
+                                    <div className="text-end mt-4">
+                                        {invoiceData?.has_payment_method ? (
+                                            <button
+                                                className="btn btn-success bg-gradient"
+                                                onClick={handlePayment}
+                                                disabled={processingPayment}
+                                            >
+                                                {processingPayment
+                                                    ? 'Processing...'
+                                                    : `Pay ${totalAmount} ${currency}`}
+                                            </button>
+                                        ) : (
+                                            <div className="text-muted">
+                                                <i>
+                                                    No active payment method found. Please{' '}
+                                                    <Link
+                                                        to="/user-account/banking"
+                                                        className="text-success"
+                                                    >
+                                                        add a payment method
+                                                    </Link>{' '}
+                                                    to make payment.
+                                                </i>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

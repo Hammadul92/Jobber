@@ -9,7 +9,7 @@ export default function PhoneInputField({ value, setValue, optional, formLarge }
         let inputVal = e.target.value;
 
         if (!inputVal.startsWith('+1')) {
-            inputVal = '+1 ' + inputVal.replace(/^\+?1?\s*/, '');
+            inputVal = '+1' + inputVal.replace(/^\+?1?\s*/, '');
         }
 
         setValue(inputVal);

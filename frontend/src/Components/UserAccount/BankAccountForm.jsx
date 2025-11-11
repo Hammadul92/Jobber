@@ -10,7 +10,6 @@ export default function BankAccountForm({ setAlert, onSuccess }) {
         account_holder_type: 'individual',
         country: 'US',
         currency: 'usd',
-        bank_name: '',
         routing_number: '',
         transit_number: '',
         account_number: '',
@@ -202,22 +201,6 @@ export default function BankAccountForm({ setAlert, onSuccess }) {
                 </>
             )}
 
-            {/* Optional Bank Name */}
-            <div className="col-md-6">
-                <div className="field-wrapper">
-                    <input
-                        type="text"
-                        name="bank_name"
-                        className="form-control"
-                        value={form.bank_name}
-                        onChange={handleChange}
-                        placeholder="e.g. RBC, CIBC, Chase"
-                    />
-                    <label className="form-label">Bank Name (optional)</label>
-                </div>
-            </div>
-
-            {/* Submit Button */}
             <div className="text-end mt-3">
                 <SubmitButton btnClass="btn btn-success" btnName="Save Bank Account" isLoading={isLoading} />
             </div>

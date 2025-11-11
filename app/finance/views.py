@@ -79,7 +79,8 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
 
         banking_info, _ = BankingInformation.objects.get_or_create(
             business=business if business else None,
-            client=client if client else None
+            client=client if client else None,
+            payment_method_type="CARD"
         )
 
         if not banking_info.stripe_customer_id:
@@ -126,6 +127,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
         banking_info = BankingInformation.objects.filter(
             business=business if business else None,
             client=client if client else None,
+            payment_method_type="CARD"
         ).first()
 
         if not banking_info:
@@ -173,7 +175,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
     def add_bank_account(self, request):
         """
         Add or update a bank account for payouts (Business-only).
-        Supports US and CA.
+        Supports US and CA. Uses Stripe Custom Connected Accounts.
         """
         user = request.user
         data = request.data
@@ -185,9 +187,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        required_fields = [
-            "account_holder_name", "country", "currency", "account_number"
-        ]
+        required_fields = ["account_holder_name", "country", "currency", "account_number"]
         for field in required_fields:
             if not data.get(field):
                 return Response(
@@ -195,98 +195,152 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        country = data.get("country")
-        currency = data.get("currency")
+        country = data.get("country").upper()
+        currency = data.get("currency").lower()
         account_holder_name = data.get("account_holder_name")
         account_holder_type = data.get("account_holder_type", "individual")
         routing_number = data.get("routing_number")
         transit_number = data.get("transit_number")
-        bank_name = data.get("bank_name")
 
         banking_info = BankingInformation.objects.filter(
             business=business,
             payment_method_type="BANK_ACCOUNT",
         ).first()
 
-        if not banking_info or not banking_info.stripe_customer_id:
+        business_url = business.website if business.website else f"https://contractorz.com/businesses/{business.slug}"
+
+        name_parts = user.name.strip().split(" ", 1)
+        first_name = name_parts[0]
+        last_name = name_parts[1] if len(name_parts) > 1 else name_parts[0]
+
+        if not banking_info or not banking_info.stripe_connected_account_id:
             try:
                 connected_account = stripe.Account.create(
                     type="custom",
                     country=country,
-                    email=business.email,
-                    business_type=(
-                        "company" if account_holder_type == "company"
-                        else "individual"
-                    ),
-                    capabilities={
-                        "transfers": {"requested": True},
+                    email=user.email,
+                    business_type="company" if account_holder_type == "company" else "individual",
+                    business_profile={
+                        "name": business.name,
+                        "product_description": f"Payout account for {business.name}",
+                        "mcc": "7349",
+                        "url": business_url,
+                        "support_phone": business.support_phone,
+                    },
+                    company={
+                        "name": business.name,
+                        "phone": business.phone,
+                        "registration_number": business.business_number,
+                        "directors_provided": True,
+                        "owners_provided": True,
+                        "representatives_provided": True,
+                        "address": {
+                            "line1": business.street_address,
+                            "line2": "",
+                            "city": business.city,
+                            "state": business.province_state,
+                            "postal_code": business.postal_code,
+                            "country": business.country.upper(),
+                        },
+                    } if account_holder_type == "company" else None,
+                    individual={
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "email": user.email,
+                        "address": {
+                            "line1": business.street_address,
+                            "line2": "",
+                            "city": business.city,
+                            "state": business.province_state,
+                            "postal_code": business.postal_code,
+                            "country": business.country.upper(),
+                        },
+                    } if account_holder_type == "individual" else None,
+                    capabilities={"transfers": {"requested": True}},
+                    tos_acceptance={
+                        "date": int(time.time()),
+                        "ip": request.META.get("REMOTE_ADDR"),
                     },
                     metadata={"business_id": str(business.id)},
                 )
             except stripe.StripeError as e:
-                return Response(
-                    {"detail": f"Stripe error: {str(e)}"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return Response({"detail": f"Stripe error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
             if not banking_info:
                 banking_info = BankingInformation.objects.create(
                     business=business,
-                    stripe_customer_id=connected_account.id,
+                    stripe_connected_account_id=connected_account.id,
                     payment_method_type="BANK_ACCOUNT",
                 )
             else:
-                banking_info.stripe_customer_id = connected_account.id
-                banking_info.save(update_fields=["stripe_customer_id"])
+                banking_info.stripe_connected_account_id = connected_account.id
+                banking_info.save(update_fields=["stripe_connected_account_id"])
+
+            try:
+                stripe.Account.create_person(
+                    connected_account.id,
+                    person={
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "email": user.email,
+                        "dob": {"day": 1, "month": 1, "year": 1980},
+                        "address": {
+                            "line1": business.street_address,
+                            "line2": "",
+                            "city": business.city,
+                            "state": business.province_state,
+                            "postal_code": business.postal_code,
+                            "country": business.country.upper(),
+                        },
+                        "relationship": {
+                            "owner": True,
+                            "representative": True,
+                            "percent_ownership": 100,
+                        },
+                    },
+                )
+            except stripe.StripeError as e:
+                return Response({"detail": f"Stripe error (representative): {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             if country == "US":
-                external_account = stripe.Account.create_external_account(
-                    banking_info.stripe_customer_id,
-                    external_account={
-                        "object": "bank_account",
-                        "country": country,
-                        "currency": currency,
-                        "account_holder_name": account_holder_name,
-                        "account_holder_type": account_holder_type,
-                        "routing_number": routing_number,
-                        "account_number": data.get("account_number"),
-                    },
-                )
+                routing = routing_number
             elif country == "CA":
-                combined_routing = f"{transit_number}{routing_number}"
-                external_account = stripe.Account.create_external_account(
-                    banking_info.stripe_customer_id,
-                    external_account={
-                        "object": "bank_account",
-                        "country": country,
-                        "currency": currency,
-                        "account_holder_name": account_holder_name,
-                        "account_holder_type": account_holder_type,
-                        "routing_number": combined_routing,
-                        "account_number": data.get("account_number"),
-                    },
-                )
+                if not transit_number or not routing_number:
+                    return Response({"detail": "Transit number and routing number are required for CA."},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                routing = f"{transit_number}{routing_number}"
             else:
-                return Response(
-                    {"detail": "Unsupported country."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        except stripe.StripeError as e:
-            return Response(
-                {"detail": f"Stripe error: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+                return Response({"detail": "Unsupported country."}, status=status.HTTP_400_BAD_REQUEST)
 
-        banking_info.bank_name = bank_name or external_account.get("bank_name")
+            external_account = stripe.Account.create_external_account(
+                banking_info.stripe_connected_account_id,
+                external_account={
+                    "object": "bank_account",
+                    "country": country,
+                    "currency": currency,
+                    "account_holder_name": account_holder_name,
+                    "account_holder_type": account_holder_type,
+                    "routing_number": routing,
+                    "account_number": data.get("account_number"),
+                },
+            )
+        except stripe.StripeError as e:
+            return Response({"detail": f"Stripe error (bank account): {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
         banking_info.account_holder_name = account_holder_name
+        banking_info.account_holder_type = account_holder_type
+        banking_info.country = country
+        banking_info.currency = currency
         banking_info.account_number_last4 = external_account.get("last4")
         banking_info.routing_number = routing_number
         banking_info.transit_number = transit_number
         banking_info.save(
             update_fields=[
-                "bank_name",
                 "account_holder_name",
+                "account_holder_type",
+                "country",
+                "currency",
                 "account_number_last4",
                 "routing_number",
                 "transit_number",
@@ -294,10 +348,8 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
         )
 
         return Response(
-            {
-                "detail": "Bank account added successfully.",
-            },
-            status=status.HTTP_201_CREATED,
+            {"detail": "Bank account added successfully."},
+            status=status.HTTP_201_CREATED
         )
 
 
@@ -388,7 +440,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 {"error": "Client does not have an active payment method."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+        print(business)
         business_bank_info = business.banking_information.filter(is_active=True).first()
         if not business_bank_info or not business_bank_info.stripe_connected_account_id:
             return Response(

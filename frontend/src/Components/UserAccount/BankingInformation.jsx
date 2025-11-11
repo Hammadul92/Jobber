@@ -83,7 +83,7 @@ export default function BankingInformation({ token, setAlert }) {
                             <div className="card-body">
                                 {!activeBank || showBankForm ? (
                                     <>
-                                        <p className="text-muted">
+                                        <p className="text-muted mb-0">
                                             {activeBank
                                                 ? 'Update your current payout bank account.'
                                                 : 'Add a payout bank account to receive funds directly.'}
@@ -115,21 +115,21 @@ export default function BankingInformation({ token, setAlert }) {
                                 ) : (
                                     <div className="d-flex justify-content-between align-items-center flex-wrap">
                                         <span>
-                                            <strong>{activeBank.bank_name.toUpperCase()}</strong> •••• ••••{' '}
+                                            •••• ••••{' '}
                                             {activeBank.account_number_last4}
                                         </span>
                                         <div className="d-flex gap-2">
                                             <button
-                                                className="btn btn-sm btn-link text-success p-0"
+                                                className="btn btn-sm btn-light"
                                                 onClick={() => setShowBankForm(true)}
                                             >
-                                                Replace
+                                                <i className='fa fa-pencil'></i> Replace
                                             </button>
                                             <button
-                                                className="btn btn-sm btn-link text-danger p-0"
+                                                className="btn btn-sm btn-light"
                                                 onClick={() => handleDeleteClick(activeBank.id)}
                                             >
-                                                Delete
+                                                <i className='fa fa-trash-alt'></i> Delete
                                             </button>
                                         </div>
                                     </div>
@@ -189,16 +189,16 @@ export default function BankingInformation({ token, setAlert }) {
                                     </small>
                                     <div className="d-flex gap-2">
                                         <button
-                                            className="btn btn-sm btn-link text-success p-0"
+                                            className="btn btn-sm btn-light"
                                             onClick={() => setShowCardForm(true)}
                                         >
-                                            Replace
+                                            <i className='fa fa-pencil'></i> Replace
                                         </button>
                                         <button
-                                            className="btn btn-sm btn-link text-danger p-0"
+                                            className="btn btn-sm btn-light"
                                             onClick={() => handleDeleteClick(activeCard.id)}
                                         >
-                                            Delete
+                                           <i className='fa fa-trash-alt'></i> Delete
                                         </button>
                                     </div>
                                 </div>
