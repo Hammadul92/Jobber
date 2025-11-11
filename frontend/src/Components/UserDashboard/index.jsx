@@ -18,6 +18,7 @@ import SignQuote from './Tabs/Quotes/signQuote';
 import Jobs from './Tabs/Jobs';
 import Job from './Tabs/Jobs/Job';
 import Invoices from './Tabs/Invoices';
+import Invoice from './Tabs/Invoices/Invoice';
 import Payouts from './Tabs/Payouts';
 
 export default function UserDashboard({ page, token, user }) {
@@ -108,6 +109,8 @@ export default function UserDashboard({ page, token, user }) {
                 return <Job token={token} role={user?.role} business={business} />;
             case 'invoices':
                 return <Invoices token={token} role={user?.role} business={business} />;
+            case 'invoice':
+                return <Invoice token={token} role={user?.role} business={business} />;
             case 'payouts':
                 return <Payouts token={token} business={business} />;
             default:

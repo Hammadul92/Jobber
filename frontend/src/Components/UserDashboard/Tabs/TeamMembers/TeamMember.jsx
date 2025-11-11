@@ -116,14 +116,8 @@ export default function TeamMember({ token }) {
 
                         <div className="d-flex flex-column align-items-center small text-muted mt-2">
                             <div>{email}</div>
-                            <div>
-                                <i className="bi bi-telephone me-2"></i>
-                                {phone}
-                            </div>
-                            <div>
-                                <i className="bi bi-calendar-event me-2"></i>
-                                Joined: {formatDate(joinedAt)}
-                            </div>
+                            <div>{phone}</div>
+                            <div>Joined: {formatDate(joinedAt)}</div>
                         </div>
                     </div>
                 </div>

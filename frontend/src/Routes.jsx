@@ -97,6 +97,7 @@ function MainApp() {
                     <Route path="jobs" element={<UserDashboard page="jobs" token={token} user={user} />} />
                     <Route path="job/:id" element={<UserDashboard page="job" token={token} user={user} />} />
                     <Route path="invoices" element={<UserDashboard page="invoices" token={token} user={user} />} />
+                    <Route path="invoice/:id" element={<UserDashboard page="invoice" token={token} user={user} />} />
                     <Route path="payouts" element={<UserDashboard page="payouts" token={token} user={user} />} />
                     <Route
                         path="team-members"

@@ -76,6 +76,14 @@ const invoiceApi = createApi({
             }),
             invalidatesTags: ['Invoice'],
         }),
+
+        makePayment: builder.mutation({
+            query: (id) => ({
+                url: `/invoice/${id}/make-payment/`,
+                method: 'POST',
+            }),
+            invalidatesTags: (result, error, id) => ['Invoice', { type: 'Invoice', id }],
+        }),
     }),
 });
 
@@ -86,6 +94,7 @@ export const {
     useUpdateInvoiceMutation,
     useReplaceInvoiceMutation,
     useDeleteInvoiceMutation,
+    useMakePaymentMutation,
 } = invoiceApi;
 
 export { invoiceApi };

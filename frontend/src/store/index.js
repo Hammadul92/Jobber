@@ -148,4 +148,5 @@ export {
     useUpdateInvoiceMutation,
     useReplaceInvoiceMutation,
     useDeleteInvoiceMutation,
+    useMakePaymentMutation,
 } from './apis/invoiceApi';

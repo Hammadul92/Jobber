@@ -11,7 +11,7 @@ export default function Questionnaires({ token, business }) {
 
     return (
         <div>
-            <nav aria-label="breadcrumb mb-3">
+            <nav aria-label="breadcrumb" className="mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
                         <Link to={`/`} className="text-success">

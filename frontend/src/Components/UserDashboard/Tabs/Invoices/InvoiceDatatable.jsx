@@ -75,11 +75,11 @@ export default function InvoiceDatatable({ token, role }) {
             return (
                 <Table.Cell {...props}>
                     <Link
-                        to={`/dashboard/invoices/${props.row.id}`}
+                        to={`/dashboard/invoice/${props.row.id}`}
                         className="badge bg-light rounded-circle p-2 me-2 text-secondary"
                         title="View Invoice"
                     >
-                        <i className="fa fa-eye"></i>
+                        <i className="fa fa-pencil"></i>
                     </Link>
 
                     {role === 'MANAGER' && (
@@ -108,9 +108,21 @@ export default function InvoiceDatatable({ token, role }) {
                     <span className={`badge bg-gradient rounded-pill ${statusColor}`}>{props.row.status}</span>
                 </Table.Cell>
             );
-        } else if (props.column.name === 'created_at' || props.column.name === 'due_date') {
-            return <Table.Cell {...props}>{formatDate(props.row[props.column.name])}</Table.Cell>;
+        } else if (props.column.name === 'due_date') {
+            const dueDate = new Date(props.row.due_date);
+            const today = new Date();
+            const isOverdue = dueDate < today && props.row.status !== 'PAID' && props.row.status !== 'CANCELLED';
+
+            return (
+                <Table.Cell {...props}>
+                    {formatDate(props.row.due_date)}{' '}
+                    {isOverdue && <span className="badge bg-danger bg-gradient rounded-pill ms-2">Overdue</span>}
+                </Table.Cell>
+            );
+        } else if (props.column.name === 'created_at') {
+            return <Table.Cell {...props}>{formatDate(props.row.created_at)}</Table.Cell>;
         }
+
         return <Table.Cell {...props} />;
     };
 

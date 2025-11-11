@@ -103,7 +103,7 @@ export default function EditServiceQuestionnairesForm({ token, business }) {
 
     return (
         <>
-            <nav aria-label="breadcrumb mb-3">
+            <nav aria-label="breadcrumb" className="mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
                         <Link to={`/`} className="text-success">
@@ -126,7 +126,7 @@ export default function EditServiceQuestionnairesForm({ token, business }) {
                 </ol>
             </nav>
 
-            <div className="shadow bg-white rounded p-4">
+            <div className="shadow bg-white rounded p-3">
                 <AlertDispatcher type={alert?.type} message={alert?.message} setAlert={setAlert} />
 
                 <form onSubmit={handleSubmit}>

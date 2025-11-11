@@ -2,6 +2,7 @@ import stripe
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -10,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.models import BankingInformation, Business, Client, Invoice
-from finance import serializers, paginations
+from finance import serializers, paginations, emails
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -54,6 +55,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         """Soft delete the record."""
+
         instance.soft_delete(user=self.request.user)
 
     @action(detail=False, methods=["post"], url_path="create-setup-intent")
@@ -346,6 +348,95 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             service=service,
         )
 
+    def perform_update(self, serializer):
+        """Trigger email when invoice is sent."""
+
+        instance = serializer.instance
+        previous_status = instance.status
+        updated_instance = serializer.save()
+
+        if previous_status != "SENT" and updated_instance.status == "SENT":
+            emails.send_invoice_email(updated_instance)
+
+        if previous_status != "PAID" and updated_instance.status == "PAID":
+            updated_instance.paid_at = timezone.now()
+            updated_instance.save(update_fields=["paid_at"])
+
     def perform_destroy(self, instance):
-        """Soft delete the invoice instead of hard deleting."""
+        """Soft delete the record."""
+
         instance.soft_delete(user=self.request.user)
+
+    @action(detail=True, methods=["post"], url_path="make-payment")
+    def make_payment(self, request, pk=None):
+        """Charge client and transfer funds to business."""
+
+        invoice = self.get_object()
+        client = invoice.client
+        business = invoice.business
+
+        if not client:
+            return Response({"error": "Client not found."}, status=status.HTTP_400_BAD_REQUEST)
+        if not business:
+            return Response({"error": "Business not found."}, status=status.HTTP_400_BAD_REQUEST)
+        if invoice.status == "PAID":
+            return Response({"detail": "Invoice already paid."}, status=status.HTTP_400_BAD_REQUEST)
+
+        client_bank_info = client.banking_information.filter(is_active=True).first()
+        if not client_bank_info or not client_bank_info.stripe_payment_method_id:
+            return Response(
+                {"error": "Client does not have an active payment method."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        business_bank_info = business.banking_information.filter(is_active=True).first()
+        if not business_bank_info or not business_bank_info.stripe_connected_account_id:
+            return Response(
+                {"error": "Business does not have a connected Stripe account."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        amount_cents = int(invoice.total_amount * 100)
+
+        payment_intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency=invoice.currency.lower(),
+            customer=client_bank_info.stripe_customer_id,
+            payment_method=client_bank_info.stripe_payment_method_id,
+            off_session=True,
+            confirm=True,
+            transfer_data={
+                "destination": business_bank_info.stripe_connected_account_id
+            },
+            description=f"Payment for Invoice #{invoice.id}",
+            metadata={"invoice_id": invoice.id},
+        )
+
+        invoice.status = "PAID"
+        invoice.paid_at = timezone.now()
+        invoice.stripe_payment_intent_id = payment_intent.id
+        invoice.save(update_fields=["status", "paid_at", "stripe_payment_intent_id"])
+
+        transfer_id = None
+        if hasattr(payment_intent, "transfer_data"):
+            transfer_id = payment_intent.transfer_data.get("destination")
+
+        Payout.objects.create(
+            business=business,
+            client=client,
+            invoice=invoice,
+            amount=invoice.total_amount,
+            currency=invoice.currency,
+            stripe_transfer_id=transfer_id,
+            status="PAID",
+            paid_at=timezone.now(),
+        )
+
+        return Response(
+            {
+                "detail": "Payment successful and payout recorded.",
+                "invoice_id": invoice.id,
+                "payment_intent_id": payment_intent.id,
+            },
+            status=status.HTTP_200_OK,
+        )

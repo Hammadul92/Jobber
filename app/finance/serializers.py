@@ -42,12 +42,14 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         read_only=True
     )
     invoice_total = serializers.SerializerMethodField()
+    has_payment_method = serializers.SerializerMethodField()
 
     class Meta:
         model = Invoice
         fields = [
             'id', 'invoice_number', 'status', 'due_date', 'business_name',
             'subtotal', 'tax_rate', 'tax_amount', 'total_amount',
+            'notes', 'paid_at', 'has_payment_method',
             'client_name', 'service_name', 'currency', 'invoice_total',
             'business', 'client', 'service', 'created_at', 'updated_at'
         ]
@@ -55,3 +57,6 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
     def get_invoice_total(self, obj):
         return f"{obj.total_amount} {obj.currency}"
+
+    def get_has_payment_method(self, obj):
+        return bool(obj.client.banking_information.filter(is_active=True).first())

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useFetchQuoteQuery, useSignQuoteMutation } from '../../../../store';
 import AcceptAndSignQuote from './AcceptAndSignQuote';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import { formatDate } from '../../../../utils/formatDate';
 
 export default function SignQuote({ token }) {
     const { id } = useParams();
@@ -122,7 +123,7 @@ export default function SignQuote({ token }) {
                 />
             )}
 
-            <nav aria-label="breadcrumb mb-3">
+            <nav aria-label="breadcrumb" className="mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
                         <Link to={`/dashboard/home`} className="text-success">
@@ -268,7 +269,7 @@ export default function SignQuote({ token }) {
                                         </div>
 
                                         <p className="mb-1">
-                                            Signed on: <strong>{new Date(quote.signed_at).toLocaleString()}</strong>
+                                            Signed on: <strong>{formatDate(quote.signed_at)}</strong>
                                         </p>
                                         <p className="mb-1">
                                             Signed by: <strong>{quote.client.client_name}</strong>

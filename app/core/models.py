@@ -698,13 +698,6 @@ class Invoice(SoftDeletableModel):
     stripe_payment_intent_id = models.CharField(
         max_length=255, blank=True, null=True
     )
-    payment_method = models.ForeignKey(
-        BankingInformation,
-        related_name="invoices",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
 
     paid_at = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -761,14 +754,6 @@ class Payout(SoftDeletableModel):
         max_length=20,
         choices=PAYOUT_STATUS_CHOICES,
         default="PENDING"
-    )
-
-    banking_information = models.ForeignKey(
-        BankingInformation,
-        related_name="payouts",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
     )
 
     stripe_payout_id = models.CharField(

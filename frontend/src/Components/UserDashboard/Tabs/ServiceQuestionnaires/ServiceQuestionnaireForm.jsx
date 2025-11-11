@@ -113,7 +113,7 @@ export default function ServiceQuestionnaireForm({ token, role, business }) {
                 />
             )}
 
-            <nav aria-label="breadcrumb mb-3">
+            <nav aria-label="breadcrumb" className="mb-3">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
                         <Link to={`/`} className="text-success">
@@ -144,7 +144,7 @@ export default function ServiceQuestionnaireForm({ token, role, business }) {
                 </ol>
             </nav>
 
-            <div className="shadow bg-white rounded p-3">
+            <div className="shadow-sm bg-white rounded p-3">
                 <form onSubmit={isClient ? handleSubmit : undefined}>
                     {Object.entries(questions).map(([key, q], index) => (
                         <div className="mb-3" key={key}>

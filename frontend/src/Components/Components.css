@@ -318,3 +318,9 @@ textarea.form-control:focus {
 .offcanvas.offcanvas-end {
     width: 330px;
 }
+
+.breadcrumb {
+    background-color: #f7f7f7;
+    padding: 1rem;
+    border-radius: 8px;
+}

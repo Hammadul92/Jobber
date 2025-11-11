@@ -20,7 +20,6 @@ class InvoicePagination(pagination.PageNumberPagination):
                 {'name': 'service_name', 'title': 'Service'},
                 {'name': 'invoice_total', 'title': 'Total'},
                 {'name': 'due_date', 'title': 'Due Date'},
-                {'name': 'created_at', 'title': 'Created At'},
             ],
             'results': data,
         })

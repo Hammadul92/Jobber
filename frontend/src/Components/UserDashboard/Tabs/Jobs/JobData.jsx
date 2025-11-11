@@ -28,11 +28,9 @@ export default function JobData({ token, role, setAlert }) {
         }
     }, [isError, error, setAlert]);
 
-    // --- Unique options ---
     const uniqueServices = useMemo(() => [...new Set(jobs.map((j) => j.service_name).filter(Boolean))], [jobs]);
     const uniqueAssignees = useMemo(() => [...new Set(jobs.map((j) => j.assigned_to_name || 'Unassigned'))], [jobs]);
 
-    // --- Apply filters ---
     const filteredJobs = useMemo(() => {
         return jobs.filter((job) => {
             const matchService = !serviceFilter || job.service_name === serviceFilter;
@@ -42,7 +40,7 @@ export default function JobData({ token, role, setAlert }) {
                 job.assigned_to_name === assignedToFilter;
             const matchStart = !startDateFilter || new Date(job.scheduled_date) >= new Date(startDateFilter);
             const matchEnd = !endDateFilter || new Date(job.scheduled_date) <= new Date(endDateFilter);
-            return matchService && matchAssigned && matchStatus && matchStart && matchEnd;
+            return matchService && matchAssigned && matchStart && matchEnd;
         });
     }, [jobs, serviceFilter, assignedToFilter, startDateFilter, endDateFilter]);
 

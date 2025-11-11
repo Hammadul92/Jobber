@@ -10,11 +10,11 @@ import {
 } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import { formatDate } from '../../../../utils/formatDate';
 
 export default function Job({ token, role }) {
     const { id } = useParams();
 
-    // --- API Hooks ---
     const { data: jobData, isLoading, error } = useFetchJobQuery(id, { skip: !token });
     const [updateJob, { isLoading: updatingJob }] = useUpdateJobMutation();
     const { data: teamMembers } = useFetchTeamMembersQuery(undefined, { skip: !token });
@@ -104,12 +104,6 @@ export default function Job({ token, role }) {
         }
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '—';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    };
-
     if (isLoading) return <div>Loading job details...</div>;
 
     if (error) {
@@ -151,16 +145,12 @@ export default function Job({ token, role }) {
             </nav>
 
             <div className="row g-3">
-                {/* LEFT PANEL */}
                 <div className="col-12 col-lg-4">
-                    {/* JOB SUMMARY */}
                     <div className="card shadow-sm border-0 position-relative">
-                        {/* Status badge top-right */}
                         <span
                             className={`badge rounded-pill bg-gradient position-absolute top-0 end-0 m-2 bg-${
                                 status === 'COMPLETED' ? 'success' : 'secondary'
                             }`}
-                            style={{ fontSize: '0.75rem' }}
                         >
                             {status.replace('_', ' ')}
                         </span>
@@ -169,13 +159,13 @@ export default function Job({ token, role }) {
                             <h5 className="mb-2">{title}</h5>
                             {serviceData ? (
                                 <>
-                                    <p className="mb-1 small text-muted">
+                                    <p className="mb-1 text-muted">
                                         <strong>Service:</strong> {serviceData.service_name}
                                     </p>
-                                    <p className="mb-1 small text-muted">
+                                    <p className="mb-1 text-muted">
                                         <strong>Client:</strong> {serviceData.client_name || '—'}
                                     </p>
-                                    <p className="mb-1 small text-muted">
+                                    <p className="mb-1 text-muted">
                                         <strong>Service Address:</strong> {serviceData.street_address},{' '}
                                         {serviceData.city}, {serviceData.province_state}, {serviceData.country},{' '}
                                         {serviceData.postal_code}
@@ -187,7 +177,6 @@ export default function Job({ token, role }) {
                         </div>
                     </div>
 
-                    {/* PHOTO UPLOAD */}
                     <div className="card shadow-sm border-0 mt-3">
                         <div className="card-body">
                             <form onSubmit={handlePhotoUpload}>
@@ -234,9 +223,7 @@ export default function Job({ token, role }) {
                     </div>
                 </div>
 
-                {/* RIGHT PANEL */}
                 <div className="col-12 col-lg-8">
-                    {/* JOB FORM */}
                     <form onSubmit={handleSubmit} className="card shadow-sm border-0 mb-3">
                         <div className="card-body">
                             <div className="row g-3">
@@ -278,12 +265,16 @@ export default function Job({ token, role }) {
                                             onChange={(e) => setAssignedTo(e.target.value)}
                                             disabled={role !== 'MANAGER'}
                                         >
-                                            <option value="">Unassigned</option>
-                                            {teamMembers?.results?.map((m) => (
-                                                <option key={m.id} value={m.id}>
-                                                    {m.employee_name} - {m.role}
-                                                </option>
-                                            ))}
+                                            <option value="">Select</option>
+                                            {teamMembers &&
+                                                teamMembers.map(
+                                                    (member) =>
+                                                        member.is_active === 'True' && (
+                                                            <option key={member.id} value={member.id}>
+                                                                {member.employee_name}
+                                                            </option>
+                                                        )
+                                                )}
                                         </select>
                                         <label className="form-label">Assigned To</label>
                                     </div>
@@ -327,7 +318,6 @@ export default function Job({ token, role }) {
                         </div>
                     </form>
 
-                    {/* PHOTOS */}
                     <div className="card shadow-sm border-0">
                         <div className="card-body">
                             <h4 className="fw-bold mb-3">Job Photos</h4>
@@ -348,7 +338,6 @@ export default function Job({ token, role }) {
                                                         }}
                                                     />
 
-                                                    {/* BEFORE/AFTER badge top-right */}
                                                     <span
                                                         className="badge bg-success position-absolute top-0 end-0 m-2"
                                                         style={{ fontSize: '0.7rem' }}
@@ -356,22 +345,8 @@ export default function Job({ token, role }) {
                                                         {photo.photo_type}
                                                     </span>
 
-                                                    {/* Upload time overlay bottom */}
-                                                    <div
-                                                        className="position-absolute bottom-0 start-0 w-100 text-white text-center py-1"
-                                                        style={{
-                                                            background: 'rgba(0,0,0,0.5)',
-                                                            fontSize: '0.75rem',
-                                                        }}
-                                                    >
-                                                        {new Date(photo.uploaded_at).toLocaleString('en-US', {
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            hour: '2-digit',
-                                                            minute: '2-digit',
-                                                            hour12: true,
-                                                        })}
+                                                    <div className="position-absolute bottom-0 start-0 w-100 text-white text-center py-1 bg-dark bg-gradient small">
+                                                        {formatDate(photo.uploaded_at)}
                                                     </div>
                                                 </div>
                                             </div>
