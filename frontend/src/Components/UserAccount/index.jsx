@@ -81,7 +81,7 @@ export default function UserAccount({ token, user }) {
                 </div>
 
                 <div className="col-md-9">
-                    <div className="p-3 pt-0 bg-white rounded-sm shadow-sm">
+                    <div className="p-3 bg-white rounded-3 shadow-sm border">
                         {activeTab === 'profile' && <Profile token={token} setAlert={setAlert} />}
                         {activeTab === 'business' && (user?.role === 'MANAGER' || user?.role === 'USER') && (
                             <Business token={token} setAlert={setAlert} />

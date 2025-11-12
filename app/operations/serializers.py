@@ -27,12 +27,13 @@ class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Business
-        fields = ['id', 'owner', 'name', 'phone', 'email',
+        fields = ['id', 'owner', 'name', 'phone', 'support_phone', 'email',
                   'business_description', 'logo', 'street_address',
                   'city', 'country', 'province_state',
                   'postal_code', 'business_number', 'tax_rate',
-                  'services_offered', 'timezone', 'created_at',
-                  'updated_at']
+                  'services_offered', 'owner_first_name', 'owner_last_name',
+                  'owner_email', 'owner_dob', 'owner_percent_ownership',
+                  'timezone', 'created_at', 'updated_at']
 
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at']
 

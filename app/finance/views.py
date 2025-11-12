@@ -209,16 +209,12 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
 
         business_url = business.website if business.website else f"https://contractorz.com/businesses/{business.slug}"
 
-        name_parts = user.name.strip().split(" ", 1)
-        first_name = name_parts[0]
-        last_name = name_parts[1] if len(name_parts) > 1 else name_parts[0]
-
         if not banking_info or not banking_info.stripe_connected_account_id:
             try:
                 connected_account = stripe.Account.create(
                     type="custom",
                     country=country,
-                    email=user.email,
+                    email=business.email,
                     business_type="company" if account_holder_type == "company" else "individual",
                     business_profile={
                         "name": business.name,
@@ -280,9 +276,9 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                 stripe.Account.create_person(
                     connected_account.id,
                     person={
-                        "first_name": first_name,
-                        "last_name": last_name,
-                        "email": user.email,
+                        "first_name": business.owner_first_name,
+                        "last_name": business.owner_last_name,
+                        "email": business.owner_email,
                         "dob": {"day": 1, "month": 1, "year": 1980},
                         "address": {
                             "line1": business.street_address,
@@ -295,7 +291,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                         "relationship": {
                             "owner": True,
                             "representative": True,
-                            "percent_ownership": 100,
+                            "percent_ownership": business.owner_percent_ownership,
                         },
                     },
                 )

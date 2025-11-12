@@ -11,6 +11,7 @@ export default function Business({ token, setAlert }) {
     const [businessId, setBusinessId] = useState(null);
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
+    const [supportPhone, setSupportPhone] = useState('');
     const [email, setEmail] = useState('');
     const [businessDescription, setBusinessDescription] = useState('');
     const [streetAddress, setStreetAddress] = useState('');
@@ -24,17 +25,24 @@ export default function Business({ token, setAlert }) {
     const [selectedServices, setSelectedServices] = useState([]);
     const [logo, setLogo] = useState(null);
 
+    // Owner fields
+    const [ownerFirstName, setOwnerFirstName] = useState('');
+    const [ownerLastName, setOwnerLastName] = useState('');
+    const [ownerEmail, setOwnerEmail] = useState('');
+    const [ownerDob, setOwnerDob] = useState('');
+    const [ownerPercentOwnership, setOwnerPercentOwnership] = useState('');
+
     const { data: businessData, isLoading, refetch } = useFetchBusinessesQuery(undefined, { skip: !token });
     const [createBusiness, { isLoading: isCreating }] = useCreateBusinessMutation();
     const [updateBusiness, { isLoading: isUpdating }] = useUpdateBusinessMutation();
 
-    // Populate form if business exists
     useEffect(() => {
         if (businessData?.length > 0) {
             const b = businessData[0];
             setBusinessId(b.id);
             setName(b.name || '');
             setPhone(b.phone || '');
+            setSupportPhone(b.support_phone || '');
             setEmail(b.email || '');
             setBusinessDescription(b.business_description || '');
             setStreetAddress(b.street_address || '');
@@ -47,6 +55,13 @@ export default function Business({ token, setAlert }) {
             setTimezone(b.timezone || 'America/Edmonton');
             setSelectedServices(b.services_offered || []);
             setLogo(b.logo || null);
+
+            // Populate owner & representative
+            setOwnerFirstName(b.owner_first_name || '');
+            setOwnerLastName(b.owner_last_name || '');
+            setOwnerEmail(b.owner_email || '');
+            setOwnerDob(b.owner_dob || '');
+            setOwnerPercentOwnership(b.owner_percent_ownership || '');
         }
     }, [businessData]);
 
@@ -87,7 +102,21 @@ export default function Business({ token, setAlert }) {
     const isStepComplete = (stepNum) => {
         switch (stepNum) {
             case 1:
-                return name && email && phone && businessDescription && businessNumber && taxRate && timezone;
+                return (
+                    name &&
+                    email &&
+                    phone &&
+                    supportPhone &&
+                    businessDescription &&
+                    businessNumber &&
+                    taxRate &&
+                    timezone &&
+                    ownerFirstName &&
+                    ownerLastName &&
+                    ownerDob &&
+                    ownerEmail &&
+                    ownerPercentOwnership
+                );
             case 2:
                 return streetAddress && city && country && provinceState && postalCode;
             case 3:
@@ -113,6 +142,7 @@ export default function Business({ token, setAlert }) {
         name,
         email,
         phone,
+        supportPhone,
         businessDescription,
         businessNumber,
         taxRate,
@@ -124,6 +154,11 @@ export default function Business({ token, setAlert }) {
         postalCode,
         selectedServices,
         logo,
+        ownerFirstName,
+        ownerLastName,
+        ownerEmail,
+        ownerDob,
+        ownerPercentOwnership,
     ]);
 
     const validateStep = () => isStepComplete(step);
@@ -147,6 +182,7 @@ export default function Business({ token, setAlert }) {
             const formData = new FormData();
             formData.append('name', name);
             formData.append('phone', phone);
+            formData.append('support_phone', supportPhone);
             formData.append('email', email);
             formData.append('business_description', businessDescription);
             formData.append('street_address', streetAddress);
@@ -160,6 +196,12 @@ export default function Business({ token, setAlert }) {
             formData.append('services_offered', JSON.stringify(selectedServices));
             if (logo && typeof logo !== 'string') formData.append('logo', logo);
 
+            formData.append('owner_first_name', ownerFirstName);
+            formData.append('owner_last_name', ownerLastName);
+            formData.append('owner_email', ownerEmail);
+            formData.append('owner_dob', ownerDob);
+            formData.append('owner_percent_ownership', ownerPercentOwnership);
+
             if (businessId) {
                 await updateBusiness({ id: businessId, data: formData }).unwrap();
                 setAlert({ type: 'success', message: 'Business updated successfully!' });
@@ -169,7 +211,6 @@ export default function Business({ token, setAlert }) {
             }
             refetch();
         } catch (err) {
-            console.error('Business save failed:', err);
             setAlert({ type: 'danger', message: 'Failed to save business. Please try again.' });
         }
     };
@@ -192,10 +233,8 @@ export default function Business({ token, setAlert }) {
                             className={`step-item ${isActive ? 'active' : isCompleted ? 'completed' : ''}`}
                             onClick={() => {
                                 if (stepNum < step) {
-                                    // Go back freely
                                     setStep(stepNum);
                                 } else if (stepNum > step) {
-                                    // Validate all previous steps before jumping forward
                                     let canProceed = true;
                                     for (let i = step; i < stepNum; i++) {
                                         if (!isStepComplete(i)) {
@@ -216,7 +255,6 @@ export default function Business({ token, setAlert }) {
                             }}
                         >
                             <span>{label}</span>
-                            {isCompleted && <i className="fa fa-check ms-2 text-success"></i>}
                         </div>
                     );
                 })}
@@ -257,6 +295,12 @@ export default function Business({ token, setAlert }) {
                         </div>
                         <div className="col-md-6">
                             <div className="field-wrapper">
+                                <PhoneInputField value={supportPhone} setValue={setSupportPhone} />
+                                <label className="form-label">Support Phone (*)</label>
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="field-wrapper">
                                 <select
                                     className="form-select"
                                     value={timezone}
@@ -272,7 +316,7 @@ export default function Business({ token, setAlert }) {
                                 <label className="form-label">Timezone (*)</label>
                             </div>
                         </div>
-                        <div className="col-md-6">
+                        <div className="col-md-4">
                             <div className="field-wrapper">
                                 <input
                                     type="text"
@@ -284,7 +328,7 @@ export default function Business({ token, setAlert }) {
                                 <label className="form-label">GST/Tax Number (*)</label>
                             </div>
                         </div>
-                        <div className="col-md-6">
+                        <div className="col-md-4">
                             <div className="field-wrapper">
                                 <input
                                     type="number"
@@ -306,6 +350,69 @@ export default function Business({ token, setAlert }) {
                                     required
                                 />
                                 <label className="form-label">Business Description (*)</label>
+                            </div>
+                        </div>
+
+                        {/* Owner */}
+                        <h4 className="mt-4 mb-0 fw-bold">Owner Information</h4>
+                        <div className="col-md-6">
+                            <div className="field-wrapper">
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={ownerFirstName}
+                                    onChange={(e) => setOwnerFirstName(e.target.value)}
+                                    required
+                                />
+                                <label className="form-label">Owner First Name (*)</label>
+                            </div>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="field-wrapper">
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={ownerLastName}
+                                    onChange={(e) => setOwnerLastName(e.target.value)}
+                                    required
+                                />
+                                <label className="form-label">Owner Last Name (*)</label>
+                            </div>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="field-wrapper">
+                                <input
+                                    type="email"
+                                    className="form-control"
+                                    value={ownerEmail}
+                                    onChange={(e) => setOwnerEmail(e.target.value)}
+                                    required
+                                />
+                                <label className="form-label">Owner Email (*)</label>
+                            </div>
+                        </div>
+                        <div className="col-md-3">
+                            <div className="field-wrapper">
+                                <input
+                                    type="date"
+                                    className="form-control"
+                                    value={ownerDob}
+                                    onChange={(e) => setOwnerDob(e.target.value)}
+                                    required
+                                />
+                                <label className="form-label">Owner DOB (*)</label>
+                            </div>
+                        </div>
+                        <div className="col-md-3">
+                            <div className="field-wrapper">
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    value={ownerPercentOwnership}
+                                    onChange={(e) => setOwnerPercentOwnership(e.target.value)}
+                                    required
+                                />
+                                <label className="form-label">Ownership (%) (*)</label>
                             </div>
                         </div>
                     </div>

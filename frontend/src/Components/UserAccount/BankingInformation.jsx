@@ -114,22 +114,19 @@ export default function BankingInformation({ token, setAlert }) {
                                     </>
                                 ) : (
                                     <div className="d-flex justify-content-between align-items-center flex-wrap">
-                                        <span>
-                                            •••• ••••{' '}
-                                            {activeBank.account_number_last4}
-                                        </span>
+                                        <span>•••• •••• {activeBank.account_number_last4}</span>
                                         <div className="d-flex gap-2">
                                             <button
                                                 className="btn btn-sm btn-light"
                                                 onClick={() => setShowBankForm(true)}
                                             >
-                                                <i className='fa fa-pencil'></i> Replace
+                                                <i className="fa fa-pencil"></i> Replace
                                             </button>
                                             <button
                                                 className="btn btn-sm btn-light"
                                                 onClick={() => handleDeleteClick(activeBank.id)}
                                             >
-                                                <i className='fa fa-trash-alt'></i> Delete
+                                                <i className="fa fa-trash-alt"></i> Delete
                                             </button>
                                         </div>
                                     </div>
@@ -188,17 +185,14 @@ export default function BankingInformation({ token, setAlert }) {
                                         Expires {formatExpiry(activeCard.card_exp_month, activeCard.card_exp_year)}
                                     </small>
                                     <div className="d-flex gap-2">
-                                        <button
-                                            className="btn btn-sm btn-light"
-                                            onClick={() => setShowCardForm(true)}
-                                        >
-                                            <i className='fa fa-pencil'></i> Replace
+                                        <button className="btn btn-sm btn-light" onClick={() => setShowCardForm(true)}>
+                                            <i className="fa fa-pencil"></i> Replace
                                         </button>
                                         <button
                                             className="btn btn-sm btn-light"
                                             onClick={() => handleDeleteClick(activeCard.id)}
                                         >
-                                           <i className='fa fa-trash-alt'></i> Delete
+                                            <i className="fa fa-trash-alt"></i> Delete
                                         </button>
                                     </div>
                                 </div>

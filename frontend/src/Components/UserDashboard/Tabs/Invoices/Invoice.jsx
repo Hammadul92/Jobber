@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import {
-    useFetchInvoiceQuery,
-    useUpdateInvoiceMutation,
-    useMakePaymentMutation,
-} from '../../../../store';
+import { useFetchInvoiceQuery, useUpdateInvoiceMutation, useMakePaymentMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
@@ -149,8 +145,8 @@ export default function Invoice({ token, role, business }) {
                                 (role === 'CLIENT'
                                     ? 'Client Portal'
                                     : role === 'EMPLOYEE'
-                                    ? 'Employee Portal'
-                                    : 'Dashboard')}
+                                      ? 'Employee Portal'
+                                      : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item">
@@ -171,9 +167,7 @@ export default function Invoice({ token, role, business }) {
                         <div className="text-center shadow-sm p-3 rounded">
                             <h4 className="mb-1">
                                 {invoiceNumber}{' '}
-                                <span
-                                    className={`badge bg-gradient rounded-pill p-2 bg-${statusColor(status)}`}
-                                >
+                                <span className={`badge bg-gradient rounded-pill p-2 bg-${statusColor(status)}`}>
                                     {status}
                                 </span>
                             </h4>
@@ -269,23 +263,13 @@ export default function Invoice({ token, role, business }) {
                                 </div>
                                 <div className="col-md-4">
                                     <div className="field-wrapper">
-                                        <input
-                                            type="number"
-                                            className="form-control"
-                                            value={taxAmount}
-                                            readOnly
-                                        />
+                                        <input type="number" className="form-control" value={taxAmount} readOnly />
                                         <label className="form-label">Tax Amount</label>
                                     </div>
                                 </div>
                                 <div className="col-md-4">
                                     <div className="field-wrapper">
-                                        <input
-                                            type="number"
-                                            className="form-control"
-                                            value={totalAmount}
-                                            readOnly
-                                        />
+                                        <input type="number" className="form-control" value={totalAmount} readOnly />
                                         <label className="form-label">Total Amount</label>
                                     </div>
                                 </div>
@@ -319,20 +303,18 @@ export default function Invoice({ token, role, business }) {
                                     </div>
                                     <div className="text-end">
                                         <h5 className="fw-bold mb-1">{businessName}</h5>
-                                        <small className="text-muted">
-                                            {formatDate(invoiceData?.created_at)}
-                                        </small>
+                                        <small className="text-muted">{formatDate(invoiceData?.created_at)}</small>
                                     </div>
                                 </div>
 
                                 <div className="row mb-4">
                                     <div className="col-6">
                                         <h6 className="text-success fw-bold mb-1">Bill From</h6>
-                                        <small className='text-muted'>{businessName}</small>
+                                        <small className="text-muted">{businessName}</small>
                                     </div>
                                     <div className="col-6 text-end">
                                         <h6 className="text-success fw-bold mb-1">Bill To</h6>
-                                        <small className='text-muted'>{clientName}</small>
+                                        <small className="text-muted">{clientName}</small>
                                     </div>
                                 </div>
 
@@ -400,18 +382,13 @@ export default function Invoice({ token, role, business }) {
                                                 onClick={handlePayment}
                                                 disabled={processingPayment}
                                             >
-                                                {processingPayment
-                                                    ? 'Processing...'
-                                                    : `Pay ${totalAmount} ${currency}`}
+                                                {processingPayment ? 'Processing...' : `Pay ${totalAmount} ${currency}`}
                                             </button>
                                         ) : (
                                             <div className="text-muted">
                                                 <i>
                                                     No active payment method found. Please{' '}
-                                                    <Link
-                                                        to="/user-account/banking"
-                                                        className="text-success"
-                                                    >
+                                                    <Link to="/user-account/banking" className="text-success">
                                                         add a payment method
                                                     </Link>{' '}
                                                     to make payment.

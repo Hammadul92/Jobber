@@ -205,41 +205,52 @@ class Business(SoftDeletableModel):
     objects = ActiveManager()
     all_objects = models.Manager()
 
+    # Core business info
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="owned_businesses",
         on_delete=models.CASCADE
     )
-
     name = models.CharField(max_length=50)
+    slug = models.CharField(max_length=50)
     phone = models.CharField(max_length=20)
+    support_phone = models.CharField(max_length=20)
     email = models.EmailField(max_length=50)
     business_description = models.TextField(max_length=1000)
-    logo = models.ImageField(
-        upload_to="business_logo/",
-        null=True,
-        blank=True
-    )
+    website = models.URLField(max_length=100, null=True, blank=True)
+    logo = models.ImageField(upload_to="business_logo/", null=True, blank=True)
 
+    # Address info
     street_address = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
     country = models.CharField(max_length=2, default="CA")
     province_state = models.CharField(max_length=2)
     postal_code = models.CharField(max_length=10)
 
+    # Business registration info
     business_number = models.CharField(max_length=20, null=False)
     tax_rate = models.DecimalField(max_digits=4, default=0, decimal_places=2)
 
     services_offered = TaggableManager(
         blank=True,
-        help_text=(
-            "Add services offered by this business "
-            "(comma-separated tags)."
-        ),
+        help_text="Add services offered by this business (comma-separated tags).",
     )
 
     timezone = models.CharField(max_length=50, default="America/Edmonton")
 
+    # Stripe Owner Info
+    owner_first_name = models.CharField(max_length=30)
+    owner_last_name = models.CharField(max_length=30)
+    owner_email = models.EmailField(max_length=50)
+    owner_dob = models.DateField()
+    owner_percent_ownership = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=100.00,
+        help_text="Percent ownership of the business owner (0-100)."
+    )
+
+    # Active / timestamps
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
