@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { provinces, countries } from '../../utils/locations';
 import { useFetchBusinessesQuery, useCreateBusinessMutation, useUpdateBusinessMutation } from '../../store';
 import SubmitButton from '../../utils/SubmitButton';
-import PhoneInputField from '../../utils/PhoneInput';
+import Input from '../../utils/Input';
+import Select from '../../utils/Select';
 
 export default function Business({ token, setAlert }) {
     const [step, setStep] = useState(1);
@@ -10,8 +11,9 @@ export default function Business({ token, setAlert }) {
 
     const [businessId, setBusinessId] = useState(null);
     const [name, setName] = useState('');
+    const [slug, setSlug] = useState('');
     const [phone, setPhone] = useState('');
-    const [supportPhone, setSupportPhone] = useState('');
+    const [website, setWebsite] = useState('');
     const [email, setEmail] = useState('');
     const [businessDescription, setBusinessDescription] = useState('');
     const [streetAddress, setStreetAddress] = useState('');
@@ -25,24 +27,24 @@ export default function Business({ token, setAlert }) {
     const [selectedServices, setSelectedServices] = useState([]);
     const [logo, setLogo] = useState(null);
 
-    // Owner fields
-    const [ownerFirstName, setOwnerFirstName] = useState('');
-    const [ownerLastName, setOwnerLastName] = useState('');
-    const [ownerEmail, setOwnerEmail] = useState('');
-    const [ownerDob, setOwnerDob] = useState('');
-    const [ownerPercentOwnership, setOwnerPercentOwnership] = useState('');
-
     const { data: businessData, isLoading, refetch } = useFetchBusinessesQuery(undefined, { skip: !token });
     const [createBusiness, { isLoading: isCreating }] = useCreateBusinessMutation();
     const [updateBusiness, { isLoading: isUpdating }] = useUpdateBusinessMutation();
+
+    const generateSlug = (text) => text.toLowerCase().trim().replace(/\s+/g, '-');
+
+    useEffect(() => {
+        setSlug(generateSlug(name));
+    }, [name]);
 
     useEffect(() => {
         if (businessData?.length > 0) {
             const b = businessData[0];
             setBusinessId(b.id);
             setName(b.name || '');
+            setSlug(b.slug || '');
             setPhone(b.phone || '');
-            setSupportPhone(b.support_phone || '');
+            setWebsite(b.website || '');
             setEmail(b.email || '');
             setBusinessDescription(b.business_description || '');
             setStreetAddress(b.street_address || '');
@@ -55,13 +57,6 @@ export default function Business({ token, setAlert }) {
             setTimezone(b.timezone || 'America/Edmonton');
             setSelectedServices(b.services_offered || []);
             setLogo(b.logo || null);
-
-            // Populate owner & representative
-            setOwnerFirstName(b.owner_first_name || '');
-            setOwnerLastName(b.owner_last_name || '');
-            setOwnerEmail(b.owner_email || '');
-            setOwnerDob(b.owner_dob || '');
-            setOwnerPercentOwnership(b.owner_percent_ownership || '');
         }
     }, [businessData]);
 
@@ -102,21 +97,7 @@ export default function Business({ token, setAlert }) {
     const isStepComplete = (stepNum) => {
         switch (stepNum) {
             case 1:
-                return (
-                    name &&
-                    email &&
-                    phone &&
-                    supportPhone &&
-                    businessDescription &&
-                    businessNumber &&
-                    taxRate &&
-                    timezone &&
-                    ownerFirstName &&
-                    ownerLastName &&
-                    ownerDob &&
-                    ownerEmail &&
-                    ownerPercentOwnership
-                );
+                return name && slug && email && phone && businessDescription && businessNumber && taxRate && timezone;
             case 2:
                 return streetAddress && city && country && provinceState && postalCode;
             case 3:
@@ -140,9 +121,9 @@ export default function Business({ token, setAlert }) {
         }
     }, [
         name,
+        slug,
         email,
         phone,
-        supportPhone,
         businessDescription,
         businessNumber,
         taxRate,
@@ -154,11 +135,6 @@ export default function Business({ token, setAlert }) {
         postalCode,
         selectedServices,
         logo,
-        ownerFirstName,
-        ownerLastName,
-        ownerEmail,
-        ownerDob,
-        ownerPercentOwnership,
     ]);
 
     const validateStep = () => isStepComplete(step);
@@ -181,8 +157,9 @@ export default function Business({ token, setAlert }) {
         try {
             const formData = new FormData();
             formData.append('name', name);
+            formData.append('slug', slug);
             formData.append('phone', phone);
-            formData.append('support_phone', supportPhone);
+            formData.append('website', website);
             formData.append('email', email);
             formData.append('business_description', businessDescription);
             formData.append('street_address', streetAddress);
@@ -195,12 +172,6 @@ export default function Business({ token, setAlert }) {
             formData.append('timezone', timezone);
             formData.append('services_offered', JSON.stringify(selectedServices));
             if (logo && typeof logo !== 'string') formData.append('logo', logo);
-
-            formData.append('owner_first_name', ownerFirstName);
-            formData.append('owner_last_name', ownerLastName);
-            formData.append('owner_email', ownerEmail);
-            formData.append('owner_dob', ownerDob);
-            formData.append('owner_percent_ownership', ownerPercentOwnership);
 
             if (businessId) {
                 await updateBusiness({ id: businessId, data: formData }).unwrap();
@@ -263,157 +234,101 @@ export default function Business({ token, setAlert }) {
             <form onSubmit={handleSubmit}>
                 {step === 1 && (
                     <div className="row">
-                        <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Business Name (*)</label>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <input
-                                    type="email"
-                                    className="form-control"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Email (*)</label>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <PhoneInputField value={phone} setValue={setPhone} />
-                                <label className="form-label">Phone (*)</label>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <PhoneInputField value={supportPhone} setValue={setSupportPhone} />
-                                <label className="form-label">Support Phone (*)</label>
-                            </div>
+                        <div className="col-md-4">
+                            <Input
+                                id="business_name"
+                                label={'Business Name'}
+                                value={name}
+                                isRequired={true}
+                                onChange={setName}
+                                fieldClass={'form-control'}
+                            />
                         </div>
                         <div className="col-md-4">
-                            <div className="field-wrapper">
-                                <select
-                                    className="form-select"
-                                    value={timezone}
-                                    onChange={(e) => setTimezone(e.target.value)}
-                                    required
-                                >
-                                    {timezones.map((tz) => (
-                                        <option key={tz.value} value={tz.value}>
-                                            {tz.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <label className="form-label">Timezone (*)</label>
-                            </div>
+                            <Input
+                                id="slug"
+                                label={'Slug'}
+                                value={slug}
+                                isRequired={true}
+                                onChange={setSlug}
+                                fieldClass={'form-control'}
+                            />
                         </div>
                         <div className="col-md-4">
-                            <div className="field-wrapper">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={businessNumber}
-                                    onChange={(e) => setBusinessNumber(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">GST/Tax Number (*)</label>
-                            </div>
+                            <Input
+                                type="email"
+                                id="email"
+                                label={'Email'}
+                                value={email}
+                                isRequired={true}
+                                onChange={setEmail}
+                                fieldClass={'form-control'}
+                            />
+                        </div>
+                        <div className="col-md-6">
+                            <Input
+                                type="tel"
+                                id="phone"
+                                label={'Phone'}
+                                value={phone}
+                                isRequired={true}
+                                onChange={setPhone}
+                                fieldClass={'form-control'}
+                            />
+                        </div>
+                        <div className="col-md-6">
+                            <Input
+                                type="url"
+                                id="phone"
+                                label={'Business Website'}
+                                value={website}
+                                isRequired={false}
+                                onChange={setWebsite}
+                                fieldClass={'form-control'}
+                            />
                         </div>
                         <div className="col-md-4">
-                            <div className="field-wrapper">
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    value={taxRate}
-                                    onChange={(e) => setTaxRate(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Tax Rate (%) (*)</label>
-                            </div>
+                            <Select
+                                id="timezone"
+                                label={'Timezone'}
+                                value={timezone}
+                                onChange={setTimezone}
+                                isRequired={true}
+                                options={timezones}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <Input
+                                id="business_number"
+                                label={'Business Number'}
+                                value={businessNumber}
+                                isRequired={true}
+                                onChange={setBusinessNumber}
+                                fieldClass={'form-control'}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <Input
+                                type="number"
+                                id="tax_rate"
+                                label={'Tax Rate'}
+                                value={taxRate}
+                                isRequired={true}
+                                onChange={setTaxRate}
+                                fieldClass={'form-control'}
+                            />
                         </div>
                         <div className="col-md-12">
-                            <div className="field-wrapper">
-                                <textarea
-                                    className="form-control"
-                                    rows={3}
-                                    value={businessDescription}
-                                    onChange={(e) => setBusinessDescription(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Business Description (*)</label>
-                            </div>
-                        </div>
-
-                        {/* Owner */}
-                        <h4 className="mt-4 mb-0 fw-bold">Owner Information</h4>
-                        <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={ownerFirstName}
-                                    onChange={(e) => setOwnerFirstName(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Owner First Name (*)</label>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={ownerLastName}
-                                    onChange={(e) => setOwnerLastName(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Owner Last Name (*)</label>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <input
-                                    type="email"
-                                    className="form-control"
-                                    value={ownerEmail}
-                                    onChange={(e) => setOwnerEmail(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Owner Email (*)</label>
-                            </div>
-                        </div>
-                        <div className="col-md-3">
-                            <div className="field-wrapper">
-                                <input
-                                    type="date"
-                                    className="form-control"
-                                    value={ownerDob}
-                                    onChange={(e) => setOwnerDob(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Owner DOB (*)</label>
-                            </div>
-                        </div>
-                        <div className="col-md-3">
-                            <div className="field-wrapper">
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    value={ownerPercentOwnership}
-                                    onChange={(e) => setOwnerPercentOwnership(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Ownership (%) (*)</label>
-                            </div>
+                            <label className="form-label fw-bold">
+                                Business Description <small className="text-danger">(Required)</small>
+                            </label>
+                            <textarea
+                                className="form-control"
+                                rows={3}
+                                value={businessDescription}
+                                onChange={(e) => setBusinessDescription(e.target.value)}
+                                required
+                            />
                         </div>
                     </div>
                 )}
@@ -421,75 +336,55 @@ export default function Business({ token, setAlert }) {
                 {step === 2 && (
                     <div className="row">
                         <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={streetAddress}
-                                    onChange={(e) => setStreetAddress(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Street Address (*)</label>
-                            </div>
+                            <Select
+                                id="country"
+                                label={'Country'}
+                                value={country}
+                                onChange={setCountry}
+                                isRequired={true}
+                                options={countries}
+                            />
                         </div>
                         <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={city}
-                                    onChange={(e) => setCity(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">City (*)</label>
-                            </div>
+                            <Select
+                                id="province"
+                                label={'Province / State'}
+                                value={provinceState}
+                                onChange={setProvinceState}
+                                isRequired={true}
+                                options={provinces[country]}
+                            />
+                        </div>
+                        <div className="col-md-12">
+                            <Input
+                                id="street_address"
+                                label={'Street Address'}
+                                value={streetAddress}
+                                isRequired={true}
+                                onChange={setStreetAddress}
+                                fieldClass={'form-control'}
+                            />
                         </div>
                         <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <select
-                                    className="form-select"
-                                    value={country}
-                                    onChange={(e) => setCountry(e.target.value)}
-                                    required
-                                >
-                                    {countries.map(({ code, name }) => (
-                                        <option key={code} value={code}>
-                                            {name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <label className="form-label">Country (*)</label>
-                            </div>
+                            <Input
+                                id="city"
+                                label={'City'}
+                                value={city}
+                                isRequired={true}
+                                onChange={setCity}
+                                fieldClass={'form-control'}
+                            />
                         </div>
+
                         <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <select
-                                    className="form-select"
-                                    value={provinceState}
-                                    onChange={(e) => setProvinceState(e.target.value)}
-                                    required
-                                >
-                                    <option value="">Select Province/State</option>
-                                    {provinces[country].map((prov) => (
-                                        <option key={prov.code} value={prov.code}>
-                                            {prov.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <label className="form-label">Province / State (*)</label>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="field-wrapper">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={postalCode}
-                                    onChange={(e) => setPostalCode(e.target.value)}
-                                    required
-                                />
-                                <label className="form-label">Postal / ZIP Code (*)</label>
-                            </div>
+                            <Input
+                                id="postal_code"
+                                label={'Postal / ZIP Code'}
+                                value={postalCode}
+                                isRequired={true}
+                                onChange={setPostalCode}
+                                fieldClass={'form-control'}
+                            />
                         </div>
                     </div>
                 )}
@@ -527,7 +422,7 @@ export default function Business({ token, setAlert }) {
                                 />
                             ) : (
                                 <div className="text-muted small text-center">
-                                    <i className="bi bi-image" style={{ fontSize: '2rem' }}></i>
+                                    <i className="fa fa-image" style={{ fontSize: '6rem' }}></i>
                                     <div>Upload your logo</div>
                                 </div>
                             )}
@@ -556,7 +451,7 @@ export default function Business({ token, setAlert }) {
                     ) : (
                         <SubmitButton
                             isLoading={isCreating || isUpdating}
-                            btnClass="btn btn-success ms-auto"
+                            btnClass="btn btn-sm btn-success ms-auto"
                             btnName="Save Changes"
                             isDisabled={!validateStep()}
                         />

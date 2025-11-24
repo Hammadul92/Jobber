@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import StripeCardForm from './StripeCardForm';
@@ -7,6 +7,8 @@ import {
     useFetchBusinessesQuery,
     useFetchBankingInformationListQuery,
     useDeleteBankingInformationMutation,
+    useCheckBankAccountMutation,
+    useUpdateBankingInformationMutation,
 } from '../../store';
 import SubmitButton from '../../utils/SubmitButton';
 
@@ -15,12 +17,30 @@ const stripePromise = loadStripe(
 );
 
 export default function BankingInformation({ token, setAlert }) {
-    const { data: businesses = [], isLoading: businessLoading } = useFetchBusinessesQuery(undefined, { skip: !token });
-    const {
-        data: bankingInfo = [],
-        isLoading: bankingInfoLoading,
-        refetch,
-    } = useFetchBankingInformationListQuery(undefined, { skip: !token });
+    const { data: businesses = [], isLoading: businessLoading } = useFetchBusinessesQuery(undefined, {
+        skip: !token,
+    });
+
+    const { data: bankingInfo = [], isLoading: bankingInfoLoading } = useFetchBankingInformationListQuery(undefined, {
+        skip: !token,
+    });
+
+    const activeBank = bankingInfo.find((i) => i.payment_method_type === 'BANK_ACCOUNT');
+    const activeCard = bankingInfo.find((i) => i.payment_method_type === 'CARD');
+
+    const [checkBankAccount, { isLoading: syncingBank }] = useCheckBankAccountMutation();
+    const [updateBankingInformation, { isLoading: updatingAutoPay }] = useUpdateBankingInformationMutation();
+
+    useEffect(() => {
+        if (activeBank && !activeBank.account_number_last4) {
+            checkBankAccount().catch((err) =>
+                setAlert({
+                    type: 'danger',
+                    message: err?.data?.detail || 'Bank account sync failed.',
+                })
+            );
+        }
+    }, [activeBank, checkBankAccount]);
 
     const [deleteBankingInformation, { isLoading: deleting }] = useDeleteBankingInformationMutation();
 
@@ -36,13 +56,11 @@ export default function BankingInformation({ token, setAlert }) {
         return `${monthName} ${year}`;
     };
 
-    if (businessLoading || bankingInfoLoading) {
+    if (businessLoading || bankingInfoLoading || syncingBank) {
         return <div className="text-center py-5 text-muted">Loading...</div>;
     }
 
     const hasBusiness = Array.isArray(businesses) && businesses.length > 0;
-    const activeBank = bankingInfo.find((i) => i.payment_method_type === 'BANK_ACCOUNT');
-    const activeCard = bankingInfo.find((i) => i.payment_method_type === 'CARD');
 
     const handleDeleteClick = (id) => {
         setSelectedPaymentId(id);
@@ -57,10 +75,8 @@ export default function BankingInformation({ token, setAlert }) {
             await deleteBankingInformation(selectedPaymentId).unwrap();
             setShowModal(false);
             setSelectedPaymentId(null);
-            refetch();
             setAlert({ type: 'success', message: 'Payment method deleted successfully.' });
         } catch (err) {
-            console.error('Delete failed:', err);
             setAlert({
                 type: 'danger',
                 message: err?.data?.detail || 'Failed to delete payment method. Please try again.',
@@ -68,10 +84,29 @@ export default function BankingInformation({ token, setAlert }) {
         }
     };
 
+    const handleAutoPaymentToggle = async (checked) => {
+        if (!activeCard) return;
+        try {
+            await updateBankingInformation({
+                id: activeCard.id,
+                auto_payments: checked,
+            }).unwrap();
+
+            setAlert({
+                type: 'success',
+                message: checked ? 'Auto payment enabled successfully.' : 'Auto payment disabled successfully.',
+            });
+        } catch (err) {
+            setAlert({
+                type: 'danger',
+                message: err?.data?.detail || 'Failed to update auto payment setting.',
+            });
+        }
+    };
+
     return (
         <>
             <div className="row">
-                {/* Bank Account Section */}
                 {hasBusiness && (
                     <div className="col-md-6">
                         <div className="card border-0">
@@ -79,7 +114,6 @@ export default function BankingInformation({ token, setAlert }) {
                                 <i className="fa fa-building-columns me-2"></i>
                                 Bank Account (for Payouts)
                             </div>
-
                             <div className="card-body">
                                 {!activeBank || showBankForm ? (
                                     <>
@@ -89,17 +123,8 @@ export default function BankingInformation({ token, setAlert }) {
                                                 : 'Add a payout bank account to receive funds directly.'}
                                         </p>
 
-                                        <BankAccountForm
-                                            onSuccess={() => {
-                                                setShowBankForm(false);
-                                                refetch();
-                                                setAlert({
-                                                    type: 'success',
-                                                    message: 'Bank account saved successfully!',
-                                                });
-                                            }}
-                                            setAlert={setAlert}
-                                        />
+                                        <BankAccountForm onSuccess={() => setShowBankForm(false)} setAlert={setAlert} />
+
                                         {activeBank && (
                                             <div className="text-end">
                                                 <button
@@ -114,7 +139,10 @@ export default function BankingInformation({ token, setAlert }) {
                                     </>
                                 ) : (
                                     <div className="d-flex justify-content-between align-items-center flex-wrap">
-                                        <span>•••• •••• {activeBank.account_number_last4}</span>
+                                        <div>
+                                            <strong>{activeBank.bank_name}</strong> ••••{' '}
+                                            {activeBank.account_number_last4}
+                                        </div>
                                         <div className="d-flex gap-2">
                                             <button
                                                 className="btn btn-sm btn-light"
@@ -131,19 +159,28 @@ export default function BankingInformation({ token, setAlert }) {
                                         </div>
                                     </div>
                                 )}
+
+                                <div className="alert alert-warning mt-3">
+                                    You receive payouts directly to your connected bank account after Stripe fees are
+                                    deducted.
+                                    <br />
+                                    <small>
+                                        Example: For a $100.00 payout, Stripe’s standard processing fee of{' '}
+                                        <strong>2.9% + $0.30</strong> would result in a net payout of approximately{' '}
+                                        <strong>$96.80</strong>.
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Card Section */}
                 <div className={`col-md-${hasBusiness ? '6' : '12'}`}>
                     <div className="card border-0">
                         <div className="card-header bg-success bg-gradient text-white">
                             <i className="fa fa-credit-card me-2"></i>
                             Credit / Debit Cards
                         </div>
-
                         <div className="card-body">
                             {!activeCard || showCardForm ? (
                                 <>
@@ -151,17 +188,7 @@ export default function BankingInformation({ token, setAlert }) {
                                         {activeCard ? 'Replace your current card.' : 'Add a card for payments.'}
                                     </p>
                                     <Elements stripe={stripePromise}>
-                                        <StripeCardForm
-                                            onSuccess={() => {
-                                                setShowCardForm(false);
-                                                refetch();
-                                                setAlert({
-                                                    type: 'success',
-                                                    message: 'Card saved successfully!',
-                                                });
-                                            }}
-                                            setAlert={setAlert}
-                                        />
+                                        <StripeCardForm onSuccess={() => setShowCardForm(false)} setAlert={setAlert} />
                                     </Elements>
                                     {activeCard && (
                                         <div className="text-end">
@@ -176,32 +203,52 @@ export default function BankingInformation({ token, setAlert }) {
                                     )}
                                 </>
                             ) : (
-                                <div className="d-flex justify-content-between align-items-center flex-wrap">
-                                    <span>
-                                        <strong>{activeCard.card_brand.toUpperCase()}</strong> •••• •••• ••••{' '}
-                                        {activeCard.card_last4}
-                                    </span>
-                                    <small className="text-muted ms-2">
-                                        Expires {formatExpiry(activeCard.card_exp_month, activeCard.card_exp_year)}
-                                    </small>
-                                    <div className="d-flex gap-2">
-                                        <button className="btn btn-sm btn-light" onClick={() => setShowCardForm(true)}>
-                                            <i className="fa fa-pencil"></i> Replace
-                                        </button>
-                                        <button
-                                            className="btn btn-sm btn-light"
-                                            onClick={() => handleDeleteClick(activeCard.id)}
-                                        >
-                                            <i className="fa fa-trash-alt"></i> Delete
-                                        </button>
+                                <>
+                                    <div className="d-flex justify-content-between align-items-center flex-wrap">
+                                        <span>
+                                            <strong>{activeCard.card_brand?.toUpperCase()}</strong> •••• •••• ••••{' '}
+                                            {activeCard.card_last4}
+                                        </span>
+                                        <small className="text-muted ms-2">
+                                            Expires {formatExpiry(activeCard.card_exp_month, activeCard.card_exp_year)}
+                                        </small>
+                                        <div className="d-flex gap-2">
+                                            <button
+                                                className="btn btn-sm btn-light"
+                                                onClick={() => setShowCardForm(true)}
+                                            >
+                                                <i className="fa fa-pencil"></i> Replace
+                                            </button>
+                                            <button
+                                                className="btn btn-sm btn-light"
+                                                onClick={() => handleDeleteClick(activeCard.id)}
+                                            >
+                                                <i className="fa fa-trash-alt"></i> Delete
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+
+                                    <div className="form-check form-switch mt-3">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            id="autoPaymentSwitch"
+                                            checked={!!activeCard.auto_payments}
+                                            disabled={updatingAutoPay}
+                                            onChange={(e) => handleAutoPaymentToggle(e.target.checked)}
+                                        />
+                                        <label className="form-check-label" htmlFor="autoPaymentSwitch">
+                                            {!activeCard.auto_payments ? 'Enable' : 'Disable'} Auto Payment
+                                        </label>
+                                    </div>
+                                </>
                             )}
                         </div>
                     </div>
                 </div>
             </div>
 
+            {/* Delete Modal */}
             {showModal && (
                 <form onSubmit={confirmDelete} className="modal d-block" tabIndex="-1" role="dialog">
                     <div className="modal-dialog modal-dialog-centered" role="document">

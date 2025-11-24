@@ -146,7 +146,7 @@ export default function Job({ token, role }) {
 
             <div className="row g-3">
                 <div className="col-12 col-lg-4">
-                    <div className="card shadow-sm border-0 position-relative">
+                    <div className="card shadow-sm border position-relative">
                         <span
                             className={`badge rounded-pill bg-gradient position-absolute top-0 end-0 m-2 bg-${
                                 status === 'COMPLETED' ? 'success' : 'secondary'
@@ -159,13 +159,13 @@ export default function Job({ token, role }) {
                             <h5 className="mb-2">{title}</h5>
                             {serviceData ? (
                                 <>
-                                    <p className="mb-1 text-muted">
+                                    <p className="mb-1 text-muted small">
                                         <strong>Service:</strong> {serviceData.service_name}
                                     </p>
-                                    <p className="mb-1 text-muted">
+                                    <p className="mb-1 text-muted small">
                                         <strong>Client:</strong> {serviceData.client_name || '—'}
                                     </p>
-                                    <p className="mb-1 text-muted">
+                                    <p className="mb-1 text-muted small">
                                         <strong>Service Address:</strong> {serviceData.street_address},{' '}
                                         {serviceData.city}, {serviceData.province_state}, {serviceData.country},{' '}
                                         {serviceData.postal_code}
@@ -177,7 +177,7 @@ export default function Job({ token, role }) {
                         </div>
                     </div>
 
-                    <div className="card shadow-sm border-0 mt-3">
+                    <div className="card shadow-sm border mt-3">
                         <div className="card-body">
                             <form onSubmit={handlePhotoUpload}>
                                 <div className="field-wrapper mb-3">
@@ -224,7 +224,7 @@ export default function Job({ token, role }) {
                 </div>
 
                 <div className="col-12 col-lg-8">
-                    <form onSubmit={handleSubmit} className="card shadow-sm border-0 mb-3">
+                    <form onSubmit={handleSubmit} className="card shadow-sm border mb-3">
                         <div className="card-body">
                             <div className="row g-3">
                                 <div className="col-md-6">
@@ -318,7 +318,7 @@ export default function Job({ token, role }) {
                         </div>
                     </form>
 
-                    <div className="card shadow-sm border-0">
+                    <div className="card shadow-sm border">
                         <div className="card-body">
                             <h4 className="fw-bold mb-3">Job Photos</h4>
                             <div className="row g-2">

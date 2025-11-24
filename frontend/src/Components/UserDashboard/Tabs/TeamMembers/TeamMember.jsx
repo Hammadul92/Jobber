@@ -3,8 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { useFetchTeamMemberQuery, useUpdateTeamMemberMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import Input from '../../../../utils/Input';
 
-export default function TeamMember({ token }) {
+export default function TeamMember({ token, business }) {
     const { id } = useParams();
 
     const { data: teamMemberData, isLoading, error } = useFetchTeamMemberQuery(id, { skip: !token });
@@ -53,7 +54,6 @@ export default function TeamMember({ token }) {
 
             setAlert({ type: 'success', message: 'Team member updated successfully.' });
         } catch (err) {
-            console.error('Failed to update:', err);
             setAlert({
                 type: 'danger',
                 message: err?.data?.detail || 'Failed to update team member. Please try again.',
@@ -91,6 +91,16 @@ export default function TeamMember({ token }) {
                         </Link>
                     </li>
                     <li className="breadcrumb-item">
+                        <Link to="/dashboard/home" className="text-success">
+                            {business?.name ||
+                                (role === 'CLIENT'
+                                    ? 'Client Portal'
+                                    : role === 'EMPLOYEE'
+                                      ? 'Employee Portal'
+                                      : 'Dashboard')}
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item">
                         <Link to={`/dashboard/team-members`} className="text-success">
                             Team Members
                         </Link>
@@ -103,7 +113,7 @@ export default function TeamMember({ token }) {
 
             <div className="row mt-4">
                 <div className="col-12 col-lg-3 mb-3">
-                    <div className="text-center shadow-sm p-3 rounded">
+                    <div className="text-center shadow-sm border p-3 rounded">
                         <img
                             src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=120`}
                             alt={name}
@@ -123,8 +133,9 @@ export default function TeamMember({ token }) {
                 </div>
 
                 <div className="col-12 col-lg-9">
-                    <form onSubmit={handleSubmit} className="shadow-sm p-3 rounded">
-                        <div className="field-wrapper">
+                    <form onSubmit={handleSubmit} className="shadow-sm border p-3 rounded">
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">Job Duties</label>
                             <textarea
                                 className="form-control"
                                 rows="3"
@@ -132,21 +143,17 @@ export default function TeamMember({ token }) {
                                 onChange={(e) => setJobDuties(e.target.value)}
                                 placeholder="Describe their responsibilities..."
                             ></textarea>
-                            <label className="form-label">Job Duties</label>
                         </div>
 
-                        <div className="field-wrapper">
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={expertise}
-                                onChange={(e) => setExpertise(e.target.value)}
-                                placeholder="e.g., Plumbing, Electrical Work"
-                            />
-                            <label className="form-label">Expertise</label>
-                        </div>
+                        <Input
+                            id="expertise"
+                            label={'Expertise'}
+                            value={expertise}
+                            onChange={setExpertise}
+                            fieldClass={'form-control'}
+                        />
 
-                        <div className="d-flex justify-content-end mt-3">
+                        <div className="d-flex justify-content-end">
                             <SubmitButton
                                 isLoading={updatingMember}
                                 btnClass="btn btn-success"

@@ -4,6 +4,7 @@ import { useFetchServicesQuery, useDeleteServiceMutation } from '../../../../../
 import SubmitButton from '../../../../../utils/SubmitButton';
 import { countries, provinces } from '../../../../../utils/locations';
 import { formatDate } from '../../../../../utils/formatDate';
+import Select from '../../../../../utils/Select';
 
 export default function ClientServicesData({ token, role, clientId, setAlert }) {
     const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();
@@ -76,58 +77,39 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
     return (
         <>
             {/* FILTERS */}
-            <div className="row mb-3">
+            <div className="row mb-3 mt-3">
                 <div className="col-md-3 col-6">
-                    <div className="field-wrapper">
-                        <select
-                            className="form-select"
-                            value={typeFilter}
-                            onChange={(e) => setTypeFilter(e.target.value)}
-                        >
-                            <option value="">All Types</option>
-                            <option value="ONE_TIME">ONE_TIME</option>
-                            <option value="SUBSCRIPTION">SUBSCRIPTION</option>
-                        </select>
-                        <label className="form-label">Subscription Type</label>
-                    </div>
+                    <Select
+                        id="type_filter"
+                        label={'Subscription type'}
+                        value={typeFilter}
+                        onChange={setTypeFilter}
+                        options={[
+                            { value: 'ONE_TIME', label: 'One Time' },
+                            { value: 'SUBSCRIPTION', label: 'Subscription' },
+                        ]}
+                    />
                 </div>
                 <div className="col-md-3 col-6">
-                    <div className="field-wrapper">
-                        <select
-                            className="form-select"
-                            value={countryFilter}
-                            onChange={(e) => {
-                                setCountryFilter(e.target.value);
-                                setProvinceFilter('');
-                            }}
-                        >
-                            <option value="">All Countries</option>
-                            {countries.map((c) => (
-                                <option key={c.code} value={c.code}>
-                                    {c.name}
-                                </option>
-                            ))}
-                        </select>
-                        <label className="form-label">Country</label>
-                    </div>
+                    <Select
+                        id="country_filter"
+                        label={'Country'}
+                        value={countryFilter}
+                        onChange={(value) => {
+                            setCountryFilter(value);
+                            setProvinceFilter('');
+                        }}
+                        options={countries}
+                    />
                 </div>
                 <div className="col-md-3 col-6">
-                    <div className="field-wrapper">
-                        <select
-                            className="form-select"
-                            value={provinceFilter}
-                            onChange={(e) => setProvinceFilter(e.target.value)}
-                        >
-                            <option value="">All Provinces/States</option>
-                            {countryFilter &&
-                                provinces[countryFilter]?.map((prov) => (
-                                    <option key={prov.code} value={prov.code}>
-                                        {prov.name}
-                                    </option>
-                                ))}
-                        </select>
-                        <label className="form-label">Province/State</label>
-                    </div>
+                    <Select
+                        id="province_state"
+                        label={'Provice/State'}
+                        value={provinceFilter}
+                        onChange={setProvinceFilter}
+                        options={provinces[countryFilter]}
+                    />
                 </div>
             </div>
 
@@ -153,22 +135,41 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
                                         </div>
 
                                         {['ACTIVE', 'COMPLETED'].includes(service.status) && (
-                                            <p className="mb-1 small">
-                                                Price: ${service.price} {service.currency}
+                                            <p className="mb-1 small text-muted">
+                                                <strong>Price:</strong> ${service.price} {service.currency}
                                             </p>
                                         )}
 
-                                        <p className="mb-1 small d-flex justify-content-between">
-                                            <span>Start: {formatDate(service.start_date, false)}</span>
+                                        <p className="mb-1 small d-flex justify-content-between text-muted">
+                                            <span>
+                                                <strong>Start:</strong> {formatDate(service.start_date, false)}
+                                            </span>
                                             {service.end_date && (
-                                                <span>End: {formatDate(service.end_date, false)}</span>
+                                                <span>
+                                                    <strong>End:</strong> {formatDate(service.end_date, false)}
+                                                </span>
                                             )}
                                         </p>
 
-                                        <p className="mb-1 small">
-                                            Service Address: {service.street_address}, {service.city},{' '}
+                                        <p className="mb-1 small text-muted">
+                                            <strong>Service Address:</strong> {service.street_address}, {service.city},{' '}
                                             {service.province_state}, {service.country}
                                         </p>
+
+                                        {role === 'MANAGER' &&
+                                            service.quotations?.length > 0 &&
+                                            service.quotations.map((quote, i) => {
+                                                return (
+                                                    <Link
+                                                        key={quote.id}
+                                                        to={`/dashboard/quote/${quote.id}`}
+                                                        title={`Quotation: ${quote.quote_number}`}
+                                                        className={`badge bg-info bg-gradient rounded-pill text-decoration-none me-1`}
+                                                    >
+                                                        {quote.quote_number}
+                                                    </Link>
+                                                );
+                                            })}
 
                                         <div className="d-flex justify-content-between align-items-center mt-2">
                                             {service.service_questionnaires?.id ? (
@@ -189,36 +190,21 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
                                                 </span>
                                             )}
 
-                                            {role === 'MANAGER' &&
-                                                service.quotations?.length > 0 &&
-                                                service.quotations.map((quote, i) => {
-                                                    return (
-                                                        <Link
-                                                            key={quote.id}
-                                                            to={`/dashboard/quote/${quote.id}`}
-                                                            title={`Quotation: ${quote.quote_number}`}
-                                                            className={`badge bg-info bg-gradient rounded-pill text-decoration-none me-1`}
-                                                        >
-                                                            {quote.quote_number}
-                                                        </Link>
-                                                    );
-                                                })}
-
                                             {role === 'MANAGER' && (
-                                                <div>
+                                                <div className="d-flex gap-2">
                                                     <button
-                                                        className="btn btn-light rounded-circle py-1 px-2 me-2 border-0 fs-6"
+                                                        className="btn btn-light btn-sm"
                                                         onClick={() => handleDeleteClick(service.id)}
                                                         title="Delete Service"
                                                     >
-                                                        <i className="fa fa-trash-alt"></i>
+                                                        <i className="fa fa-trash-alt"></i> Delete
                                                     </button>
                                                     <Link
-                                                        className="btn btn-light rounded-circle py-1 px-2 fs-6"
+                                                        className="btn btn-light btn-sm"
                                                         to={`/dashboard/service/${service.id}`}
                                                         title="Edit Service"
                                                     >
-                                                        <i className="fa fa-pencil"></i>
+                                                        <i className="fa fa-pencil"></i> Edit
                                                     </Link>
                                                 </div>
                                             )}

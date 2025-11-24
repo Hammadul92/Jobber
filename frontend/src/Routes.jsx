@@ -99,6 +99,7 @@ function MainApp() {
                     <Route path="invoices" element={<UserDashboard page="invoices" token={token} user={user} />} />
                     <Route path="invoice/:id" element={<UserDashboard page="invoice" token={token} user={user} />} />
                     <Route path="payouts" element={<UserDashboard page="payouts" token={token} user={user} />} />
+                    <Route path="payout/:id" element={<UserDashboard page="payout" token={token} user={user} />} />
                     <Route
                         path="team-members"
                         element={<UserDashboard page="team-members" token={token} user={user} />}

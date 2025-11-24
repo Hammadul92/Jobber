@@ -68,7 +68,7 @@ export default function ServiceQuestionnairesData({ token, setAlert }) {
                 <div className="row">
                     {questionnaires.map((q) => (
                         <div key={q.id} className="col-md-6 col-lg-3 mb-3">
-                            <div className="card shadow-sm border-0 h-100">
+                            <div className="card shadow-sm h-100 border">
                                 <div className="card-body">
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <h5 className="card-title mb-0">{q.service_name}</h5>
@@ -80,33 +80,30 @@ export default function ServiceQuestionnairesData({ token, setAlert }) {
                                     </div>
 
                                     <p className="text-muted small">
-                                        No. of questions: {q.additional_questions_form?.length || 0}
+                                        <strong>No. of questions:</strong> {q.additional_questions_form?.length || 0}
                                     </p>
 
                                     <div className="d-flex justify-content-end align-items-center gap-2">
                                         <Link
                                             to={`/dashboard/service-questionnaire/${q.id}`}
-                                            className="btn btn-light rounded-circle py-1 px-2 border-0 fs-6"
-                                            title="Edit Questionnaire"
+                                            className="btn btn-light btn-sm"
                                         >
-                                            <i className="fa fa-pencil"></i>
+                                            <i className="fa fa-pencil"></i> Edit
                                         </Link>
 
                                         <Link
                                             to={`/dashboard/service-questionnaire/${q.id}/form`}
-                                            className="btn btn-light rounded-circle py-1 px-2 border-0 fs-6"
-                                            title="Preview Questionnaire Form"
+                                            className="btn btn-light btn-sm"
                                         >
-                                            <i className="far fa-file"></i>
+                                            <i className="far fa-file"></i> Preview
                                         </Link>
 
                                         <button
                                             type="button"
-                                            className="btn btn-light rounded-circle py-1 px-2 border-0 fs-6"
+                                            className="btn btn-light btn-sm"
                                             onClick={() => handleDeleteClick(q.id)}
-                                            title="Delete Questionnaire"
                                         >
-                                            <i className="fa fa-trash-alt"></i>
+                                            <i className="fa fa-trash-alt"></i> Delete
                                         </button>
                                     </div>
                                 </div>

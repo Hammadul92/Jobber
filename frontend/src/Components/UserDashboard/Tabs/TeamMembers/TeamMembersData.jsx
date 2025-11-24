@@ -48,17 +48,25 @@ export default function TeamMembersData({ token, setAlert }) {
                 {teamMemberData && teamMemberData.length > 0 ? (
                     teamMemberData.map((m) => (
                         <div key={m.id} className="col-md-6 col-lg-3 mb-3">
-                            <div className="card shadow-sm border-0 h-100">
+                            <div className="card shadow-sm border h-100">
                                 <div className="card-body">
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <h5 className="card-title mb-0">{m.employee_name}</h5>
                                         <span className="badge bg-dark bg-gradient rounded-pill">{m.role}</span>
                                     </div>
 
-                                    <p className="text-muted small mb-1">Email: {m.employee_email}</p>
-                                    <p className="text-muted small mb-1">Phone: {m.employee_phone}</p>
-                                    <p className="text-muted small mb-1">Job Duties: {m.job_duties || '-'}</p>
-                                    <p className="text-muted small">Expertise: {m.expertise || '-'}</p>
+                                    <p className="text-muted small mb-1">
+                                        <strong>Email:</strong> {m.employee_email}
+                                    </p>
+                                    <p className="text-muted small mb-1">
+                                        <strong>Phone:</strong> {m.employee_phone}
+                                    </p>
+                                    <p className="text-muted small mb-1">
+                                        <strong>Job Duties:</strong> {m.job_duties || '-'}
+                                    </p>
+                                    <p className="text-muted small">
+                                        <strong>Expertise:</strong> {m.expertise || '-'}
+                                    </p>
 
                                     <div className="d-flex justify-content-between align-items-center gap-2">
                                         <div>
@@ -73,19 +81,19 @@ export default function TeamMembersData({ token, setAlert }) {
                                         <div>
                                             <Link
                                                 to={`/dashboard/team-member/${m.id}`}
-                                                className="btn btn-light rounded-circle py-1 px-2 border-0 fs-6 me-2"
+                                                className="btn btn-sm btn-light me-2"
                                                 title="Edit Team Member"
                                             >
-                                                <i className="fa fa-pencil"></i>
+                                                <i className="fa fa-pencil"></i> Edit
                                             </Link>
 
                                             <button
                                                 type="button"
-                                                className="btn btn-light rounded-circle py-1 px-2 border-0 fs-6"
+                                                className="btn btn-sm btn-light"
                                                 onClick={() => handleDeleteClick(m.id)}
                                                 disabled={m.role === 'MANAGER'}
                                             >
-                                                <i className="fa fa-trash-alt"></i>
+                                                <i className="fa fa-trash-alt"></i> Delete
                                             </button>
                                         </div>
                                     </div>

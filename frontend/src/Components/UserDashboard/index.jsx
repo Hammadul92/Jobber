@@ -20,6 +20,7 @@ import Job from './Tabs/Jobs/Job';
 import Invoices from './Tabs/Invoices';
 import Invoice from './Tabs/Invoices/Invoice';
 import Payouts from './Tabs/Payouts';
+import Payout from './Tabs/Payouts/Payout';
 
 export default function UserDashboard({ page, token, user }) {
     const navigate = useNavigate();
@@ -112,7 +113,9 @@ export default function UserDashboard({ page, token, user }) {
             case 'invoice':
                 return <Invoice token={token} role={user?.role} business={business} />;
             case 'payouts':
-                return <Payouts token={token} business={business} />;
+                return <Payouts token={token} role={user?.role} business={business} />;
+            case 'payout':
+                return <Payout token={token} role={user?.role} business={business} />;
             default:
                 return null;
         }

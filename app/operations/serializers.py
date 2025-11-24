@@ -27,13 +27,11 @@ class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Business
-        fields = ['id', 'owner', 'name', 'phone', 'support_phone', 'email',
+        fields = ['id', 'owner', 'name', 'slug', 'phone', 'website', 'email',
                   'business_description', 'logo', 'street_address',
                   'city', 'country', 'province_state',
                   'postal_code', 'business_number', 'tax_rate',
-                  'services_offered', 'owner_first_name', 'owner_last_name',
-                  'owner_email', 'owner_dob', 'owner_percent_ownership',
-                  'timezone', 'created_at', 'updated_at']
+                  'services_offered', 'timezone', 'created_at', 'updated_at']
 
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at']
 
@@ -177,6 +175,7 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             "service_name", "service_questionnaires", "filled_questionnaire",
             "description", "start_date", "end_date", "service_type",
             "price", "currency", "billing_cycle", "status", "tax_rate",
+            "auto_generate_quote", "auto_generate_invoices",
             "street_address", "city", "country", "province_state",
             "postal_code", "created_at", "updated_at",
         ]

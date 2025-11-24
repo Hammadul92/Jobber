@@ -198,29 +198,28 @@ export default function JobData({ token, role, setAlert }) {
                                         )}
 
                                         <h5>{job.title}</h5>
-                                        <span className="badge bg-success bg-gradient rounded-pill mb-2">
-                                            {job.service_name}
-                                        </span>
-
-                                        <p className="mb-1">
+                                        <p className="mb-1 text-muted small">
+                                            <strong>Service:</strong> {job.service_name}
+                                        </p>
+                                        <p className="mb-1 text-muted small">
                                             <strong>Scheduled Date:</strong> {formatDate(job.scheduled_date)}
                                         </p>
 
                                         {role === 'MANAGER' && (
-                                            <div className="d-flex justify-content-end mt-2">
+                                            <div className="d-flex justify-content-end gap-2 mt-3">
                                                 <button
-                                                    className="btn btn-light rounded-circle py-1 px-2 me-2 border-0 fs-6"
+                                                    className="btn btn-sm btn-light"
                                                     onClick={() => handleDeleteClick(job.id)}
                                                     title="Delete Job"
                                                 >
-                                                    <i className="fa fa-trash-alt"></i>
+                                                    <i className="fa fa-trash-alt"></i> Delete
                                                 </button>
                                                 <Link
-                                                    className="btn btn-light rounded-circle py-1 px-2 fs-6"
+                                                    className="btn btn-sm btn-light"
                                                     to={`/dashboard/job/${job.id}`}
                                                     title="Edit Job"
                                                 >
-                                                    <i className="fa fa-pencil"></i>
+                                                    <i className="fa fa-pencil"></i> Edit
                                                 </Link>
                                             </div>
                                         )}

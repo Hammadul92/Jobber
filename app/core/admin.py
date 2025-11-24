@@ -221,6 +221,21 @@ class InvoiceAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     ordering = ['-created_at']
 
 
+class PayoutAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
+    list_display = [
+        'invoice', 'business', 'amount', 'currency',
+        'status', 'processed_at', 'is_active'
+    ]
+    list_filter = ['status', 'currency', 'is_active', 'business']
+    search_fields = [
+        'invoice__invoice_number',
+        'business__name',
+        'stripe_transfer_id',
+    ]
+    readonly_fields = ['processed_at', 'processed_at', 'created_at', 'updated_at']
+    ordering = ['-processed_at']
+
+
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Business, BusinessAdmin)
 admin.site.register(models.Client, ClientAdmin)
@@ -232,3 +247,4 @@ admin.site.register(models.TeamMember, TeamMemberAdmin)
 admin.site.register(models.Quote, QuoteAdmin)
 admin.site.register(models.ServiceQuestionnaire, ServiceQuestionnaireAdmin)
 admin.site.register(models.Invoice, InvoiceAdmin)
+admin.site.register(models.Payout, PayoutAdmin)

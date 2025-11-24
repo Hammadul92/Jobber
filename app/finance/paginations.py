@@ -23,3 +23,25 @@ class InvoicePagination(pagination.PageNumberPagination):
             ],
             'results': data,
         })
+
+
+class PayoutPagination(pagination.PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+    def get_paginated_response(self, data):
+        return Response({
+            'count': self.page.paginator.count,
+            'total_pages': self.page.paginator.num_pages,
+            'current_page': self.page.number,
+            'page_size': self.get_page_size(self.request),
+            'columns': [
+                {'name': 'invoice_number', 'title': 'Invoice'},
+                {'name': 'client_name', 'title': 'Client'},
+                {'name': 'service_name', 'title': 'Service'},
+                {'name': 'payout_total', 'title': 'Payout Total'},
+                {'name': 'processed_at', 'title': 'Processed At'}
+            ],
+            'results': data,
+        })

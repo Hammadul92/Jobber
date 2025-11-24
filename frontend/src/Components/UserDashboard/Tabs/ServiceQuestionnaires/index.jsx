@@ -11,7 +11,7 @@ export default function Questionnaires({ token, business }) {
 
     return (
         <div>
-            <nav aria-label="breadcrumb" className="mb-3">
+            <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item">
                         <Link to={`/`} className="text-success">
@@ -34,11 +34,11 @@ export default function Questionnaires({ token, business }) {
                 </ol>
             </nav>
 
-            <div className="clearfix mb-3">
-                <button className="btn btn-success float-end" onClick={() => setShowModal(true)}>
+            <div className="d-flex align-items-center justify-content-between mb-3 mt-4">
+                <h3 className="mb-0 fw-bold">Service Questionnaires</h3>
+                <button className="btn btn-success" onClick={() => setShowModal(true)}>
                     Add
                 </button>
-                <h3 className="mb-0 fw-bold">Service Questionnaires</h3>
             </div>
 
             {alert.message && (

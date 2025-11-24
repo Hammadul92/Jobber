@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useUpdateUserMutation, useFetchUserQuery } from '../../store';
 import SubmitButton from '../../utils/SubmitButton';
-import PhoneInputField from '../../utils/PhoneInput';
 import { formatDate } from '../../utils/formatDate';
+import Input from '../../utils/Input';
 
 export default function Profile({ token, setAlert }) {
     const { data: user, isFetching, refetch } = useFetchUserQuery(undefined, { skip: !token });
@@ -41,52 +41,52 @@ export default function Profile({ token, setAlert }) {
 
     return (
         <form className="tab-pane active" onSubmit={submitHandler}>
-            <div className="row mb-4">
+            <div className="row">
                 <div className="col-md-6">
-                    <div className="field-wrapper">
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={name}
-                            onChange={(e) => setUserName(e.target.value)}
-                            required
-                        />
-                        <label className="form-label">Full Name (*)</label>
-                    </div>
+                    <Input
+                        id="name"
+                        label={'Full Name'}
+                        value={name}
+                        isRequired={true}
+                        onChange={setUserName}
+                        fieldClass={'form-control'}
+                    />
                 </div>
                 <div className="col-md-6">
-                    <div className="field-wrapper">
-                        <input
-                            type="email"
-                            className="form-control"
-                            value={email}
-                            onChange={(e) => setUserEmail(e.target.value)}
-                            required
-                            readOnly
-                        />
-                        <label className="form-label">Email (*)</label>
-                    </div>
+                    <Input
+                        id="email"
+                        label={'Email'}
+                        value={email}
+                        isRequired={true}
+                        isDisabled={true}
+                        onChange={setUserEmail}
+                        fieldClass={'form-control'}
+                    />
                 </div>
                 <div className="col-md-6">
-                    <div className="field-wrapper">
-                        <PhoneInputField value={phone} setValue={setUserPhone} />
-                        <label className="form-label">Phone (*)</label>
-                    </div>
+                    <Input
+                        type="tel"
+                        id="phone"
+                        label={'Phone'}
+                        value={phone}
+                        isRequired={true}
+                        onChange={setUserPhone}
+                        fieldClass={'form-control'}
+                    />
                 </div>
                 <div className="col-md-6">
-                    <div className="field-wrapper">
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={formatDate(user?.last_login) || ''}
-                            readOnly
-                        />
-                        <label className="form-label">Last Login</label>
-                    </div>
+                    <Input
+                        id="last_login"
+                        label={'Last Login'}
+                        value={formatDate(user?.last_login) || ''}
+                        isDisabled={true}
+                        onChange={null}
+                        fieldClass={'form-control'}
+                    />
                 </div>
             </div>
 
-            <SubmitButton isLoading={isLoading} btnClass="btn btn-success" btnName="Save Changes" />
+            <SubmitButton isLoading={isLoading} btnClass="btn btn-sm btn-success" btnName="Save Changes" />
         </form>
     );
 }

@@ -76,17 +76,17 @@ export default function ClientsDatatable({ token }) {
                 <Table.Cell {...props}>
                     <Link
                         to={`/dashboard/client/${props.row.id}/services`}
-                        className="badge bg-light rounded-circle p-2 me-2 text-secondary"
+                        className="btn btn-light btn-sm me-2"
                         title="Client Services"
                     >
-                        <i className="fa fa-cogs"></i>
+                        <i className="fa fa-cogs"></i> Services
                     </Link>
                     <button
-                        className="badge bg-light rounded-circle p-2 me-2 text-secondary border-0"
+                        className="btn btn-light btn-sm"
                         onClick={() => handleDeleteClick(props.row.id)}
                         title="Delete Client"
                     >
-                        <i className="fa fa-trash-alt"></i>
+                        <i className="fa fa-trash-alt"></i> Delete
                     </button>
                 </Table.Cell>
             );
@@ -117,7 +117,7 @@ export default function ClientsDatatable({ token }) {
                 />
             )}
 
-            <div className="data-table">
+            <div>
                 <Grid rows={rows} columns={columns}>
                     <SortingState defaultSorting={defaultSorting} columnExtensions={sortingStateColumnExtensions} />
                     <IntegratedSorting />

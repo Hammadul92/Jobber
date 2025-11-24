@@ -151,7 +151,7 @@ export default function QuotesData({ token, role, setAlert }) {
 
                         return (
                             <div className="col-md-6 col-lg-3 mb-3" key={quote.quote_number}>
-                                <div className="card shadow-sm border-0 h-100">
+                                <div className="card shadow-sm border h-100">
                                     <div className="card-body">
                                         <div className="d-flex justify-content-between align-items-start mb-2">
                                             <h5 className="card-title mb-0">{quote.quote_number}</h5>
@@ -196,34 +196,33 @@ export default function QuotesData({ token, role, setAlert }) {
                                                     <img src={quote.signature} height={36} alt="signature" />
                                                 )}
                                             </div>
-                                            <div>
+                                            <div className="d-flex gap-2">
                                                 {role === 'MANAGER' && (
                                                     <Link
                                                         to={`/dashboard/quote/${quote.id}`}
-                                                        className="btn btn-light rounded-circle py-1 px-2 border-0 fs-6 me-2"
+                                                        className="btn btn-light btn-sm"
                                                         title="Edit Quote"
                                                     >
-                                                        <i className="fa fa-pencil"></i>
+                                                        <i className="fa fa-pencil"></i> Edit
                                                     </Link>
                                                 )}
 
                                                 {!isExpired && quote.status === 'SENT' && role === 'CLIENT' && (
                                                     <Link
                                                         to={`/dashboard/quote/sign/${quote.id}`}
-                                                        className="btn btn-light rounded-circle py-1 px-2 border-0 fs-6 me-2"
+                                                        className="btn btn-light btn-sm"
                                                         title="Sign Quote"
                                                     >
-                                                        <i className="fas fa-file-signature" />
+                                                        <i className="fas fa-file-signature" /> Sign
                                                     </Link>
                                                 )}
 
                                                 {role === 'MANAGER' && (
                                                     <button
-                                                        className="btn btn-light rounded-circle py-1 px-2 border-0 fs-6"
+                                                        className="btn btn-light btn-sm"
                                                         onClick={() => handleDeleteClick(quote.id)}
-                                                        title="Delete Quote"
                                                     >
-                                                        <i className="fa fa-trash-alt"></i>
+                                                        <i className="fa fa-trash-alt"></i> Delete
                                                     </button>
                                                 )}
                                             </div>

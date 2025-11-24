@@ -9,20 +9,20 @@ import {
     PagingState,
     IntegratedPaging,
 } from '@devexpress/dx-react-grid';
-import { useFetchInvoicesQuery, useDeleteInvoiceMutation } from '../../../../store';
+import { useFetchPayoutsQuery, useDeletePayoutMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
 
-export default function InvoiceDatatable({ token, role }) {
+export default function PayoutDatatable({ token, role }) {
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
+    const [selectedPayoutId, setSelectedPayoutId] = useState(null);
     const [alert, setAlert] = useState({ type: '', message: '' });
 
-    const { data: invoiceData, isLoading, error } = useFetchInvoicesQuery(undefined, { skip: !token });
-    const [deleteInvoice, { isLoading: deleting }] = useDeleteInvoiceMutation();
+    const { data: payoutData, isLoading, error } = useFetchPayoutsQuery(undefined, { skip: !token });
+    const [deletePayout, { isLoading: deleting }] = useDeletePayoutMutation();
 
     const [sortingStateColumnExtensions] = useState([{ columnName: 'actions', sortingEnabled: false }]);
     const [defaultSorting] = useState([]);
@@ -33,15 +33,15 @@ export default function InvoiceDatatable({ token, role }) {
     const [pageSizes] = useState([20, 30, 50]);
 
     useEffect(() => {
-        if (invoiceData) {
-            setRows(invoiceData.results);
-            generateColumns(invoiceData.columns);
+        if (payoutData) {
+            setRows(payoutData.results);
+            generateColumns(payoutData.columns);
         }
-    }, [invoiceData]);
+    }, [payoutData]);
 
     useEffect(() => {
         if (error) {
-            setAlert({ type: 'danger', message: error?.data?.detail || 'Failed to load invoice data.' });
+            setAlert({ type: 'danger', message: error?.data?.detail || 'Failed to load payout data.' });
         }
     }, [error]);
 
@@ -51,22 +51,21 @@ export default function InvoiceDatatable({ token, role }) {
     };
 
     const handleDeleteClick = (id) => {
-        setSelectedInvoiceId(id);
+        setSelectedPayoutId(id);
         setShowModal(true);
     };
 
     const confirmDelete = async (e) => {
         e.preventDefault();
-        if (!selectedInvoiceId) return;
+        if (!selectedPayoutId) return;
 
         try {
-            await deleteInvoice(selectedInvoiceId).unwrap();
-            setAlert({ type: 'success', message: 'Invoice deleted successfully!' });
+            await deletePayout(selectedPayoutId).unwrap();
+            setAlert({ type: 'success', message: 'Payout deleted successfully!' });
             setShowModal(false);
-            setSelectedInvoiceId(null);
+            setSelectedPayoutId(null);
         } catch (err) {
-            setAlert({ type: 'danger', message: err?.data?.detail || 'Failed to delete invoice.' });
-            console.error('Failed to delete invoice:', err);
+            setAlert({ type: 'danger', message: err?.data?.detail || 'Failed to delete payout.' });
         }
     };
 
@@ -75,9 +74,9 @@ export default function InvoiceDatatable({ token, role }) {
             return (
                 <Table.Cell {...props}>
                     <Link
-                        to={`/dashboard/invoice/${props.row.id}`}
+                        to={`/dashboard/payout/${props.row.id}`}
                         className="btn btn-sm btn-light me-2"
-                        title="View Invoice"
+                        title="View Payout"
                     >
                         <i className="fa fa-eye"></i> View
                     </Link>
@@ -86,49 +85,35 @@ export default function InvoiceDatatable({ token, role }) {
                         <button
                             className="btn btn-sm btn-light"
                             onClick={() => handleDeleteClick(props.row.id)}
-                            title="Delete Invoice"
+                            title="Delete Payout"
                         >
                             <i className="fa fa-trash-alt"></i> Delete
                         </button>
                     )}
                 </Table.Cell>
             );
+        } else if (props.column.name === 'processed_at') {
+            return <Table.Cell {...props}>{formatDate(props.row.processed_at)}</Table.Cell>;
         } else if (props.column.name === 'invoice_number') {
-            const statusColor =
+            const color =
                 props.row.status === 'PAID'
                     ? 'bg-success'
-                    : props.row.status === 'SENT'
+                    : props.row.status === 'PENDING'
                       ? 'bg-primary'
-                      : props.row.status === 'CANCELLED'
-                        ? 'bg-danger'
-                        : 'bg-secondary';
-            return (
-                <Table.Cell {...props}>
-                    {props.row.invoice_number}{' '}
-                    {props.row.status !== 'SENT' && (
-                        <span className={`badge bg-gradient rounded-pill ${statusColor}`}>{props.row.status}</span>
-                    )}
-                </Table.Cell>
-            );
-        } else if (props.column.name === 'due_date') {
-            const dueDate = new Date(props.row.due_date);
-            const today = new Date();
-            const isOverdue = dueDate < today && props.row.status !== 'PAID' && props.row.status !== 'CANCELLED';
+                      : 'bg-danger';
 
             return (
                 <Table.Cell {...props}>
-                    {formatDate(props.row.due_date)}{' '}
-                    {isOverdue && <span className="badge bg-danger bg-gradient rounded-pill ms-2">Overdue</span>}
+                    {props.row.invoice_number}{' '}
+                    <span className={`badge bg-gradient rounded-pill ${color}`}>{props.row.status}</span>
                 </Table.Cell>
             );
-        } else if (props.column.name === 'created_at') {
-            return <Table.Cell {...props}>{formatDate(props.row.created_at)}</Table.Cell>;
         }
 
         return <Table.Cell {...props} />;
     };
 
-    if (isLoading) return <div>Loading data...</div>;
+    if (isLoading) return <div>Loading payouts...</div>;
 
     return (
         <>
@@ -168,7 +153,7 @@ export default function InvoiceDatatable({ token, role }) {
                     <div className="modal-dialog modal-dialog-centered" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Delete Invoice</h5>
+                                <h5 className="modal-title">Delete Payout</h5>
                                 <button
                                     type="button"
                                     className="btn-close"
@@ -176,7 +161,7 @@ export default function InvoiceDatatable({ token, role }) {
                                 ></button>
                             </div>
                             <div className="modal-body">
-                                <p>Are you sure you want to delete this invoice?</p>
+                                <p>Are you sure you want to delete this payout?</p>
                             </div>
                             <div className="modal-footer">
                                 <button

@@ -177,7 +177,7 @@ export default function Quote({ token }) {
             <form onSubmit={handleSubmit}>
                 <div className="row">
                     <div className="col-md-4">
-                        <div className="shadow-sm p-3 rounded mb-3 position-relative">
+                        <div className="shadow-sm p-3 rounded mb-3 position-relative border">
                             <div className="position-absolute top-0 end-0 mt-2 me-2">
                                 {quoteData.client.is_active === 'True' ? (
                                     <span className="badge bg-success rounded-pill bg-gradient">ACTIVE</span>
@@ -193,7 +193,7 @@ export default function Quote({ token }) {
                             <p className="mb-1 small text-muted">Phone: {quoteData.client.client_phone}</p>
                         </div>
 
-                        <div className="shadow-sm p-3 rounded mb-3 position-relative">
+                        <div className="shadow-sm p-3 rounded mb-3 position-relative border">
                             <div className="position-absolute top-0 end-0 mt-2 me-2 d-flex gap-1 flex-wrap justify-content-end">
                                 <span className="badge bg-dark rounded-pill bg-gradient">
                                     {quoteData.service_data.service_type}
@@ -246,7 +246,7 @@ export default function Quote({ token }) {
                     </div>
 
                     <div className="col-md-8">
-                        <div className="shadow-sm p-3 bg-white rounded">
+                        <div className="shadow-sm p-3 bg-white rounded border">
                             <div className="row">
                                 <div className="col-md-4">
                                     <div className="field-wrapper">

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCreateUserMutation } from '../../store';
 
 import SubmitButton from '../../utils/SubmitButton';
-import PhoneInputField from '../../utils/PhoneInput';
+import Input from '../../utils/Input';
 
 export default function Register() {
     const [name, setName] = useState('');
@@ -141,47 +141,41 @@ export default function Register() {
                         )}
 
                         {/* Name */}
-                        <div className="mb-3">
-                            <label htmlFor="name" className="form-label fw-medium">
-                                Name (*)
-                            </label>
-                            <input
-                                type="text"
-                                id="name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                                className="form-control form-control-lg"
-                            />
-                        </div>
+                        <Input
+                            id="name"
+                            label={'Full Name'}
+                            value={name}
+                            isRequired={true}
+                            onChange={setName}
+                            fieldClass={'form-control form-control-lg'}
+                        />
 
                         {/* Email */}
-                        <div className="mb-3">
-                            <label htmlFor="email" className="form-label fw-medium">
-                                Email (*)
-                            </label>
-                            <input
-                                type="email"
-                                id="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="form-control form-control-lg"
-                            />
-                        </div>
+                        <Input
+                            type="email"
+                            id="email"
+                            label={'Email'}
+                            value={email}
+                            isRequired={true}
+                            onChange={setEmail}
+                            fieldClass={'form-control form-control-lg'}
+                        />
 
                         {/* Phone */}
-                        <div className="mb-3">
-                            <label htmlFor="phone" className="form-label fw-medium">
-                                Phone (*)
-                            </label>
-                            <PhoneInputField value={phone} setValue={setPhone} formLarge />
-                        </div>
+                        <Input
+                            id="phone"
+                            type="tel"
+                            label={'Phone'}
+                            value={phone}
+                            isRequired={true}
+                            onChange={setPhone}
+                            fieldClass={'form-control form-control-lg'}
+                        />
 
                         {/* Password */}
                         <div className="mb-3">
-                            <label htmlFor="password" className="form-label fw-medium">
-                                Password (*)
+                            <label htmlFor="password" className="form-label fw-bold">
+                                Password <small className="text-danger">(Required)</small>
                             </label>
                             <div className="input-group">
                                 <input
@@ -208,8 +202,8 @@ export default function Register() {
 
                         {/* Confirm Password */}
                         <div className="mb-3">
-                            <label htmlFor="confirmPassword" className="form-label fw-medium">
-                                Confirm Password (*)
+                            <label htmlFor="confirmPassword" className="form-label fw-bold">
+                                Confirm Password <small className="text-danger">(Required)</small>
                             </label>
                             <div className="input-group">
                                 <input

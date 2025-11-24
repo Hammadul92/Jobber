@@ -10,6 +10,7 @@ import { quoteApi } from './apis/quoteApi';
 import { jobApi } from './apis/jobApi';
 import { bankingInformationApi } from './apis/bankingInformationApi';
 import { invoiceApi } from './apis/invoiceApi';
+import { payoutApi } from './apis/payoutApi';
 
 const store = configureStore({
     reducer: {
@@ -23,6 +24,7 @@ const store = configureStore({
         [jobApi.reducerPath]: jobApi.reducer,
         [bankingInformationApi.reducerPath]: bankingInformationApi.reducer,
         [invoiceApi.reducerPath]: invoiceApi.reducer,
+        [payoutApi.reducerPath]: payoutApi.reducer,
     },
     middleware: (getDefaultMiddleware) => {
         return getDefaultMiddleware()
@@ -35,7 +37,8 @@ const store = configureStore({
             .concat(quoteApi.middleware)
             .concat(jobApi.middleware)
             .concat(bankingInformationApi.middleware)
-            .concat(invoiceApi.middleware);
+            .concat(invoiceApi.middleware)
+            .concat(payoutApi.middleware);
     },
 });
 
@@ -53,7 +56,9 @@ export {
     jobApi,
     bankingInformationApi,
     invoiceApi,
+    payoutApi,
 };
+
 export {
     useSigninUserMutation,
     useFetchUserQuery,
@@ -139,6 +144,7 @@ export {
     useCreateSetupIntentMutation,
     useSavePaymentMethodMutation,
     useAddBankAccountMutation,
+    useCheckBankAccountMutation,
 } from './apis/bankingInformationApi';
 
 export {
@@ -150,3 +156,13 @@ export {
     useDeleteInvoiceMutation,
     useMakePaymentMutation,
 } from './apis/invoiceApi';
+
+export {
+    useFetchPayoutsQuery,
+    useFetchPayoutQuery,
+    useCreatePayoutMutation,
+    useUpdatePayoutMutation,
+    useReplacePayoutMutation,
+    useDeletePayoutMutation,
+    useRefundPayoutMutation,
+} from './apis/payoutApi';

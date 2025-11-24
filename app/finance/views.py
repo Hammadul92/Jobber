@@ -1,4 +1,5 @@
 import stripe
+import time
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -10,7 +11,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import BankingInformation, Business, Client, Invoice
+from core.models import BankingInformation, Business, Client, Invoice, Payout
 from finance import serializers, paginations, emails
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -174,179 +175,126 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"], url_path="add-bank-account")
     def add_bank_account(self, request):
         """
-        Add or update a bank account for payouts (Business-only).
-        Supports US and CA. Uses Stripe Custom Connected Accounts.
+        Create or connect a Stripe Express account for payouts.
+        Stripe handles onboarding, bank account, and identity verification.
         """
         user = request.user
-        data = request.data
-
         business = Business.objects.filter(owner=user).first()
+
         if not business:
             return Response(
                 {"detail": "Only business owners can add a bank account."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        required_fields = ["account_holder_name", "country", "currency", "account_number"]
-        for field in required_fields:
-            if not data.get(field):
-                return Response(
-                    {"detail": f"Missing required field: {field}"},
-                    status=status.HTTP_400_BAD_REQUEST,
+        banking_info = BankingInformation.objects.filter(
+            business=business,
+            payment_method_type="BANK_ACCOUNT",
+        ).first()
+
+        try:
+            if not banking_info or not banking_info.stripe_connected_account_id:
+                connected_account = stripe.Account.create(
+                    type="express",
+                    country=business.country.upper(),
+                    email=business.email,
+                    capabilities={"transfers": {"requested": True}},
+                    business_profile={
+                        "name": business.name,
+                        "mcc": "7349",
+                        "url": business.website or f"https://contractorz.com/businesses/{business.slug}",
+                        "product_description": f"Payouts for {business.name}",
+                    },
+                    metadata={"business_id": str(business.id)},
                 )
 
-        country = data.get("country").upper()
-        currency = data.get("currency").lower()
-        account_holder_name = data.get("account_holder_name")
-        account_holder_type = data.get("account_holder_type", "individual")
-        routing_number = data.get("routing_number")
-        transit_number = data.get("transit_number")
+                if not banking_info:
+                    banking_info = BankingInformation.objects.create(
+                        business=business,
+                        stripe_connected_account_id=connected_account.id,
+                        payment_method_type="BANK_ACCOUNT",
+                    )
+                else:
+                    banking_info.stripe_connected_account_id = connected_account.id
+                    banking_info.save(update_fields=["stripe_connected_account_id"])
+
+            else:
+                connected_account = stripe.Account.retrieve(banking_info.stripe_connected_account_id)
+
+            account_link = stripe.AccountLink.create(
+                account=connected_account.id,
+                refresh_url=f"{settings.FRONTEND_URL}/reauth",
+                return_url=f"{settings.FRONTEND_URL}/user-account/banking",
+                type="account_onboarding",
+            )
+
+            return Response(
+                {
+                    "detail": "Stripe onboarding link created.",
+                    "onboarding_url": account_link.url,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except stripe.StripeError as e:
+            return Response({"detail": f"Stripe error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["post"], url_path="check-bank-account")
+    def check_bank_account(self, request):
+        """
+        Retrieve and update bank account info from Stripe for the connected Express account.
+        """
+        user = request.user
+        business = Business.objects.filter(owner=user).first()
+
+        if not business:
+            return Response(
+                {"detail": "Only business owners can check bank account."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         banking_info = BankingInformation.objects.filter(
             business=business,
             payment_method_type="BANK_ACCOUNT",
         ).first()
 
-        business_url = business.website if business.website else f"https://contractorz.com/businesses/{business.slug}"
-
         if not banking_info or not banking_info.stripe_connected_account_id:
-            try:
-                connected_account = stripe.Account.create(
-                    type="custom",
-                    country=country,
-                    email=business.email,
-                    business_type="company" if account_holder_type == "company" else "individual",
-                    business_profile={
-                        "name": business.name,
-                        "product_description": f"Payout account for {business.name}",
-                        "mcc": "7349",
-                        "url": business_url,
-                        "support_phone": business.support_phone,
-                    },
-                    company={
-                        "name": business.name,
-                        "phone": business.phone,
-                        "registration_number": business.business_number,
-                        "directors_provided": True,
-                        "owners_provided": True,
-                        "representatives_provided": True,
-                        "address": {
-                            "line1": business.street_address,
-                            "line2": "",
-                            "city": business.city,
-                            "state": business.province_state,
-                            "postal_code": business.postal_code,
-                            "country": business.country.upper(),
-                        },
-                    } if account_holder_type == "company" else None,
-                    individual={
-                        "first_name": first_name,
-                        "last_name": last_name,
-                        "email": user.email,
-                        "address": {
-                            "line1": business.street_address,
-                            "line2": "",
-                            "city": business.city,
-                            "state": business.province_state,
-                            "postal_code": business.postal_code,
-                            "country": business.country.upper(),
-                        },
-                    } if account_holder_type == "individual" else None,
-                    capabilities={"transfers": {"requested": True}},
-                    tos_acceptance={
-                        "date": int(time.time()),
-                        "ip": request.META.get("REMOTE_ADDR"),
-                    },
-                    metadata={"business_id": str(business.id)},
-                )
-            except stripe.StripeError as e:
-                return Response({"detail": f"Stripe error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
-
-            if not banking_info:
-                banking_info = BankingInformation.objects.create(
-                    business=business,
-                    stripe_connected_account_id=connected_account.id,
-                    payment_method_type="BANK_ACCOUNT",
-                )
-            else:
-                banking_info.stripe_connected_account_id = connected_account.id
-                banking_info.save(update_fields=["stripe_connected_account_id"])
-
-            try:
-                stripe.Account.create_person(
-                    connected_account.id,
-                    person={
-                        "first_name": business.owner_first_name,
-                        "last_name": business.owner_last_name,
-                        "email": business.owner_email,
-                        "dob": {"day": 1, "month": 1, "year": 1980},
-                        "address": {
-                            "line1": business.street_address,
-                            "line2": "",
-                            "city": business.city,
-                            "state": business.province_state,
-                            "postal_code": business.postal_code,
-                            "country": business.country.upper(),
-                        },
-                        "relationship": {
-                            "owner": True,
-                            "representative": True,
-                            "percent_ownership": business.owner_percent_ownership,
-                        },
-                    },
-                )
-            except stripe.StripeError as e:
-                return Response({"detail": f"Stripe error (representative): {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "No connected Stripe account found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         try:
-            if country == "US":
-                routing = routing_number
-            elif country == "CA":
-                if not transit_number or not routing_number:
-                    return Response({"detail": "Transit number and routing number are required for CA."},
-                                    status=status.HTTP_400_BAD_REQUEST)
-                routing = f"{transit_number}{routing_number}"
-            else:
-                return Response({"detail": "Unsupported country."}, status=status.HTTP_400_BAD_REQUEST)
-
-            external_account = stripe.Account.create_external_account(
+            connected_account = stripe.Account.retrieve(
                 banking_info.stripe_connected_account_id,
-                external_account={
-                    "object": "bank_account",
-                    "country": country,
-                    "currency": currency,
-                    "account_holder_name": account_holder_name,
-                    "account_holder_type": account_holder_type,
-                    "routing_number": routing,
-                    "account_number": data.get("account_number"),
-                },
+                expand=["external_accounts"],
             )
+
+            external_accounts = connected_account.external_accounts.data
+            if not external_accounts:
+                return Response(
+                    {"detail": "No bank account found for this Stripe account."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            bank_account = external_accounts[0]
+            banking_info.bank_name = bank_account.bank_name
+            banking_info.account_number_last4 = bank_account.last4
+            banking_info.currency = bank_account.currency
+            banking_info.country = bank_account.country
+            banking_info.account_holder_name = bank_account.account_holder_name or business.name
+            banking_info.account_holder_type = bank_account.account_holder_type
+            banking_info.save()
+
+            return Response(
+                {
+                    "detail": "Banking information checked successfully.",
+                },
+                status=status.HTTP_200_OK,
+            )
+
         except stripe.StripeError as e:
-            return Response({"detail": f"Stripe error (bank account): {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
-
-        banking_info.account_holder_name = account_holder_name
-        banking_info.account_holder_type = account_holder_type
-        banking_info.country = country
-        banking_info.currency = currency
-        banking_info.account_number_last4 = external_account.get("last4")
-        banking_info.routing_number = routing_number
-        banking_info.transit_number = transit_number
-        banking_info.save(
-            update_fields=[
-                "account_holder_name",
-                "account_holder_type",
-                "country",
-                "currency",
-                "account_number_last4",
-                "routing_number",
-                "transit_number",
-            ]
-        )
-
-        return Response(
-            {"detail": "Bank account added successfully."},
-            status=status.HTTP_201_CREATED
-        )
+            return Response({"detail": f"Stripe error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
@@ -369,6 +317,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         client = Client.objects.filter(user=user).first()
         if client:
             return self.queryset.filter(client=client, is_active=True) \
+                .exclude(status="DRAFT") \
                 .order_by("-id")
 
         return self.queryset.none()
@@ -423,10 +372,6 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         client = invoice.client
         business = invoice.business
 
-        if not client:
-            return Response({"error": "Client not found."}, status=status.HTTP_400_BAD_REQUEST)
-        if not business:
-            return Response({"error": "Business not found."}, status=status.HTTP_400_BAD_REQUEST)
         if invoice.status == "PAID":
             return Response({"detail": "Invoice already paid."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -436,8 +381,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 {"error": "Client does not have an active payment method."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        print(business)
-        business_bank_info = business.banking_information.filter(is_active=True).first()
+
+        business_bank_info = business.banking_information.filter(
+            is_active=True, payment_method_type="BANK_ACCOUNT"
+        ).first()
+
         if not business_bank_info or not business_bank_info.stripe_connected_account_id:
             return Response(
                 {"error": "Business does not have a connected Stripe account."},
@@ -446,45 +394,129 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
         amount_cents = int(invoice.total_amount * 100)
 
-        payment_intent = stripe.PaymentIntent.create(
-            amount=amount_cents,
-            currency=invoice.currency.lower(),
-            customer=client_bank_info.stripe_customer_id,
-            payment_method=client_bank_info.stripe_payment_method_id,
-            off_session=True,
-            confirm=True,
-            transfer_data={
-                "destination": business_bank_info.stripe_connected_account_id
-            },
-            description=f"Payment for Invoice #{invoice.id}",
-            metadata={"invoice_id": invoice.id},
-        )
+        try:
+            payment_intent = stripe.PaymentIntent.create(
+                amount=amount_cents,
+                currency=invoice.currency.lower(),
+                customer=client_bank_info.stripe_customer_id,
+                payment_method=client_bank_info.stripe_payment_method_id,
+                off_session=True,
+                confirm=True,
+                transfer_data={"destination": business_bank_info.stripe_connected_account_id},
+                description=f"Payment for Invoice #{invoice.invoice_number}",
+                metadata={"invoice_id": str(invoice.id)},
+            )
 
-        invoice.status = "PAID"
-        invoice.paid_at = timezone.now()
-        invoice.stripe_payment_intent_id = payment_intent.id
-        invoice.save(update_fields=["status", "paid_at", "stripe_payment_intent_id"])
+            invoice.status = "PAID"
+            invoice.paid_at = timezone.now()
+            invoice.save(update_fields=["status", "paid_at"])
 
-        transfer_id = None
-        if hasattr(payment_intent, "transfer_data"):
-            transfer_id = payment_intent.transfer_data.get("destination")
+            Payout.objects.create(
+                business=business,
+                invoice=invoice,
+                amount=invoice.total_amount,
+                currency=invoice.currency,
+                stripe_payment_intent_id=payment_intent.id,
+                status="PAID",
+                processed_at=timezone.now(),
+            )
 
-        Payout.objects.create(
-            business=business,
-            client=client,
-            invoice=invoice,
-            amount=invoice.total_amount,
-            currency=invoice.currency,
-            stripe_transfer_id=transfer_id,
-            status="PAID",
-            paid_at=timezone.now(),
-        )
+            return Response({"detail": "Payment successful and payout recorded."}, status=200)
 
-        return Response(
-            {
-                "detail": "Payment successful and payout recorded.",
-                "invoice_id": invoice.id,
-                "payment_intent_id": payment_intent.id,
-            },
-            status=status.HTTP_200_OK,
-        )
+        except stripe.StripeError as e:
+            return Response({"error": f"Stripe error: {str(e)}"}, status=400)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+
+class PayoutViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing payouts."""
+
+    serializer_class = serializers.PayoutSerializer
+    queryset = Payout.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    pagination_class = paginations.PayoutPagination
+
+    def get_queryset(self):
+        """Restrict payouts to the user's business."""
+
+        user = self.request.user
+        business = Business.objects.filter(owner=user).first()
+
+        if business:
+            return self.queryset.filter(business=business, is_active=True).order_by("-id")
+        return self.queryset.none()
+
+    def perform_destroy(self, instance):
+        """Soft delete the payout."""
+
+        instance.soft_delete(user=self.request.user)
+
+    @action(detail=True, methods=["post"], url_path="refund")
+    def refund_payout(self, request, pk=None):
+        """
+        Refund a payout through Stripe.
+        Supports partial or full refunds.
+        """
+        payout = self.get_object()
+        amount = request.data.get("amount")
+        reason = request.data.get("reason", "Customer requested refund")
+
+        if not payout.stripe_payment_intent_id:
+            return Response(
+                {"error": "No Stripe payment intent found for this payout."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if payout.is_refunded:
+            return Response(
+                {"error": "This payout has already been refunded."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            refund_params = {"payment_intent": payout.stripe_payment_intent_id}
+            if amount:
+                refund_params["amount"] = int(float(amount) * 100)
+
+            refund = stripe.Refund.create(**refund_params)
+
+            payout.is_refunded = True
+            payout.refunded_amount = amount or payout.amount
+            payout.refund_reason = reason
+            payout.stripe_refund_id = refund.id
+            payout.refunded_at = timezone.now()
+            payout.status = "REFUNDED"
+            payout.save(
+                update_fields=[
+                    "is_refunded",
+                    "refunded_amount",
+                    "refund_reason",
+                    "stripe_refund_id",
+                    "refunded_at",
+                    "status",
+                ]
+            )
+
+            return Response(
+                {"detail": "Refund successful.", "refund_id": refund.id},
+                status=status.HTTP_200_OK,
+            )
+
+        except stripe.StripeError as e:
+            payout.failure_reason = str(e)
+            payout.save(update_fields=["failure_reason"])
+            return Response(
+                {"error": f"Stripe error: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Exception as e:
+            payout.failure_reason = str(e)
+            payout.save(update_fields=["failure_reason"])
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

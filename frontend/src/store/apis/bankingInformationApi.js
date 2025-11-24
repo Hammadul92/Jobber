@@ -77,12 +77,18 @@ const bankingInformationApi = createApi({
             }),
             invalidatesTags: ['BankingInformation'],
         }),
-
         addBankAccount: builder.mutation({
             query: (data) => ({
                 url: '/banking-information/add-bank-account/',
                 method: 'POST',
                 body: data,
+            }),
+            invalidatesTags: ['BankingInformation'],
+        }),
+        checkBankAccount: builder.mutation({
+            query: () => ({
+                url: '/banking-information/check-bank-account/',
+                method: 'POST',
             }),
             invalidatesTags: ['BankingInformation'],
         }),
@@ -98,6 +104,7 @@ export const {
     useCreateSetupIntentMutation,
     useSavePaymentMethodMutation,
     useAddBankAccountMutation,
+    useCheckBankAccountMutation,
 } = bankingInformationApi;
 
 export { bankingInformationApi };

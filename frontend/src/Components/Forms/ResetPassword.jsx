@@ -132,8 +132,8 @@ export default function ResetPassword() {
 
                         {/* New Password */}
                         <div className="mb-3">
-                            <label htmlFor="password" className="form-label fw-medium">
-                                New Password (*)
+                            <label htmlFor="password" className="form-label fw-bold">
+                                New Password <small className="text-danger">(Required)</small>
                             </label>
                             <div className="input-group">
                                 <input
@@ -160,8 +160,8 @@ export default function ResetPassword() {
 
                         {/* Confirm Password */}
                         <div className="mb-3">
-                            <label htmlFor="confirmPassword" className="form-label fw-medium">
-                                Confirm New Password (*)
+                            <label htmlFor="confirmPassword" className="form-label fw-bold">
+                                Confirm New Password <small className="text-danger">(Required)</small>
                             </label>
                             <div className="input-group">
                                 <input

@@ -82,7 +82,6 @@ INVOICE_STATUS_CHOICES = [
 
 PAYOUT_STATUS_CHOICES = [
     ("PENDING", "Pending"),
-    ("PROCESSING", "Processing"),
     ("PAID", "Paid"),
     ("FAILED", "Failed"),
 ]
@@ -214,7 +213,6 @@ class Business(SoftDeletableModel):
     name = models.CharField(max_length=50)
     slug = models.CharField(max_length=50)
     phone = models.CharField(max_length=20)
-    support_phone = models.CharField(max_length=20)
     email = models.EmailField(max_length=50)
     business_description = models.TextField(max_length=1000)
     website = models.URLField(max_length=100, null=True, blank=True)
@@ -237,18 +235,6 @@ class Business(SoftDeletableModel):
     )
 
     timezone = models.CharField(max_length=50, default="America/Edmonton")
-
-    # Stripe Owner Info
-    owner_first_name = models.CharField(max_length=30)
-    owner_last_name = models.CharField(max_length=30)
-    owner_email = models.EmailField(max_length=50)
-    owner_dob = models.DateField()
-    owner_percent_ownership = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=100.00,
-        help_text="Percent ownership of the business owner (0-100)."
-    )
 
     # Active / timestamps
     is_active = models.BooleanField(default=True)
@@ -314,23 +300,19 @@ class BankingInformation(SoftDeletableModel):
     account_holder_name = models.CharField(
         max_length=100, blank=True, null=True
     )
-
     account_holder_type = models.CharField(
         max_length=20,
         choices=ACCOUNT_HOLDER_CHOICES,
         blank=True,
         null=True,
     )
-
     country = models.CharField(max_length=2, blank=True, null=True)
     currency = models.CharField(max_length=10, blank=True, null=True)
-
-    transit_number = models.CharField(max_length=10, blank=True, null=True)
-    routing_number = models.CharField(max_length=20, blank=True, null=True)
     account_number_last4 = models.CharField(
         max_length=4, blank=True, null=True
     )
 
+    auto_payments = models.BooleanField(default=False)
     card_brand = models.CharField(max_length=50, blank=True, null=True)
     card_last4 = models.CharField(max_length=4, blank=True, null=True)
     card_exp_month = models.IntegerField(blank=True, null=True)
@@ -479,6 +461,8 @@ class Service(SoftDeletableModel):
         )
     )
 
+    auto_generate_quote = models.BooleanField(default=False)
+    auto_generate_invoices = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -706,10 +690,6 @@ class Invoice(SoftDeletableModel):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     notes = models.TextField(blank=True, null=True)
 
-    stripe_payment_intent_id = models.CharField(
-        max_length=255, blank=True, null=True
-    )
-
     paid_at = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
@@ -761,32 +741,43 @@ class Payout(SoftDeletableModel):
         choices=CURRENCY_CHOICES,
         default="CAD"
     )
+
     status = models.CharField(
         max_length=20,
         choices=PAYOUT_STATUS_CHOICES,
         default="PENDING"
     )
 
-    stripe_payout_id = models.CharField(
-        max_length=255, blank=True, null=True
+    # Stripe tracking fields
+    stripe_payment_intent_id = models.CharField(
+        max_length=255, blank=True, null=True,
+        help_text="ID of the Stripe PaymentIntent used for the original charge."
     )
-    stripe_transfer_id = models.CharField(
-        max_length=255, blank=True, null=True
-    )
-    stripe_balance_transaction_id = models.CharField(
-        max_length=255, blank=True, null=True
+    stripe_refund_id = models.CharField(
+        max_length=255, blank=True, null=True,
+        help_text="ID of the Stripe Refund if this payout was refunded."
     )
 
-    initiated_at = models.DateTimeField(auto_now_add=True)
+    # Refund tracking
+    is_refunded = models.BooleanField(default=False)
+    refunded_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True,
+        help_text="Amount refunded from this payout (if partial refund)."
+    )
+    refund_reason = models.TextField(blank=True, null=True)
+
+    # Timestamps
     processed_at = models.DateTimeField(blank=True, null=True)
+    refunded_at = models.DateTimeField(blank=True, null=True)
     failure_reason = models.TextField(blank=True, null=True)
 
+    # General
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return (
-            f"Payout {self.id} for {self.invoice.invoice_number}"
-            f" ({self.get_status_display()})"
+            f"Payout {self.id} for {self.invoice.invoice_number} "
+            f"({self.get_status_display()})"
         )

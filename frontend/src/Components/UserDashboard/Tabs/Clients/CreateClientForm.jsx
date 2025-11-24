@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useCreateUserMutation, useCreateClientMutation, useCheckUserExistsMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
-import PhoneInputField from '../../../../utils/PhoneInput';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import Input from '../../../../utils/Input';
 
 function generateStrongPassword(length = 12) {
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?';
@@ -76,7 +76,7 @@ export default function CreateClientForm({ showModal, setShowModal }) {
                     <div className="modal-dialog" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Add New Client</h5>
+                                <h5 className="modal-title fw-bold">Add New Client</h5>
                                 <button
                                     type="button"
                                     className="btn-close"
@@ -86,7 +86,7 @@ export default function CreateClientForm({ showModal, setShowModal }) {
 
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body">
-                                    <p className="mb-0 p-2 bg-light rounded">
+                                    <p className="p-2 bg-light rounded">
                                         Login credentials will be automatically generated, and a confirmation link will
                                         be sent to the client’s email. The client can set their own password later via
                                         the "Forgot Password" option.
@@ -102,34 +102,36 @@ export default function CreateClientForm({ showModal, setShowModal }) {
 
                                     <div className="row">
                                         <div className="col-md-6">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    value={name}
-                                                    onChange={(e) => setName(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Name (*)</label>
-                                            </div>
+                                            <Input
+                                                id="phone"
+                                                value={name}
+                                                label="Name"
+                                                isRequired={true}
+                                                onChange={setName}
+                                                fieldClass={'form-control'}
+                                            />
                                         </div>
                                         <div className="col-md-6">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="email"
-                                                    className="form-control"
-                                                    value={email}
-                                                    onChange={(e) => setEmail(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Email (*)</label>
-                                            </div>
+                                            <Input
+                                                type="email"
+                                                id="email"
+                                                value={email}
+                                                label="Email"
+                                                isRequired={true}
+                                                onChange={setEmail}
+                                                fieldClass={'form-control'}
+                                            />
                                         </div>
                                         <div className="col-md-6">
-                                            <div className="field-wrapper">
-                                                <PhoneInputField value={phone} setValue={setPhone} />
-                                                <label className="form-label">Phone (*)</label>
-                                            </div>
+                                            <Input
+                                                type="tel"
+                                                id="phone"
+                                                value={phone}
+                                                label="Phone"
+                                                isRequired={true}
+                                                onChange={setPhone}
+                                                fieldClass={'form-control'}
+                                            />
                                         </div>
                                     </div>
                                 </div>

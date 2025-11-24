@@ -130,21 +130,12 @@ export default function Service({ token, business }) {
                 </ol>
             </nav>
 
-            <form onSubmit={handleSubmit} className="rounded shadow-sm p-3 bg-white">
+            <h3 className="fw-bold mb-3">
+                {serviceName} Service for {serviceData.client_name}
+            </h3>
+
+            <form onSubmit={handleSubmit} className="rounded shadow-sm border p-3 bg-white">
                 <div className="row">
-                    <div className="col-md-6 col-lg-3">
-                        <div className="field-wrapper">
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={serviceName}
-                                onChange={(e) => setServiceName(e.target.value)}
-                                required
-                                readOnly
-                            />
-                            <label className="form-label">Service Name (*)</label>
-                        </div>
-                    </div>
                     <div className="col-md-6 col-lg-3">
                         <div className="field-wrapper">
                             <input
@@ -186,9 +177,7 @@ export default function Service({ token, business }) {
                             <label className="form-label">Service Type</label>
                         </div>
                     </div>
-                </div>
 
-                <div className="row">
                     {serviceType === 'SUBSCRIPTION' && (
                         <div className="col-md-6 col-lg-3">
                             <div className="field-wrapper">
@@ -205,6 +194,7 @@ export default function Service({ token, business }) {
                             </div>
                         </div>
                     )}
+
                     <div className="col-md-6 col-lg-3">
                         <div className="field-wrapper">
                             <input

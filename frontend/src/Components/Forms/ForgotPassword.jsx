@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useRequestPasswordResetMutation } from '../../store';
 
 import SubmitButton from '../../utils/SubmitButton';
+import Input from '../../utils/Input';
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
@@ -35,19 +36,14 @@ export default function ForgotPassword() {
                         </div>
                     )}
 
-                    <div className="mb-3">
-                        <label htmlFor="email" className="form-label fw-bold">
-                            Email (*)
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="form-control form-control-lg"
-                        />
-                    </div>
+                    <Input
+                        id="email"
+                        label={'Email'}
+                        value={email}
+                        isRequired={true}
+                        onChange={setEmail}
+                        fieldClass={'form-control form-control-lg'}
+                    />
 
                     <div className="text-center mb-3">
                         <SubmitButton

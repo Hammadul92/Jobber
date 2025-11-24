@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSigninUserMutation, useFetchUserQuery, useVerifyEmailQuery } from '../../store';
 import SubmitButton from '../../utils/SubmitButton';
+import Input from '../../utils/Input';
 
 export default function SignIn() {
     const navigate = useNavigate();
@@ -69,23 +70,20 @@ export default function SignIn() {
                         </div>
                     )}
 
-                    <div className="mb-3">
-                        <label htmlFor="email" className="form-label fw-medium">
-                            Email (*)
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="form-control form-control-lg"
-                        />
-                    </div>
+                    {/* Email */}
+                    <Input
+                        type="email"
+                        id="email"
+                        label={'Email'}
+                        value={email}
+                        isRequired={true}
+                        onChange={setEmail}
+                        fieldClass={'form-control form-control-lg'}
+                    />
 
                     <div className="mb-3">
-                        <label htmlFor="password" className="form-label fw-medium">
-                            Password (*)
+                        <label htmlFor="password" className="form-label fw-bold">
+                            Password <small className="text-danger">(Required)</small>
                         </label>
                         <div className="input-group">
                             <input

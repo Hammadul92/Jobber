@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useCreateServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../../utils/SubmitButton';
 import { countries, provinces } from '../../../../../utils/locations';
+import Select from '../../../../../utils/Select';
+import Input from '../../../../../utils/Input';
 
 export default function CreateClientServiceForm({
     showModal,
@@ -9,8 +11,6 @@ export default function CreateClientServiceForm({
     clientId,
     businessId,
     serviceOptions = [],
-    loadingOptions,
-    errorOptions,
     setAlert,
 }) {
     const [serviceName, setServiceName] = useState('');
@@ -27,6 +27,10 @@ export default function CreateClientServiceForm({
     const [country, setCountry] = useState('CA');
     const [provinceState, setProvinceState] = useState('');
     const [postalCode, setPostalCode] = useState('');
+
+    // 🔹 NEW STATES
+    const [autoGenerateQuote, setAutoGenerateQuote] = useState(false);
+    const [autoGenerateInvoices, setAutoGenerateInvoices] = useState(false);
 
     const [createService, { isLoading }] = useCreateServiceMutation();
 
@@ -49,9 +53,11 @@ export default function CreateClientServiceForm({
                 country,
                 province_state: provinceState,
                 postal_code: postalCode,
+
+                auto_generate_quote: autoGenerateQuote,
+                auto_generate_invoices: autoGenerateInvoices,
             }).unwrap();
 
-            // ✅ Success alert
             setAlert({
                 type: 'success',
                 message: 'Service created successfully!',
@@ -71,6 +77,8 @@ export default function CreateClientServiceForm({
             setCountry('CA');
             setProvinceState('');
             setPostalCode('');
+            setAutoGenerateQuote(false);
+            setAutoGenerateInvoices(false);
 
             setShowModal(false);
         } catch (err) {
@@ -98,7 +106,7 @@ export default function CreateClientServiceForm({
                     <div className="modal-dialog modal-lg" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Add Service</h5>
+                                <h5 className="modal-title fw-bold">Add Service</h5>
                                 <button
                                     type="button"
                                     className="btn-close"
@@ -109,214 +117,214 @@ export default function CreateClientServiceForm({
                             <form onSubmit={handleSubmit}>
                                 <div className="modal-body">
                                     <div className="row">
-                                        <div className="col-md-6 col-lg-3">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={serviceName}
-                                                    onChange={(e) => setServiceName(e.target.value)}
-                                                    required
-                                                    disabled={loadingOptions || errorOptions}
-                                                >
-                                                    <option value="">-- Select Service --</option>
-                                                    {serviceOptions.length > 0 ? (
-                                                        serviceOptions.map((service) => (
-                                                            <option key={service} value={service}>
-                                                                {service}
-                                                            </option>
-                                                        ))
-                                                    ) : (
-                                                        <option disabled value="">
-                                                            No new services available
-                                                        </option>
-                                                    )}
-                                                </select>
-                                                <label className="form-label">Service Name (*)</label>
-                                            </div>
+                                        <div className="col-md-6 col-lg-4">
+                                            <Select
+                                                id="service_name"
+                                                label={'Service Name'}
+                                                value={serviceName}
+                                                isRequired={true}
+                                                onChange={setServiceName}
+                                                options={serviceOptions.map((s) => {
+                                                    return { value: s, label: s };
+                                                })}
+                                            />
+                                        </div>
+
+                                        <div className="col-md-6 col-lg-4">
+                                            <Input
+                                                type="date"
+                                                id="start_date"
+                                                label={'Start Date'}
+                                                value={startDate}
+                                                isRequired={true}
+                                                onChange={setStartDate}
+                                                fieldClass={'form-control'}
+                                            />
+                                        </div>
+
+                                        <div className="col-md-6 col-lg-4">
+                                            <Input
+                                                type="date"
+                                                id="end_date"
+                                                label={'End Date'}
+                                                value={endDate}
+                                                onChange={setEndDate}
+                                                fieldClass={'form-control'}
+                                            />
                                         </div>
 
                                         <div className="col-md-6 col-lg-3">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={serviceType}
-                                                    onChange={(e) => {
-                                                        setServiceType(e.target.value);
-                                                        setBillingCycle('');
-                                                    }}
-                                                >
-                                                    <option value="ONE_TIME">One Time</option>
-                                                    <option value="SUBSCRIPTION">Subscription</option>
-                                                </select>
-                                                <label className="form-label">Service Type (*)</label>
-                                            </div>
+                                            <Input
+                                                type="number"
+                                                id="price"
+                                                label={'Price'}
+                                                value={price}
+                                                isRequired={true}
+                                                onChange={setPrice}
+                                                fieldClass={'form-control'}
+                                            />
                                         </div>
 
                                         <div className="col-md-6 col-lg-3">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="number"
-                                                    className="form-control"
-                                                    value={price}
-                                                    onChange={(e) => setPrice(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Price (*)</label>
-                                            </div>
+                                            <Select
+                                                id="currency"
+                                                label={'Currency'}
+                                                value={currency}
+                                                isRequired={true}
+                                                onChange={setCurrency}
+                                                options={[
+                                                    { value: 'CAD', label: 'CAD' },
+                                                    { value: 'USD', label: 'USD' },
+                                                ]}
+                                            />
                                         </div>
 
                                         <div className="col-md-6 col-lg-3">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={currency}
-                                                    onChange={(e) => setCurrency(e.target.value)}
-                                                >
-                                                    <option value="CAD">CAD</option>
-                                                    <option value="USD">USD</option>
-                                                </select>
-                                                <label className="form-label">Currency</label>
-                                            </div>
+                                            <Select
+                                                id="service_type"
+                                                label={'Service Type'}
+                                                value={serviceType}
+                                                isRequired={true}
+                                                onChange={(value) => {
+                                                    setServiceType(value);
+                                                    setBillingCycle('');
+                                                }}
+                                                options={[
+                                                    { value: 'ONE_TIME', label: 'One Time' },
+                                                    { value: 'SUBSCRIPTION', label: 'Subscription' },
+                                                ]}
+                                            />
                                         </div>
-                                    </div>
 
-                                    {/* 🧩 Billing & Dates */}
-                                    <div className="row">
                                         {serviceType !== 'ONE_TIME' && (
                                             <div className="col-md-6 col-lg-3">
-                                                <div className="field-wrapper">
-                                                    <select
-                                                        className="form-select"
-                                                        value={billingCycle}
-                                                        onChange={(e) => setBillingCycle(e.target.value)}
-                                                    >
-                                                        <option value="">-- Select --</option>
-                                                        <option value="MONTHLY">Monthly</option>
-                                                        <option value="YEARLY">Yearly</option>
-                                                    </select>
-                                                    <label className="form-label">Billing Cycle</label>
-                                                </div>
+                                                <Select
+                                                    id="billing_cycle"
+                                                    label={'Billing Cycle'}
+                                                    value={billingCycle}
+                                                    isRequired={true}
+                                                    onChange={setBillingCycle}
+                                                    options={[
+                                                        { value: 'MONTHLY', label: 'Monthly' },
+                                                        { value: 'YEARLY', label: 'YEARLY' },
+                                                    ]}
+                                                />
                                             </div>
                                         )}
-
-                                        <div className="col-md-6 col-lg-3">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="date"
-                                                    className="form-control"
-                                                    value={startDate}
-                                                    onChange={(e) => setStartDate(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Start Date (*)</label>
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-6 col-lg-3">
-                                            <div className="field-wrapper">
-                                                <label className="form-label">End Date</label>
-                                                <input
-                                                    type="date"
-                                                    className="form-control"
-                                                    value={endDate}
-                                                    onChange={(e) => setEndDate(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
                                     </div>
 
-                                    <h6 className="mb-0 mt-4">Service Address</h6>
+                                    <div className="form-check form-switch mb-2">
+                                        <input
+                                            id="generate_quote"
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            checked={autoGenerateQuote}
+                                            onChange={() => setAutoGenerateQuote(!autoGenerateQuote)}
+                                        />
+                                        <label className="form-check-label" htmlFor="generate_quote">
+                                            Auto-generate Quote
+                                        </label>
+                                    </div>
+                                    {autoGenerateQuote && (
+                                        <p className="small text-muted">
+                                            <i>
+                                                <i className="fa fa-info"></i> A quote will be generated automatically
+                                                once the service questionnaire is completed. The client will be prompted
+                                                to review and sign it. A notification will be sent to the client and a
+                                                confirmation email will be sent to you.
+                                            </i>
+                                        </p>
+                                    )}
+
+                                    <div className="form-check form-switch mb-2">
+                                        <input
+                                            id="generate_invoices"
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            checked={autoGenerateInvoices}
+                                            onChange={() => setAutoGenerateInvoices(!autoGenerateInvoices)}
+                                        />
+                                        <label className="form-check-label" htmlFor="generate_invoices">
+                                            Auto-generate Invoice(s)
+                                        </label>
+                                    </div>
+                                    {autoGenerateInvoices && (
+                                        <p className="small text-muted">
+                                            <i>
+                                                <i className="fa fa-info"></i> Invoices will be created automatically
+                                                once the client has completed the questionnaire and signed the quote for
+                                                this service.
+                                            </i>
+                                        </p>
+                                    )}
+
+                                    <hr />
+
+                                    <h6 className="fw-bold mt-3">Service Address</h6>
                                     <div className="row">
-                                        <div className="col-md-12">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    value={streetAddress}
-                                                    onChange={(e) => setStreetAddress(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Street Address (*)</label>
-                                            </div>
+                                        <div className="col-md-8">
+                                            <Input
+                                                id="street_address"
+                                                value={streetAddress}
+                                                label={'Street Address'}
+                                                onChange={setStreetAddress}
+                                                isRequired={true}
+                                                fieldClass={'form-control'}
+                                            />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <Select
+                                                id="country"
+                                                label={'Country'}
+                                                value={country}
+                                                isRequired={true}
+                                                onChange={(value) => {
+                                                    setCountry(value);
+                                                    setProvinceState('');
+                                                }}
+                                                options={countries}
+                                            />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <Select
+                                                id="province"
+                                                label={'Province/State'}
+                                                value={provinceState}
+                                                isRequired={true}
+                                                onChange={setProvinceState}
+                                                options={provinces[country]}
+                                            />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <Input
+                                                id="city"
+                                                value={city}
+                                                label={'City'}
+                                                onChange={setCity}
+                                                isRequired={true}
+                                                fieldClass={'form-control'}
+                                            />
+                                        </div>
+                                        <div className="col-md-4">
+                                            <Input
+                                                id="postal_code"
+                                                value={postalCode}
+                                                label={'Postal/Zip Code'}
+                                                onChange={setPostalCode}
+                                                isRequired={true}
+                                                fieldClass={'form-control'}
+                                            />
                                         </div>
                                     </div>
 
-                                    <div className="row">
-                                        <div className="col-md-3">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    value={city}
-                                                    onChange={(e) => setCity(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">City (*)</label>
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-3">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={country}
-                                                    onChange={(e) => {
-                                                        setCountry(e.target.value);
-                                                        setProvinceState('');
-                                                    }}
-                                                    required
-                                                >
-                                                    {countries.map(({ code, name }) => (
-                                                        <option value={code} key={code}>
-                                                            {name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <label className="form-label">Country (*)</label>
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-3">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={provinceState}
-                                                    onChange={(e) => setProvinceState(e.target.value)}
-                                                    required
-                                                >
-                                                    <option value="">Select Province/State</option>
-                                                    {provinces[country].map((prov) => (
-                                                        <option key={prov.code} value={prov.code}>
-                                                            {prov.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <label className="form-label">Province/State (*)</label>
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-3">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    value={postalCode}
-                                                    onChange={(e) => setPostalCode(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Postal/ZIP Code (*)</label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="field-wrapper">
+                                    <div className="mb-3">
+                                        <label className="form-label fw-bold">Description</label>
                                         <textarea
                                             className="form-control"
                                             rows="3"
                                             value={description}
                                             onChange={(e) => setDescription(e.target.value)}
                                         ></textarea>
-                                        <label className="form-label">Description</label>
                                     </div>
                                 </div>
 
