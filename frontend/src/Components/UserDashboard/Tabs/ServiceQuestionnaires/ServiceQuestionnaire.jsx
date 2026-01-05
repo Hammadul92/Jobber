@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useFetchServiceQuestionnaireQuery, useUpdateServiceQuestionnaireMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import Select from '../../../../utils/Select';
 
 export default function EditServiceQuestionnairesForm({ token, business }) {
     const { id } = useParams();
@@ -130,30 +131,26 @@ export default function EditServiceQuestionnairesForm({ token, business }) {
                 <AlertDispatcher type={alert?.type} message={alert?.message} setAlert={setAlert} />
 
                 <form onSubmit={handleSubmit}>
-                    <div className="row g-3 mb-3">
+                    <div className="row mb-3">
                         <div className="col-md-6">
-                            <label className="form-label">Service Name (*)</label>
-                            <select
-                                className="form-select"
+                            <Select
+                                id="service_name"
+                                label={'Service Name'}
                                 value={serviceName}
-                                onChange={(e) => setServiceName(e.target.value)}
-                                required
-                                disabled
-                            >
-                                <option value="">Select Service</option>
-                                {servicesOffered.map((service, i) => (
-                                    <option key={i} value={service}>
-                                        {service}
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={setServiceName}
+                                isRequired={true}
+                                isDisabled={true}
+                                options={servicesOffered.map((service) => ({ value: service, label: service }))}
+                            />
                         </div>
                     </div>
 
                     {/* Questions Section */}
                     <div>
                         <div className="d-flex justify-content-between align-items-center mb-2">
-                            <label className="form-label">Questions (*)</label>
+                            <label className="form-label fw-semibold">
+                                Questions <sup className="text-danger small">(*)</sup>
+                            </label>
                             <button type="button" className="btn btn-sm btn-primary" onClick={handleAddQuestion}>
                                 <i className="fa fa-plus"></i> Add Question
                             </button>
@@ -181,8 +178,8 @@ export default function EditServiceQuestionnairesForm({ token, business }) {
                                             }`}
                                         >
                                             <div className="accordion-body">
-                                                <div className="row g-3">
-                                                    <div className="col-md-8">
+                                                <div className="row">
+                                                    <div className="col-md-8 mb-3">
                                                         <label className="form-label">Question Text</label>
                                                         <input
                                                             type="text"
@@ -195,7 +192,7 @@ export default function EditServiceQuestionnairesForm({ token, business }) {
                                                         />
                                                     </div>
 
-                                                    <div className="col-md-4">
+                                                    <div className="col-md-4 mb-3">
                                                         <label className="form-label">Field Type</label>
                                                         <select
                                                             className="form-select"
@@ -292,15 +289,16 @@ export default function EditServiceQuestionnairesForm({ token, business }) {
                                                                         </div>
                                                                     </div>
                                                                 ))}
+                                                                <div className="col">
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-primary btn-sm"
+                                                                        onClick={() => handleAddOption(index)}
+                                                                    >
+                                                                        <i className="fa fa-plus"></i>
+                                                                    </button>
+                                                                </div>
                                                             </div>
-
-                                                            <button
-                                                                type="button"
-                                                                className="btn p-0 mt-2"
-                                                                onClick={() => handleAddOption(index)}
-                                                            >
-                                                                <i className="fa fa-plus"></i> Add Option
-                                                            </button>
                                                         </div>
                                                     )}
                                                 </div>

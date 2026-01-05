@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useFetchServiceQuery, useUpdateServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../../utils/AlertDispatcher';
+import Select from '../../../../../utils/Select';
+import Input from '../../../../../utils/Input';
 import { countries, provinces } from '../../../../../utils/locations';
 
 export default function Service({ token, business }) {
@@ -26,6 +28,8 @@ export default function Service({ token, business }) {
     const [provinceState, setProvinceState] = useState('');
     const [country, setCountry] = useState('CA');
     const [postalCode, setPostalCode] = useState('');
+    const [autoGenerateQuote, setAutoGenerateQuote] = useState(false);
+    const [autoGenerateInvoices, setAutoGenerateInvoices] = useState(false);
 
     const [alert, setAlert] = useState({ type: '', message: '' });
 
@@ -45,6 +49,8 @@ export default function Service({ token, business }) {
             setProvinceState(serviceData.province_state || '');
             setCountry(serviceData.country || 'CA');
             setPostalCode(serviceData.postal_code || '');
+            setAutoGenerateInvoices(serviceData.auto_generate_invoices || false);
+            setAutoGenerateQuote(serviceData.auto_generate_quote || false);
         }
     }, [serviceData]);
 
@@ -137,192 +143,212 @@ export default function Service({ token, business }) {
             <form onSubmit={handleSubmit} className="rounded shadow-sm border p-3 bg-white">
                 <div className="row">
                     <div className="col-md-6 col-lg-3">
-                        <div className="field-wrapper">
-                            <input
-                                type="number"
-                                className="form-control"
-                                value={price}
-                                onChange={(e) => setPrice(e.target.value)}
-                                required
-                            />
-                            <label className="form-label">Price (*)</label>
-                        </div>
+                        <Input
+                            type="number"
+                            label={'Price'}
+                            value={price}
+                            onChange={setPrice}
+                            fieldClass={'form-control'}
+                            isRequired={true}
+                        />
                     </div>
                     <div className="col-md-6 col-lg-3">
-                        <div className="field-wrapper">
-                            <select
-                                className="form-select"
-                                value={currency}
-                                onChange={(e) => setCurrency(e.target.value)}
-                            >
-                                <option value="CAD">CAD</option>
-                                <option value="USD">USD</option>
-                            </select>
-                            <label className="form-label">Currency</label>
-                        </div>
+                        <Select
+                            id="currency"
+                            label={'Currency'}
+                            value={currency}
+                            isRequired={true}
+                            onChange={setCurrency}
+                            options={[
+                                { value: 'CAD', label: 'CAD' },
+                                { value: 'USD', label: 'USD' },
+                            ]}
+                        />
                     </div>
                     <div className="col-md-6 col-lg-3">
-                        <div className="field-wrapper">
-                            <select
-                                className="form-select"
-                                value={serviceType}
-                                onChange={(e) => {
-                                    setServiceType(e.target.value);
-                                    setBillingCycle('');
-                                }}
-                            >
-                                <option value="ONE_TIME">One-time</option>
-                                <option value="SUBSCRIPTION">Subscription</option>
-                            </select>
-                            <label className="form-label">Service Type</label>
-                        </div>
+                        <Select
+                            id="service_type"
+                            label={'Service Type'}
+                            value={serviceType}
+                            isRequired={true}
+                            onChange={(value) => {
+                                setServiceType(value);
+                                setBillingCycle('');
+                            }}
+                            options={[
+                                { value: 'ONE_TIME', label: 'One Time' },
+                                { value: 'SUBSCRIPTION', label: 'Subscription' },
+                            ]}
+                        />
                     </div>
 
                     {serviceType === 'SUBSCRIPTION' && (
                         <div className="col-md-6 col-lg-3">
-                            <div className="field-wrapper">
-                                <select
-                                    className="form-select"
-                                    value={billingCycle}
-                                    onChange={(e) => setBillingCycle(e.target.value)}
-                                >
-                                    <option value="">-- Select --</option>
-                                    <option value="MONTHLY">Monthly</option>
-                                    <option value="YEARLY">Yearly</option>
-                                </select>
-                                <label className="form-label">Billing Cycle</label>
-                            </div>
+                            <Select
+                                id="billing_cycle"
+                                label={'Billing Cycle'}
+                                value={billingCycle}
+                                isRequired={true}
+                                onChange={setBillingCycle}
+                                options={[
+                                    { value: 'MONTHLY', label: 'Monthly' },
+                                    { value: 'YEARLY', label: 'YEARLY' },
+                                ]}
+                            />
                         </div>
                     )}
 
                     <div className="col-md-6 col-lg-3">
-                        <div className="field-wrapper">
-                            <input
-                                type="date"
-                                className="form-control"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                required
-                            />
-                            <label className="form-label">Start Date (*)</label>
-                        </div>
+                        <Input
+                            type="date"
+                            id="start_date"
+                            label={'Start Date'}
+                            value={startDate}
+                            isRequired={true}
+                            onChange={setStartDate}
+                            fieldClass={'form-control'}
+                        />
                     </div>
                     <div className="col-md-6 col-lg-3">
-                        <div className="field-wrapper">
-                            <input
-                                type="date"
-                                className="form-control"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                            />
-                            <label className="form-label">End Date</label>
-                        </div>
+                        <Input
+                            type="date"
+                            id="end_date"
+                            label={'End Date'}
+                            value={endDate}
+                            onChange={setEndDate}
+                            fieldClass={'form-control'}
+                        />
                     </div>
                     <div className="col-md-6 col-lg-3">
-                        <div className="field-wrapper">
-                            <select className="form-select" value={status} onChange={(e) => setStatus(e.target.value)}>
-                                <option value="PENDING">Pending</option>
-                                <option value="ACTIVE">Active</option>
-                                <option value="COMPLETED">Completed</option>
-                                <option value="CANCELLED">Cancelled</option>
-                            </select>
-                            <label className="form-label">Status</label>
-                        </div>
+                        <Select
+                            id="status"
+                            label={'Status'}
+                            value={status}
+                            isRequired={true}
+                            onChange={setStatus}
+                            options={[
+                                { value: 'PENDING', label: 'Pending' },
+                                { value: 'ACTIVE', label: 'Active' },
+                                { value: 'COMPLETED', label: 'Completed' },
+                                { value: 'CANCELLED', label: 'Cancelled' },
+                            ]}
+                        />
                     </div>
                 </div>
 
-                <div className="field-wrapper">
+                <div className="form-check form-switch mb-2">
+                    <input
+                        id="generate_quote"
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={autoGenerateQuote}
+                        onChange={() => setAutoGenerateQuote(!autoGenerateQuote)}
+                        disabled={true}
+                    />
+                    <label className="form-check-label" htmlFor="generate_quote">
+                        Auto-generate Quote
+                    </label>
+                </div>
+                {autoGenerateQuote && (
+                    <p className="small text-muted">
+                        <i>
+                            <i className="fa fa-info"></i> A quote will be generated automatically once the service
+                            questionnaire is completed. The client will be prompted to review and sign it. A
+                            notification will be sent to the client and a confirmation email will be sent to you.
+                        </i>
+                    </p>
+                )}
+
+                <div className="form-check form-switch mb-2">
+                    <input
+                        id="generate_invoices"
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={autoGenerateInvoices}
+                        onChange={() => setAutoGenerateInvoices(!autoGenerateInvoices)}
+                    />
+                    <label className="form-check-label" htmlFor="generate_invoices">
+                        Auto-generate Invoice(s)
+                    </label>
+                </div>
+                {autoGenerateInvoices && (
+                    <p className="small text-muted">
+                        <i>
+                            <i className="fa fa-info"></i> Invoices will be created automatically once the client has
+                            completed the questionnaire and signed the quote for this service.
+                        </i>
+                    </p>
+                )}
+
+                <h5 className="mt-3 fw-bold">Service Address</h5>
+                <div className="row">
+                    <div className="col-md-8 col-lg-8">
+                        <Input
+                            id="street_address"
+                            label={'Street Address'}
+                            value={streetAddress}
+                            isRequired={true}
+                            onChange={setStreetAddress}
+                            fieldClass={'form-control'}
+                        />
+                    </div>
+                    <div className="col-md-4">
+                        <Select
+                            id="country"
+                            label={'Country'}
+                            value={country}
+                            isRequired={true}
+                            onChange={(value) => {
+                                setCountry(value);
+                                setProvinceState('');
+                            }}
+                            options={countries}
+                        />
+                    </div>
+                    <div className="col-md-4">
+                        <Select
+                            id="province"
+                            label={'Province/State'}
+                            value={provinceState}
+                            isRequired={true}
+                            onChange={setProvinceState}
+                            options={provinces[country]}
+                        />
+                    </div>
+
+                    <div className="col-md-4">
+                        <Input
+                            id="city"
+                            value={city}
+                            label={'City'}
+                            onChange={setCity}
+                            isRequired={true}
+                            fieldClass={'form-control'}
+                        />
+                    </div>
+                    <div className="col-md-4">
+                        <Input
+                            id="postal_code"
+                            value={postalCode}
+                            label={'Postal/Zip Code'}
+                            onChange={setPostalCode}
+                            isRequired={true}
+                            fieldClass={'form-control'}
+                        />
+                    </div>
+                </div>
+
+                <div className="mb-3">
+                    <label className="form-label fw-bold">Service Description</label>
                     <textarea
                         className="form-control"
                         rows="3"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     ></textarea>
-                    <label className="form-label">Description</label>
                 </div>
 
-                <h6 className="mb-0 mt-4">Service Address</h6>
-                <div className="row">
-                    <div className="col-md-12 col-lg-12">
-                        <div className="field-wrapper">
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={streetAddress}
-                                onChange={(e) => setStreetAddress(e.target.value)}
-                                required
-                            />
-                            <label className="form-label">Street Address (*)</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="row">
-                    <div className="col-md-3 col-lg-3">
-                        <div className="field-wrapper">
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={city}
-                                onChange={(e) => setCity(e.target.value)}
-                                required
-                            />
-                            <label className="form-label">City (*)</label>
-                        </div>
-                    </div>
-                    <div className="col-md-3 col-lg-3">
-                        <div className="field-wrapper">
-                            <select
-                                className="form-select"
-                                value={country}
-                                onChange={(e) => {
-                                    setCountry(e.target.value);
-                                    setProvinceState('');
-                                }}
-                                required
-                            >
-                                {countries.map(({ code, name }) => (
-                                    <option value={code} key={code}>
-                                        {name}
-                                    </option>
-                                ))}
-                            </select>
-                            <label className="form-label">Country (*)</label>
-                        </div>
-                    </div>
-                    <div className="col-md-3 col-lg-3">
-                        <div className="field-wrapper">
-                            <select
-                                className="form-select"
-                                value={provinceState}
-                                onChange={(e) => setProvinceState(e.target.value)}
-                                required
-                            >
-                                <option value="">Select Province/State</option>
-                                {provinces[country].map((prov) => (
-                                    <option key={prov.code} value={prov.code}>
-                                        {prov.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <label className="form-label">Province/State (*)</label>
-                        </div>
-                    </div>
-                    <div className="mb-3 col-md-3 col-lg-3">
-                        <div className="field-wrapper">
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={postalCode}
-                                onChange={(e) => setPostalCode(e.target.value)}
-                                required
-                            />
-                            <label className="form-label">Postal/ZIP Code (*)</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="d-flex justify-content-end mt-3">
+                <div className="d-flex justify-content-end">
                     <button
                         type="button"
                         className="btn btn-dark me-2"

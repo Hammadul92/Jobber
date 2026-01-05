@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import Select from '../../../../utils/Select';
 import { Link } from 'react-router-dom';
 import { useFetchQuotesQuery, useDeleteQuoteMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
@@ -69,59 +70,44 @@ export default function QuotesData({ token, role, setAlert }) {
 
     return (
         <>
-            <div className="row mb-3">
+            <div className="row">
                 <div className="col-md-2">
-                    <div className="field-wrapper">
-                        <select
-                            className="form-select"
-                            value={serviceFilter}
-                            onChange={(e) => setServiceFilter(e.target.value)}
-                        >
-                            <option value="">All Services</option>
-                            {uniqueServices.map((name, idx) => (
-                                <option key={idx} value={name}>
-                                    {name}
-                                </option>
-                            ))}
-                        </select>
-                        <label className="form-label">Service</label>
-                    </div>
+                    <Select
+                        id="quotes-service-filter"
+                        label="Service"
+                        value={serviceFilter}
+                        onChange={setServiceFilter}
+                        options={[
+                            { value: '', label: 'All Services' },
+                            ...uniqueServices.map((name) => ({ value: name, label: name })),
+                        ]}
+                    />
                 </div>
 
                 <div className="col-md-2">
-                    <div className="field-wrapper">
-                        <select
-                            className="form-select"
-                            value={clientFilter}
-                            onChange={(e) => setClientFilter(e.target.value)}
-                        >
-                            <option value="">All Clients</option>
-                            {uniqueClients.map((name, idx) => (
-                                <option key={idx} value={name}>
-                                    {name}
-                                </option>
-                            ))}
-                        </select>
-                        <label className="form-label">Client</label>
-                    </div>
+                    <Select
+                        id="quotes-client-filter"
+                        label="Client"
+                        value={clientFilter}
+                        onChange={setClientFilter}
+                        options={[
+                            { value: '', label: 'All Clients' },
+                            ...uniqueClients.map((name) => ({ value: name, label: name })),
+                        ]}
+                    />
                 </div>
 
                 <div className="col-md-2">
-                    <div className="field-wrapper">
-                        <select
-                            className="form-select"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                            <option value="">All Statuses</option>
-                            {uniqueStatuses.map((status, idx) => (
-                                <option key={idx} value={status}>
-                                    {status}
-                                </option>
-                            ))}
-                        </select>
-                        <label className="form-label">Status</label>
-                    </div>
+                    <Select
+                        id="quotes-status-filter"
+                        label="Status"
+                        value={statusFilter}
+                        onChange={setStatusFilter}
+                        options={[
+                            { value: '', label: 'All Statuses' },
+                            ...uniqueStatuses.map((status) => ({ value: status, label: status })),
+                        ]}
+                    />
                 </div>
             </div>
 

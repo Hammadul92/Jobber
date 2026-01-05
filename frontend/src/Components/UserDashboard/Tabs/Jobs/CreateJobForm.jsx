@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useFetchServicesQuery, useFetchTeamMembersQuery, useCreateJobMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import Select from '../../../../utils/Select';
+import Input from '../../../../utils/Input';
 
 export default function CreateJobForm({ token, showModal, setShowModal, setAlert }) {
     const [serviceId, setServiceId] = useState('');
@@ -68,7 +70,7 @@ export default function CreateJobForm({ token, showModal, setShowModal, setAlert
                     <div className="modal-dialog" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Create New Job</h5>
+                                <h5 className="modal-title fw-bold">Create New Job</h5>
                                 <button
                                     type="button"
                                     className="btn-close"
@@ -80,89 +82,79 @@ export default function CreateJobForm({ token, showModal, setShowModal, setAlert
                                 <div className="modal-body">
                                     <div className="row">
                                         <div className="col-md-6">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={serviceId}
-                                                    onChange={(e) => setServiceId(e.target.value)}
-                                                    required
-                                                >
-                                                    <option value="">Select Service</option>
-                                                    {!loadingServices &&
-                                                        services &&
-                                                        services.map(
-                                                            (service) =>
-                                                                service.status === 'ACTIVE' && (
-                                                                    <option key={service.id} value={service.id}>
-                                                                        {service.service_name} ({service.client_name})
-                                                                    </option>
-                                                                )
-                                                        )}
-                                                </select>
-
-                                                <label className="form-label">Service (*)</label>
-                                            </div>
+                                            <Select
+                                                id="job-service"
+                                                label="Service"
+                                                value={serviceId}
+                                                onChange={setServiceId}
+                                                isRequired={true}
+                                                options={[
+                                                    { value: '', label: 'Select Service' },
+                                                    ...(!loadingServices && services
+                                                        ? services
+                                                              .filter((service) => service.status === 'ACTIVE')
+                                                              .map((service) => ({
+                                                                  value: service.id,
+                                                                  label: `${service.service_name} (${service.client_name})`,
+                                                              }))
+                                                        : []),
+                                                ]}
+                                            />
                                         </div>
 
                                         <div className="col-md-6">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    value={title}
-                                                    onChange={(e) => setTitle(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Job Title (*)</label>
-                                            </div>
+                                            <Input
+                                                type="text"
+                                                fieldClass="form-control"
+                                                value={title}
+                                                onChange={setTitle}
+                                                isRequired={true}
+                                                label="Job Title"
+                                                id="job-title"
+                                            />
                                         </div>
 
                                         <div className="col-md-6">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="datetime-local"
-                                                    className="form-control"
-                                                    value={scheduledDate}
-                                                    onChange={(e) => setScheduledDate(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Scheduled Date (*)</label>
-                                            </div>
+                                            <Input
+                                                type="datetime-local"
+                                                fieldClass="form-control"
+                                                value={scheduledDate}
+                                                onChange={setScheduledDate}
+                                                isRequired={true}
+                                                label="Scheduled Date"
+                                                id="job-scheduled-date"
+                                            />
                                         </div>
 
                                         <div className="col-md-6">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={assignedTo}
-                                                    onChange={(e) => setAssignedTo(e.target.value)}
-                                                    required
-                                                >
-                                                    <option value="">Select</option>
-                                                    {!loadingTeam &&
-                                                        teamMembers &&
-                                                        teamMembers.map(
-                                                            (member) =>
-                                                                member.is_active === 'True' && (
-                                                                    <option key={member.id} value={member.id}>
-                                                                        {member.employee_name}
-                                                                    </option>
-                                                                )
-                                                        )}
-                                                </select>
-
-                                                <label className="form-label">Assigned To (*)</label>
-                                            </div>
+                                            <Select
+                                                id="job-assigned-to"
+                                                label="Assigned To"
+                                                value={assignedTo}
+                                                onChange={setAssignedTo}
+                                                isRequired={true}
+                                                options={[
+                                                    { value: '', label: 'Select' },
+                                                    ...(!loadingTeam && teamMembers
+                                                        ? teamMembers
+                                                              .filter((member) => member.is_active === 'True')
+                                                              .map((member) => ({
+                                                                  value: member.id,
+                                                                  label: member.employee_name,
+                                                              }))
+                                                        : []),
+                                                ]}
+                                            />
                                         </div>
                                         <div className="col-md-12">
-                                            <div className="field-wrapper">
+                                            <div className="mb-3">
+                                                <label className="form-label fw-semibold">Description</label>
                                                 <textarea
                                                     className="form-control"
                                                     rows="3"
                                                     value={description}
                                                     onChange={(e) => setDescription(e.target.value)}
                                                 ></textarea>
-                                                <label className="form-label">Description</label>
                                             </div>
                                         </div>
                                     </div>

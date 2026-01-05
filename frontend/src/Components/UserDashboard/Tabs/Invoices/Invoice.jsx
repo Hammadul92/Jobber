@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetchInvoiceQuery, useUpdateInvoiceMutation, useMakePaymentMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import Input from '../../../../utils/Input';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
 
@@ -144,8 +145,8 @@ export default function Invoice({ token, role, business }) {
                                 (role === 'CLIENT'
                                     ? 'Client Portal'
                                     : role === 'EMPLOYEE'
-                                      ? 'Employee Portal'
-                                      : 'Dashboard')}
+                                        ? 'Employee Portal'
+                                        : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item">
@@ -229,70 +230,73 @@ export default function Invoice({ token, role, business }) {
                         {role === 'MANAGER' ? (
                             <form onSubmit={handleSubmit} className="row">
                                 <div className="col-md-4">
-                                    <div className="field-wrapper">
-                                        <input
-                                            type="date"
-                                            className="form-control"
-                                            value={dueDate}
-                                            onChange={(e) => setDueDate(e.target.value)}
-                                            required
-                                            disabled={isLocked}
-                                        />
-                                        <label className="form-label">Due Date (*)</label>
-                                    </div>
+                                    <Input
+                                        type="date"
+                                        fieldClass="form-control"
+                                        value={dueDate}
+                                        onChange={setDueDate}
+                                        isRequired={true}
+                                        isDisabled={isLocked}
+                                        label="Due Date"
+                                        id="invoice-due-date"
+                                    />
                                 </div>
                                 <div className="col-md-4">
-                                    <div className="field-wrapper">
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            className="form-control"
-                                            value={subtotal}
-                                            onChange={(e) => setSubtotal(e.target.value)}
-                                            required
-                                            disabled={isLocked}
-                                        />
-                                        <label className="form-label">Subtotal (*)</label>
-                                    </div>
+                                    <Input
+                                        type="number"
+                                        fieldClass="form-control"
+                                        value={subtotal}
+                                        onChange={setSubtotal}
+                                        isRequired={true}
+                                        isDisabled={isLocked}
+                                        label="Subtotal"
+                                        id="invoice-subtotal"
+                                    />
                                 </div>
                                 <div className="col-md-4">
-                                    <div className="field-wrapper">
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            className="form-control"
-                                            value={taxRate}
-                                            onChange={(e) => setTaxRate(e.target.value)}
-                                            required
-                                            disabled={isLocked}
-                                        />
-                                        <label className="form-label">Tax Rate (%) (*)</label>
-                                    </div>
+                                    <Input
+                                        type="number"
+                                        fieldClass="form-control"
+                                        value={taxRate}
+                                        onChange={setTaxRate}
+                                        isRequired={true}
+                                        isDisabled={isLocked}
+                                        label="Tax Rate (%)"
+                                        id="invoice-tax-rate"
+                                    />
                                 </div>
                                 <div className="col-md-4">
-                                    <div className="field-wrapper">
-                                        <input type="number" className="form-control" value={taxAmount} disabled />
-                                        <label className="form-label">Tax Amount</label>
-                                    </div>
+                                    <Input
+                                        type="number"
+                                        fieldClass="form-control"
+                                        value={taxAmount}
+                                        onChange={() => { }}
+                                        isDisabled={true}
+                                        label="Tax Amount"
+                                        id="invoice-tax-amount"
+                                    />
                                 </div>
                                 <div className="col-md-4">
-                                    <div className="field-wrapper">
-                                        <input type="number" className="form-control" value={totalAmount} disabled />
-                                        <label className="form-label">Total Amount</label>
-                                    </div>
+                                    <Input
+                                        type="number"
+                                        fieldClass="form-control"
+                                        value={totalAmount}
+                                        onChange={() => { }}
+                                        isDisabled={true}
+                                        label="Total Amount"
+                                        id="invoice-total-amount"
+                                    />
                                 </div>
                                 <div className="col-md-12">
-                                    <div className="field-wrapper">
-                                        <textarea
-                                            className="form-control"
-                                            rows="3"
-                                            value={notes}
-                                            onChange={(e) => setNotes(e.target.value)}
-                                            placeholder="Optional notes"
-                                            disabled={isLocked}
-                                        />
-                                        <label className="form-label">Notes</label>
-                                    </div>
+                                    <label className="form-label fw-semibold">Notes</label>
+
+                                    <textarea
+                                        className="form-control"
+                                        rows="3"
+                                        value={notes}
+                                        onChange={(e) => setNotes(e.target.value)}
+                                        disabled={isLocked}
+                                    />
                                 </div>
                                 <div className="d-flex justify-content-end mt-3">
                                     <SubmitButton

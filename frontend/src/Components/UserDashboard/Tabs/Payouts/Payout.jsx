@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetchPayoutQuery, useRefundPayoutMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import Input from '../../../../utils/Input';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
 
@@ -114,20 +115,19 @@ export default function Payout({ token, role, business }) {
                 {/* RIGHT SIDE — REFUND FORM */}
                 <div className="col-12 col-lg-9">
                     <form className="shadow-sm border p-3 rounded" onSubmit={handleRefund}>
-                        <p className="fw-bold mb-3">Refund Payout</p>
+                        <Input
+                            type="number"
+                            fieldClass="form-control"
+                            value={amount}
+                            onChange={setAmount}
+                            placeholder="Enter refund amount"
+                            label="Amount"
+                            id="refund-amount"
+                        />
 
-                        <div className="field-wrapper">
-                            <input
-                                type="number"
-                                className="form-control"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                placeholder="Enter refund amount"
-                            />
-                            <label className="form-label">Amount</label>
-                        </div>
+                        <div className="mb-3">
+                            <label className="form-label fw-semibold">Reason</label>
 
-                        <div className="field-wrapper">
                             <textarea
                                 className="form-control"
                                 rows="3"
@@ -135,7 +135,6 @@ export default function Payout({ token, role, business }) {
                                 onChange={(e) => setReason(e.target.value)}
                                 placeholder="Reason for refund"
                             ></textarea>
-                            <label className="form-label">Reason</label>
                         </div>
 
                         {/* Manager permission check */}

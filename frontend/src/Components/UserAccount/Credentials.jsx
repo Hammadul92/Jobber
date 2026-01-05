@@ -119,7 +119,7 @@ export default function Credentials({ setAlert }) {
                     {/* New Password */}
                     <div className="mb-3">
                         <label htmlFor="newPassword" className="form-label fw-bold">
-                            New Password <small className="text-danger">(Required)</small>
+                            New Password <sup className="text-danger small">(*)</sup>
                         </label>
                         <div className="input-group">
                             <input
@@ -148,7 +148,7 @@ export default function Credentials({ setAlert }) {
                     {/* Confirm Password */}
                     <div className="mb-3">
                         <label htmlFor="confirmNewPassword" className="form-label fw-bold">
-                            Confirm New Password <small className="text-danger">(Required)</small>
+                            Confirm New Password <sup className="text-danger small">(*)</sup>
                         </label>
                         <div className="input-group">
                             <input

@@ -83,7 +83,7 @@ export default function SignIn() {
 
                     <div className="mb-3">
                         <label htmlFor="password" className="form-label fw-bold">
-                            Password <small className="text-danger">(Required)</small>
+                            Password <sup className="text-danger small">(*)</sup>
                         </label>
                         <div className="input-group">
                             <input

@@ -4,6 +4,7 @@ import { useFetchQuoteQuery, useUpdateQuoteMutation, useSendQuoteMutation } from
 import SubmitButton from '../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
+import Input from '../../../../utils/Input';
 
 export default function Quote({ token }) {
     const { id } = useParams();
@@ -188,9 +189,9 @@ export default function Quote({ token }) {
 
                             <h5>Client Details</h5>
 
-                            <p className="mb-1 small text-muted">Name: {quoteData.client_name}</p>
-                            <p className="mb-1 small text-muted">Email: {quoteData.client.client_email}</p>
-                            <p className="mb-1 small text-muted">Phone: {quoteData.client.client_phone}</p>
+                            <p className="mb-1 text-muted">Name: {quoteData.client_name}</p>
+                            <p className="mb-1 text-muted">Email: {quoteData.client.client_email}</p>
+                            <p className="mb-1 text-muted">Phone: {quoteData.client.client_phone}</p>
                         </div>
 
                         <div className="shadow-sm p-3 rounded mb-3 position-relative border">
@@ -213,7 +214,7 @@ export default function Quote({ token }) {
 
                             <h5>Service Details</h5>
 
-                            <p className="mb-1 small text-muted">
+                            <p className="mb-1 text-muted">
                                 Name:{' '}
                                 <Link to={`/dashboard/service/${quoteData.service_data.id}`} className="text-success">
                                     {quoteData.service_data.service_name}
@@ -221,23 +222,21 @@ export default function Quote({ token }) {
                             </p>
 
                             {quoteData.service_data.description && (
-                                <p className="mb-1 small p-2 bg-light rounded-3">
+                                <p className="mb-1 p-2 bg-light rounded-3">
                                     <i className="fa fa-info"></i> {quoteData.service_data.description}
                                 </p>
                             )}
-                            <p className="mb-1 small text-muted">
+                            <p className="mb-1 text-muted">
                                 Price: ${quoteData.service_data.price} {quoteData.service_data.currency}
                             </p>
-                            <p className="mb-1 small text-muted">
+                            <p className="mb-1 text-muted">
                                 Billing Cycle: {quoteData.service_data.billing_cycle || '-'}
                             </p>
                             <div className="d-flex justify-content-between align-items-center mb-1">
-                                <p className="small text-muted mb-0">Start Date: {quoteData.service_data.start_date}</p>
-                                <p className="small text-muted mb-0">
-                                    End Date: {quoteData.service_data.end_date || '-'}
-                                </p>
+                                <p className="text-muted mb-0">Start Date: {quoteData.service_data.start_date}</p>
+                                <p className="text-muted mb-0">End Date: {quoteData.service_data.end_date || '-'}</p>
                             </div>
-                            <p className="mb-1 small text-muted">
+                            <p className="mb-1 text-muted">
                                 Service Address: {quoteData.service_data.street_address}, {quoteData.service_data.city},{' '}
                                 {quoteData.service_data.province_state}, {quoteData.service_data.country},{' '}
                                 {quoteData.service_data.postal_code}
@@ -249,33 +248,33 @@ export default function Quote({ token }) {
                         <div className="shadow-sm p-3 bg-white rounded border">
                             <div className="row">
                                 <div className="col-md-4">
-                                    <div className="field-wrapper">
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            value={formatDate(quoteData.signed_at)}
-                                            disabled
-                                        />
-                                        <label className="form-label">Signed At</label>
-                                    </div>
+                                    <Input
+                                        type="text"
+                                        fieldClass="form-control"
+                                        value={formatDate(quoteData.signed_at)}
+                                        onChange={() => {}}
+                                        isDisabled={true}
+                                        label="Signed At"
+                                        id="quote-signed-at"
+                                    />
                                 </div>
 
                                 <div className="col-md-4">
-                                    <div className="field-wrapper">
-                                        <input
-                                            type="date"
-                                            className="form-control"
-                                            value={validUntil}
-                                            onChange={(e) => setValidUntil(e.target.value)}
-                                            disabled={isSigned}
-                                            required
-                                        />
-                                        <label className="form-label">Valid Until (*)</label>
-                                    </div>
+                                    <Input
+                                        type="date"
+                                        fieldClass="form-control"
+                                        value={validUntil}
+                                        onChange={setValidUntil}
+                                        isDisabled={isSigned}
+                                        isRequired={true}
+                                        label="Valid Until (*)"
+                                        id="quote-valid-until"
+                                    />
                                 </div>
                             </div>
 
-                            <div className="field-wrapper">
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold">Terms & Conditions (*)</label>
                                 <textarea
                                     className="form-control"
                                     rows="4"
@@ -284,10 +283,11 @@ export default function Quote({ token }) {
                                     disabled={isSigned}
                                     required
                                 ></textarea>
-                                <label className="form-label">Terms & Conditions (*)</label>
                             </div>
 
-                            <div className="field-wrapper">
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold">Notes</label>
+
                                 <textarea
                                     className="form-control"
                                     rows="3"
@@ -295,7 +295,6 @@ export default function Quote({ token }) {
                                     onChange={(e) => setNotes(e.target.value)}
                                     disabled={isSigned}
                                 ></textarea>
-                                <label className="form-label">Notes</label>
                             </div>
 
                             <div className="d-flex justify-content-end mt-3">

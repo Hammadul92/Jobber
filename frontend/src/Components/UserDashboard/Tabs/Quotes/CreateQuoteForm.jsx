@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useFetchQuotesQuery, useFetchServicesQuery, useCreateQuoteMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import Select from '../../../../utils/Select';
+import Input from '../../../../utils/Input';
 
 export default function CreateQuoteForm({ token, showModal, setShowModal, setAlert }) {
     const [serviceId, setServiceId] = useState('');
@@ -53,7 +55,7 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                     <div className="modal-dialog" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Create New Quote</h5>
+                                <h5 className="modal-title fw-bold">Create New Quote</h5>
                                 <button
                                     type="button"
                                     className="btn-close"
@@ -65,43 +67,42 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                                 <div className="modal-body">
                                     <div className="row">
                                         <div className="col-md-8">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={serviceId}
-                                                    onChange={(e) => setServiceId(e.target.value)}
-                                                    required
-                                                >
-                                                    <option value="">Select Service</option>
-                                                    {availableServices?.map(
-                                                        (service) =>
-                                                            service.status === 'ACTIVE' && (
-                                                                <option key={service.id} value={service.id}>
-                                                                    {service.service_name} ({service.client_name} -{' '}
-                                                                    {service.street_address})
-                                                                </option>
-                                                            )
-                                                    )}
-                                                </select>
-                                                <label className="form-label">Service (*)</label>
-                                            </div>
+                                            <Select
+                                                id="quote-service"
+                                                label="Service (*)"
+                                                value={serviceId}
+                                                onChange={setServiceId}
+                                                isRequired={true}
+                                                options={[
+                                                    { value: '', label: 'Select Service' },
+                                                    ...(availableServices
+                                                        ? availableServices
+                                                              .filter((service) => service.status === 'ACTIVE')
+                                                              .map((service) => ({
+                                                                  value: service.id,
+                                                                  label: `${service.service_name} (${service.client_name} - ${service.street_address})`,
+                                                              }))
+                                                        : []),
+                                                ]}
+                                            />
                                         </div>
 
                                         <div className="col-md-4">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="date"
-                                                    className="form-control"
-                                                    value={validUntil}
-                                                    onChange={(e) => setValidUntil(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Valid Until (*)</label>
-                                            </div>
+                                            <Input
+                                                type="date"
+                                                fieldClass="form-control"
+                                                value={validUntil}
+                                                onChange={setValidUntil}
+                                                isRequired={true}
+                                                label="Valid Until (*)"
+                                                id="quote-valid-until"
+                                            />
                                         </div>
 
                                         <div className="col-md-12">
-                                            <div className="field-wrapper">
+                                            <div className="mb-3">
+                                                <label className="form-label fw-semibold">Terms & Conditions (*)</label>
+
                                                 <textarea
                                                     className="form-control"
                                                     rows="3"
@@ -110,12 +111,12 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                                                     placeholder="Enter any special terms or agreement details"
                                                     required
                                                 ></textarea>
-                                                <label className="form-label">Terms & Conditions (*)</label>
                                             </div>
                                         </div>
 
                                         <div className="col-md-12">
-                                            <div className="field-wrapper">
+                                            <div className="mb-3">
+                                                <label className="form-label fw-semibold">Notes</label>
                                                 <textarea
                                                     className="form-control"
                                                     rows="2"
@@ -123,7 +124,6 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                                                     onChange={(e) => setNotes(e.target.value)}
                                                     placeholder="Internal notes or remarks"
                                                 ></textarea>
-                                                <label className="form-label">Notes</label>
                                             </div>
                                         </div>
                                     </div>

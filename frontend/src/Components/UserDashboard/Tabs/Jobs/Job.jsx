@@ -11,6 +11,9 @@ import {
 import SubmitButton from '../../../../utils/SubmitButton';
 import AlertDispatcher from '../../../../utils/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
+import Select from '../../../../utils/Select';
+
+import Input from '../../../../utils/Input';
 
 export default function Job({ token, role }) {
     const { id } = useParams();
@@ -144,7 +147,7 @@ export default function Job({ token, role }) {
                 </ol>
             </nav>
 
-            <div className="row g-3">
+            <div className="row">
                 <div className="col-12 col-lg-4">
                     <div className="card shadow-sm border position-relative">
                         <span
@@ -159,13 +162,13 @@ export default function Job({ token, role }) {
                             <h5 className="mb-2">{title}</h5>
                             {serviceData ? (
                                 <>
-                                    <p className="mb-1 text-muted small">
+                                    <p className="mb-1 text-muted">
                                         <strong>Service:</strong> {serviceData.service_name}
                                     </p>
-                                    <p className="mb-1 text-muted small">
+                                    <p className="mb-1 text-muted">
                                         <strong>Client:</strong> {serviceData.client_name || '—'}
                                     </p>
-                                    <p className="mb-1 text-muted small">
+                                    <p className="mb-1 text-muted">
                                         <strong>Service Address:</strong> {serviceData.street_address},{' '}
                                         {serviceData.city}, {serviceData.province_state}, {serviceData.country},{' '}
                                         {serviceData.postal_code}
@@ -180,27 +183,26 @@ export default function Job({ token, role }) {
                     <div className="card shadow-sm border mt-3">
                         <div className="card-body">
                             <form onSubmit={handlePhotoUpload}>
-                                <div className="field-wrapper mb-3">
-                                    <select
-                                        className="form-select"
-                                        value={photoType}
-                                        onChange={(e) => setPhotoType(e.target.value)}
-                                    >
-                                        <option value="BEFORE">Before</option>
-                                        <option value="AFTER">After</option>
-                                    </select>
-                                    <label className="form-label">Photo Type</label>
-                                </div>
+                                <Select
+                                    id="photoType"
+                                    label={'Photo Type'}
+                                    value={photoType}
+                                    onChange={setPhotoType}
+                                    isRequired={true}
+                                    options={[
+                                        { value: 'BEFORE', label: 'Before' },
+                                        { value: 'AFTER', label: 'After' },
+                                    ]}
+                                />
 
-                                <div className="field-wrapper mb-3">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="form-control"
-                                        onChange={handlePhotoChange}
-                                    />
-                                    <label className="form-label">Choose Photo</label>
-                                </div>
+                                <Input
+                                    type="file"
+                                    fieldClass="form-control"
+                                    onChange={handlePhotoChange}
+                                    label="Choose Photo"
+                                    id="job-photo-upload"
+                                    isRequired={true}
+                                />
 
                                 {photoPreview && (
                                     <div className="text-center mb-3">
@@ -226,85 +228,81 @@ export default function Job({ token, role }) {
                 <div className="col-12 col-lg-8">
                     <form onSubmit={handleSubmit} className="card shadow-sm border mb-3">
                         <div className="card-body">
-                            <div className="row g-3">
+                            <div className="row">
                                 <div className="col-md-6">
-                                    <div className="field-wrapper">
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            value={title}
-                                            onChange={(e) => setTitle(e.target.value)}
-                                            placeholder="Enter job title"
-                                            disabled={role !== 'MANAGER'}
-                                        />
-                                        <label className="form-label">Title</label>
-                                    </div>
+                                    <Input
+                                        type="text"
+                                        fieldClass="form-control"
+                                        value={title}
+                                        onChange={setTitle}
+                                        placeholder="Enter job title"
+                                        isDisabled={role !== 'MANAGER'}
+                                        isRequired={true}
+                                        label="Title"
+                                        id="job-title"
+                                    />
                                 </div>
 
                                 <div className="col-md-6">
-                                    <div className="field-wrapper">
-                                        <select
-                                            className="form-select"
-                                            value={status}
-                                            onChange={(e) => setStatus(e.target.value)}
-                                        >
-                                            <option value="PENDING">Pending</option>
-                                            <option value="IN_PROGRESS">In Progress</option>
-                                            <option value="COMPLETED">Completed</option>
-                                            <option value="CANCELLED">Cancelled</option>
-                                        </select>
-                                        <label className="form-label">Status</label>
-                                    </div>
+                                    <Select
+                                        isRequired={true}
+                                        id="job-status"
+                                        label="Status"
+                                        value={status}
+                                        onChange={setStatus}
+                                        options={[
+                                            { value: 'PENDING', label: 'Pending' },
+                                            { value: 'IN_PROGRESS', label: 'In Progress' },
+                                            { value: 'COMPLETED', label: 'Completed' },
+                                            { value: 'CANCELLED', label: 'Cancelled' },
+                                        ]}
+                                    />
                                 </div>
 
                                 <div className="col-md-6">
-                                    <div className="field-wrapper">
-                                        <select
-                                            className="form-select"
-                                            value={assignedTo}
-                                            onChange={(e) => setAssignedTo(e.target.value)}
-                                            disabled={role !== 'MANAGER'}
-                                        >
-                                            <option value="">Select</option>
-                                            {teamMembers &&
-                                                teamMembers.map(
-                                                    (member) =>
-                                                        member.is_active === 'True' && (
-                                                            <option key={member.id} value={member.id}>
-                                                                {member.employee_name}
-                                                            </option>
-                                                        )
-                                                )}
-                                        </select>
-                                        <label className="form-label">Assigned To</label>
-                                    </div>
+                                    <Select
+                                        isRequired={true}
+                                        id="job-assigned-to"
+                                        label="Assigned To"
+                                        value={assignedTo}
+                                        onChange={setAssignedTo}
+                                        isDisabled={role !== 'MANAGER'}
+                                        options={[
+                                            { value: '', label: 'Select' },
+                                            ...(teamMembers
+                                                ? teamMembers
+                                                      .filter((member) => member.is_active === 'True')
+                                                      .map((member) => ({
+                                                          value: member.id,
+                                                          label: member.employee_name,
+                                                      }))
+                                                : []),
+                                        ]}
+                                    />
                                 </div>
 
                                 <div className="col-md-6">
-                                    <div className="field-wrapper">
-                                        <input
-                                            type="datetime-local"
-                                            className="form-control"
-                                            value={scheduledDate}
-                                            onChange={(e) => setScheduledDate(e.target.value)}
-                                            disabled={role !== 'MANAGER'}
-                                        />
-                                        <label className="form-label">Scheduled Date</label>
-                                    </div>
+                                    <Input
+                                        type="datetime-local"
+                                        fieldClass="form-control"
+                                        value={scheduledDate}
+                                        onChange={setScheduledDate}
+                                        isDisabled={role !== 'MANAGER'}
+                                        label="Scheduled Date"
+                                        id="job-scheduled-date"
+                                    />
                                 </div>
 
                                 <div className="col-12">
-                                    <div className="field-wrapper">
-                                        <textarea
-                                            className="form-control"
-                                            rows="3"
-                                            value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            placeholder="Job description..."
-                                            disabled={role !== 'MANAGER'}
-                                        ></textarea>
-                                        <label className="form-label">Description</label>
-                                    </div>
+                                    <label className="form-label fw-semibold">Description</label>
+                                    <textarea
+                                        className="form-control"
+                                        rows="3"
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Job description..."
+                                        disabled={role !== 'MANAGER'}
+                                    ></textarea>
                                 </div>
                             </div>
 

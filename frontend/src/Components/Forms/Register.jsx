@@ -175,7 +175,7 @@ export default function Register() {
                         {/* Password */}
                         <div className="mb-3">
                             <label htmlFor="password" className="form-label fw-bold">
-                                Password <small className="text-danger">(Required)</small>
+                                Password <sup className="text-danger small">(*)</sup>
                             </label>
                             <div className="input-group">
                                 <input
@@ -203,7 +203,7 @@ export default function Register() {
                         {/* Confirm Password */}
                         <div className="mb-3">
                             <label htmlFor="confirmPassword" className="form-label fw-bold">
-                                Confirm Password <small className="text-danger">(Required)</small>
+                                Confirm Password <sup className="text-danger small">(*)</sup>
                             </label>
                             <div className="input-group">
                                 <input

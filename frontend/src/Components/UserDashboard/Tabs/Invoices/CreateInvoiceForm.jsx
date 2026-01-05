@@ -1,3 +1,5 @@
+import Input from '../../../../utils/Input';
+import Select from '../../../../utils/Select';
 import { useState, useEffect } from 'react';
 import { useFetchClientsQuery, useFetchServicesQuery, useCreateInvoiceMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
@@ -121,146 +123,141 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
                                 <div className="modal-body">
                                     <div className="row">
                                         <div className="col-md-4">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={clientId}
-                                                    onChange={(e) => {
-                                                        setClientId(e.target.value);
-                                                        setServiceId('');
-                                                    }}
-                                                    required
-                                                >
-                                                    <option value="">Select Client</option>
-                                                    {!loadingClients &&
-                                                        clients?.results.map((c) => (
-                                                            <option key={c.id} value={c.id}>
-                                                                {c.client_name}
-                                                            </option>
-                                                        ))}
-                                                </select>
-                                                <label className="form-label">Client (*)</label>
-                                            </div>
+                                            <Select
+                                                id="invoice-client"
+                                                label="Client"
+                                                value={clientId}
+                                                onChange={(val) => {
+                                                    setClientId(val);
+                                                    setServiceId('');
+                                                }}
+                                                isRequired={true}
+                                                options={[
+                                                    { value: '', label: 'Select Client' },
+                                                    ...(!loadingClients && clients?.results
+                                                        ? clients.results.map((c) => ({
+                                                              value: c.id,
+                                                              label: c.client_name,
+                                                          }))
+                                                        : []),
+                                                ]}
+                                            />
                                         </div>
 
                                         <div className="col-md-8">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={serviceId}
-                                                    onChange={(e) => setServiceId(e.target.value)}
-                                                    disabled={!clientId}
-                                                    required
-                                                >
-                                                    <option value="">
-                                                        {clientId ? 'Select Service' : 'Select Client first'}
-                                                    </option>
-                                                    {!loadingServices &&
-                                                        services.map(
-                                                            (s) =>
-                                                                s.status === 'ACTIVE' &&
-                                                                s?.quotations.find((q) => q.status === 'SIGNED') && (
-                                                                    <option key={s.id} value={s.id}>
-                                                                        {s.service_name} ({s.client_name} -{' '}
-                                                                        {s.street_address})
-                                                                    </option>
-                                                                )
-                                                        )}
-                                                </select>
-                                                <label className="form-label">Service (*)</label>
-                                            </div>
+                                            <Select
+                                                id="invoice-service"
+                                                label="Service"
+                                                value={serviceId}
+                                                onChange={setServiceId}
+                                                isRequired={true}
+                                                isDisabled={!clientId}
+                                                options={[
+                                                    {
+                                                        value: '',
+                                                        label: clientId ? 'Select Service' : 'Select Client first',
+                                                    },
+                                                    ...(!loadingServices && services
+                                                        ? services
+                                                              .filter(
+                                                                  (s) =>
+                                                                      s.status === 'ACTIVE' &&
+                                                                      s?.quotations.find((q) => q.status === 'SIGNED')
+                                                              )
+                                                              .map((s) => ({
+                                                                  value: s.id,
+                                                                  label: `${s.service_name} (${s.client_name} - ${s.street_address})`,
+                                                              }))
+                                                        : []),
+                                                ]}
+                                            />
                                         </div>
 
                                         <div className="col-md-4">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="date"
-                                                    className="form-control"
-                                                    value={dueDate}
-                                                    onChange={(e) => setDueDate(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Due Date (*)</label>
-                                            </div>
+                                            <Input
+                                                type="date"
+                                                fieldClass="form-control"
+                                                value={dueDate}
+                                                onChange={setDueDate}
+                                                isRequired={true}
+                                                label="Due Date"
+                                                id="invoice-due-date"
+                                            />
                                         </div>
 
                                         <div className="col-md-4">
-                                            <div className="field-wrapper">
-                                                <select
-                                                    className="form-select"
-                                                    value={currency}
-                                                    onChange={(e) => setCurrency(e.target.value)}
-                                                >
-                                                    <option value="CAD">CAD</option>
-                                                    <option value="USD">USD</option>
-                                                </select>
-                                                <label className="form-label">Currency</label>
-                                            </div>
+                                            <Select
+                                                id="invoice-currency"
+                                                label="Currency"
+                                                value={currency}
+                                                onChange={setCurrency}
+                                                isRequired={true}
+                                                options={[
+                                                    { value: 'CAD', label: 'CAD' },
+                                                    { value: 'USD', label: 'USD' },
+                                                ]}
+                                            />
                                         </div>
 
                                         <div className="col-md-4">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="number"
-                                                    className="form-control"
-                                                    value={subtotal}
-                                                    onChange={(e) => setSubtotal(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Subtotal (*)</label>
-                                            </div>
+                                            <Input
+                                                type="number"
+                                                fieldClass="form-control"
+                                                value={subtotal}
+                                                onChange={setSubtotal}
+                                                isRequired={true}
+                                                label="Subtotal"
+                                                id="invoice-subtotal"
+                                            />
                                         </div>
 
                                         <div className="col-md-4">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="number"
-                                                    className="form-control"
-                                                    value={taxRate}
-                                                    onChange={(e) => setTaxRate(e.target.value)}
-                                                    required
-                                                />
-                                                <label className="form-label">Tax Rate (%) (*)</label>
-                                            </div>
+                                            <Input
+                                                type="number"
+                                                fieldClass="form-control"
+                                                value={taxRate}
+                                                onChange={setTaxRate}
+                                                isRequired={true}
+                                                label="Tax Rate (%)"
+                                                id="invoice-tax-rate"
+                                            />
                                         </div>
 
                                         <div className="col-md-4">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="number"
-                                                    className="form-control"
-                                                    value={taxAmount}
-                                                    readOnly
-                                                    required
-                                                />
-                                                <label className="form-label">Tax Amount (*)</label>
-                                            </div>
+                                            <Input
+                                                type="number"
+                                                fieldClass="form-control"
+                                                value={taxAmount}
+                                                onChange={() => {}}
+                                                isDisabled={true}
+                                                isRequired={true}
+                                                label="Tax Amount"
+                                                id="invoice-tax-amount"
+                                            />
                                         </div>
 
                                         <div className="col-md-4">
-                                            <div className="field-wrapper">
-                                                <input
-                                                    type="number"
-                                                    className="form-control"
-                                                    value={totalAmount}
-                                                    readOnly
-                                                    required
-                                                />
-                                                <label className="form-label">Total Amount (*)</label>
-                                            </div>
+                                            <Input
+                                                type="number"
+                                                fieldClass="form-control"
+                                                value={totalAmount}
+                                                onChange={() => {}}
+                                                isDisabled={true}
+                                                isRequired={true}
+                                                label="Total Amount"
+                                                id="invoice-total-amount"
+                                            />
                                         </div>
 
                                         <div className="col-md-12">
-                                            <div className="field-wrapper">
-                                                <textarea
-                                                    className="form-control"
-                                                    rows="3"
-                                                    placeholder="Optional notes or invoice description"
-                                                    value={notes}
-                                                    onChange={(e) => setNotes(e.target.value)}
-                                                ></textarea>
-                                                <label className="form-label">Notes</label>
-                                            </div>
+                                            <label className="form-label fw-semibold">Notes</label>
+                                            <textarea
+                                                className="form-control"
+                                                rows="3"
+                                                placeholder="Optional notes or invoice description"
+                                                value={notes}
+                                                onChange={(e) => setNotes(e.target.value)}
+                                            ></textarea>
                                         </div>
                                     </div>
                                 </div>

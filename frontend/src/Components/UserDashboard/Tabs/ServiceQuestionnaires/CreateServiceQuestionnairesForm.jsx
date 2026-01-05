@@ -5,6 +5,7 @@ import {
     useFetchBusinessesQuery,
 } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
+import Select from '../../../../utils/Select';
 
 export default function CreateServiceQuestionnairesForm({ token, showModal, setShowModal, setAlert }) {
     const [serviceName, setServiceName] = useState('');
@@ -102,38 +103,36 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
                 <div className="modal-dialog modal-lg" role="document">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title">Create Service Questionnaire</h5>
+                            <h5 className="modal-title fw-bold">Create Service Questionnaire</h5>
                             <button type="button" className="btn-close" onClick={() => setShowModal(false)} />
                         </div>
 
                         <form onSubmit={handleSubmit}>
                             <div className="modal-body">
                                 {/* Service selection */}
-                                <div className="row g-3 mb-3">
+                                <div className="row mb-3">
                                     <div className="col-md-6">
-                                        <label className="form-label">Service Name (*)</label>
-                                        <select
-                                            className="form-select"
+                                        <Select
+                                            id="service_name"
+                                            label={'Service Name'}
                                             value={serviceName}
-                                            onChange={(e) => setServiceName(e.target.value)}
-                                            required
-                                        >
-                                            <option value="">Select Service</option>
-                                            {servicesOffered.map(
-                                                (service, i) =>
-                                                    !questionnaireData.find((q) => q.service_name === service) && (
-                                                        <option key={i} value={service}>
-                                                            {service}
-                                                        </option>
-                                                    )
-                                            )}
-                                        </select>
+                                            onChange={setServiceName}
+                                            isRequired={true}
+                                            options={servicesOffered
+                                                .filter(
+                                                    (service) =>
+                                                        !questionnaireData.find((q) => q.service_name === service)
+                                                )
+                                                .map((service) => ({ value: service, label: service }))}
+                                        />
                                     </div>
                                 </div>
 
                                 {/* Questions Section */}
                                 <div className="d-flex justify-content-between align-items-center mb-2">
-                                    <label className="form-label">Questions (*)</label>
+                                    <label className="form-label fw-bold">
+                                        Questions <sup className="text-danger small">(*)</sup>
+                                    </label>
                                     <button
                                         type="button"
                                         className="btn btn-sm btn-primary"
@@ -166,8 +165,8 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
                                                 }`}
                                             >
                                                 <div className="accordion-body">
-                                                    <div className="row g-3">
-                                                        <div className="col-md-8">
+                                                    <div className="row">
+                                                        <div className="col-md-8 mb-3">
                                                             <label className="form-label">Question Text</label>
                                                             <input
                                                                 type="text"
@@ -180,7 +179,7 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
                                                             />
                                                         </div>
 
-                                                        <div className="col-md-4">
+                                                        <div className="col-md-4 mb-3">
                                                             <label className="form-label">Field Type</label>
                                                             <select
                                                                 className="form-select"
@@ -279,14 +278,16 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
                                                                             </div>
                                                                         </div>
                                                                     ))}
+                                                                    <div className="col">
+                                                                        <button
+                                                                            type="button"
+                                                                            className="btn btn-sm btn-primary"
+                                                                            onClick={() => handleAddOption(index)}
+                                                                        >
+                                                                            <i className="fa fa-plus"></i>
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                                <button
-                                                                    type="button"
-                                                                    className="btn btn-sm btn-primary mt-2"
-                                                                    onClick={() => handleAddOption(index)}
-                                                                >
-                                                                    <i className="fa fa-plus"></i> Add Option
-                                                                </button>
                                                             </div>
                                                         )}
                                                     </div>

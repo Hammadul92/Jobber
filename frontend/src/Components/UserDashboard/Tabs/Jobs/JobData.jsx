@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useFetchJobsQuery, useDeleteJobMutation } from '../../../../store';
 import SubmitButton from '../../../../utils/SubmitButton';
 import { formatDate } from '../../../../utils/formatDate';
+import Input from '../../../../utils/Input';
+import Select from '../../../../utils/Select';
 
 export default function JobData({ token, role, setAlert }) {
     const [deleteJob, { isLoading: deleting }] = useDeleteJobMutation();
@@ -108,63 +110,51 @@ export default function JobData({ token, role, setAlert }) {
         <>
             <div className="row mb-3">
                 <div className="col-md-2">
-                    <div className="field-wrapper">
-                        <select
-                            className="form-select"
-                            value={serviceFilter}
-                            onChange={(e) => setServiceFilter(e.target.value)}
-                        >
-                            <option value="">All Services</option>
-                            {uniqueServices.map((name, idx) => (
-                                <option key={idx} value={name}>
-                                    {name}
-                                </option>
-                            ))}
-                        </select>
-                        <label className="form-label">Service</label>
-                    </div>
+                    <Select
+                        id="jobs-service-filter"
+                        label="Service"
+                        value={serviceFilter}
+                        onChange={setServiceFilter}
+                        options={[
+                            { value: '', label: 'All Services' },
+                            ...uniqueServices.map((name) => ({ value: name, label: name })),
+                        ]}
+                    />
                 </div>
 
                 <div className="col-md-2">
-                    <div className="field-wrapper">
-                        <select
-                            className="form-select"
-                            value={assignedToFilter}
-                            onChange={(e) => setAssignedToFilter(e.target.value)}
-                        >
-                            <option value="">All Assignees</option>
-                            {uniqueAssignees.map((name, idx) => (
-                                <option key={idx} value={name}>
-                                    {name}
-                                </option>
-                            ))}
-                        </select>
-                        <label className="form-label">Assigned To</label>
-                    </div>
+                    <Select
+                        id="jobs-assignedto-filter"
+                        label="Assigned To"
+                        value={assignedToFilter}
+                        onChange={setAssignedToFilter}
+                        options={[
+                            { value: '', label: 'All Assignees' },
+                            ...uniqueAssignees.map((name) => ({ value: name, label: name })),
+                        ]}
+                    />
                 </div>
 
                 <div className="col-md-2">
-                    <div className="field-wrapper">
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={startDateFilter}
-                            onChange={(e) => setStartDateFilter(e.target.value)}
-                        />
-                        <label className="form-label">Start Date (From)</label>
-                    </div>
+                    <Input
+                        type="date"
+                        fieldClass="form-control"
+                        value={startDateFilter}
+                        onChange={setStartDateFilter}
+                        label="Start Date (From)"
+                        id="jobdata-start-date"
+                    />
                 </div>
 
                 <div className="col-md-2">
-                    <div className="field-wrapper">
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={endDateFilter}
-                            onChange={(e) => setEndDateFilter(e.target.value)}
-                        />
-                        <label className="form-label">End Date (To)</label>
-                    </div>
+                    <Input
+                        type="date"
+                        fieldClass="form-control"
+                        value={endDateFilter}
+                        onChange={setEndDateFilter}
+                        label="End Date (To)"
+                        id="jobdata-end-date"
+                    />
                 </div>
             </div>
 

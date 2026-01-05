@@ -43,8 +43,8 @@ export default function Input({
 
     return (
         <div className="mb-3">
-            <label htmlFor={id} className="form-label fw-bold">
-                {label} {isRequired && <small className="text-danger">(Required)</small>}
+            <label htmlFor={id} className="form-label fw-semibold">
+                {label} {isRequired && <sup className="text-danger small">(*)</sup>}
             </label>
             <input
                 type={type}

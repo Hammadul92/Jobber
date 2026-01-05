@@ -1,8 +1,8 @@
 export default function Select({ id, label, value, isRequired = false, isDisabled = false, options = [], onChange }) {
     return (
         <div className="mb-3">
-            <label className="form-label fw-bold" htmlFor={id}>
-                {label} {isRequired && <small className="text-danger">(Required)</small>}
+            <label className="form-label fw-semibold" htmlFor={id}>
+                {label} {isRequired && <sup className="text-danger small">(*)</sup>}
             </label>
             <select
                 id={id}

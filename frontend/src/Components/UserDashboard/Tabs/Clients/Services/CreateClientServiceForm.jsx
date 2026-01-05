@@ -28,7 +28,6 @@ export default function CreateClientServiceForm({
     const [provinceState, setProvinceState] = useState('');
     const [postalCode, setPostalCode] = useState('');
 
-    // 🔹 NEW STATES
     const [autoGenerateQuote, setAutoGenerateQuote] = useState(false);
     const [autoGenerateInvoices, setAutoGenerateInvoices] = useState(false);
 
@@ -258,9 +257,7 @@ export default function CreateClientServiceForm({
                                         </p>
                                     )}
 
-                                    <hr />
-
-                                    <h6 className="fw-bold mt-3">Service Address</h6>
+                                    <h5 className="fw-bold mt-3">Service Address</h5>
                                     <div className="row">
                                         <div className="col-md-8">
                                             <Input
@@ -318,7 +315,7 @@ export default function CreateClientServiceForm({
                                     </div>
 
                                     <div className="mb-3">
-                                        <label className="form-label fw-bold">Description</label>
+                                        <label className="form-label fw-bold">Service Description</label>
                                         <textarea
                                             className="form-control"
                                             rows="3"

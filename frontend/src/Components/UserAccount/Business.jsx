@@ -320,7 +320,7 @@ export default function Business({ token, setAlert }) {
                         </div>
                         <div className="col-md-12">
                             <label className="form-label fw-bold">
-                                Business Description <small className="text-danger">(Required)</small>
+                                Business Description <sup className="text-danger small">(*)</sup>
                             </label>
                             <textarea
                                 className="form-control"
