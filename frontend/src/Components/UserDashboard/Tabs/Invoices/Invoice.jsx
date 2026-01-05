@@ -172,14 +172,14 @@ export default function Invoice({ token, role, business }) {
             <div className="row">
                 {role === 'MANAGER' && (
                     <div className="col-12 col-lg-3 mb-3">
-                        <div className="text-center border shadow-sm p-3 rounded">
+                        <div className="border shadow-sm p-3 rounded">
                             <h4 className="mb-1">
                                 {invoiceNumber}{' '}
-                                <span className={`badge bg-gradient rounded-pill bg-${statusColor(status)}`}>
+                                <span className={`badge bg-gradient rounded-pill bg-${statusColor(status)} float-end`}>
                                     {status}
                                 </span>
                             </h4>
-                            <div className="mt-2 text-muted small text-center">
+                            <div className="mt-2 text-muted">
                                 <div>
                                     <strong>Business:</strong> {businessName}
                                 </div>
@@ -193,7 +193,7 @@ export default function Invoice({ token, role, business }) {
                                     <strong>Currency:</strong> {currency}
                                 </div>
                             </div>
-                            <div className="d-flex justify-content-center gap-2 mt-3">
+                            <div className="d-flex gap-2 mt-3">
                                 <button
                                     className="btn btn-primary btn-sm bg-gradient"
                                     disabled={status === 'SENT' || isLocked}
@@ -217,7 +217,7 @@ export default function Invoice({ token, role, business }) {
                                 </button>
                             </div>
                             {status === 'PAID' && paidAt && (
-                                <div className="mt-3 text-muted small">
+                                <div className="mt-3 text-muted">
                                     <strong>Paid on:</strong> {formatDate(paidAt)}
                                 </div>
                             )}

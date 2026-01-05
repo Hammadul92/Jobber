@@ -73,8 +73,8 @@ export default function Payout({ token, role, business }) {
                                 (role === 'CLIENT'
                                     ? 'Client Portal'
                                     : role === 'EMPLOYEE'
-                                      ? 'Employee Portal'
-                                      : 'Dashboard')}
+                                        ? 'Employee Portal'
+                                        : 'Dashboard')}
                         </Link>
                     </li>
                     <li className="breadcrumb-item" aria-current="page">
@@ -91,15 +91,16 @@ export default function Payout({ token, role, business }) {
             <div className="row mt-4">
                 {/* LEFT CARD */}
                 <div className="col-12 col-lg-3 mb-3">
-                    <div className="shadow-sm border p-3 rounded text-center">
-                        <h4 className="mb-1 fw-bold">Payout for {payoutData?.invoice_number}</h4>
+                    <div className="shadow-sm border p-3 rounded">
                         <span
-                            className={`badge rounded-pill p-2 bg-gradient bg-${payoutData?.status === 'PAID' ? 'success' : 'danger'}`}
+                            className={`badge rounded-pill p-2 bg-gradient float-end bg-${payoutData?.status === 'PAID' ? 'success' : 'danger'}`}
                         >
                             {payoutData?.status}
                         </span>
+                        <h4 className="mb-1 fw-bold">{payoutData?.invoice_number}</h4>
 
-                        <div className="d-flex flex-column small text-muted mt-3">
+
+                        <div className="d-flex flex-column text-muted mt-3">
                             <div>
                                 Amount: {payoutData?.amount} {payoutData?.currency}
                             </div>
