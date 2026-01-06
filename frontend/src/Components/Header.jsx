@@ -106,17 +106,19 @@ export default function Header() {
 
     return (
         <>
-            <header className='flex items-center bg-background justify-between px-32 pt-8 w-full absolute top-0 left-0 z-[2.3]'>
+            <header className='flex items-center bg-background justify-between px-32 pt-8 w-full absolute top-0 left-0 z-10'>
                 <div>
-                    <img src={contractorzLogo} alt="Logo" width={160} height={0} />
+                    <Link to="/">
+                        <img src={contractorzLogo} alt="Logo" width={170} height={0} />
+                    </Link>
                 </div>
                 <nav className='flex items-center gap-10 font-medium'>
-                    <a href="#">Home</a>
-                    <a href="#">About</a>
-                    <a href="#">Product</a>
-                    <a href="#">Industries</a>
-                    <a href="#">Resources</a>
-                    <a href="#">Prices</a>
+                    <Link to="/" className='active'>Home</Link>
+                    <Link to="#">About</Link>
+                    <Link to="#">Product</Link>
+                    <Link to="#">Industries</Link>
+                    <Link to="#">Resources</Link>
+                    <Link to="#">Prices</Link>
                 </nav>
                 <div className="hidden items-center gap-3 md:flex">
                     {loading ? (
@@ -124,13 +126,7 @@ export default function Header() {
                     ) : !token || !user ? (
                         <>
                             <Link
-                                className="rounded-lg border border-accent px-4 py-2 text-accent transition hover:bg-accent hover:text-white"
-                                to="/register"
-                            >
-                                Start Free Trial
-                            </Link>
-                            <Link
-                                className="rounded-lg bg-accent px-4 py-2 text-white transition hover:bg-accentLight"
+                                className="primary"
                                 to="/sign-in"
                             >
                                 Login
