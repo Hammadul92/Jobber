@@ -4,7 +4,7 @@ import Testimonials from "../Components/Testimonials";
 import Industries from "../Components/Industries";
 import PricingPlans from "../Components/PricingPlans";
 import FAQSection from "../Components/FAQSection";
-// import CTASection from "../Components/CTASection";
+import CTASection from "../Components/CTASection";
 
 
 export default function Home() {
@@ -16,7 +16,7 @@ export default function Home() {
       <Industries />
       <PricingPlans />
       <FAQSection />
-      {/* <CTASection /> */}
+      <CTASection />
     </>
   );
 }
