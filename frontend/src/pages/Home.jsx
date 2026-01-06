@@ -1,7 +1,7 @@
-import cleaning_image from './images/cleaning.png';
-import landscaping_image from './images/landscaping.png';
-import plumbing_image from './images/plumbing.png';
-import construction_image from './images/construction.png';
+import cleaning_image from '../components/images/cleaning.png';
+import landscaping_image from '../components/images/landscaping.png';
+import plumbing_image from '../components/images/plumbing.png';
+import construction_image from '../components/images/construction.png';
 
 export default function Home() {
     return (

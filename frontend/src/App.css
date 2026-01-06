@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'MODERNIZ';
+  src: url('@/fonts/Moderniz.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Theme */
+@theme {
+  --color-primary: #171717;
+  /* Black text */
+  --color-accent: #FF7A00;
+  /* Orange accent */
+  --color-accentLight: #ff8b00;
+  /* Lighter orange for hover effect */
+  --color-secondary: #09355D;
+  /* Blue accent */
+  --color-background: #F5F7F9;
+  /* Main background */
+  --color-card: #131317;
+  --color-cardLight: #22242F;
+  /* Card background (testimonial) */
+  --color-muted: #F2F2F2;
+  /* Muted background (section) */
+  --font-heading: 'MODERNIZ', sans-serif;
+  --font-sans: 'Inter', Arial, Helvetica, sans-serif;
+  --font-intro: 'Open Sans', sans-serif;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+.primary {
+  @apply px-8 py-3 bg-accent rounded-lg text-white font-bold cursor-pointer hover:bg-accentLight transition-colors duration-300;
+}
+
+
+.secondary {
+  @apply px-8 py-3 rounded-full text-accent border-2 border-accent font-bold cursor-pointer hover:bg-accentLight transition-colors duration-300;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.section-intro,
+.main-heading-intro {
+  font-family: var(--font-intro);
+}
