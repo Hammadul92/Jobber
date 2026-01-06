@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
     useFetchUserQuery,
@@ -23,6 +23,7 @@ export default function Header() {
     // const [isOpen, setIsOpen] = useState(false);
     const [showOffcanvas, setShowOffcanvas] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
     const token = localStorage.getItem('token');
 
@@ -52,6 +53,27 @@ export default function Header() {
 
     const business = businesses?.[0] ?? null;
     const loading = isFetchingUser || isFetchingBusiness;
+
+    const scrollToPricing = () => {
+        const pricingSection = document.getElementById('pricingPlans');
+        if (pricingSection) {
+            pricingSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    const handlePricingClick = (event) => {
+        event.preventDefault();
+
+        const isHome = location.pathname === '/';
+
+        if (!isHome) {
+            navigate('/');
+            setTimeout(scrollToPricing, 150);
+            return;
+        }
+
+        scrollToPricing();
+    };
 
     const renderLink = (to, icon, label) => (
         <li className="flex items-center justify-between py-3 px-4 border-b border-gray-200 last:border-none">
@@ -114,11 +136,16 @@ export default function Header() {
                 </div>
                 <nav className='flex items-center gap-10 font-medium'>
                     <Link to="/" className='active'>Home</Link>
-                    <Link to="#">About</Link>
-                    <Link to="#">Product</Link>
-                    <Link to="#">Industries</Link>
-                    <Link to="#">Resources</Link>
-                    <Link to="#">Prices</Link>
+                    <Link to="/about">About</Link>
+                    <Link to="/product">Product</Link>
+                    <Link to="/industries">Industries</Link>
+                    <Link to="/resources">Resources</Link>
+                    <Link
+                        to="/"
+                        onClick={handlePricingClick}
+                    >
+                        Prices
+                    </Link>
                 </nav>
                 <div className="hidden items-center gap-3 md:flex">
                     {loading ? (

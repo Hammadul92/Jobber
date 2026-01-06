@@ -37,7 +37,7 @@ function PricingPlans() {
     const [billing, setBilling] = useState('monthly')
 
     return (
-        <section className='w-full min-h-screen px-32 py-28 bg-background'>
+        <section id='pricingPlans' className='w-full min-h-screen px-32 py-28 bg-background'>
             <div>
                 <h2 className='font-heading text-2xl text-secondary max-w-lg mx-auto text-center'>
                     Choose the plan that&apos;s right for you

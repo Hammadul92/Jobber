@@ -7,6 +7,16 @@ import Navbar from './Components/Header';
 import Footer from './Components/Footer';
 import PageNotFound from './Components/PageNotFound';
 import Home from './pages/Home';
+import About from './pages/About';
+import Product from './pages/Product';
+import Industries from './pages/Industries';
+import Resources from './pages/Resources';
+import Services from './pages/Services';
+import Team from './pages/Team';
+import CustomerSupport from './pages/CustomerSupport';
+import TermsAndConditions from './pages/TermsAndConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import ContactUs from './pages/ContactUs';
 
 import SignIn from './Components/Forms/SignIn';
 import Register from './Components/Forms/Register';
@@ -53,6 +63,18 @@ function MainApp() {
                 <Routes>
                     {/* Public routes */}
                     <Route path="/" element={<Home />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/product" element={<Product />} />
+                    <Route path="/industries" element={<Industries />} />
+                    <Route path="/resources" element={<Resources />} />
+                    <Route path="/services" element={<Services />} />
+                    <Route path="/team" element={<Team />} />
+                    <Route path="/customer-support" element={<CustomerSupport />} />
+                    <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/contact-us" element={<ContactUs />} />
+                    
+                    {/* Authentication routes */}
                     <Route path="/sign-in" element={<SignIn />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />

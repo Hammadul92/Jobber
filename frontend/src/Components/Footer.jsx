@@ -1,8 +1,32 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaFacebookF, FaTwitter, FaGoogle } from 'react-icons/fa';
 import '../App.css';
 
 export default function Footer() {
+    const navigate = useNavigate();
+
+    const scrollToPricing = () => {
+        const pricingSection = document.getElementById('pricingPlans');
+        if (pricingSection) {
+            pricingSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    const handlePricingClick = (event) => {
+        event.preventDefault();
+
+        const isHome = location.pathname === '/';
+
+        if (!isHome) {
+            navigate('/');
+            setTimeout(scrollToPricing, 150);
+            return;
+        }
+
+        scrollToPricing();
+    };
+
+
     return (
         <>
             <footer className="px-32 py-18 bg-secondary text-white">
@@ -29,7 +53,7 @@ export default function Footer() {
                             <Link to="/team" className="text-white/70 hover:text-white">
                                 Team
                             </Link>
-                            <Link to="/prices" className="text-white/70 hover:text-white">
+                            <Link to="/" onClick={handlePricingClick} className="text-white/70 hover:text-white">
                                 Prices
                             </Link>
                         </div>
@@ -38,16 +62,16 @@ export default function Footer() {
                     <div>
                         <h4 className="font-sans text-2xl font-medium">Help</h4>
                         <div className="flex flex-col items-start gap-3 mt-5">
-                            <Link to="/" className="text-white/70 hover:text-white">
+                            <Link to="/customer-support" className="text-white/70 hover:text-white">
                                 Customer Support
                             </Link>
-                            <Link to="/" className="text-white/70 hover:text-white">
+                            <Link to="/terms-and-conditions" className="text-white/70 hover:text-white">
                                 Terms & Conditions
                             </Link>
-                            <Link to="/" className="text-white/70 hover:text-white">
+                            <Link to="/privacy-policy" className="text-white/70 hover:text-white">
                                 Privacy Policy
                             </Link>
-                            <Link to="/" className="text-white/70 hover:text-white">
+                            <Link to="/contact-us" className="text-white/70 hover:text-white">
                                 Contact Us
                             </Link>
                         </div>
