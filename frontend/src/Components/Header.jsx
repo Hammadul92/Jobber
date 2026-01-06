@@ -126,6 +126,11 @@ export default function Header() {
         EMPLOYEE: employeeMenu,
     };
 
+    const linkClass = (path) => {
+        const isActive = location.pathname === path;
+        return `hover:text-accent ${isActive ? 'font-bold text-secondary' : ''}`.trim();
+    };
+
     return (
         <>
             <header className='flex items-center bg-background justify-between px-32 pt-8 w-full absolute top-0 left-0 z-10'>
@@ -135,14 +140,15 @@ export default function Header() {
                     </Link>
                 </div>
                 <nav className='flex items-center gap-10 font-medium'>
-                    <Link to="/" className='active'>Home</Link>
-                    <Link to="/about">About</Link>
-                    <Link to="/product">Product</Link>
-                    <Link to="/industries">Industries</Link>
-                    <Link to="/resources">Resources</Link>
+                    <Link to="/" className={linkClass('/')}>Home</Link>
+                    <Link to="/about" className={linkClass('/about')}>About</Link>
+                    <Link to="/product" className={linkClass('/product')}>Product</Link>
+                    <Link to="/industries" className={linkClass('/industries')}>Industries</Link>
+                    <Link to="/resources" className={linkClass('/resources')}>Resources</Link>
                     <Link
                         to="/"
                         onClick={handlePricingClick}
+                        className={linkClass('/')}
                     >
                         Prices
                     </Link>
