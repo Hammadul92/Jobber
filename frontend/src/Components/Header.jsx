@@ -148,7 +148,6 @@ export default function Header() {
                     <Link
                         to="/"
                         onClick={handlePricingClick}
-                        className={linkClass('/')}
                     >
                         Prices
                     </Link>

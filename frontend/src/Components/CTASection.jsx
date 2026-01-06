@@ -1,4 +1,5 @@
 import { FaArrowRight } from 'react-icons/fa6';
+import { Link } from 'react-router-dom';
 
 function CTASection() {
     return (
@@ -9,9 +10,9 @@ function CTASection() {
                     Whether you&apos;re a freelancer, a team, or a growing agency—our tools
                     adapt to your workflow. Design faster. Deliver better.
                 </p>
-                <button className='primary'>
+                <Link to="/register" className='primary'>
                     Get Started <FaArrowRight className='ml-2 inline-block' size={22} />
-                </button>
+                </Link>
             </div>
         </section>
     )
