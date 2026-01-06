@@ -2,7 +2,7 @@
 // import FAQSection from "../Components/FAQSection";
 import Hero from "../Components/Hero";
 import Industries from "../Components/Industries";
-// import PricingPlans from "../Components/PricingPlans";
+import PricingPlans from "../Components/PricingPlans";
 import Testimonials from "../Components/Testimonials";
 import TrustedCompanies from "../Components/TrustedCompanies";
 
@@ -14,8 +14,8 @@ export default function Home() {
       <TrustedCompanies />
       <Testimonials />
       <Industries />
-      {/* <PricingPlans />
-      <FAQSection />
+      <PricingPlans />
+      {/* <FAQSection />
       <CTASection /> */}
     </>
   );
