@@ -1,15 +1,6 @@
 import React from 'react'
 
-interface Props {
-    title: string;
-    content: string;
-    userName: string;
-    userRole: string;
-    userImage: string;
-    light?: false | true;
-}
-
-function TestimonialCard({ title, content, userName, userRole, userImage, light }: Props) {
+function TestimonialCard({ title, content, userName, userRole, userImage, light }) {
     return (
         <div className={`${!light ? 'bg-card' : 'bg-cardLight'} p-6 rounded-3xl shadow-md`}>
             {/* Testimonial Card Content */}

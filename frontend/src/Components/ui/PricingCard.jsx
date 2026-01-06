@@ -2,18 +2,8 @@ import React from 'react'
 import { IoCheckmarkCircle, IoCheckmarkCircleOutline } from "react-icons/io5";
 import { IoIosArrowForward } from "react-icons/io";
 
-type Plan = {
-    id: string
-    name: string
-    description?: string
-    monthly: number
-    yearly: number
-    discountPct?: number
-    features: string[]
-    featured?: boolean
-}
 
-export default function PricingCard({ plan, billing }: { plan: Plan; billing: 'monthly' | 'yearly' }) {
+export default function PricingCard({ plan, billing }) {
     const price = billing === 'monthly' ? plan.monthly : plan.yearly
     return (
         <div className={`rounded-2xl px-14 py-8 shadow-md relative ${plan.featured ? 'scale-105 border-4 border-accent z-10' : ''}`} style={{ backgroundColor: 'var(--color-card)', borderColor: plan.featured ? 'var(--color-accent)' : 'transparent' }}>

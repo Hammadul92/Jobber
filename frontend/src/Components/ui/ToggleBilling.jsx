@@ -1,12 +1,6 @@
-"use client"
 import React from 'react'
 
-type Props = {
-  value?: 'monthly' | 'yearly'
-  onChange?: (v: 'monthly' | 'yearly') => void
-}
-
-export default function ToggleBilling({ value = 'monthly', onChange }: Props) {
+export default function ToggleBilling({ value = 'monthly', onChange }) {
   const isMonthly = value === 'monthly'
 
   return (
