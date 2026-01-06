@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: 'MODERNIZ';
-  src: url('@/fonts/Moderniz.otf') format('opentype');
+  src: url('../public/fonts/Moderniz.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }

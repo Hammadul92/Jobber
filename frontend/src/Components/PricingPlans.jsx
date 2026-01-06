@@ -34,7 +34,7 @@ const plans = [
 ]
 
 function PricingPlans() {
-    const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
+    const [billing, setBilling] = useState('monthly')
 
     return (
         <section className='w-full min-h-screen px-32 py-28 bg-background'>
