@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetchServicesQuery, useDeleteServiceMutation } from '../../../../../store';
-import SubmitButton from '../../../../../utils/SubmitButton';
-import { countries, provinces } from '../../../../../utils/locations';
+import SubmitButton from '../../../../ui/SubmitButton';
+import { countries, provinces } from '../../../../../constants/locations';
 import { formatDate } from '../../../../../utils/formatDate';
-import Select from '../../../../../utils/Select';
+import Select from '../../../../ui/Select';
 
 export default function ClientServicesData({ token, role, clientId, setAlert }) {
     const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();

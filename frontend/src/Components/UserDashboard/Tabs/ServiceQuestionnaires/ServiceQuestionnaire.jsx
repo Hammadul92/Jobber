@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useFetchServiceQuestionnaireQuery, useUpdateServiceQuestionnaireMutation } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
-import Select from '../../../../utils/Select';
+import SubmitButton from '../../../ui/SubmitButton';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
+import Select from '../../../ui/Select';
 
 export default function EditServiceQuestionnairesForm({ token, business }) {
     const { id } = useParams();

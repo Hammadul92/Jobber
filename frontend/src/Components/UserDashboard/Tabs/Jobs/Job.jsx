@@ -8,12 +8,12 @@ import {
     useCreateJobPhotoMutation,
     useFetchServiceQuery,
 } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import SubmitButton from '../../../ui/SubmitButton';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
-import Select from '../../../../utils/Select';
+import Select from '../../../ui/Select';
 
-import Input from '../../../../utils/Input';
+import Input from '../../../ui/Input';
 
 export default function Job({ token, role }) {
     const { id } = useParams();

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { provinces, countries } from '../../utils/locations';
+import { provinces, countries } from '../../constants/locations';
 import { useFetchBusinessesQuery, useCreateBusinessMutation, useUpdateBusinessMutation } from '../../store';
-import SubmitButton from '../../utils/SubmitButton';
-import Input from '../../utils/Input';
-import Select from '../../utils/Select';
+import SubmitButton from '../ui/SubmitButton';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
 
 export default function Business({ token, setAlert }) {
     const [step, setStep] = useState(1);

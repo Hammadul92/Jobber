@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetchPayoutQuery, useRefundPayoutMutation } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
-import Input from '../../../../utils/Input';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import SubmitButton from '../../../ui/SubmitButton';
+import Input from '../../../ui/Input';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
 
 export default function Payout({ token, role, business }) {

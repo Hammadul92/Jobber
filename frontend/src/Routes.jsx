@@ -18,10 +18,10 @@ import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ContactUs from './pages/ContactUs';
 
-import SignIn from './Components/Forms/SignIn';
-import Register from './Components/Forms/Register';
-import ForgotPassword from './Components/Forms/ForgotPassword';
-import ResetPassword from './Components/Forms/ResetPassword';
+import SignIn from './forms/SignIn';
+import Register from './forms/Register';
+import ForgotPassword from './forms/ForgotPassword';
+import ResetPassword from './forms/ResetPassword';
 import UserAccount from './Components/UserAccount';
 import UserDashboard from './Components/UserDashboard';
 

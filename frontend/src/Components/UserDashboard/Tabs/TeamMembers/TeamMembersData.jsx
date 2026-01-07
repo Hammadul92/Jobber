@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetchTeamMembersQuery, useDeleteTeamMemberMutation } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
+import SubmitButton from '../../../ui/SubmitButton';
 
 export default function TeamMembersData({ token, setAlert }) {
     const [showModal, setShowModal] = useState(false);

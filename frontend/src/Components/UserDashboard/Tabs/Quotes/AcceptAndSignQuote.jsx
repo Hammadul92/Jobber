@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import SignaturePad from 'react-signature-pad-wrapper';
-import SubmitButton from '../../../../utils/SubmitButton';
+import SubmitButton from '../../../ui/SubmitButton';
 
 export default function AcceptAndSignQuote({ setShowSignModal, handleSignSubmit, signing }) {
     const [signatureData, setSignatureData] = useState(null);

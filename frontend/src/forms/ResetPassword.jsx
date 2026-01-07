@@ -1,22 +1,16 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useCreateUserMutation } from '../../store';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useResetPasswordMutation } from '../../store';
+import SubmitButton from '../ui/SubmitButton';
 
-import SubmitButton from '../../utils/SubmitButton';
-import Input from '../../utils/Input';
+export default function ResetPassword() {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get('token');
 
-export default function Register() {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [alert, setAlert] = useState(null);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-    const [agreeTerms, setAgreeTerms] = useState(false);
-    const [agreeOffers, setAgreeOffers] = useState(false);
 
     const [passwordRules, setPasswordRules] = useState({
         length: false,
@@ -25,7 +19,10 @@ export default function Register() {
         special: false,
     });
 
-    const [createUser, { isLoading, error }] = useCreateUserMutation();
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const [resetPassword, { isLoading, error }] = useResetPasswordMutation();
 
     const checkPasswordRules = (pwd) => {
         const rules = {
@@ -42,8 +39,8 @@ export default function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!agreeTerms) {
-            setAlert({ type: 'danger', message: 'You must agree to the Terms & Conditions to register.' });
+        if (!token) {
+            setAlert({ type: 'danger', message: 'Invalid or missing reset token!' });
             return;
         }
 
@@ -53,69 +50,62 @@ export default function Register() {
         }
 
         if (!isStrongPassword) {
-            setAlert({
-                type: 'danger',
-                message: 'Password does not meet all requirements!',
-            });
+            setAlert({ type: 'danger', message: 'Password does not meet all requirements!' });
             return;
         }
 
         try {
-            await createUser({ name, email, phone, password, agreeOffers }).unwrap();
-
+            await resetPassword({ token, password }).unwrap();
             setAlert({
                 type: 'success',
-                message: 'Account created! Please check your email to confirm.',
+                message: 'Password reset successfully! Redirecting to sign in...',
             });
 
-            setName('');
-            setEmail('');
-            setPhone('');
-            setPassword('');
-            setConfirmPassword('');
-            setAgreeTerms(false);
-            setAgreeOffers(false);
-            setPasswordRules({
-                length: false,
-                uppercase: false,
-                number: false,
-                special: false,
-            });
+            setTimeout(() => navigate('/sign-in'), 2000);
         } catch (err) {
-            console.error('Registration failed:', err);
+            console.error('Password reset failed:', err);
         }
     };
 
     return (
         <div className="container my-5">
-            <h2 className="text-center mb-3 fw-bold">Create Your Account</h2>
+            <h2 className="text-center mb-3 fw-bold">Reset Your Password</h2>
 
             <div className="row justify-content-center">
+                {/* Left: Password Rules */}
                 <div className="col-md-5 mb-4">
                     <div className="h-100">
                         <h5 className="fw-bold mb-3">Password Requirements</h5>
                         <ul className="list-unstyled fs-6">
                             <li className={`mb-2 ${passwordRules.length ? 'text-success' : 'text-secondary'}`}>
                                 <i
-                                    className={`fa ${passwordRules.length ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
+                                    className={`fa ${
+                                        passwordRules.length ? 'fa-check-circle' : 'fa-times-circle'
+                                    } me-2`}
                                 ></i>
                                 At least 8 characters long
                             </li>
                             <li className={`mb-2 ${passwordRules.uppercase ? 'text-success' : 'text-secondary'}`}>
                                 <i
-                                    className={`fa ${passwordRules.uppercase ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
+                                    className={`fa ${
+                                        passwordRules.uppercase ? 'fa-check-circle' : 'fa-times-circle'
+                                    } me-2`}
                                 ></i>
                                 Contains at least one uppercase letter
                             </li>
                             <li className={`mb-2 ${passwordRules.number ? 'text-success' : 'text-secondary'}`}>
                                 <i
-                                    className={`fa ${passwordRules.number ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
+                                    className={`fa ${
+                                        passwordRules.number ? 'fa-check-circle' : 'fa-times-circle'
+                                    } me-2`}
                                 ></i>
                                 Contains at least one number
                             </li>
                             <li className={`mb-2 ${passwordRules.special ? 'text-success' : 'text-secondary'}`}>
                                 <i
-                                    className={`fa ${passwordRules.special ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
+                                    className={`fa ${
+                                        passwordRules.special ? 'fa-check-circle' : 'fa-times-circle'
+                                    } me-2`}
                                 ></i>
                                 Contains at least one special character
                             </li>
@@ -126,7 +116,7 @@ export default function Register() {
                     </div>
                 </div>
 
-                {/* Registration Form */}
+                {/* Right: Reset Form */}
                 <div className="col-md-5">
                     <form onSubmit={handleSubmit}>
                         {alert && (
@@ -136,46 +126,14 @@ export default function Register() {
                         )}
                         {error && (
                             <div className="alert alert-danger" role="alert">
-                                {error?.data?.message || 'Registration failed. Please try again.'}
+                                {error?.data?.detail || 'Password reset failed. Please try again.'}
                             </div>
                         )}
 
-                        {/* Name */}
-                        <Input
-                            id="name"
-                            label={'Full Name'}
-                            value={name}
-                            isRequired={true}
-                            onChange={setName}
-                            fieldClass={'form-control form-control-lg'}
-                        />
-
-                        {/* Email */}
-                        <Input
-                            type="email"
-                            id="email"
-                            label={'Email'}
-                            value={email}
-                            isRequired={true}
-                            onChange={setEmail}
-                            fieldClass={'form-control form-control-lg'}
-                        />
-
-                        {/* Phone */}
-                        <Input
-                            id="phone"
-                            type="tel"
-                            label={'Phone'}
-                            value={phone}
-                            isRequired={true}
-                            onChange={setPhone}
-                            fieldClass={'form-control form-control-lg'}
-                        />
-
-                        {/* Password */}
+                        {/* New Password */}
                         <div className="mb-3">
                             <label htmlFor="password" className="form-label fw-bold">
-                                Password <sup className="text-danger small">(*)</sup>
+                                New Password <sup className="text-danger small">(*)</sup>
                             </label>
                             <div className="input-group">
                                 <input
@@ -203,7 +161,7 @@ export default function Register() {
                         {/* Confirm Password */}
                         <div className="mb-3">
                             <label htmlFor="confirmPassword" className="form-label fw-bold">
-                                Confirm Password <sup className="text-danger small">(*)</sup>
+                                Confirm New Password <sup className="text-danger small">(*)</sup>
                             </label>
                             <div className="input-group">
                                 <input
@@ -225,51 +183,17 @@ export default function Register() {
                             </div>
                         </div>
 
-                        {/* Checkboxes */}
-                        <div className="form-check mb-2">
-                            <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id="agreeTerms"
-                                checked={agreeTerms}
-                                onChange={(e) => setAgreeTerms(e.target.checked)}
-                                required
-                            />
-                            <label className="form-check-label" htmlFor="agreeTerms">
-                                I agree to the{' '}
-                                <Link to="/terms" className="text-success text-decoration-none fw-semibold">
-                                    Terms & Conditions
-                                </Link>
-                                .
-                            </label>
-                        </div>
-
-                        <div className="form-check mb-3">
-                            <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id="agreeOffers"
-                                checked={agreeOffers}
-                                onChange={(e) => setAgreeOffers(e.target.checked)}
-                            />
-                            <label className="form-check-label" htmlFor="agreeOffers">
-                                I agree to receive regular emails with offers and updates.
-                            </label>
-                        </div>
-
-                        {/* Submit */}
                         <div className="text-center mb-3">
                             <SubmitButton
                                 isLoading={isLoading}
                                 btnClass="btn btn-success btn-lg w-100"
-                                btnName="Register"
+                                btnName="Reset Password"
                                 isDisabled={!isStrongPassword}
                             />
                         </div>
 
-                        {/* Sign In link */}
                         <p className="text-center">
-                            Already have an account?{' '}
+                            Remember your password?{' '}
                             <Link to="/sign-in" className="text-success text-decoration-none fw-semibold">
                                 Sign In
                             </Link>

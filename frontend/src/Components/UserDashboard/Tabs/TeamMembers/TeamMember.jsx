@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetchTeamMemberQuery, useUpdateTeamMemberMutation } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
-import Input from '../../../../utils/Input';
+import SubmitButton from '../../../ui/SubmitButton';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
+import Input from '../../../ui/Input';
 
 export default function TeamMember({ token, business }) {
     const { id } = useParams();

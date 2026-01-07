@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetchJobsQuery, useDeleteJobMutation } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
+import SubmitButton from '../../../ui/SubmitButton';
 import { formatDate } from '../../../../utils/formatDate';
-import Input from '../../../../utils/Input';
-import Select from '../../../../utils/Select';
+import Input from '../../../ui/Input';
+import Select from '../../../ui/Select';
 
 export default function JobData({ token, role, setAlert }) {
     const [deleteJob, { isLoading: deleting }] = useDeleteJobMutation();

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PayoutDatatable from './PayoutDatatable';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 
 export default function Payouts({ token, role, business }) {
     const [alert, setAlert] = useState({ type: '', message: '' });

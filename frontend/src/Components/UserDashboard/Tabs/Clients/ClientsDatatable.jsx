@@ -10,8 +10,8 @@ import {
     IntegratedPaging,
 } from '@devexpress/dx-react-grid';
 import { useFetchClientsQuery, useDeleteClientMutation } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import SubmitButton from '../../../ui/SubmitButton';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 
 export default function ClientsDatatable({ token }) {
     const [rows, setRows] = useState([]);

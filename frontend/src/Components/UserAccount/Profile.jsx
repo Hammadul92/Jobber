@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useUpdateUserMutation, useFetchUserQuery } from '../../store';
-import SubmitButton from '../../utils/SubmitButton';
+import SubmitButton from '../ui/SubmitButton';
 import { formatDate } from '../../utils/formatDate';
-import Input from '../../utils/Input';
+import Input from '../ui/Input';
 
 export default function Profile({ token, setAlert }) {
     const { data: user, isFetching, refetch } = useFetchUserQuery(undefined, { skip: !token });

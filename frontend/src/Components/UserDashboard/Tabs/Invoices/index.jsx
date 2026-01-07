@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import CreateInvoiceForm from './CreateInvoiceForm';
 import InvoiceDatatable from './InvoiceDatatable';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 
 export default function Invoices({ token, role, business }) {
     const [showModal, setShowModal] = useState(false);

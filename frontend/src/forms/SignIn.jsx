@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useSigninUserMutation, useFetchUserQuery, useVerifyEmailQuery } from '../../store';
-import SubmitButton from '../../utils/SubmitButton';
-import Input from '../../utils/Input';
+import { useSigninUserMutation, useFetchUserQuery, useVerifyEmailQuery } from '../store';
+import SubmitButton from '../Components/ui/SubmitButton';
+import Input from '../Components/ui/Input';
 
 export default function SignIn() {
     const navigate = useNavigate();

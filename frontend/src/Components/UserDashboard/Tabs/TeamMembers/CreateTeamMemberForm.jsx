@@ -5,9 +5,9 @@ import {
     useCheckUserExistsMutation,
     useFetchBusinessesQuery,
 } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
-import Input from '../../../../utils/Input';
-import Select from '../../../../utils/Select';
+import SubmitButton from '../../../ui/SubmitButton';
+import Input from '../../../ui/Input';
+import Select from '../../../ui/Select';
 
 function generateStrongPassword(length = 12) {
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?';

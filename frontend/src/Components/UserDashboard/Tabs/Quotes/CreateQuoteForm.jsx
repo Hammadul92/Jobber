@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useFetchQuotesQuery, useFetchServicesQuery, useCreateQuoteMutation } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
-import Select from '../../../../utils/Select';
-import Input from '../../../../utils/Input';
+import SubmitButton from '../../../ui/SubmitButton';
+import Select from '../../../ui/Select';
+import Input from '../../../ui/Input';
 
 export default function CreateQuoteForm({ token, showModal, setShowModal, setAlert }) {
     const [serviceId, setServiceId] = useState('');

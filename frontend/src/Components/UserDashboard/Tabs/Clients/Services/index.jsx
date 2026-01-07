@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import CreateClientServiceForm from './CreateClientServiceForm';
 import { useFetchClientQuery, useFetchBusinessQuery } from '../../../../../store';
 import ClientServicesData from './ClientServicesData';
-import AlertDispatcher from '../../../../../utils/AlertDispatcher';
+import AlertDispatcher from '../../../../ui/AlertDispatcher';
 
 export default function ClientServices({ token, role }) {
     const { id: clientId } = useParams();

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
-import AlertDispatcher from '../../utils/AlertDispatcher';
+import AlertDispatcher from '../ui/AlertDispatcher';
 import Profile from './Profile';
 import Business from './Business';
 import Credentials from './Credentials';

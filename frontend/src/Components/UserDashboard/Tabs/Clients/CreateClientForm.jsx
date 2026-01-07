@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useCreateUserMutation, useCreateClientMutation, useCheckUserExistsMutation } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
-import Input from '../../../../utils/Input';
+import SubmitButton from '../../../ui/SubmitButton';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
+import Input from '../../../ui/Input';
 
 function generateStrongPassword(length = 12) {
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?';

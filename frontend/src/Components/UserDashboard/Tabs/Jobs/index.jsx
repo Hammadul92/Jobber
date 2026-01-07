@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import CreateJobForm from './CreateJobForm';
 import JobData from './JobData';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 
 export default function Jobs({ token, role, business }) {
     const [showModal, setShowModal] = useState(false);

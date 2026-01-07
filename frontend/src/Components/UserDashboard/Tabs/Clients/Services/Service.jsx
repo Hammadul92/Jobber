@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useFetchServiceQuery, useUpdateServiceMutation } from '../../../../../store';
-import SubmitButton from '../../../../../utils/SubmitButton';
-import AlertDispatcher from '../../../../../utils/AlertDispatcher';
-import Select from '../../../../../utils/Select';
-import Input from '../../../../../utils/Input';
-import { countries, provinces } from '../../../../../utils/locations';
+import SubmitButton from '../../../../ui/SubmitButton';
+import AlertDispatcher from '../../../../ui/AlertDispatcher';
+import Select from '../../../../ui/Select';
+import Input from '../../../../ui/Input';
+import { countries, provinces } from '../../../../../constants/locations';
 
 export default function Service({ token, business }) {
     const { id } = useParams();

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useUpdateUserMutation } from '../../store';
-import SubmitButton from '../../utils/SubmitButton';
+import SubmitButton from '../ui/SubmitButton';
 
 export default function Credentials({ setAlert }) {
     const [newPassword, setNewPassword] = useState('');

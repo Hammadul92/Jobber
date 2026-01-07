@@ -1,5 +1,5 @@
 import { useAddBankAccountMutation } from '../../store';
-import SubmitButton from '../../utils/SubmitButton';
+import SubmitButton from '../ui/SubmitButton';
 
 export default function StripeOnboardingButton({ setAlert }) {
     const [addBankAccount, { isLoading }] = useAddBankAccountMutation();

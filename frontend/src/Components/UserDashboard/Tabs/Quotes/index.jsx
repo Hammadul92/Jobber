@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import CreateQuoteForm from './CreateQuoteForm';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 import QuotesData from './QuotesData';
 
 export default function Quotes({ token, role, business }) {

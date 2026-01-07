@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useCreateServiceMutation } from '../../../../../store';
-import SubmitButton from '../../../../../utils/SubmitButton';
-import { countries, provinces } from '../../../../../utils/locations';
-import Select from '../../../../../utils/Select';
-import Input from '../../../../../utils/Input';
+import SubmitButton from '../../../../ui/SubmitButton';
+import { countries, provinces } from '../../../../../constants/locations';
+import Select from '../../../../ui/Select';
+import Input from '../../../../ui/Input';
 
 export default function CreateClientServiceForm({
     showModal,

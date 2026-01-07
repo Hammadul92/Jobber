@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import CreateClientForm from './CreateClientForm';
 import DataTable from './ClientsDatatable';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 
 export default function Clients({ token, business }) {
     const [showModal, setShowModal] = useState(false);

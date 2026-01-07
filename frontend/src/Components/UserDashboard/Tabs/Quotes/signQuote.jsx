@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetchQuoteQuery, useSignQuoteMutation } from '../../../../store';
 import AcceptAndSignQuote from './AcceptAndSignQuote';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
 
 export default function SignQuote({ token }) {

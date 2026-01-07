@@ -1,7 +1,7 @@
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { useState } from 'react';
 import { useCreateSetupIntentMutation, useSavePaymentMethodMutation } from '../../store';
-import SubmitButton from '../../utils/SubmitButton';
+import SubmitButton from '../ui/SubmitButton';
 
 export default function StripeCardForm({ onSuccess, setAlert }) {
     const stripe = useStripe();

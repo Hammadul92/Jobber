@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useRequestPasswordResetMutation } from '../../store';
 
-import SubmitButton from '../../utils/SubmitButton';
-import Input from '../../utils/Input';
+import SubmitButton from '../ui/SubmitButton';
+import Input from '../ui/Input';
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');

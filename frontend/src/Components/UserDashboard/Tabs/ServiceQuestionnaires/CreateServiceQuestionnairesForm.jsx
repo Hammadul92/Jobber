@@ -4,8 +4,8 @@ import {
     useCreateServiceQuestionnaireMutation,
     useFetchBusinessesQuery,
 } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
-import Select from '../../../../utils/Select';
+import SubmitButton from '../../../ui/SubmitButton';
+import Select from '../../../ui/Select';
 
 export default function CreateServiceQuestionnairesForm({ token, showModal, setShowModal, setAlert }) {
     const [serviceName, setServiceName] = useState('');

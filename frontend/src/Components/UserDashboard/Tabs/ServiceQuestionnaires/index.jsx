@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import CreateServiceQuestionnairesForm from './CreateServiceQuestionnairesForm';
 import ServiceQuestionnairesData from './ServiceQuestionnairesData';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 
 export default function Questionnaires({ token, business }) {
     const [showModal, setShowModal] = useState(false);

@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import Select from '../../../../utils/Select';
+import Select from '../../../ui/Select';
 import { Link } from 'react-router-dom';
 import { useFetchQuotesQuery, useDeleteQuoteMutation } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
+import SubmitButton from '../../../ui/SubmitButton';
 import { formatDate } from '../../../../utils/formatDate';
 
 export default function QuotesData({ token, role, setAlert }) {

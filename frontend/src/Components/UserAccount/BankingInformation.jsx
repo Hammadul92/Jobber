@@ -10,7 +10,7 @@ import {
     useCheckBankAccountMutation,
     useUpdateBankingInformationMutation,
 } from '../../store';
-import SubmitButton from '../../utils/SubmitButton';
+import SubmitButton from '../ui/SubmitButton';
 
 const stripePromise = loadStripe(
     'pk_test_51SLr7cRuypPIYSuTPWUFePiiEIVEbhvXQVRYQD75FQgO9Xoc3GwzezuEGBwV7Dgxy2l5r2MY3bXgc3Ou4DkbmNeJ0085c8HpC8'

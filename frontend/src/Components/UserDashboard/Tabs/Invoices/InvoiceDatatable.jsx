@@ -10,8 +10,8 @@ import {
     IntegratedPaging,
 } from '@devexpress/dx-react-grid';
 import { useFetchInvoicesQuery, useDeleteInvoiceMutation } from '../../../../store';
-import SubmitButton from '../../../../utils/SubmitButton';
-import AlertDispatcher from '../../../../utils/AlertDispatcher';
+import SubmitButton from '../../../ui/SubmitButton';
+import AlertDispatcher from '../../../ui/AlertDispatcher';
 import { formatDate } from '../../../../utils/formatDate';
 
 export default function InvoiceDatatable({ token, role }) {
