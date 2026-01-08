@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSigninUserMutation, useFetchUserQuery, useVerifyEmailQuery } from '../store';
 import SubmitButton from '../Components/ui/SubmitButton';
 import Input from '../Components/ui/Input';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function SignIn() {
     const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function SignIn() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const [signinUser, { isLoading: signinLoading, error: signinError, isSuccess: signinSuccess }] =
+    const [signinUser, { isLoading: signinLoading, error: signinError }] =
         useSigninUserMutation();
 
     const { data: userData, isSuccess: userFetched } = useFetchUserQuery(undefined, {
@@ -45,27 +46,36 @@ export default function SignIn() {
     };
 
     return (
-        <div className="my-5 container">
-            <h2 className="text-center mb-3 fw-bold">Sign In</h2>
+        <section className="min-h-screen w-full p-32 flex flex-col items-center justify-center">
+            <div className="max-w-4xl mx-auto text-center">
+                <h2 className="text-3xl sm:text-4xl font-heading font-bold text-secondary mb-3">Sign In</h2>
+                <p className="text-gray-600">Access your workspace and keep your projects moving.</p>
+            </div>
 
             {token && (
-                <div className="mb-4 col-md-4 offset-md-4">
-                    {verifying && <div className="alert alert-info text-center">Verifying your email...</div>}
+                <div className="max-w-xl mx-auto mt-6">
+                    {verifying && (
+                        <div className="rounded-xl border border-blue-200 bg-blue-50 text-blue-700 px-4 py-3 text-center text-sm font-medium">
+                            Verifying your email...
+                        </div>
+                    )}
                     {!verifying && verifyData?.detail && (
-                        <div className="alert alert-success text-center">{verifyData.detail}</div>
+                        <div className="rounded-xl border border-green-200 bg-green-50 text-green-700 px-4 py-3 text-center text-sm font-medium">
+                            {verifyData.detail}
+                        </div>
                     )}
                     {verifyError && (
-                        <div className="alert alert-danger text-center">
+                        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-center text-sm font-medium">
                             {verifyErrorObj?.data?.detail || 'Email verification failed.'}
                         </div>
                     )}
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="row">
-                <div className="col-md-4 offset-md-4">
+            <form onSubmit={handleSubmit} className="mt-10 w-7xl flex justify-center">
+                <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100">
                     {signinError && (
-                        <div className="alert alert-danger text-center">
+                        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-center text-sm font-medium">
                             {signinError?.data?.detail || 'Invalid credentials'}
                         </div>
                     )}
@@ -78,55 +88,55 @@ export default function SignIn() {
                         value={email}
                         isRequired={true}
                         onChange={setEmail}
-                        fieldClass={'form-control form-control-lg'}
+                        fieldClass={'w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:outline-none focus:ring focus:ring-accent focus:border-accent transition bg-white'}
                     />
 
-                    <div className="mb-3">
-                        <label htmlFor="password" className="form-label fw-bold">
-                            Password <sup className="text-danger small">(*)</sup>
+                    <div className="mt-4 space-y-2">
+                        <label htmlFor="password">
+                            Password <span className="text-accent font-bold">*</span>
                         </label>
-                        <div className="input-group">
+                        <div className="flex">
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 id="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="form-control form-control-lg"
+                                className="w-full rounded-l-xl border border-gray-200 px-4 py-3 text-base focus:outline-none focus:ring focus:ring-accent focus:border-accent transition bg-white"
                             />
                             <button
                                 type="button"
-                                className="btn btn-success"
+                                className="rounded-r-xl cursor-pointer border border-gray-200 bg-slate-50 px-4 text-gray-600 hover:bg-slate-100 transition"
                                 onClick={() => setShowPassword(!showPassword)}
                                 tabIndex={-1}
                             >
-                                <i className={`fa ${!showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                {!showPassword ? <FaEyeSlash /> : <FaEye />}
                             </button>
                         </div>
                     </div>
 
-                    <div className="text-center mb-3">
+                    <div className="text-center mt-6 mb-4">
                         <SubmitButton
                             isLoading={signinLoading}
-                            btnClass="btn btn-lg btn-success w-100"
+                            btnClass="w-full rounded-xl bg-accent text-white font-semibold py-3 hover:shadow-lg hover:shadow-accent/30 cursor-pointer transition"
                             btnName="Sign In"
                         />
                     </div>
 
-                    <p className="text-center">
-                        <Link to="/forgot-password" className="text-success fw-semibold text-decoration-none">
+                    <p className="text-center text-sm text-gray-600">
+                        <Link to="/forgot-password" className="text-accent font-semibold hover:underline transition">
                             Forgot Password?
                         </Link>
                     </p>
 
-                    <p className="text-center">
+                    <p className="text-center text-sm text-gray-600 mt-2">
                         Don’t have an account?{' '}
-                        <Link to="/register" className="text-success fw-semibold text-decoration-none">
+                        <Link to="/register" className="text-accent font-semibold hover:underline transition">
                             Register
                         </Link>
                     </p>
                 </div>
             </form>
-        </div>
+        </section>
     );
 }

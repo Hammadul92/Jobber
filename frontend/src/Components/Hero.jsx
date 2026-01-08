@@ -7,8 +7,11 @@ import VerticalRectangle from '../../public/images/rounded-vertical-rectangle.sv
 import Hexagon from '../../public/images/hexagon.svg';
 import DotsBg from '../../public/images/dots-bg.svg';
 import user from '../../public/images/user.png';
+import { useNavigate } from 'react-router-dom';
 
 function Hero() {
+    const navigate = useNavigate();
+
     return (
         <section className='relative bg-background overflow-hidden h-screen w-full px-32 py-24 flex flex-col items-center justify-center gap-3'>
 
@@ -79,7 +82,7 @@ function Hero() {
                     <img src={MessageBubble} alt="Description" />
                     <span className='absolute top-10.5 left-7 text-white font-medium'>Find Your Plan</span>
                 </div>
-                <button className='primary min-w-sm mt-12'>
+                <button onClick={()=>{navigate('/contact-us')}} className='primary min-w-sm mt-12'>
                     Get Free Consultation <FaArrowRight  className='inline-block ml-2' size={22} />
                 </button>
             </div>

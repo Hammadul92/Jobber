@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useRequestPasswordResetMutation } from '../../store';
+import { useRequestPasswordResetMutation } from '../store';
 
-import SubmitButton from '../ui/SubmitButton';
-import Input from '../ui/Input';
+import SubmitButton from '../Components/ui/SubmitButton';
+import Input from '../Components/ui/Input';
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
@@ -19,19 +19,22 @@ export default function ForgotPassword() {
     };
 
     return (
-        <div className="my-5 container">
-            <h2 className="text-center mb-3 fw-bold">Forgot Password</h2>
+        <section className="min-h-screen w-full p-32 flex flex-col items-center justify-center">
+            <div className="max-w-4xl mx-auto text-center">
+                <h2 className="text-3xl sm:text-4xl font-heading font-bold text-secondary mb-3">Forgot Password</h2>
+                <p className="text-gray-600">Enter your email and we&apos;ll send you a link to reset your password.</p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="row">
-                <div className="col-md-4 offset-md-4">
+            <form onSubmit={handleSubmit} className="mt-10 min-w-4xl flex justify-center">
+                <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100">
                     {error && (
-                        <div className="alert alert-danger text-center">
+                        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-center text-sm font-medium">
                             {error?.data?.detail || 'Something went wrong. Please try again.'}
                         </div>
                     )}
 
                     {isSuccess && (
-                        <div className="alert alert-success text-center">
+                        <div className="mb-4 rounded-xl border border-green-200 bg-green-50 text-green-700 px-4 py-3 text-center text-sm font-medium">
                             If an account exists for this email, a reset link has been sent.
                         </div>
                     )}
@@ -42,25 +45,25 @@ export default function ForgotPassword() {
                         value={email}
                         isRequired={true}
                         onChange={setEmail}
-                        fieldClass={'form-control form-control-lg'}
+                        fieldClass={'w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:outline-none focus:ring focus:ring-accent focus:border-accent transition bg-white'}
                     />
 
-                    <div className="text-center mb-3">
+                    <div className="text-center mt-6 mb-4">
                         <SubmitButton
                             isLoading={isLoading}
-                            btnClass="btn btn-lg btn-success w-100"
+                            btnClass="cursor-pointer w-full rounded-xl bg-accent text-white font-semibold py-3 hover:bg-accentLight transition"
                             btnName="Send Reset Link"
                         />
                     </div>
 
-                    <p className="text-center">
+                    <p className="text-center text-sm text-gray-600">
                         Remember your password?{' '}
-                        <Link to="/sign-in" className="text-success text-decoration-none fw-semibold">
+                        <Link to="/sign-in" className="text-accent font-semibold hover:underline transition">
                             Sign In
                         </Link>
                     </p>
                 </div>
             </form>
-        </div>
+        </section>
     );
 }

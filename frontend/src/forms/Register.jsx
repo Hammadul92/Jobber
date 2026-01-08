@@ -88,8 +88,8 @@ export default function Register() {
     };
 
     return (
-        <section className="min-h-screen px-4 py-12 sm:px-6 lg:px-8">
-            <div className="max-w-5xl mx-auto">
+        <section className="min-h-screen w-full p-32 flex flex-col items-center justify-center">
+            <div className="mx-auto">
                 <h2 className="text-3xl sm:text-4xl font-heading font-bold text-secondary text-center mb-3">
                     Create Your Account
                 </h2>
@@ -97,7 +97,7 @@ export default function Register() {
                     Join our community and start managing your work with a secure, modern workspace.
                 </p>
 
-                <div className="grid gap-8 lg:grid-cols-2">
+                <div className="grid gap-8 lg:grid-cols-2 w-full">
                     <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100">
                         <h5 className="text-xl font-semibold text-secondary mb-4">Password Requirements</h5>
                         <ul className="space-y-3 text-base">

@@ -158,7 +158,7 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
 
                                         {role === 'MANAGER' &&
                                             service.quotations?.length > 0 &&
-                                            service.quotations.map((quote, i) => {
+                                            service.quotations.map((quote) => {
                                                 return (
                                                     <Link
                                                         key={quote.id}
