@@ -1,4 +1,20 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import {
+    FaArrowRight,
+    FaBriefcase,
+    FaChartLine,
+    FaChevronDown,
+    FaChevronUp,
+    FaCogs,
+    FaCreditCard,
+    FaKey,
+    FaPowerOff,
+    FaRegUserCircle,
+    FaTimes,
+    FaUsers,
+    FaUserFriends,
+} from 'react-icons/fa';
+import { FaBuildingColumns, FaClipboardCheck, FaFileInvoice, FaFileSignature, FaListCheck } from 'react-icons/fa6';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
@@ -21,7 +37,8 @@ import contractorzLogo from '../../public/images/contractorz-logo-horizontal.svg
 
 export default function Header() {
     // const [isOpen, setIsOpen] = useState(false);
-    const [showOffcanvas, setShowOffcanvas] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const menuRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
@@ -48,7 +65,7 @@ export default function Header() {
 
         localStorage.removeItem('token');
         navigate('/sign-in');
-        setShowOffcanvas(false);
+        setShowDropdown(false);
     };
 
     const business = businesses?.[0] ?? null;
@@ -75,48 +92,48 @@ export default function Header() {
         scrollToPricing();
     };
 
-    const renderLink = (to, icon, label) => (
+    const renderLink = (to, Icon, label) => (
         <li className="flex items-center justify-between py-3 px-4 border-b border-gray-200 last:border-none">
             <Link
                 to={to}
                 className="flex items-center justify-between w-full text-gray-800 hover:text-accent"
-                onClick={() => setShowOffcanvas(false)}
+                onClick={() => setShowDropdown(false)}
             >
                 <span className="flex items-center gap-2">
-                    <i className={`${icon} text-gray-600`}></i>
+                    <Icon className="text-gray-600" />
                     {label}
                 </span>
-                <i className="fa fa-arrow-right text-gray-500"></i>
+                <FaArrowRight className="text-gray-500" />
             </Link>
         </li>
     );
 
     const managerMenu = (
         <>
-            {renderLink('/dashboard/home', 'fas fa-chart-line', 'Dashboard')}
-            {renderLink('/dashboard/clients', 'fas fa-users', 'Clients')}
-            {renderLink('/dashboard/service-questionnaires', 'fas fa-list-check', 'Questionnaires')}
-            {renderLink('/dashboard/quotes', 'fas fa-file-signature', 'Quotes')}
-            {renderLink('/dashboard/jobs', 'fas fa-clipboard-check', 'Jobs')}
-            {renderLink('/dashboard/invoices', 'fas fa-file-invoice', 'Invoices')}
-            {renderLink('/dashboard/payouts', 'fas fa-credit-card', 'Payouts')}
-            {renderLink('/dashboard/team-members', 'fas fa-user-friends', 'Team Members')}
+            {renderLink('/dashboard/home', FaChartLine, 'Dashboard')}
+            {renderLink('/dashboard/clients', FaUsers, 'Clients')}
+            {renderLink('/dashboard/service-questionnaires', FaListCheck, 'Questionnaires')}
+            {renderLink('/dashboard/quotes', FaFileSignature, 'Quotes')}
+            {renderLink('/dashboard/jobs', FaClipboardCheck, 'Jobs')}
+            {renderLink('/dashboard/invoices', FaFileInvoice, 'Invoices')}
+            {renderLink('/dashboard/payouts', FaCreditCard, 'Payouts')}
+            {renderLink('/dashboard/team-members', FaUserFriends, 'Team Members')}
         </>
     );
 
     const clientMenu = (
         <>
-            {renderLink('/dashboard/services', 'fas fa-cogs', 'Services')}
-            {renderLink('/dashboard/quotes', 'fas fa-file-signature', 'Quotes')}
-            {renderLink('/dashboard/jobs', 'fas fa-clipboard-check', 'Jobs')}
-            {renderLink('/dashboard/invoices', 'fas fa-file-invoice', 'Invoices')}
+            {renderLink('/dashboard/services', FaCogs, 'Services')}
+            {renderLink('/dashboard/quotes', FaFileSignature, 'Quotes')}
+            {renderLink('/dashboard/jobs', FaClipboardCheck, 'Jobs')}
+            {renderLink('/dashboard/invoices', FaFileInvoice, 'Invoices')}
         </>
     );
 
     const employeeMenu = (
         <>
-            {renderLink('/dashboard/jobs', 'fas fa-clipboard-check', 'Jobs')}
-            {renderLink('/dashboard/team-members', 'fas fa-user-friends', 'Team Members')}
+            {renderLink('/dashboard/jobs', FaClipboardCheck, 'Jobs')}
+            {renderLink('/dashboard/team-members', FaUserFriends, 'Team Members')}
         </>
     );
 
@@ -130,6 +147,23 @@ export default function Header() {
         const isActive = location.pathname === path;
         return `hover:text-accent ${isActive ? 'font-bold text-secondary' : ''}`.trim();
     };
+
+    useEffect(() => {
+        // Close dropdown when clicking outside the menu
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        };
+
+        if (showDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showDropdown]);
 
     return (
         <>
@@ -165,80 +199,62 @@ export default function Header() {
                             </Link>
                         </>
                     ) : (
-                        <button
-                            className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-800 hover:text-accent"
-                            type="button"
-                            onClick={() => setShowOffcanvas(true)}
-                        >
-                            <i className="far fa-user-circle text-xl"></i>
-                            <span className="font-medium">{user.name}</span>
-                        </button>
+                        <div className="relative z-30" ref={menuRef}>
+                            <button
+                                className="cursor-pointer flex items-center gap-2 rounded-md px-3 py-2 text-gray-800 hover:text-accent"
+                                type="button"
+                                onClick={() => setShowDropdown((open) => !open)}
+                                aria-expanded={showDropdown}
+                                aria-haspopup="true"
+                            >
+                                <FaRegUserCircle className="text-xl" />
+                                <span className="font-bold">{user.name}</span>
+                                {showDropdown ? (
+                                    <FaChevronUp className="text-xs" />
+                                ) : (
+                                    <FaChevronDown className="text-xs" />
+                                )}
+                            </button>
+
+                            {showDropdown && (
+                                <div className="absolute z-50 right-0 mt-3 w-64 rounded-lg border border-gray-200 bg-white shadow-lg">
+                                        <div>
+                                            <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
+                                                {renderLink('/user-account/profile', FaRegUserCircle, 'Profile')}
+                                                {(user.role === 'USER' || user.role === 'MANAGER') &&
+                                                    renderLink('/user-account/business', FaBriefcase, 'Business')}
+                                                {renderLink('/user-account/banking', FaBuildingColumns, 'Banking')}
+                                                {renderLink('/user-account/credentials', FaKey, 'Credentials')}
+                                            </ul>
+                                        </div>
+
+                                        {user.role && user.role !== 'USER' && (
+                                            <div>
+                                                <h5 className="mb-2 text-sm font-semibold text-gray-900">
+                                                    {user.role === 'MANAGER'
+                                                        ? business?.name
+                                                        : user.role === 'CLIENT'
+                                                            ? 'Client Portal'
+                                                            : 'Employee Portal'}
+                                                </h5>
+                                                <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
+                                                    {roleMenus[user.role]}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        <button
+                                            onClick={handleLogout}
+                                            className="cursor-pointer mt-1 flex items-center justify-center gap-2 w-full bg-red-500 px-4 py-2 text-white shadow hover:bg-red-600"
+                                        >
+                                            <FaPowerOff /> Logout
+                                        </button>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             </header>
-
-            {/* Offcanvas */}
-            {showOffcanvas && (
-                <>
-                    <div
-                        className="fixed inset-0 z-30 bg-black/40"
-                        onClick={() => setShowOffcanvas(false)}
-                        aria-label="Close menu"
-                    ></div>
-
-                    <div className="fixed right-0 top-0 z-40 h-full w-80 max-w-full bg-white shadow-xl">
-                        <div className="flex items-center justify-between bg-accent px-5 py-4 text-white">
-                            <div className="flex items-center gap-2">
-                                <i className="far fa-user-circle text-xl"></i>
-                                <span className="font-semibold">{user?.name}</span>
-                            </div>
-                            <button
-                                type="button"
-                                className="text-white hover:text-white/80"
-                                onClick={() => setShowOffcanvas(false)}
-                                aria-label="Close"
-                            >
-                                <i className="fa fa-times text-lg"></i>
-                            </button>
-                        </div>
-
-                        <div className="flex flex-col gap-4 px-5 py-4">
-                            <div>
-                                <h5 className="mb-2 text-sm font-semibold text-gray-900">My Account</h5>
-                                <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
-                                    {renderLink('/user-account/profile', 'fas fa-user', 'Profile')}
-                                    {(user.role === 'USER' || user.role === 'MANAGER') &&
-                                        renderLink('/user-account/business', 'fa fa-briefcase', 'Business')}
-                                    {renderLink('/user-account/banking', 'fa fa-building-columns', 'Banking')}
-                                    {renderLink('/user-account/credentials', 'fa fa-key', 'Credentials')}
-                                </ul>
-                            </div>
-
-                            {user.role && user.role !== 'USER' && (
-                                <div>
-                                    <h5 className="mb-2 text-sm font-semibold text-gray-900">
-                                        {user.role === 'MANAGER'
-                                            ? business?.name
-                                            : user.role === 'CLIENT'
-                                                ? 'Client Portal'
-                                                : 'Employee Portal'}
-                                    </h5>
-                                    <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
-                                        {roleMenus[user.role]}
-                                    </ul>
-                                </div>
-                            )}
-
-                            <button
-                                onClick={handleLogout}
-                                className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-white shadow hover:bg-red-600"
-                            >
-                                <i className="fa fa-power-off"></i> Logout
-                            </button>
-                        </div>
-                    </div>
-                </>
-            )}
         </>
     );
 }

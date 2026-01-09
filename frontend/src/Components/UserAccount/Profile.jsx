@@ -39,54 +39,53 @@ export default function Profile({ token, setAlert }) {
 
     if (isFetching) return <div>Loading profile...</div>;
 
+    const inputClass =
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
+
     return (
-        <form className="tab-pane active" onSubmit={submitHandler}>
-            <div className="row">
-                <div className="col-md-6">
-                    <Input
-                        id="name"
-                        label={'Full Name'}
-                        value={name}
-                        isRequired={true}
-                        onChange={setUserName}
-                        fieldClass={'form-control'}
-                    />
-                </div>
-                <div className="col-md-6">
-                    <Input
-                        id="email"
-                        label={'Email'}
-                        value={email}
-                        isRequired={true}
-                        isDisabled={true}
-                        onChange={setUserEmail}
-                        fieldClass={'form-control'}
-                    />
-                </div>
-                <div className="col-md-6">
-                    <Input
-                        type="tel"
-                        id="phone"
-                        label={'Phone'}
-                        value={phone}
-                        isRequired={true}
-                        onChange={setUserPhone}
-                        fieldClass={'form-control'}
-                    />
-                </div>
-                <div className="col-md-6">
-                    <Input
-                        id="last_login"
-                        label={'Last Login'}
-                        value={formatDate(user?.last_login) || ''}
-                        isDisabled={true}
-                        onChange={null}
-                        fieldClass={'form-control'}
-                    />
-                </div>
+        <form className="space-y-6" onSubmit={submitHandler}>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <Input
+                    id="name"
+                    label={'Full Name'}
+                    value={name}
+                    isRequired={true}
+                    onChange={setUserName}
+                    fieldClass={inputClass}
+                />
+                <Input
+                    id="email"
+                    label={'Email'}
+                    value={email}
+                    isRequired={true}
+                    isDisabled={true}
+                    onChange={setUserEmail}
+                    fieldClass={inputClass}
+                />
+                <Input
+                    type="tel"
+                    id="phone"
+                    label={'Phone'}
+                    value={phone}
+                    isRequired={true}
+                    onChange={setUserPhone}
+                    fieldClass={inputClass}
+                />
+                <Input
+                    id="last_login"
+                    label={'Last Login'}
+                    value={formatDate(user?.last_login) || ''}
+                    isDisabled={true}
+                    onChange={null}
+                    fieldClass={inputClass}
+                />
             </div>
 
-            <SubmitButton isLoading={isLoading} btnClass="btn btn-sm btn-success" btnName="Save Changes" />
+            <SubmitButton
+                isLoading={isLoading}
+                btnClass="primary"
+                btnName="Save Changes"
+            />
         </form>
     );
 }

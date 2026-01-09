@@ -25,7 +25,7 @@ function Hero() {
             <div className='absolute bottom-28 right-70'>
                 <img src={Hexagon} alt="Design Element" width={125} />
             </div>
-            <div className='absolute bottom-0 -left-10 -rotate-[6.5deg]'>
+            <div className='absolute z-0 bottom-0 -left-10 -rotate-[6.5deg]'>
                 <img src={DotsBg} alt="Design Element" />
             </div>
 
@@ -65,7 +65,7 @@ function Hero() {
                 </div>
             </div>
             {/* Main Heading and Subheading */}
-            <div className='flex flex-col items-center gap-1 max-w-7xl z-10 mt-4'>
+            <div className='flex flex-col items-center gap-1 max-w-7xl mt-4'>
                 {/* Main Heading */}
                 <h1 className='font-heading text-[3.2rem] text-center leading-snug max-w-7xl'>
                     OPERATE YOUR BUSINESS WITH <span className='text-accent'>ASSURANCE </span>

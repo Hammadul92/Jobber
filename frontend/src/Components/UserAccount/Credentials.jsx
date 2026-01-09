@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaCheckCircle, FaEye, FaEyeSlash, FaTimesCircle } from 'react-icons/fa';
 import { useUpdateUserMutation } from '../../store';
 import SubmitButton from '../ui/SubmitButton';
 
@@ -70,58 +71,51 @@ export default function Credentials({ setAlert }) {
         }
     };
 
+    const inputClass =
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
+    const toggleBtn =
+        'cursor-pointer inline-flex items-center justify-center rounded-r-lg rounded-l-none bg-secondary px-3 py-2 text-white hover:bg-secondary/90';
+
     return (
-        <div className="row justify-content-center">
-            <div className="col-md-5 mb-4">
-                <div className="h-100">
-                    <h5 className="fw-bold mb-3">Password Requirements</h5>
-                    <ul className="list-unstyled fs-6">
-                        <li className={`mb-2 ${passwordRules.length ? 'text-success' : 'text-secondary'}`}>
-                            <i
-                                className={`fa ${passwordRules.length ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
-                            ></i>
-                            At least 8 characters long
-                        </li>
-                        <li className={`mb-2 ${passwordRules.uppercase ? 'text-success' : 'text-secondary'}`}>
-                            <i
-                                className={`fa ${passwordRules.uppercase ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
-                            ></i>
-                            Contains at least one uppercase letter
-                        </li>
-                        <li className={`mb-2 ${passwordRules.number ? 'text-success' : 'text-secondary'}`}>
-                            <i
-                                className={`fa ${passwordRules.number ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
-                            ></i>
-                            Contains at least one number
-                        </li>
-                        <li className={`mb-2 ${passwordRules.special ? 'text-success' : 'text-secondary'}`}>
-                            <i
-                                className={`fa ${passwordRules.special ? 'fa-check-circle' : 'fa-times-circle'} me-2`}
-                            ></i>
-                            Contains at least one special character
-                        </li>
-                    </ul>
-                    <p className="small text-muted mt-3 text-center">
-                        Your password must satisfy all of the above to be considered strong.
-                    </p>
-                </div>
+        <div className="grid gap-8 md:grid-cols-2 md:items-start">
+            <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
+                <h5 className="text-lg font-semibold text-gray-900">Password Requirements</h5>
+                <ul className="space-y-2 text-sm">
+                    <li className={`flex items-center gap-2 ${passwordRules.length ? 'text-green-600' : 'text-gray-500'}`}>
+                        {passwordRules.length ? <FaCheckCircle /> : <FaTimesCircle />}
+                        <span>At least 8 characters long</span>
+                    </li>
+                    <li className={`flex items-center gap-2 ${passwordRules.uppercase ? 'text-green-600' : 'text-gray-500'}`}>
+                        {passwordRules.uppercase ? <FaCheckCircle /> : <FaTimesCircle />}
+                        <span>Contains at least one uppercase letter</span>
+                    </li>
+                    <li className={`flex items-center gap-2 ${passwordRules.number ? 'text-green-600' : 'text-gray-500'}`}>
+                        {passwordRules.number ? <FaCheckCircle /> : <FaTimesCircle />}
+                        <span>Contains at least one number</span>
+                    </li>
+                    <li className={`flex items-center gap-2 ${passwordRules.special ? 'text-green-600' : 'text-gray-500'}`}>
+                        {passwordRules.special ? <FaCheckCircle /> : <FaTimesCircle />}
+                        <span>Contains at least one special character</span>
+                    </li>
+                </ul>
+                <p className="text-center text-xs text-gray-500">
+                    Your password must satisfy all of the above to be considered strong.
+                </p>
             </div>
 
-            {/* Password Change Form */}
-            <div className="col-md-5">
-                <form onSubmit={handleSubmit}>
+            <div>
+                <form onSubmit={handleSubmit} className="space-y-4">
                     {error && (
-                        <div className="alert alert-danger" role="alert">
+                        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
                             {error?.data?.message || 'Failed to update password.'}
                         </div>
                     )}
 
-                    {/* New Password */}
-                    <div className="mb-3">
-                        <label htmlFor="newPassword" className="form-label fw-bold">
-                            New Password <sup className="text-danger small">(*)</sup>
+                    <div className="space-y-2">
+                        <label htmlFor="newPassword" className="text-sm font-semibold text-gray-800">
+                            New Password <sup className="text-accent">*</sup>
                         </label>
-                        <div className="input-group">
+                        <div className="flex">
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 id="newPassword"
@@ -132,25 +126,24 @@ export default function Credentials({ setAlert }) {
                                 }}
                                 required
                                 disabled={isLoading}
-                                className="form-control"
+                                className={`${inputClass} rounded-r-none`}
                             />
                             <button
                                 type="button"
-                                className="btn btn-success"
+                                className={toggleBtn}
                                 onClick={() => setShowPassword(!showPassword)}
                                 tabIndex={-1}
                             >
-                                <i className={`fa ${!showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                {!showPassword ? <FaEyeSlash /> : <FaEye />}
                             </button>
                         </div>
                     </div>
 
-                    {/* Confirm Password */}
-                    <div className="mb-3">
-                        <label htmlFor="confirmNewPassword" className="form-label fw-bold">
-                            Confirm New Password <sup className="text-danger small">(*)</sup>
+                    <div className="space-y-2">
+                        <label htmlFor="confirmNewPassword" className="text-sm font-semibold text-gray-800">
+                            Confirm New Password <sup className="text-accent">*</sup>
                         </label>
-                        <div className="input-group">
+                        <div className="flex">
                             <input
                                 type={showConfirmPassword ? 'text' : 'password'}
                                 id="confirmNewPassword"
@@ -158,27 +151,25 @@ export default function Credentials({ setAlert }) {
                                 onChange={(e) => setConfirmNewPassword(e.target.value)}
                                 required
                                 disabled={isLoading}
-                                className="form-control"
+                                className={`${inputClass} rounded-r-none`}
                             />
                             <button
                                 type="button"
-                                className="btn btn-success"
+                                className={toggleBtn}
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 tabIndex={-1}
                             >
-                                <i className={`fa ${!showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                {!showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                             </button>
                         </div>
                     </div>
 
-                    <div>
-                        <SubmitButton
-                            isLoading={isLoading}
-                            btnClass="btn btn-success"
-                            btnName="Save Changes"
-                            isDisabled={!isStrongPassword}
-                        />
-                    </div>
+                    <SubmitButton
+                        isLoading={isLoading}
+                        btnClass="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accent/90 disabled:opacity-60 disabled:cursor-not-allowed"
+                        btnName="Save Changes"
+                        isDisabled={!isStrongPassword}
+                    />
                 </form>
             </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 /**
  * Reusable alert component for displaying backend messages.
@@ -12,23 +12,41 @@ import React, { useState, useEffect } from 'react';
 export default function AlertDispatcher({ type = 'error', message, autoDismiss, onClose }) {
     const [visible, setVisible] = useState(true);
 
+    const duration = autoDismiss ?? 5000;
+
     useEffect(() => {
         setVisible(true);
 
-        if (autoDismiss && type === 'success') {
-            const timer = setTimeout(() => handleClose(), autoDismiss);
+        if (duration) {
+            const timer = setTimeout(() => handleClose(), duration);
             return () => clearTimeout(timer);
         }
-    }, [message, type, autoDismiss]);
+    }, [message, type, duration]);
 
     if (!visible || !message) return null;
 
-    const alertClass =
-        type === 'success'
-            ? 'alert-custom alert alert-success alert-dismissible mb-3'
-            : type === 'danger'
-              ? 'alert-custom alert alert-danger alert-dismissible mb-3'
-              : 'alert-custom alert alert-info alert-dismissible mb-3';
+    const variants = {
+        success: {
+            bg: 'bg-emerald-50',
+            border: 'border-emerald-200',
+            text: 'text-emerald-800',
+            accent: 'bg-emerald-500',
+        },
+        danger: {
+            bg: 'bg-red-50',
+            border: 'border-red-200',
+            text: 'text-red-800',
+            accent: 'bg-red-500',
+        },
+        info: {
+            bg: 'bg-blue-50',
+            border: 'border-blue-200',
+            text: 'text-blue-800',
+            accent: 'bg-blue-500',
+        },
+    };
+
+    const { bg, border, text, accent } = variants[type] || variants.info;
 
     const renderMessage = () => {
         if (Array.isArray(message)) {
@@ -52,15 +70,25 @@ export default function AlertDispatcher({ type = 'error', message, autoDismiss, 
     };
 
     return (
-        <div className={alertClass} role="alert">
-            {renderMessage()}
-            <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="alert"
-                aria-label="Close"
-                onClick={handleClose}
-            ></button>
+        <div
+            className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4 sm:inset-auto sm:bottom-4 sm:right-4 sm:left-auto sm:justify-end"
+            role="presentation"
+        >
+            <div
+                className={`relative flex w-full max-w-sm gap-3 rounded-lg border ${border} ${bg} p-4 text-sm shadow-lg transition`}
+                role="alert"
+            >
+                <span className={`mt-0.5 inline-flex h-2.5 w-2.5 rounded-full ${accent}`}></span>
+                <div className={`flex-1 space-y-1 ${text}`}>{renderMessage()}</div>
+                <button
+                    type="button"
+                    className="text-gray-400 transition hover:text-gray-600"
+                    aria-label="Close"
+                    onClick={handleClose}
+                >
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
         </div>
     );
 }

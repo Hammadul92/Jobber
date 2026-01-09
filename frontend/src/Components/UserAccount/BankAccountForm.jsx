@@ -26,7 +26,11 @@ export default function StripeOnboardingButton({ setAlert }) {
 
     return (
         <form className="mt-2" onSubmit={handleConnect}>
-            <SubmitButton btnClass="btn btn-success" btnName="Connect Stripe for Payouts" isLoading={isLoading} />
+            <SubmitButton
+                btnClass="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accent/90 disabled:opacity-60 disabled:cursor-not-allowed"
+                btnName="Connect Stripe for Payouts"
+                isLoading={isLoading}
+            />
         </form>
     );
 }

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
+import { FaChevronLeft, FaChevronRight, FaImage } from 'react-icons/fa';
 import { provinces, countries } from '../../constants/locations';
 import { useFetchBusinessesQuery, useCreateBusinessMutation, useUpdateBusinessMutation } from '../../store';
 import SubmitButton from '../ui/SubmitButton';
 import Input from '../ui/Input';
-import Select from '../ui/Select';
 
 export default function Business({ token, setAlert }) {
     const [step, setStep] = useState(1);
@@ -119,23 +119,7 @@ export default function Business({ token, setAlert }) {
         for (let i = 1; i <= totalSteps; i++) {
             if (isStepComplete(i)) completed.push(i);
         }
-    }, [
-        name,
-        slug,
-        email,
-        phone,
-        businessDescription,
-        businessNumber,
-        taxRate,
-        timezone,
-        streetAddress,
-        city,
-        country,
-        provinceState,
-        postalCode,
-        selectedServices,
-        logo,
-    ]);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const validateStep = () => isStepComplete(step);
 
@@ -181,27 +165,38 @@ export default function Business({ token, setAlert }) {
                 setAlert({ type: 'success', message: 'Business created successfully!' });
             }
             refetch();
-        } catch (err) {
+        } catch {
             setAlert({ type: 'danger', message: 'Failed to save business. Please try again.' });
         }
     };
 
     const steps = ['Details', 'Address', 'Services', 'Logo'];
+    const inputClass =
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
+    const selectClass = inputClass;
+    const textareaClass = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
 
     if (isLoading) return <div>Loading business data...</div>;
 
     return (
         <>
-            <div className="step-container mb-4">
+            <div className="mb-6 flex flex-wrap items-center gap-3">
                 {steps.map((label, index) => {
                     const stepNum = index + 1;
                     const isActive = stepNum === step;
                     const isCompleted = stepNum !== step && isStepVisuallyComplete(stepNum);
 
                     return (
-                        <div
+                        <button
+                            type="button"
                             key={label}
-                            className={`step-item ${isActive ? 'active' : isCompleted ? 'completed' : ''}`}
+                            className={`flex items-center gap-3 cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                                isActive
+                                    ? 'border-secondary bg-secondary text-white'
+                                    : isCompleted
+                                        ? 'border-green-200 bg-green-50 text-green-700'
+                                        : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-accent/70 hover:text-accent'
+                            }`}
                             onClick={() => {
                                 if (stepNum < step) {
                                     setStep(stepNum);
@@ -225,36 +220,35 @@ export default function Business({ token, setAlert }) {
                                 }
                             }}
                         >
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-gray-700 shadow">
+                                {stepNum}
+                            </span>
                             <span>{label}</span>
-                        </div>
+                        </button>
                     );
                 })}
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="space-y-8">
                 {step === 1 && (
-                    <div className="row">
-                        <div className="col-md-4">
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <Input
                                 id="business_name"
                                 label={'Business Name'}
                                 value={name}
                                 isRequired={true}
                                 onChange={setName}
-                                fieldClass={'form-control'}
+                                fieldClass={inputClass}
                             />
-                        </div>
-                        <div className="col-md-4">
                             <Input
                                 id="slug"
                                 label={'Slug'}
                                 value={slug}
                                 isRequired={true}
                                 onChange={setSlug}
-                                fieldClass={'form-control'}
+                                fieldClass={inputClass}
                             />
-                        </div>
-                        <div className="col-md-4">
                             <Input
                                 type="email"
                                 id="email"
@@ -262,10 +256,11 @@ export default function Business({ token, setAlert }) {
                                 value={email}
                                 isRequired={true}
                                 onChange={setEmail}
-                                fieldClass={'form-control'}
+                                fieldClass={inputClass}
                             />
                         </div>
-                        <div className="col-md-6">
+
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <Input
                                 type="tel"
                                 id="phone"
@@ -273,10 +268,8 @@ export default function Business({ token, setAlert }) {
                                 value={phone}
                                 isRequired={true}
                                 onChange={setPhone}
-                                fieldClass={'form-control'}
+                                fieldClass={inputClass}
                             />
-                        </div>
-                        <div className="col-md-6">
                             <Input
                                 type="url"
                                 id="phone"
@@ -284,30 +277,38 @@ export default function Business({ token, setAlert }) {
                                 value={website}
                                 isRequired={false}
                                 onChange={setWebsite}
-                                fieldClass={'form-control'}
+                                fieldClass={inputClass}
                             />
                         </div>
-                        <div className="col-md-4">
-                            <Select
-                                id="timezone"
-                                label={'Timezone'}
-                                value={timezone}
-                                onChange={setTimezone}
-                                isRequired={true}
-                                options={timezones}
-                            />
-                        </div>
-                        <div className="col-md-4">
+
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div className="flex flex-col">
+                                <label className="font-medium" htmlFor="timezone">
+                                    Timezone <sup className="text-accent">*</sup>
+                                </label>
+                                <select
+                                    id="timezone"
+                                    value={timezone}
+                                    onChange={(e) => setTimezone(e.target.value)}
+                                    required
+                                    className={selectClass}
+                                >
+                                    <option value="">-- Select Timezone --</option>
+                                    {timezones.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                             <Input
                                 id="business_number"
                                 label={'Business Number'}
                                 value={businessNumber}
                                 isRequired={true}
                                 onChange={setBusinessNumber}
-                                fieldClass={'form-control'}
+                                fieldClass={inputClass}
                             />
-                        </div>
-                        <div className="col-md-4">
                             <Input
                                 type="number"
                                 id="tax_rate"
@@ -315,15 +316,16 @@ export default function Business({ token, setAlert }) {
                                 value={taxRate}
                                 isRequired={true}
                                 onChange={setTaxRate}
-                                fieldClass={'form-control'}
+                                fieldClass={inputClass}
                             />
                         </div>
-                        <div className="col-md-12">
-                            <label className="form-label fw-bold">
-                                Business Description <sup className="text-danger small">(*)</sup>
+
+                        <div className="space-y-2">
+                            <label className="font-medium">
+                                Business Description <sup className="text-accent">*</sup>
                             </label>
                             <textarea
-                                className="form-control"
+                                className={textareaClass}
                                 rows={3}
                                 value={businessDescription}
                                 onChange={(e) => setBusinessDescription(e.target.value)}
@@ -334,96 +336,117 @@ export default function Business({ token, setAlert }) {
                 )}
 
                 {step === 2 && (
-                    <div className="row">
-                        <div className="col-md-6">
-                            <Select
-                                id="country"
-                                label={'Country'}
-                                value={country}
-                                onChange={setCountry}
-                                isRequired={true}
-                                options={countries}
-                            />
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="flex flex-col">
+                                <label className="mb-1 text-sm font-semibold text-gray-800" htmlFor="country">
+                                    Country <sup className="text-accent">*</sup>
+                                </label>
+                                <select
+                                    id="country"
+                                    value={country}
+                                    onChange={(e) => setCountry(e.target.value)}
+                                    required
+                                    className={selectClass}
+                                >
+                                    <option value="">-- Select Country --</option>
+                                    {countries.map((option, index) => (
+                                        <option key={index} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex flex-col">
+                                <label className="mb-1 text-sm font-semibold text-gray-800" htmlFor="province">
+                                    Province / State <sup className="text-accent">*</sup>
+                                </label>
+                                <select
+                                    id="province"
+                                    value={provinceState}
+                                    onChange={(e) => setProvinceState(e.target.value)}
+                                    required
+                                    className={selectClass}
+                                >
+                                    <option value="">-- Select Province / State --</option>
+                                    {(provinces[country] || []).map((option, index) => (
+                                        <option key={index} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
-                        <div className="col-md-6">
-                            <Select
-                                id="province"
-                                label={'Province / State'}
-                                value={provinceState}
-                                onChange={setProvinceState}
-                                isRequired={true}
-                                options={provinces[country]}
-                            />
-                        </div>
-                        <div className="col-md-12">
-                            <Input
-                                id="street_address"
-                                label={'Street Address'}
-                                value={streetAddress}
-                                isRequired={true}
-                                onChange={setStreetAddress}
-                                fieldClass={'form-control'}
-                            />
-                        </div>
-                        <div className="col-md-6">
+
+                        <Input
+                            id="street_address"
+                            label={'Street Address'}
+                            value={streetAddress}
+                            isRequired={true}
+                            onChange={setStreetAddress}
+                            fieldClass={inputClass}
+                        />
+
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <Input
                                 id="city"
                                 label={'City'}
                                 value={city}
                                 isRequired={true}
                                 onChange={setCity}
-                                fieldClass={'form-control'}
+                                fieldClass={inputClass}
                             />
-                        </div>
 
-                        <div className="col-md-6">
                             <Input
                                 id="postal_code"
                                 label={'Postal / ZIP Code'}
                                 value={postalCode}
                                 isRequired={true}
                                 onChange={setPostalCode}
-                                fieldClass={'form-control'}
+                                fieldClass={inputClass}
                             />
                         </div>
                     </div>
                 )}
 
                 {step === 3 && (
-                    <div>
-                        <div className="row g-2">
-                            {services.map((service) => (
-                                <div className="col-6 col-sm-4 col-md-3 text-center" key={service}>
-                                    <div
-                                        className={`alert w-100 p-3 fw-bold mb-0 ${selectedServices.includes(service) ? 'alert-success' : 'alert-secondary'}`}
-                                        role="button"
+                    <div className="space-y-4">
+                        <p className="text-sm text-gray-600">Select all services you offer.</p>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                            {services.map((service) => {
+                                const isSelected = selectedServices.includes(service);
+                                return (
+                                    <button
+                                        key={service}
+                                        type="button"
+                                        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                                            isSelected
+                                                ? 'border-accent bg-accent/10 text-accent'
+                                                : 'border-gray-200 bg-white text-gray-700 hover:border-accent/60 hover:text-accent'
+                                        }`}
                                         onClick={() => toggleService(service)}
                                     >
                                         {service}
-                                    </div>
-                                </div>
-                            ))}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
 
                 {step === 4 && (
-                    <div>
-                        <div
-                            className="position-relative d-flex align-items-center justify-content-center bg-light rounded mb-3"
-                            style={{ height: '150px', border: '2px dashed #dee2e6' }}
-                        >
+                    <div className="space-y-4">
+                        <div className="flex h-40 items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50">
                             {logo ? (
                                 <img
                                     src={typeof logo === 'string' ? logo : URL.createObjectURL(logo)}
                                     alt="Business Logo"
-                                    className="img-fluid rounded"
-                                    style={{ maxHeight: '140px', objectFit: 'contain' }}
+                                    className="max-h-36 rounded object-contain"
                                 />
                             ) : (
-                                <div className="text-muted small text-center">
-                                    <i className="fa fa-image" style={{ fontSize: '6rem' }}></i>
-                                    <div>Upload your logo</div>
+                                <div className="text-center text-sm text-gray-500">
+                                    <FaImage className="text-6xl text-gray-300" />
+                                    <div className="mt-2">Upload your logo</div>
                                 </div>
                             )}
                         </div>
@@ -431,27 +454,37 @@ export default function Business({ token, setAlert }) {
                             <input
                                 type="file"
                                 accept="image/*"
-                                className="form-control w-50"
+                                className="block w-full max-w-sm rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                                 onChange={(e) => setLogo(e.target.files[0])}
                             />
                         </div>
                     </div>
                 )}
 
-                <div className="d-flex justify-content-between mt-4">
+                <div className="flex items-center justify-between gap-3 pt-2">
                     {step > 1 && (
-                        <button type="button" className="btn bg-gradient btn-sm btn-dark" onClick={prevStep}>
-                            <i className="fa fa-chevron-left me-2"></i>Back
+                        <button
+                            type="button"
+                            className="secondary"
+                            onClick={prevStep}
+                        >
+                            <FaChevronLeft className='inline mb-0.5 mr-2' />
+                            Back
                         </button>
                     )}
                     {step < totalSteps ? (
-                        <button type="button" className="btn bg-gradient btn-sm btn-success ms-auto" onClick={nextStep}>
-                            Next <i className="fa fa-chevron-right ms-2"></i>
+                        <button
+                            type="button"
+                            className="primary"
+                            onClick={nextStep}
+                        >
+                            Next
+                            <FaChevronRight className='inline mb-0.5 ml-2' />
                         </button>
                     ) : (
                         <SubmitButton
                             isLoading={isCreating || isUpdating}
-                            btnClass="btn btn-sm btn-success ms-auto"
+                            btnClass="ml-auto inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accent/90 disabled:opacity-60 disabled:cursor-not-allowed"
                             btnName="Save Changes"
                             isDisabled={!validateStep()}
                         />

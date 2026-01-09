@@ -27,6 +27,12 @@
   --font-heading: 'MODERNIZ', sans-serif;
   --font-sans: 'Inter', Arial, Helvetica, sans-serif;
   --font-intro: 'Open Sans', sans-serif;
+  /* Tailwind breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
 }
 
 :root {
@@ -40,7 +46,7 @@
 
 
 .secondary {
-  @apply px-8 py-3 rounded-full text-accent border-2 border-accent font-bold cursor-pointer hover:bg-accentLight transition-colors duration-300;
+  @apply px-8 py-3 rounded-lg text-accent border-2 border-accent font-bold cursor-pointer hover:bg-accentLight transition-colors duration-300;
 }
 
 body {

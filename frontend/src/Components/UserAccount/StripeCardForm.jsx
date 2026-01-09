@@ -48,8 +48,8 @@ export default function StripeCardForm({ onSuccess, setAlert }) {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div className="border rounded p-3 mb-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="rounded-lg border border-gray-200 bg-white px-3 py-3 shadow-sm">
                 <CardElement
                     options={{
                         style: {
@@ -63,8 +63,12 @@ export default function StripeCardForm({ onSuccess, setAlert }) {
                     }}
                 />
             </div>
-            <div className="text-end">
-                <SubmitButton btnClass="btn btn-success" isLoading={loading} btnName={'Save Card'} />
+            <div className="text-right">
+                <SubmitButton
+                    btnClass="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accent/90 disabled:opacity-60 disabled:cursor-not-allowed"
+                    isLoading={loading}
+                    btnName={'Save Card'}
+                />
             </div>
         </form>
     );
