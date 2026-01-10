@@ -1,12 +1,12 @@
 import React from 'react'
 
 const companies = [
-    { logo: "../../public/images/company1.png", name: 'LogoIpsum', },
-    { logo: "../../public/images/company2.png", name: 'LogoIpsum', },
-    { logo: "../../public/images/company3.png", name: 'LogoIpsum', },
-    { logo: "../../public/images/company1.png", name: 'LogoIpsum', },
-    { logo: "../../public/images/company2.png", name: 'LogoIpsum', },
-    { logo: "../../public/images/company3.png", name: 'LogoIpsum', },
+    { logo: "/images/company1.png", name: 'LogoIpsum', },
+    { logo: "/images/company2.png", name: 'LogoIpsum', },
+    { logo: "/images/company3.png", name: 'LogoIpsum', },
+    { logo: "/images/company1.png", name: 'LogoIpsum', },
+    { logo: "/images/company2.png", name: 'LogoIpsum', },
+    { logo: "/images/company3.png", name: 'LogoIpsum', },
 ]
 
 function TrustedCompanies() {

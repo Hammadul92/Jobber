@@ -34,7 +34,9 @@ import {
     invoiceApi,
 } from '../store';
 import './Components.css';
-import contractorzLogo from '../../public/images/contractorz-logo-horizontal.svg'
+// import contractorzLogo from '../../public/images/contractorz-logo-horizontal.svg'
+// Use public path for images in public directory
+const contractorzLogo = '/images/contractorz-logo-horizontal.svg';
 
 export default function Header() {
     // const [isOpen, setIsOpen] = useState(false);
