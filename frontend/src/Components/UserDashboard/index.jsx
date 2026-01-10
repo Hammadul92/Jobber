@@ -56,6 +56,7 @@ export default function UserDashboard({ page, token, user }) {
             return;
         }
 
+        // Check user role access for the requested page and redirect if unauthorized 
         const userRole = user?.role;
         if (!userRole || userRole === 'USER') {
             navigate('/', { replace: true });

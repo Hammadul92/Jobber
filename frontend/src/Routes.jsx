@@ -59,7 +59,7 @@ function MainApp() {
         <>
             {!isDashboardRoute && <Navbar />}
 
-            <main>
+            {/* <main> */}
                 <Routes>
                     {/* Public routes */}
                     <Route path="/" element={<Home />} />
@@ -137,7 +137,7 @@ function MainApp() {
                     {/* Fallback route */}
                     <Route path="*" element={<PageNotFound />} />
                 </Routes>
-            </main>
+            {/* </main> */}
 
             {!isDashboardRoute && <Footer />}
         </>

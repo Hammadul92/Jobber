@@ -46,13 +46,15 @@
 
 
 .secondary {
-  @apply px-8 py-3 rounded-lg text-accent border-2 border-accent font-bold cursor-pointer hover:bg-accentLight transition-colors duration-300;
+  @apply px-8 py-3 rounded-lg text-accent border-2 border-accent font-bold cursor-pointer hover:bg-accentLight hover:text-white transition-colors duration-300;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .section-intro,

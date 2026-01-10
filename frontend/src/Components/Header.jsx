@@ -166,95 +166,93 @@ export default function Header() {
     }, [showDropdown]);
 
     return (
-        <>
-            <header className='flex items-center bg-background justify-between px-32 pt-8 w-full absolute top-0 left-0 z-10'>
-                <div>
-                    <Link to="/">
-                        <img src={contractorzLogo} alt="Logo" width={170} height={0} />
-                    </Link>
-                </div>
-                <nav className='flex items-center gap-10 font-medium'>
-                    <Link to="/" className={linkClass('/')}>Home</Link>
-                    <Link to="/about" className={linkClass('/about')}>About</Link>
-                    <Link to="/product" className={linkClass('/product')}>Product</Link>
-                    <Link to="/industries" className={linkClass('/industries')}>Industries</Link>
-                    <Link to="/resources" className={linkClass('/resources')}>Resources</Link>
-                    <Link
-                        to="/"
-                        onClick={handlePricingClick}
-                    >
-                        Prices
-                    </Link>
-                </nav>
-                <div className="hidden items-center gap-3 md:flex">
-                    {loading ? (
-                        <span className="text-gray-500">Loading...</span>
-                    ) : !token || !user ? (
-                        <>
-                            <Link
-                                className="primary"
-                                to="/sign-in"
-                            >
-                                Login
-                            </Link>
-                        </>
-                    ) : (
-                        <div className="relative z-30" ref={menuRef}>
-                            <button
-                                className="cursor-pointer flex items-center gap-2 rounded-md px-3 py-2 text-gray-800 hover:text-accent"
-                                type="button"
-                                onClick={() => setShowDropdown((open) => !open)}
-                                aria-expanded={showDropdown}
-                                aria-haspopup="true"
-                            >
-                                <FaRegUserCircle className="text-xl" />
-                                <span className="font-bold">{user.name}</span>
-                                {showDropdown ? (
-                                    <FaChevronUp className="text-xs" />
-                                ) : (
-                                    <FaChevronDown className="text-xs" />
-                                )}
-                            </button>
-
-                            {showDropdown && (
-                                <div className="absolute z-50 right-0 mt-3 w-64 rounded-lg border border-gray-200 bg-white shadow-lg">
-                                        <div>
-                                            <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
-                                                {renderLink('/user-account/profile', FaRegUserCircle, 'Profile')}
-                                                {(user.role === 'USER' || user.role === 'MANAGER') &&
-                                                    renderLink('/user-account/business', FaBriefcase, 'Business')}
-                                                {renderLink('/user-account/banking', FaBuildingColumns, 'Banking')}
-                                                {renderLink('/user-account/credentials', FaKey, 'Credentials')}
-                                            </ul>
-                                        </div>
-
-                                        {user.role && user.role !== 'USER' && (
-                                            <div>
-                                                <h5 className="mb-2 text-sm font-semibold text-gray-900">
-                                                    {user.role === 'MANAGER'
-                                                        ? business?.name
-                                                        : user.role === 'CLIENT'
-                                                            ? 'Client Portal'
-                                                            : 'Employee Portal'}
-                                                </h5>
-                                                <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
-                                                    {roleMenus[user.role]}
-                                                </ul>
-                                            </div>
-                                        )}
-
-                                        <button
-                                            onClick={handleLogout}
-                                            className="cursor-pointer mt-1 flex items-center justify-center gap-2 w-full bg-red-500 px-4 py-2 text-white shadow hover:bg-red-600"
-                                        >
-                                            <FaPowerOff /> Logout
-                                        </button>
-                                </div>
+        <header className='flex items-center bg-background justify-between px-32 pt-8 w-vw absolute top-0 left-0 z-10'>
+            <div>
+                <Link to="/">
+                    <img src={contractorzLogo} alt="Logo" width={170} height={0} />
+                </Link>
+            </div>
+            <nav className='hidden lg:flex items-center gap-10 font-medium'>
+                <Link to="/" className={linkClass('/')}>Home</Link>
+                <Link to="/about" className={linkClass('/about')}>About</Link>
+                <Link to="/product" className={linkClass('/product')}>Product</Link>
+                <Link to="/industries" className={linkClass('/industries')}>Industries</Link>
+                <Link to="/resources" className={linkClass('/resources')}>Resources</Link>
+                <Link
+                    to="/"
+                    onClick={handlePricingClick}
+                >
+                    Prices
+                </Link>
+            </nav>
+            <div className="hidden items-center gap-3 md:flex">
+                {loading ? (
+                    <span className="text-gray-500">Loading...</span>
+                ) : !token || !user ? (
+                    <>
+                        <Link
+                            className="primary"
+                            to="/sign-in"
+                        >
+                            Login
+                        </Link>
+                    </>
+                ) : (
+                    <div className="relative z-30" ref={menuRef}>
+                        <button
+                            className="cursor-pointer flex items-center gap-2 rounded-md px-3 py-2 text-gray-800 hover:text-accent"
+                            type="button"
+                            onClick={() => setShowDropdown((open) => !open)}
+                            aria-expanded={showDropdown}
+                            aria-haspopup="true"
+                        >
+                            <FaRegUserCircle className="text-xl" />
+                            <span className="font-bold">{user.name}</span>
+                            {showDropdown ? (
+                                <FaChevronUp className="text-xs" />
+                            ) : (
+                                <FaChevronDown className="text-xs" />
                             )}
-                        </div>
-                    )}
-                </div>
-            </header>
-        </>
+                        </button>
+
+                        {showDropdown && (
+                            <div className="absolute z-50 right-0 mt-3 w-64 rounded-lg border border-gray-200 bg-white shadow-lg">
+                                <div>
+                                    <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
+                                        {renderLink('/user-account/profile', FaRegUserCircle, 'Profile')}
+                                        {(user.role === 'USER' || user.role === 'MANAGER') &&
+                                            renderLink('/user-account/business', FaBriefcase, 'Business')}
+                                        {renderLink('/user-account/banking', FaBuildingColumns, 'Banking')}
+                                        {renderLink('/user-account/credentials', FaKey, 'Credentials')}
+                                    </ul>
+                                </div>
+
+                                {user.role && user.role !== 'USER' && (
+                                    <div>
+                                        <h5 className="mb-2 text-sm font-semibold text-gray-900">
+                                            {user.role === 'MANAGER'
+                                                ? business?.name
+                                                : user.role === 'CLIENT'
+                                                    ? 'Client Portal'
+                                                    : 'Employee Portal'}
+                                        </h5>
+                                        <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
+                                            {roleMenus[user.role]}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                <button
+                                    onClick={handleLogout}
+                                    className="cursor-pointer mt-1 flex items-center justify-center gap-2 w-full bg-red-500 px-4 py-2 text-white shadow hover:bg-red-600"
+                                >
+                                    <FaPowerOff /> Logout
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </header>
     );
 }
