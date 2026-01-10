@@ -29,7 +29,7 @@ export default function Footer() {
 
     return (
         <>
-            <footer className="w-full px-6 py-12 md:px-18 lg:px-32 lg:py-18 bg-secondary text-white">
+            <footer className="w-full px-6 py-12 md:px-16 lg:px-32 lg:py-18 bg-secondary text-white">
                 {/* Upper Row */}
                 <div className="flex flex-wrap items-start justify-between w-full gap-8 lg:gap-20">
                     {/* About Us Column */}

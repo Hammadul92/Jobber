@@ -11,13 +11,13 @@ const companies = [
 
 function TrustedCompanies() {
     return (
-        <div className='w-full px-32 py-8 bg-white text-center'>
-            <span className='text-medium text-center mb-10'>
+        <div className='w-full px-6 md:px-16 lg:px-32 py-8 bg-white text-center'>
+            <span className='font-medium text-center text-lg mb-10'>
                 Trusted by Over <b>100+</b> Trusted  Partners
             </span>
-            <div className='mt-3 flex items-center justify-between gap-10'>
+            <div className='md:mt-6 lg:mt-3 flex flex-wrap lg:flex-nowrap items-center justify-between gap-5 lg:gap-10'>
                 {companies.map((company, index) => (
-                    <div key={index} className='flex items-center justify-center p-5 gap-2'>
+                    <div key={index} className='flex items-center justify-center px-5 gap-2'>
                         <img src={company.logo} alt={company.name} className='h-8 object-contain' />
                         <span className='font-heading text-sm'>{company.name}</span>
                     </div>

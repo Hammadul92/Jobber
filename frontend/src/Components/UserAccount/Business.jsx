@@ -139,11 +139,19 @@ export default function Business({ token, setAlert }) {
         if (!validateStep()) return;
 
         try {
+            // Normalize website to include scheme because Django URLField rejects bare domains
+            let normalizedWebsite = website.trim();
+            if (normalizedWebsite && !/^https?:\/\//i.test(normalizedWebsite)) {
+                normalizedWebsite = `https://${normalizedWebsite}`;
+            }
+
             const formData = new FormData();
             formData.append('name', name);
             formData.append('slug', slug);
             formData.append('phone', phone);
-            formData.append('website', website);
+            if (normalizedWebsite) {
+                formData.append('website', normalizedWebsite);
+            }
             formData.append('email', email);
             formData.append('business_description', businessDescription);
             formData.append('street_address', streetAddress);

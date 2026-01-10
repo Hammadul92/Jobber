@@ -107,7 +107,7 @@ export default function BankingInformation({ token, setAlert }) {
     };
 
     const cardBase = 'rounded-xl border border-gray-200 bg-white shadow-sm';
-    const cardHeader = 'flex items-center gap-2 rounded-t-xl bg-accent px-4 py-3 text-white';
+    const cardHeader = 'flex items-center gap-2 rounded-t-xl bg-secondary px-4 py-3 text-white';
     const cardBody = 'p-4 space-y-4';
     const actionBtn =
         'inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-accent hover:text-accent';

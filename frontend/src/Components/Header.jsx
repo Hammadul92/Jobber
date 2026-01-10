@@ -13,6 +13,7 @@ import {
     FaTimes,
     FaUsers,
     FaUserFriends,
+    FaBars,
 } from 'react-icons/fa';
 import { FaBuildingColumns, FaClipboardCheck, FaFileInvoice, FaFileSignature, FaListCheck } from 'react-icons/fa6';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -38,6 +39,7 @@ import contractorzLogo from '../../public/images/contractorz-logo-horizontal.svg
 export default function Header() {
     // const [isOpen, setIsOpen] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
@@ -166,12 +168,26 @@ export default function Header() {
     }, [showDropdown]);
 
     return (
-        <header className='flex items-center bg-background justify-between px-32 pt-8 w-vw absolute top-0 left-0 z-10'>
+        <header className='flex items-center justify-between bg-background md:px-16 lg:px-32 pt-8 w-full absolute top-0 left-0 z-10'>
+            
+            {/* Mobile Menu Button */}
+            <div className='lg:hidden'>
+                <button
+                    className="text-secondary mt-3"
+                    onClick={() => setShowMenu((open) => !open)}
+                >
+                    {showMenu ? <FaTimes className="text-3xl" /> : <FaBars className="text-3xl" />}
+                </button>
+            </div>
+
+            {/* Logo */}
             <div>
                 <Link to="/">
                     <img src={contractorzLogo} alt="Logo" width={170} height={0} />
                 </Link>
             </div>
+
+            {/* Navigation Menu */}
             <nav className='hidden lg:flex items-center gap-10 font-medium'>
                 <Link to="/" className={linkClass('/')}>Home</Link>
                 <Link to="/about" className={linkClass('/about')}>About</Link>
@@ -185,6 +201,12 @@ export default function Header() {
                     Prices
                 </Link>
             </nav>
+
+            {showDropdown && (
+                <div className='absolute top-0 left-0 bg-black/40 w-full h-screen' />
+            )}
+
+            {/* Login button and User account dropdown */}
             <div className="hidden items-center gap-3 md:flex">
                 {loading ? (
                     <span className="text-gray-500">Loading...</span>
@@ -216,7 +238,7 @@ export default function Header() {
                         </button>
 
                         {showDropdown && (
-                            <div className="absolute z-50 right-0 mt-3 w-64 rounded-lg border border-gray-200 bg-white shadow-lg">
+                            <div className="absolute z-50 right-0 p-3 mt-3 w-64 rounded-lg bg-white shadow-lg">
                                 <div>
                                     <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
                                         {renderLink('/user-account/profile', FaRegUserCircle, 'Profile')}
@@ -229,7 +251,7 @@ export default function Header() {
 
                                 {user.role && user.role !== 'USER' && (
                                     <div>
-                                        <h5 className="mb-2 text-sm font-semibold text-gray-900">
+                                        <h5 className="mt-2  font-semibold text-accent font-heading">
                                             {user.role === 'MANAGER'
                                                 ? business?.name
                                                 : user.role === 'CLIENT'
@@ -244,7 +266,7 @@ export default function Header() {
 
                                 <button
                                     onClick={handleLogout}
-                                    className="cursor-pointer mt-1 flex items-center justify-center gap-2 w-full bg-red-500 px-4 py-2 text-white shadow hover:bg-red-600"
+                                    className="cursor-pointer rounded-lg mt-1 flex items-center justify-center gap-2 w-full bg-red-500 px-4 py-2 text-white shadow hover:bg-red-600"
                                 >
                                     <FaPowerOff /> Logout
                                 </button>

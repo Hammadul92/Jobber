@@ -43,7 +43,7 @@ function ContactUs() {
     ];
 
     return (
-        <section className="px-6 md:px-18 lg:px-32 py-32 flex flex-col gap-12">
+        <section className="px-6 md:px-16 lg:px-32 py-32 flex flex-col gap-12">
             <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-16">
                 <div className="flex-1 space-y-6">
                     <h1 className="font-heading text-center md:text-left text-xl md:text-4xl leading-tight text-primary">
