@@ -1,12 +1,13 @@
 import '../App.css'
-import { FaArrowRight  } from 'react-icons/fa6';
+import { FaArrowRight } from 'react-icons/fa6';
 import { FaStar } from "react-icons/fa";
-import MessageBubble from '../../public/images/message-bubble.svg';
-import HorizontalRectangle from '../../public/images/rounded-horizontal-rectangle.svg';
-import VerticalRectangle from '../../public/images/rounded-vertical-rectangle.svg';
-import Hexagon from '../../public/images/hexagon.svg';
-import DotsBg from '../../public/images/dots-bg.svg';
-import user from '../../public/images/user.png';
+// Use public path for images in public directory
+const MessageBubble = '/images/message-bubble.svg';
+const HorizontalRectangle = '/images/rounded-horizontal-rectangle.svg';
+const VerticalRectangle = '/images/rounded-vertical-rectangle.svg';
+const Hexagon = '/images/hexagon.svg';
+const DotsBg = '/images/dots-bg.svg';
+const user = '/images/user.png';
 import { useNavigate } from 'react-router-dom';
 
 function Hero() {
@@ -82,8 +83,8 @@ function Hero() {
                     <img src={MessageBubble} alt="Description" />
                     <span className='absolute top-10.5 left-7 text-white font-medium'>Find Your Plan</span>
                 </div>
-                <button onClick={()=>{navigate('/contact-us')}} className='primary min-w-sm mt-12'>
-                    Get Free Consultation <FaArrowRight  className='inline-block ml-2' size={22} />
+                <button onClick={() => { navigate('/contact-us') }} className='primary min-w-sm mt-12'>
+                    Get Free Consultation <FaArrowRight className='inline-block ml-2' size={22} />
                 </button>
             </div>
         </section>

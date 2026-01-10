@@ -6,7 +6,7 @@ const testimonial = {
     content: "Contractorz transformed our hiring process. The platform is intuitive and has saved us countless hours.",
     userName: "Ali Ahsan",
     userRole: "Director, ABC.com",
-    userImage: '../../public/images/user.png',
+    userImage: '/images/user.png',
 }
 
 function Testimonials() {
@@ -21,7 +21,7 @@ function Testimonials() {
                         </h2>
                     </div>
                     <div className='flex items-end justify-start gap-4 max-w-sm'>
-                        <img src='../../public/images/linesflower.svg' alt="Customer testimonial" width={70} height={70} />
+                        <img src='/images/linesflower.svg' alt="Customer testimonial" width={70} height={70} />
                         <p className='text-3xs leading-tight'>
                             [short description goes in here] lorem ipsum is a placeholder text to demonstrate.
                         </p>
