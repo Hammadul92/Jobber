@@ -37,7 +37,7 @@ export default function Payout({ token, role, business }) {
         }
     };
 
-    if (isLoading) return <div>Loading payout...</div>;
+    if (isLoading) return <div className="py-10 text-center text-sm text-gray-500">Loading payout...</div>;
 
     if (error) {
         return (
@@ -59,16 +59,16 @@ export default function Payout({ token, role, business }) {
                 />
             )}
 
-            {/* Breadcrumbs */}
-            <nav aria-label="breadcrumb">
-                <ol className="breadcrumb">
-                    <li className="breadcrumb-item">
-                        <Link to={`/`} className="text-success">
+            <nav aria-label="breadcrumb" className="mb-4">
+                <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                    <li>
+                        <Link to={`/`} className="font-semibold text-secondary hover:text-accent">
                             Contractorz
                         </Link>
                     </li>
-                    <li className="breadcrumb-item">
-                        <Link to="/dashboard/home" className="text-success">
+                    <li className="text-gray-400">/</li>
+                    <li>
+                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
                             {business?.name ||
                                 (role === 'CLIENT'
                                     ? 'Client Portal'
@@ -77,48 +77,61 @@ export default function Payout({ token, role, business }) {
                                         : 'Dashboard')}
                         </Link>
                     </li>
-                    <li className="breadcrumb-item" aria-current="page">
-                        <Link to={`/dashboard/payouts`} className="text-success">
+                    <li className="text-gray-400">/</li>
+                    <li>
+                        <Link to={`/dashboard/payouts`} className="font-semibold text-secondary hover:text-accent">
                             Payouts
                         </Link>
                     </li>
-                    <li className="breadcrumb-item active" aria-current="page">
-                        Payout for {payoutData?.invoice_number}
-                    </li>
+                    <li className="text-gray-400">/</li>
+                    <li className="font-semibold text-gray-800">Payout for {payoutData?.invoice_number}</li>
                 </ol>
             </nav>
 
-            <div className="row mt-4">
-                {/* LEFT CARD */}
-                <div className="col-12 col-lg-3 mb-3">
-                    <div className="shadow-sm border p-3 rounded">
+            <div className="grid gap-4 lg:grid-cols-12">
+                <div className="lg:col-span-4">
+                    <div className="relative rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                         <span
-                            className={`badge rounded-pill p-2 bg-gradient float-end bg-${payoutData?.status === 'PAID' ? 'success' : 'danger'}`}
+                            className={`absolute right-4 top-4 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                                payoutData?.status === 'PAID'
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-rose-100 text-rose-700'
+                            }`}
                         >
                             {payoutData?.status}
                         </span>
-                        <h4 className="mb-1 fw-bold">{payoutData?.invoice_number}</h4>
 
+                        <h4 className="mb-1 text-lg font-semibold text-gray-900">{payoutData?.invoice_number}</h4>
+                        <p className="text-sm text-gray-500">Processed payout details</p>
 
-                        <div className="d-flex flex-column text-muted mt-3">
-                            <div>
-                                Amount: {payoutData?.amount} {payoutData?.currency}
+                        <div className="mt-4 space-y-2 text-sm text-gray-700">
+                            <div className="flex items-center justify-between">
+                                <span className="text-gray-500">Amount</span>
+                                <span className="font-semibold text-gray-900">
+                                    {payoutData?.amount} {payoutData?.currency}
+                                </span>
                             </div>
-                            <div>Created: {formatDate(payoutData?.created_at)}</div>
-                            <div>Updated: {formatDate(payoutData?.updated_at)}</div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-gray-500">Created</span>
+                                <span className="font-semibold text-gray-800">{formatDate(payoutData?.created_at)}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-gray-500">Updated</span>
+                                <span className="font-semibold text-gray-800">{formatDate(payoutData?.updated_at)}</span>
+                            </div>
                             {payoutData?.failure_reason && (
-                                <div className="text-danger mt-2">Failure: {payoutData?.failure_reason}</div>
+                                <div className="rounded-lg bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
+                                    Failure: {payoutData?.failure_reason}
+                                </div>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* RIGHT SIDE — REFUND FORM */}
-                <div className="col-12 col-lg-9">
-                    <form className="shadow-sm border p-3 rounded" onSubmit={handleRefund}>
+                <div className="lg:col-span-8">
+                    <form className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm" onSubmit={handleRefund}>
                         <Input
                             type="number"
-                            fieldClass="form-control"
                             value={amount}
                             onChange={setAmount}
                             placeholder="Enter refund amount"
@@ -126,11 +139,10 @@ export default function Payout({ token, role, business }) {
                             id="refund-amount"
                         />
 
-                        <div className="mb-3">
-                            <label className="form-label fw-semibold">Reason</label>
-
+                        <div className="mt-3">
+                            <label className="mb-1 block text-sm font-semibold text-gray-700">Reason</label>
                             <textarea
-                                className="form-control"
+                                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                                 rows="3"
                                 value={reason}
                                 onChange={(e) => setReason(e.target.value)}
@@ -138,18 +150,17 @@ export default function Payout({ token, role, business }) {
                             ></textarea>
                         </div>
 
-                        {/* Manager permission check */}
-                        <div className="d-flex justify-content-end mt-3">
+                        <div className="mt-4 flex justify-end">
                             <SubmitButton
                                 isLoading={refunding}
-                                btnClass="btn btn-success"
+                                btnClass="bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accentLight"
                                 btnName="Submit Refund"
                                 disabled={role !== 'MANAGER'}
                             />
                         </div>
 
                         {role !== 'MANAGER' && (
-                            <p className="small text-muted mt-2">Only managers can request refunds.</p>
+                            <p className="mt-2 text-xs text-gray-500">Only managers can request refunds.</p>
                         )}
                     </form>
                 </div>
