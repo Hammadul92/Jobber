@@ -3,6 +3,7 @@ import Select from '../../../ui/Select';
 import { useState, useEffect } from 'react';
 import { useFetchClientsQuery, useFetchServicesQuery, useCreateInvoiceMutation } from '../../../../store';
 import SubmitButton from '../../../ui/SubmitButton';
+import { CgClose } from 'react-icons/cg'
 
 export default function CreateInvoiceForm({ token, showModal, setShowModal, setAlert, business }) {
     const [clientId, setClientId] = useState('');
@@ -32,7 +33,7 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
     useEffect(() => {
         if (errorClients) setAlert({ type: 'danger', message: 'Failed to load clients. Please refresh.' });
         if (errorServices) setAlert({ type: 'danger', message: 'Failed to load services for selected client.' });
-    }, [errorClients, errorServices]);
+    }, [errorClients, errorServices]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (serviceId && services.length) {
@@ -107,181 +108,163 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
     return (
         <>
             {showModal && (
-                <div className="modal d-block" tabIndex="-1" role="dialog">
-                    <div className="modal-dialog modal-lg" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title fw-bold">Create New Invoice</h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setShowModal(false)}
-                                ></button>
-                            </div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="fixed inset-0 bg-black/50" onClick={() => setShowModal(false)}></div>
+                    <div className='relative z-10 w-full max-w-4xl rounded-2xl bg-white shadow-xl'>
+                        <div className="flex items-center justify-between p-6 rounded-t-2xl bg-secondary text-white border-b border-gray-100">
+                            <h5 className="text-lg font-semibold font-heading">Create New Invoice</h5>
+                            <button
+                                type="button"
+                                className="text-gray-200 transition hover:text-gray-400"
+                                onClick={() => setShowModal(false)}
+                                aria-label="Close"
+                            >
+                                <CgClose className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <form
+                            onSubmit={handleSubmit}
+                            className="p-6"
+                            role="dialog"
+                            aria-modal="true"
+                        >
 
-                            <form onSubmit={handleSubmit}>
-                                <div className="modal-body">
-                                    <div className="row">
-                                        <div className="col-md-4">
-                                            <Select
-                                                id="invoice-client"
-                                                label="Client"
-                                                value={clientId}
-                                                onChange={(val) => {
-                                                    setClientId(val);
-                                                    setServiceId('');
-                                                }}
-                                                isRequired={true}
-                                                options={[
-                                                    { value: '', label: 'Select Client' },
-                                                    ...(!loadingClients && clients?.results
-                                                        ? clients.results.map((c) => ({
-                                                              value: c.id,
-                                                              label: c.client_name,
-                                                          }))
-                                                        : []),
-                                                ]}
-                                            />
-                                        </div>
+                            <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                <Select
+                                    id="invoice-client"
+                                    label="Client"
+                                    value={clientId}
+                                    onChange={(val) => {
+                                        setClientId(val);
+                                        setServiceId('');
+                                    }}
+                                    isRequired={true}
+                                    options={[
+                                        { value: '', label: 'Select Client' },
+                                        ...(!loadingClients && clients?.results
+                                            ? clients.results.map((c) => ({ value: c.id, label: c.client_name }))
+                                            : []),
+                                    ]}
+                                />
 
-                                        <div className="col-md-8">
-                                            <Select
-                                                id="invoice-service"
-                                                label="Service"
-                                                value={serviceId}
-                                                onChange={setServiceId}
-                                                isRequired={true}
-                                                isDisabled={!clientId}
-                                                options={[
-                                                    {
-                                                        value: '',
-                                                        label: clientId ? 'Select Service' : 'Select Client first',
-                                                    },
-                                                    ...(!loadingServices && services
-                                                        ? services
-                                                              .filter(
-                                                                  (s) =>
-                                                                      s.status === 'ACTIVE' &&
-                                                                      s?.quotations.find((q) => q.status === 'SIGNED')
-                                                              )
-                                                              .map((s) => ({
-                                                                  value: s.id,
-                                                                  label: `${s.service_name} (${s.client_name} - ${s.street_address})`,
-                                                              }))
-                                                        : []),
-                                                ]}
-                                            />
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <Input
-                                                type="date"
-                                                fieldClass="form-control"
-                                                value={dueDate}
-                                                onChange={setDueDate}
-                                                isRequired={true}
-                                                label="Due Date"
-                                                id="invoice-due-date"
-                                            />
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <Select
-                                                id="invoice-currency"
-                                                label="Currency"
-                                                value={currency}
-                                                onChange={setCurrency}
-                                                isRequired={true}
-                                                options={[
-                                                    { value: 'CAD', label: 'CAD' },
-                                                    { value: 'USD', label: 'USD' },
-                                                ]}
-                                            />
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <Input
-                                                type="number"
-                                                fieldClass="form-control"
-                                                value={subtotal}
-                                                onChange={setSubtotal}
-                                                isRequired={true}
-                                                label="Subtotal"
-                                                id="invoice-subtotal"
-                                            />
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <Input
-                                                type="number"
-                                                fieldClass="form-control"
-                                                value={taxRate}
-                                                onChange={setTaxRate}
-                                                isRequired={true}
-                                                label="Tax Rate (%)"
-                                                id="invoice-tax-rate"
-                                            />
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <Input
-                                                type="number"
-                                                fieldClass="form-control"
-                                                value={taxAmount}
-                                                onChange={() => {}}
-                                                isDisabled={true}
-                                                isRequired={true}
-                                                label="Tax Amount"
-                                                id="invoice-tax-amount"
-                                            />
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <Input
-                                                type="number"
-                                                fieldClass="form-control"
-                                                value={totalAmount}
-                                                onChange={() => {}}
-                                                isDisabled={true}
-                                                isRequired={true}
-                                                label="Total Amount"
-                                                id="invoice-total-amount"
-                                            />
-                                        </div>
-
-                                        <div className="col-md-12">
-                                            <label className="form-label fw-semibold">Notes</label>
-                                            <textarea
-                                                className="form-control"
-                                                rows="3"
-                                                placeholder="Optional notes or invoice description"
-                                                value={notes}
-                                                onChange={(e) => setNotes(e.target.value)}
-                                            ></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="modal-footer">
-                                    <button
-                                        type="button"
-                                        className="btn btn-sm btn-dark"
-                                        onClick={() => setShowModal(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <SubmitButton
-                                        isLoading={isCreating}
-                                        btnClass="btn btn-sm btn-success"
-                                        btnName="Create Invoice"
+                                <div className="lg:col-span-2">
+                                    <Select
+                                        id="invoice-service"
+                                        label="Service"
+                                        value={serviceId}
+                                        onChange={setServiceId}
+                                        isRequired={true}
+                                        isDisabled={!clientId}
+                                        options={[
+                                            {
+                                                value: '',
+                                                label: clientId ? 'Select Service' : 'Select Client first',
+                                            },
+                                            ...(!loadingServices && services
+                                                ? services
+                                                    .filter(
+                                                        (s) =>
+                                                            s.status === 'ACTIVE' &&
+                                                            s?.quotations.find((q) => q.status === 'SIGNED')
+                                                    )
+                                                    .map((s) => ({
+                                                        value: s.id,
+                                                        label: `${s.service_name} (${s.client_name} - ${s.street_address})`,
+                                                    }))
+                                                : []),
+                                        ]}
                                     />
                                 </div>
-                            </form>
-                        </div>
+
+                                <Input
+                                    type="date"
+                                    value={dueDate}
+                                    onChange={setDueDate}
+                                    isRequired={true}
+                                    label="Due Date"
+                                    id="invoice-due-date"
+                                />
+
+                                <Select
+                                    id="invoice-currency"
+                                    label="Currency"
+                                    value={currency}
+                                    onChange={setCurrency}
+                                    isRequired={true}
+                                    options={[
+                                        { value: 'CAD', label: 'CAD' },
+                                        { value: 'USD', label: 'USD' },
+                                    ]}
+                                />
+
+                                <Input
+                                    type="number"
+                                    value={subtotal}
+                                    onChange={setSubtotal}
+                                    isRequired={true}
+                                    label="Subtotal"
+                                    id="invoice-subtotal"
+                                />
+
+                                <Input
+                                    type="number"
+                                    value={taxRate}
+                                    onChange={setTaxRate}
+                                    isRequired={true}
+                                    label="Tax Rate (%)"
+                                    id="invoice-tax-rate"
+                                />
+
+                                <Input
+                                    type="number"
+                                    value={taxAmount}
+                                    onChange={() => { }}
+                                    isDisabled={true}
+                                    isRequired={true}
+                                    label="Tax Amount"
+                                    id="invoice-tax-amount"
+                                />
+
+                                <Input
+                                    type="number"
+                                    value={totalAmount}
+                                    onChange={() => { }}
+                                    isDisabled={true}
+                                    isRequired={true}
+                                    label="Total Amount"
+                                    id="invoice-total-amount"
+                                />
+                            </div>
+
+                            <div className="mt-3">
+                                <label className="mb-1 block text-sm font-semibold text-gray-700">Notes</label>
+                                <textarea
+                                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                    rows="3"
+                                    placeholder="Optional notes or invoice description"
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                ></textarea>
+                            </div>
+
+                            <div className="mt-6 flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300"
+                                    onClick={() => setShowModal(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <SubmitButton
+                                    isLoading={isCreating}
+                                    btnClass="bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accentLight"
+                                    btnName="Create Invoice"
+                                />
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
-            {showModal && <div className="modal-backdrop fade show"></div>}
         </>
     );
 }

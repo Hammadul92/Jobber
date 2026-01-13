@@ -110,7 +110,7 @@ export default function Invoice({ token, role, business }) {
         return new Date(dueDate) < new Date();
     };
 
-    if (isLoading) return <div>Loading invoice...</div>;
+    if (isLoading) return <div className="py-10 text-center text-sm text-gray-500">Loading invoice...</div>;
 
     if (error) {
         return (
@@ -132,15 +132,16 @@ export default function Invoice({ token, role, business }) {
                 />
             )}
 
-            <nav aria-label="breadcrumb" className="mb-3">
-                <ol className="breadcrumb">
-                    <li className="breadcrumb-item">
-                        <Link to={`/`} className="text-success">
+            <nav aria-label="breadcrumb" className="mb-4">
+                <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                    <li>
+                        <Link to={`/`} className="font-semibold text-secondary hover:text-accent">
                             Contractorz
                         </Link>
                     </li>
-                    <li className="breadcrumb-item">
-                        <Link to="/dashboard/home" className="text-success">
+                    <li className="text-gray-400">/</li>
+                    <li>
+                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
                             {business?.name ||
                                 (role === 'CLIENT'
                                     ? 'Client Portal'
@@ -149,159 +150,174 @@ export default function Invoice({ token, role, business }) {
                                         : 'Dashboard')}
                         </Link>
                     </li>
-                    <li className="breadcrumb-item">
-                        <Link to={`/dashboard/invoices`} className="text-success">
+                    <li className="text-gray-400">/</li>
+                    <li>
+                        <Link to={`/dashboard/invoices`} className="font-semibold text-secondary hover:text-accent">
                             Invoices
                         </Link>
                     </li>
-                    <li className="breadcrumb-item active" aria-current="page">
-                        {invoiceNumber}
-                    </li>
+                    <li className="text-gray-400">/</li>
+                    <li className="font-semibold text-gray-800">{invoiceNumber}</li>
                 </ol>
             </nav>
 
             {invoiceData?.has_paid_payout && (
-                <div className="alert alert-success mb-3">
+                <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
                     Payout has already been processed for this invoice.{' '}
-                    <Link to={`/dashboard/payout/${invoiceData.payout_id}`} className="alert-link">
+                    <Link to={`/dashboard/payout/${invoiceData.payout_id}`} className="underline decoration-emerald-500">
                         View Payout
                     </Link>
                 </div>
             )}
 
-            <div className="row">
+            <div className="grid gap-5 lg:grid-cols-12">
                 {role === 'MANAGER' && (
-                    <div className="col-12 col-lg-3 mb-3">
-                        <div className="border shadow-sm p-3 rounded">
-                            <h4 className="mb-1">
-                                {invoiceNumber}{' '}
-                                <span className={`badge bg-gradient rounded-pill bg-${statusColor(status)} float-end`}>
-                                    {status}
-                                </span>
-                            </h4>
-                            <div className="mt-2 text-muted">
-                                <div>
-                                    <strong>Business:</strong> {businessName}
+                    <div className="lg:col-span-4">
+                        <div className="relative rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                            <span
+                                className={`absolute right-4 top-4 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                                    status === 'PAID'
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : status === 'SENT'
+                                            ? 'bg-blue-100 text-blue-700'
+                                            : status === 'CANCELLED'
+                                                ? 'bg-rose-100 text-rose-700'
+                                                : 'bg-gray-100 text-gray-700'
+                                }`}
+                            >
+                                {status}
+                            </span>
+
+                            <h4 className="mb-1 text-lg font-semibold text-gray-900">{invoiceNumber}</h4>
+                            <p className="text-sm text-gray-500">Billing summary</p>
+
+                            <div className="mt-4 space-y-2 text-sm text-gray-700">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-gray-500">Business</span>
+                                    <span className="font-semibold text-gray-900">{businessName}</span>
                                 </div>
-                                <div>
-                                    <strong>Client:</strong> {clientName}
+                                <div className="flex items-center justify-between">
+                                    <span className="text-gray-500">Client</span>
+                                    <span className="font-semibold text-gray-900">{clientName}</span>
                                 </div>
-                                <div>
-                                    <strong>Service:</strong> {serviceName}
+                                <div className="flex items-center justify-between">
+                                    <span className="text-gray-500">Service</span>
+                                    <span className="font-semibold text-gray-900">{serviceName}</span>
                                 </div>
-                                <div>
-                                    <strong>Currency:</strong> {currency}
+                                <div className="flex items-center justify-between">
+                                    <span className="text-gray-500">Currency</span>
+                                    <span className="font-semibold text-gray-900">{currency}</span>
                                 </div>
                             </div>
-                            <div className="d-flex gap-2 mt-3">
+
+                            <div className="mt-4 flex flex-wrap gap-2">
                                 <button
-                                    className="btn btn-primary btn-sm bg-gradient"
+                                    type="button"
+                                    className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-blue-700 transition hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-60"
                                     disabled={status === 'SENT' || isLocked}
                                     onClick={() => handleStatusChange('SENT')}
                                 >
                                     Send
                                 </button>
                                 <button
-                                    className="btn btn-success btn-sm bg-gradient"
+                                    type="button"
+                                    className="rounded-lg border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
                                     disabled={status === 'PAID' || isLocked}
                                     onClick={() => handleStatusChange('PAID')}
                                 >
                                     Mark Paid
                                 </button>
                                 <button
-                                    className="btn btn-danger btn-sm bg-gradient"
+                                    type="button"
+                                    className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:border-rose-300 disabled:cursor-not-allowed disabled:opacity-60"
                                     disabled={status === 'CANCELLED' || isLocked}
                                     onClick={() => handleStatusChange('CANCELLED')}
                                 >
                                     Cancel
                                 </button>
                             </div>
+
                             {status === 'PAID' && paidAt && (
-                                <div className="mt-3 text-muted">
-                                    <strong>Paid on:</strong> {formatDate(paidAt)}
+                                <div className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+                                    Paid on: {formatDate(paidAt)}
                                 </div>
                             )}
                         </div>
                     </div>
                 )}
 
-                <div className={role === 'MANAGER' ? 'col-12 col-lg-9' : 'col-12'}>
-                    <div className="shadow-sm p-3 border rounded position-relative">
+                <div className={role === 'MANAGER' ? 'lg:col-span-8' : 'lg:col-span-12'}>
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                         {role === 'MANAGER' ? (
-                            <form onSubmit={handleSubmit} className="row">
-                                <div className="col-md-4">
-                                    <Input
-                                        type="date"
-                                        fieldClass="form-control"
-                                        value={dueDate}
-                                        onChange={setDueDate}
-                                        isRequired={true}
-                                        isDisabled={isLocked}
-                                        label="Due Date"
-                                        id="invoice-due-date"
-                                    />
-                                </div>
-                                <div className="col-md-4">
-                                    <Input
-                                        type="number"
-                                        fieldClass="form-control"
-                                        value={subtotal}
-                                        onChange={setSubtotal}
-                                        isRequired={true}
-                                        isDisabled={isLocked}
-                                        label="Subtotal"
-                                        id="invoice-subtotal"
-                                    />
-                                </div>
-                                <div className="col-md-4">
-                                    <Input
-                                        type="number"
-                                        fieldClass="form-control"
-                                        value={taxRate}
-                                        onChange={setTaxRate}
-                                        isRequired={true}
-                                        isDisabled={isLocked}
-                                        label="Tax Rate (%)"
-                                        id="invoice-tax-rate"
-                                    />
-                                </div>
-                                <div className="col-md-4">
-                                    <Input
-                                        type="number"
-                                        fieldClass="form-control"
-                                        value={taxAmount}
-                                        onChange={() => { }}
-                                        isDisabled={true}
-                                        label="Tax Amount"
-                                        id="invoice-tax-amount"
-                                    />
-                                </div>
-                                <div className="col-md-4">
-                                    <Input
-                                        type="number"
-                                        fieldClass="form-control"
-                                        value={totalAmount}
-                                        onChange={() => { }}
-                                        isDisabled={true}
-                                        label="Total Amount"
-                                        id="invoice-total-amount"
-                                    />
-                                </div>
-                                <div className="col-md-12">
-                                    <label className="form-label fw-semibold">Notes</label>
+                            <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+                                <Input
+                                    type="date"
+                                    fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                                    value={dueDate}
+                                    onChange={setDueDate}
+                                    isRequired={true}
+                                    isDisabled={isLocked}
+                                    label="Due Date"
+                                    id="invoice-due-date"
+                                />
 
+                                <Input
+                                    type="number"
+                                    fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                                    value={subtotal}
+                                    onChange={setSubtotal}
+                                    isRequired={true}
+                                    isDisabled={isLocked}
+                                    label="Subtotal"
+                                    id="invoice-subtotal"
+                                />
+
+                                <Input
+                                    type="number"
+                                    fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                                    value={taxRate}
+                                    onChange={setTaxRate}
+                                    isRequired={true}
+                                    isDisabled={isLocked}
+                                    label="Tax Rate (%)"
+                                    id="invoice-tax-rate"
+                                />
+
+                                <Input
+                                    type="number"
+                                    fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                                    value={taxAmount}
+                                    onChange={() => {}}
+                                    isDisabled={true}
+                                    label="Tax Amount"
+                                    id="invoice-tax-amount"
+                                />
+
+                                <Input
+                                    type="number"
+                                    fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                                    value={totalAmount}
+                                    onChange={() => {}}
+                                    isDisabled={true}
+                                    label="Total Amount"
+                                    id="invoice-total-amount"
+                                />
+
+                                <div className="md:col-span-2">
+                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Notes</label>
                                     <textarea
-                                        className="form-control"
+                                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                                         rows="3"
                                         value={notes}
                                         onChange={(e) => setNotes(e.target.value)}
                                         disabled={isLocked}
                                     />
                                 </div>
-                                <div className="d-flex justify-content-end mt-3">
+
+                                <div className="md:col-span-2 mt-2 flex justify-end">
                                     <SubmitButton
                                         isLoading={updatingInvoice}
-                                        btnClass="btn btn-success"
+                                        btnClass="bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accentLight"
                                         btnName="Save Changes"
                                         disabled={isLocked}
                                     />
@@ -333,19 +349,6 @@ export default function Invoice({ token, role, business }) {
     );
 }
 
-function statusColor(status) {
-    switch (status) {
-        case 'PAID':
-            return 'success';
-        case 'SENT':
-            return 'primary';
-        case 'CANCELLED':
-            return 'danger';
-        default:
-            return 'secondary';
-    }
-}
-
 // Extracted Customer View for cleaner code
 function CustomerView({
     invoiceData,
@@ -365,49 +368,49 @@ function CustomerView({
     serviceName,
 }) {
     return (
-        <div>
-            <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div className="space-y-5">
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-4">
                 <div>
-                    <h3 className="fw-bold mb-1">Invoice</h3>
-                    <small className="text-muted">#{invoiceNumber}</small>
+                    <h3 className="text-xl font-semibold text-gray-900">Invoice</h3>
+                    <p className="text-sm text-gray-500">#{invoiceNumber}</p>
                 </div>
-                <div className="text-end">
-                    <h5 className="fw-bold mb-1">{businessName}</h5>
-                    <small className="text-muted">{formatDate(invoiceData?.created_at)}</small>
-                </div>
-            </div>
-
-            <div className="row mb-4">
-                <div className="col-6">
-                    <h6 className="text-success fw-bold mb-1">Bill From</h6>
-                    <small className="text-muted">{businessName}</small>
-                </div>
-                <div className="col-6 text-end">
-                    <h6 className="text-success fw-bold mb-1">Bill To</h6>
-                    <small className="text-muted">{clientName}</small>
+                <div className="text-right">
+                    <h5 className="text-lg font-semibold text-gray-900">{businessName}</h5>
+                    <p className="text-sm text-gray-500">{formatDate(invoiceData?.created_at)}</p>
                 </div>
             </div>
 
-            <div className="table-responsive mb-4">
-                <table className="table table-bordered align-middle">
-                    <thead className="table-light">
+            <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Bill From</p>
+                    <p className="text-sm font-semibold text-gray-900">{businessName}</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-right">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Bill To</p>
+                    <p className="text-sm font-semibold text-gray-900">{clientName}</p>
+                </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <table className="min-w-full text-sm">
+                    <thead className="bg-gray-50">
                         <tr>
-                            <th>Service</th>
-                            <th className="text-end">Subtotal</th>
-                            <th className="text-end">Tax ({taxRate}%)</th>
-                            <th className="text-end">Total</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Service</th>
+                            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Subtotal</th>
+                            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Tax ({taxRate}%)</th>
+                            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Total</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>{serviceName}</td>
-                            <td className="text-end">
+                        <tr className="border-t border-gray-100">
+                            <td className="px-4 py-3 text-gray-800">{serviceName}</td>
+                            <td className="px-4 py-3 text-right text-gray-800">
                                 {subtotal} {currency}
                             </td>
-                            <td className="text-end">
+                            <td className="px-4 py-3 text-right text-gray-800">
                                 {((parseFloat(subtotal) * parseFloat(taxRate)) / 100).toFixed(2)} {currency}
                             </td>
-                            <td className="text-end fw-bold">
+                            <td className="px-4 py-3 text-right text-gray-900 font-semibold">
                                 {totalAmount} {currency}
                             </td>
                         </tr>
@@ -415,42 +418,45 @@ function CustomerView({
                 </table>
             </div>
 
-            <div className="d-flex justify-content-end mb-4">
-                <div className="text-end">
-                    <div>
-                        <strong>Due Date:</strong> {formatDate(invoiceData?.due_date)}
-                    </div>
-                    {isOverdue() && <span className="badge bg-danger bg-gradient rounded-pill ms-2">Overdue</span>}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <span className="font-semibold text-gray-800">Due Date:</span>
+                    <span>{formatDate(invoiceData?.due_date)}</span>
+                    {isOverdue() && (
+                        <span className="inline-flex rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
+                            Overdue
+                        </span>
+                    )}
                     {status === 'PAID' && paidAt && (
-                        <p className="mb-1">
-                            <strong>Paid On:</strong> {formatDate(paidAt)}
-                        </p>
+                        <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                            Paid {formatDate(paidAt)}
+                        </span>
                     )}
                 </div>
             </div>
 
             {notes && (
-                <div className="border-top pt-3">
-                    <h6 className="fw-bold">Notes</h6>
-                    <p className="text-muted">{notes}</p>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <h6 className="text-sm font-semibold text-gray-900">Notes</h6>
+                    <p className="text-sm text-gray-600">{notes}</p>
                 </div>
             )}
 
             {status !== 'PAID' && (
-                <div className="text-end mt-4">
+                <div className="text-right">
                     {invoiceData?.has_payment_method ? (
                         <button
-                            className="btn btn-success bg-gradient"
+                            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight disabled:cursor-not-allowed disabled:opacity-60"
                             onClick={handlePayment}
                             disabled={processingPayment}
                         >
                             {processingPayment ? 'Processing...' : `Pay ${totalAmount} ${currency}`}
                         </button>
                     ) : (
-                        <div className="text-muted">
+                        <div className="text-sm text-gray-500">
                             <i>
                                 No active payment method found. Please{' '}
-                                <Link to="/user-account/banking" className="text-success">
+                                <Link to="/user-account/banking" className="font-semibold text-secondary hover:text-accent">
                                     add a payment method
                                 </Link>{' '}
                                 to make payment.

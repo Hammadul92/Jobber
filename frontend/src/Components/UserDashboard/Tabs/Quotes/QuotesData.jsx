@@ -112,7 +112,7 @@ export default function QuotesData({ token, role, setAlert }) {
                     </div>
                 </div>
             ) : (
-                <div className="min-h-[65vh] grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="min-h-[65vh] max-h-[65vh] overflow-auto grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {filteredQuotes.map((quote) => {
                         const validUntilDate = quote.valid_until ? new Date(quote.valid_until) : null;
                         const isExpired = validUntilDate && validUntilDate < today;

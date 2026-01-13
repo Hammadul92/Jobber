@@ -1,14 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Grid, Table, TableHeaderRow, TableFilterRow, PagingPanel } from '@devexpress/dx-react-grid-bootstrap4';
-import {
-    SortingState,
-    IntegratedSorting,
-    FilteringState,
-    IntegratedFiltering,
-    PagingState,
-    IntegratedPaging,
-} from '@devexpress/dx-react-grid';
 import { useFetchInvoicesQuery, useDeleteInvoiceMutation } from '../../../../store';
 import SubmitButton from '../../../ui/SubmitButton';
 import AlertDispatcher from '../../../ui/AlertDispatcher';
@@ -24,18 +15,10 @@ export default function InvoiceDatatable({ token, role }) {
     const { data: invoiceData, isLoading, error } = useFetchInvoicesQuery(undefined, { skip: !token });
     const [deleteInvoice, { isLoading: deleting }] = useDeleteInvoiceMutation();
 
-    const [sortingStateColumnExtensions] = useState([{ columnName: 'actions', sortingEnabled: false }]);
-    const [defaultSorting] = useState([]);
-    const [filteringStateColumnExtensions] = useState([{ columnName: 'actions', filteringEnabled: false }]);
-
-    const [currentPage, setCurrentPage] = useState(0);
-    const [pageSize, setPageSize] = useState(20);
-    const [pageSizes] = useState([20, 30, 50]);
-
     useEffect(() => {
         if (invoiceData) {
             setRows(invoiceData.results);
-            generateColumns(invoiceData.columns);
+            setColumns([...(invoiceData.columns || []), { name: 'actions', title: 'Actions' }]);
         }
     }, [invoiceData]);
 
@@ -44,11 +27,6 @@ export default function InvoiceDatatable({ token, role }) {
             setAlert({ type: 'danger', message: error?.data?.detail || 'Failed to load invoice data.' });
         }
     }, [error]);
-
-    const generateColumns = (columns) => {
-        const updatedColumns = [...columns, { name: 'actions', title: 'Actions' }];
-        setColumns(updatedColumns);
-    };
 
     const handleDeleteClick = (id) => {
         setSelectedInvoiceId(id);
@@ -70,65 +48,20 @@ export default function InvoiceDatatable({ token, role }) {
         }
     };
 
-    const Cell = (props) => {
-        if (props.column.name === 'actions') {
-            return (
-                <Table.Cell {...props}>
-                    <Link
-                        to={`/dashboard/invoice/${props.row.id}`}
-                        className="btn btn-sm btn-light me-2"
-                        title="View Invoice"
-                    >
-                        <i className="fa fa-eye"></i> View
-                    </Link>
-
-                    {role === 'MANAGER' && (
-                        <button
-                            className="btn btn-sm btn-light"
-                            onClick={() => handleDeleteClick(props.row.id)}
-                            title="Delete Invoice"
-                        >
-                            <i className="fa fa-trash-alt"></i> Delete
-                        </button>
-                    )}
-                </Table.Cell>
-            );
-        } else if (props.column.name === 'invoice_number') {
-            const statusColor =
-                props.row.status === 'PAID'
-                    ? 'bg-success'
-                    : props.row.status === 'SENT'
-                      ? 'bg-primary'
-                      : props.row.status === 'CANCELLED'
-                        ? 'bg-danger'
-                        : 'bg-secondary';
-            return (
-                <Table.Cell {...props}>
-                    {props.row.invoice_number}{' '}
-                    {props.row.status !== 'SENT' && (
-                        <span className={`badge bg-gradient rounded-pill ${statusColor}`}>{props.row.status}</span>
-                    )}
-                </Table.Cell>
-            );
-        } else if (props.column.name === 'due_date') {
-            const dueDate = new Date(props.row.due_date);
-            const today = new Date();
-            const isOverdue = dueDate < today && props.row.status !== 'PAID' && props.row.status !== 'CANCELLED';
-
-            return (
-                <Table.Cell {...props}>
-                    {formatDate(props.row.due_date)}{' '}
-                    {isOverdue && <span className="badge bg-danger bg-gradient rounded-pill ms-2">Overdue</span>}
-                </Table.Cell>
-            );
-        } else if (props.column.name === 'created_at') {
-            return <Table.Cell {...props}>{formatDate(props.row.created_at)}</Table.Cell>;
-        }
-
-        return <Table.Cell {...props} />;
+    const statusBadge = (status) => {
+        if (status === 'PAID') return 'bg-emerald-100 text-emerald-700';
+        if (status === 'SENT') return 'bg-blue-100 text-blue-700';
+        if (status === 'CANCELLED') return 'bg-rose-100 text-rose-700';
+        return 'bg-gray-100 text-gray-700';
     };
 
-    if (isLoading) return <div>Loading data...</div>;
+    const isOverdue = (row) => {
+        const dueDate = new Date(row.due_date);
+        const today = new Date();
+        return dueDate < today && row.status !== 'PAID' && row.status !== 'CANCELLED';
+    };
+
+    if (isLoading) return <div className="py-10 text-center text-sm text-gray-500">Loading data...</div>;
 
     return (
         <>
@@ -140,60 +73,160 @@ export default function InvoiceDatatable({ token, role }) {
                 />
             )}
 
-            <div>
-                <Grid rows={rows} columns={columns}>
-                    <SortingState defaultSorting={defaultSorting} columnExtensions={sortingStateColumnExtensions} />
-                    <IntegratedSorting />
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                    <div>
+                        <h4 className="text-lg font-semibold text-gray-900">Invoices</h4>
+                        <p className="text-xs text-gray-500">Review billing, due dates, and payment status.</p>
+                    </div>
+                </div>
 
-                    <FilteringState columnExtensions={filteringStateColumnExtensions} />
-                    <IntegratedFiltering />
+                <div className="overflow-x-auto  rounded-b-2xl min-h-[65vh] max-h-[65vh] overflow-auto">
+                    <table className="min-w-full divide-y divide-gray-100 text-sm">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                {columns.map((col) => (
+                                    <th
+                                        key={col.name}
+                                        scope="col"
+                                        className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                    >
+                                        {col.title}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50 bg-white">
+                            {rows?.length ? (
+                                rows.map((row) => (
+                                    <tr key={row.id} className="hover:bg-gray-50">
+                                        {columns.map((col) => {
+                                            if (col.name === 'actions') {
+                                                return (
+                                                    <td key={col.name} className="px-4 py-3 text-right">
+                                                        <div className="flex justify-end gap-2">
+                                                            <Link
+                                                                to={`/dashboard/invoice/${row.id}`}
+                                                                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-secondary transition hover:border-secondary hover:text-accent"
+                                                                title="View Invoice"
+                                                            >
+                                                                View
+                                                            </Link>
 
-                    <PagingState
-                        currentPage={currentPage}
-                        onCurrentPageChange={setCurrentPage}
-                        pageSize={pageSize}
-                        onPageSizeChange={setPageSize}
-                    />
-                    <IntegratedPaging />
+                                                            {role === 'MANAGER' && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-rose-200 hover:text-rose-700"
+                                                                    onClick={() => handleDeleteClick(row.id)}
+                                                                    title="Delete Invoice"
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
 
-                    <Table cellComponent={Cell} />
-                    <TableHeaderRow showSortingControls />
-                    <TableFilterRow />
-                    <PagingPanel pageSizes={pageSizes} />
-                </Grid>
+                                            if (col.name === 'invoice_number') {
+                                                return (
+                                                    <td key={col.name} className="px-4 py-3 text-gray-900">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="font-semibold text-gray-900">{row[col.name]}</span>
+                                                            {row.status !== 'SENT' && (
+                                                                <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${statusBadge(row.status)}`}>
+                                                                    {row.status}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+
+                                            if (col.name === 'due_date') {
+                                                return (
+                                                    <td key={col.name} className="px-4 py-3 text-gray-700">
+                                                        <div className="flex items-center gap-2">
+                                                            <span>{formatDate(row[col.name])}</span>
+                                                            {isOverdue(row) && (
+                                                                <span className="inline-flex rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
+                                                                    Overdue
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+
+                                            if (col.name === 'created_at') {
+                                                return (
+                                                    <td key={col.name} className="px-4 py-3 text-gray-700">
+                                                        {formatDate(row[col.name])}
+                                                    </td>
+                                                );
+                                            }
+
+                                            return (
+                                                <td key={col.name} className="px-4 py-3 text-gray-700">
+                                                    {row[col.name] ?? '—'}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={columns.length} className="px-4 py-6 text-center text-sm font-semibold text-gray-400">
+                                        No invoices found.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {showModal && (
-                <form onSubmit={confirmDelete} className="modal d-block" tabIndex="-1" role="dialog">
-                    <div className="modal-dialog modal-dialog-centered" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Delete Invoice</h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setShowModal(false)}
-                                ></button>
-                            </div>
-                            <div className="modal-body">
-                                <p>Are you sure you want to delete this invoice?</p>
-                            </div>
-                            <div className="modal-footer">
-                                <button
-                                    type="button"
-                                    className="btn btn-sm btn-dark"
-                                    onClick={() => setShowModal(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <SubmitButton isLoading={deleting} btnClass="btn btn-sm btn-danger" btnName="Delete" />
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            )}
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="fixed inset-0 bg-gray-900/40" onClick={() => setShowModal(false)}></div>
 
-            {showModal && <div className="modal-backdrop fade show"></div>}
+                    <form
+                        onSubmit={confirmDelete}
+                        className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+                        role="dialog"
+                        aria-modal="true"
+                    >
+                        <div className="flex items-center justify-between">
+                            <h5 className="text-lg font-semibold text-gray-900">Delete Invoice</h5>
+                            <button
+                                type="button"
+                                className="text-gray-400 transition hover:text-gray-600"
+                                onClick={() => setShowModal(false)}
+                                aria-label="Close"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <p className="mt-3 text-sm text-gray-600">Are you sure you want to delete this invoice?</p>
+
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                type="button"
+                                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300"
+                                onClick={() => setShowModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <SubmitButton
+                                isLoading={deleting}
+                                btnClass="bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-700"
+                                btnName="Delete"
+                            />
+                        </div>
+                    </form>
+                </div>
+            )}
         </>
     );
 }
