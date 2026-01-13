@@ -97,15 +97,15 @@ export default function SignQuote({ token }) {
 
     if (error)
         return (
-            <div className="alert alert-danger" role="alert">
+            <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800" role="alert">
                 {error?.data?.detail || 'Failed to load quote.'}
             </div>
         );
 
     if (!quote) {
         return (
-            <div className="alert alert-warning text-center my-5">
-                <i className="fa fa-exclamation-circle me-2"></i>
+            <div className="my-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-amber-800">
+                <i className="fa fa-exclamation-circle mr-2"></i>
                 Quote not found or no longer available.
             </div>
         );
@@ -123,177 +123,169 @@ export default function SignQuote({ token }) {
                 />
             )}
 
-            <nav aria-label="breadcrumb" className="mb-3">
-                <ol className="breadcrumb">
-                    <li className="breadcrumb-item">
-                        <Link to={`/dashboard/home`} className="text-success">
+            <nav aria-label="breadcrumb" className="mb-4">
+                <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                    <li>
+                        <Link to={`/dashboard/home`} className="font-semibold text-secondary hover:text-accent">
                             Dashboard
                         </Link>
                     </li>
-                    <li className="breadcrumb-item">
-                        <Link to={`/dashboard/quotes`} className="text-success">
+                    <li className="text-gray-400">/</li>
+                    <li>
+                        <Link to={`/dashboard/quotes`} className="font-semibold text-secondary hover:text-accent">
                             Quotes
                         </Link>
                     </li>
-                    <li className="breadcrumb-item active" aria-current="page">
-                        Quote ({quote.quote_number})
-                    </li>
+                    <li className="text-gray-400">/</li>
+                    <li className="font-semibold text-gray-800">Quote ({quote.quote_number})</li>
                 </ol>
             </nav>
 
-            <div className="shadow p-4 bg-white rounded">
-                <div className="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-                    <h4 className="mb-0 fw-semibold">
-                        <i className="far fa-file-text text-secondary me-2"></i>
+            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                    <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                        <i className="far fa-file-text text-secondary"></i>
                         {quote.business_name} (Quote # {quote.quote_number})
                     </h4>
 
                     {quote.valid_until && status === 'SENT' && (
-                        <div className="text-end">
-                            <div className="d-flex align-items-center justify-content-end">
-                                <i className="far fa-clock text-secondary me-2"></i>
-                                <span className="fw-semibold text-dark">
-                                    Valid Until:{' '}
-                                    <span className="text-muted">{new Date(quote.valid_until).toLocaleString()}</span>
+                        <div className="text-right">
+                            <div className="flex items-center justify-end gap-2 text-sm font-semibold text-gray-800">
+                                <i className="far fa-clock text-secondary"></i>
+                                <span>
+                                    Valid Until: <span className="text-gray-500">{new Date(quote.valid_until).toLocaleString()}</span>
                                 </span>
                             </div>
-
                             <div
-                                className={`mt-1 fw-semibold ${
-                                    timeRemaining === 'Expired' ? 'text-danger' : 'text-success'
+                                className={`mt-1 text-sm font-semibold ${
+                                    timeRemaining === 'Expired' ? 'text-rose-700' : 'text-emerald-700'
                                 }`}
-                                style={{ fontSize: '0.95rem' }}
                             >
-                                {timeRemaining === 'Expired'
-                                    ? 'This quote has expired.'
-                                    : `Time left: ${timeRemaining}`}
+                                {timeRemaining === 'Expired' ? 'This quote has expired.' : `Time left: ${timeRemaining}`}
                             </div>
                         </div>
                     )}
                 </div>
 
-                <div className="row mb-3">
-                    <div className="col-md-6 mb-4 mb-md-0">
-                        <h5 className="mb-2">Client Details</h5>
-                        <ul className="list-unstyled small text-muted">
-                            <li>
-                                <strong>Name:</strong> {quote.client_name || '_'}
-                            </li>
-                            <li>
-                                <strong>Email:</strong> {quote.client?.client_email || '_'}
-                            </li>
-                            <li>
-                                <strong>Phone:</strong> {quote.client?.client_phone || '_'}
-                            </li>
-                        </ul>
+                <div className="grid gap-6 lg:grid-cols-2">
+                    <div className="space-y-4">
+                        <div>
+                            <h5 className="mb-2 text-sm font-semibold text-gray-800">Client Details</h5>
+                            <ul className="space-y-1 text-sm text-gray-600">
+                                <li>
+                                    <strong className="text-gray-800">Name:</strong> {quote.client_name || '_'}
+                                </li>
+                                <li>
+                                    <strong className="text-gray-800">Email:</strong> {quote.client?.client_email || '_'}
+                                </li>
+                                <li>
+                                    <strong className="text-gray-800">Phone:</strong> {quote.client?.client_phone || '_'}
+                                </li>
+                            </ul>
+                        </div>
 
-                        <h5 className="mb-2">Service Details</h5>
-                        <ul className="list-unstyled small text-muted">
-                            <li>
-                                <strong>Service Name:</strong> {quote.service_data?.service_name || '—'}
-                            </li>
-                            <li>
-                                <strong>Description:</strong> {quote.service_data?.description || '—'}
-                            </li>
-                            <li>
-                                <strong>Price:</strong> ${quote.service_data?.price} {quote.service_data?.currency}
-                            </li>
-                            <li>
-                                <strong>Service Type:</strong>{' '}
-                                <span className="badge bg-dark rounded-pill bg-gradient">
-                                    {quote.service_data?.service_type}
-                                </span>
-                            </li>
-                            <li>
-                                <strong>Billing Cycle:</strong> {quote.service_data?.billing_cycle || '—'}
-                            </li>
-                            <li>
-                                <strong>Start Date:</strong>{' '}
-                                {quote.service_data?.start_date
-                                    ? new Date(quote.service_data.start_date).toLocaleDateString()
-                                    : '—'}
-                            </li>
-                            <li>
-                                <strong>End Date:</strong>{' '}
-                                {quote.service_data?.end_date
-                                    ? new Date(quote.service_data.end_date).toLocaleDateString()
-                                    : '—'}
-                            </li>
-                            <li>
-                                <strong>Service Address:</strong> {quote.service_data?.street_address || '_'},{' '}
-                                {quote.service_data?.city || '_'}, {quote.service_data?.country || '_'},{' '}
-                                {quote.service_data?.postal_code || '_'}
-                            </li>
-                            <li>
-                                <strong>Notes:</strong> {quote.notes || 'No notes added.'}
-                            </li>
-                        </ul>
+                        <div className="space-y-2">
+                            <h5 className="text-sm font-semibold text-gray-800">Service Details</h5>
+                            <ul className="space-y-1 text-sm text-gray-600">
+                                <li>
+                                    <strong className="text-gray-800">Service Name:</strong> {quote.service_data?.service_name || '—'}
+                                </li>
+                                <li>
+                                    <strong className="text-gray-800">Description:</strong> {quote.service_data?.description || '—'}
+                                </li>
+                                <li>
+                                    <strong className="text-gray-800">Price:</strong> ${quote.service_data?.price} {quote.service_data?.currency}
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <strong className="text-gray-800">Service Type:</strong>
+                                    <span className="inline-flex items-center rounded-full bg-gray-800 px-3 py-1 text-xs font-semibold text-white">
+                                        {quote.service_data?.service_type}
+                                    </span>
+                                </li>
+                                <li>
+                                    <strong className="text-gray-800">Billing Cycle:</strong> {quote.service_data?.billing_cycle || '—'}
+                                </li>
+                                <li>
+                                    <strong className="text-gray-800">Start Date:</strong>{' '}
+                                    {quote.service_data?.start_date
+                                        ? new Date(quote.service_data.start_date).toLocaleDateString()
+                                        : '—'}
+                                </li>
+                                <li>
+                                    <strong className="text-gray-800">End Date:</strong>{' '}
+                                    {quote.service_data?.end_date
+                                        ? new Date(quote.service_data.end_date).toLocaleDateString()
+                                        : '—'}
+                                </li>
+                                <li>
+                                    <strong className="text-gray-800">Service Address:</strong> {quote.service_data?.street_address || '_'}, {quote.service_data?.city || '_'}, {quote.service_data?.country || '_'}, {quote.service_data?.postal_code || '_'}
+                                </li>
+                                <li>
+                                    <strong className="text-gray-800">Notes:</strong> {quote.notes || 'No notes added.'}
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="space-y-4">
                         <div>
-                            <h5 className="mb-2">Service Questionnaire Responses</h5>
-                            <ul className="list-unstyled small text-muted">
+                            <h5 className="mb-2 text-sm font-semibold text-gray-800">Service Questionnaire Responses</h5>
+                            <ul className="space-y-2 text-sm text-gray-600">
                                 {quote?.service_data?.filled_questionnaire &&
                                 Object.keys(quote.service_data.filled_questionnaire).length > 0 ? (
                                     Object.entries(quote.service_data.filled_questionnaire).map(([q, a]) => (
-                                        <li className="mb-2" key={q}>
-                                            <strong className="text-dark">{q}:</strong>{' '}
-                                            {Array.isArray(a) ? a.join(', ') : a}
+                                        <li key={q} className="rounded-lg bg-gray-50 px-3 py-2">
+                                            <strong className="text-gray-800">{q}:</strong> {Array.isArray(a) ? a.join(', ') : a}
                                         </li>
                                     ))
                                 ) : (
-                                    <i>
-                                        <i className="fa fa-info-circle me-2"></i>
-                                        No questionnaire responses available.
-                                    </i>
+                                    <div className="flex items-center gap-2 text-gray-500">
+                                        <i className="fa fa-info-circle"></i>
+                                        <span>No questionnaire responses available.</span>
+                                    </div>
                                 )}
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <div className="mb-4">
-                    <h5 className="text-muted">Terms & Conditions</h5>
-                    <p>{quote.terms_conditions || '_'}</p>
+                <div className="mt-6">
+                    <h5 className="text-sm font-semibold text-gray-800">Terms & Conditions</h5>
+                    <p className="mt-2 text-sm text-gray-700">{quote.terms_conditions || '_'}</p>
                 </div>
 
-                <div>
+                <div className="mt-6">
                     {isFinalized ? (
-                        <div className={`alert alert-${status === 'DECLINED' ? 'danger' : 'success'} mt-3`}>
+                        <div
+                            className={`rounded-lg px-4 py-3 ${
+                                status === 'DECLINED'
+                                    ? 'border border-rose-200 bg-rose-50 text-rose-800'
+                                    : 'border border-emerald-200 bg-emerald-50 text-emerald-800'
+                            }`}
+                        >
                             {status === 'SIGNED' ? (
-                                <div className="row">
-                                    <div className="col-md-6">
-                                        <div className="mb-2">
-                                            <strong>This quote has been signed successfully.</strong>
-                                        </div>
-
-                                        <p className="mb-1">
-                                            Signed on: <strong>{formatDate(quote.signed_at)}</strong>
-                                        </p>
-                                        <p className="mb-1">
-                                            Signed by: <strong>{quote.client.client_name}</strong>
-                                        </p>
+                                <div className="grid gap-4 lg:grid-cols-2">
+                                    <div>
+                                        <p className="mb-2 font-semibold">This quote has been signed successfully.</p>
+                                        <p className="mb-1 text-sm">Signed on: <strong>{formatDate(quote.signed_at)}</strong></p>
+                                        <p className="mb-1 text-sm">Signed by: <strong>{quote.client.client_name}</strong></p>
                                     </div>
-                                    <div className="col-md-6">
+                                    <div className="flex items-center justify-start lg:justify-end">
                                         {quote.signature && (
-                                            <div>
-                                                <img
-                                                    src={
-                                                        quote.signature.startsWith('http')
-                                                            ? quote.signature
-                                                            : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${quote.signature}`
-                                                    }
-                                                    alt="Signed Document"
-                                                    className="border rounded bg-white p-2"
-                                                    style={{ height: '80px' }}
-                                                />
-                                            </div>
+                                            <img
+                                                src={
+                                                    quote.signature.startsWith('http')
+                                                        ? quote.signature
+                                                        : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${quote.signature}`
+                                                }
+                                                alt="Signed Document"
+                                                className="h-20 rounded border border-gray-200 bg-white p-2"
+                                            />
                                         )}
                                     </div>
                                 </div>
                             ) : (
-                                <>
+                                <p className="text-sm">
                                     This quote has been <strong>declined</strong>
                                     {quote.signed_at && (
                                         <>
@@ -301,20 +293,20 @@ export default function SignQuote({ token }) {
                                             on <strong>{new Date(quote.signed_at).toLocaleString()}</strong>
                                         </>
                                     )}
-                                </>
+                                </p>
                             )}
                         </div>
                     ) : (
-                        <div className="d-flex justify-content-end gap-2 mt-3">
+                        <div className="mt-3 flex justify-end gap-3">
                             <button
-                                className="btn btn-danger bg-gradient"
+                                className="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 shadow-sm transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                                 onClick={() => setShowDeclineModal(true)}
                                 disabled={signing || timeRemaining === 'Expired'}
                             >
                                 Decline
                             </button>
                             <button
-                                className="btn btn-success bg-gradient"
+                                className="inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight disabled:cursor-not-allowed disabled:opacity-60"
                                 onClick={() => setShowSignModal(true)}
                                 disabled={signing || timeRemaining === 'Expired' || status !== 'SENT'}
                             >
@@ -335,48 +327,48 @@ export default function SignQuote({ token }) {
 
             {showDeclineModal && (
                 <div
-                    className="modal fade show"
-                    style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}
-                    tabIndex="-1"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
                     role="dialog"
+                    aria-modal="true"
                 >
-                    <div className="modal-dialog modal-dialog-centered" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title text-danger">
-                                    <i className="fa fa-exclamation-triangle me-2"></i>
-                                    Confirm Decline
-                                </h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setShowDeclineModal(false)}
-                                ></button>
-                            </div>
-                            <div className="modal-body">
-                                <p className="mb-0">
-                                    Are you sure you want to <strong>decline</strong> this quote? <br />
-                                    This action cannot be undone.
-                                </p>
-                            </div>
-                            <div className="modal-footer">
-                                <button
-                                    type="button"
-                                    className="btn btn-sm btn-secondary"
-                                    onClick={() => setShowDeclineModal(false)}
-                                    disabled={signing}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-sm btn-danger"
-                                    onClick={handleDeclineConfirm}
-                                    disabled={signing}
-                                >
-                                    {signing ? 'Declining...' : 'Yes, Decline'}
-                                </button>
-                            </div>
+                    <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                            <h5 className="flex items-center gap-2 text-base font-semibold text-rose-700">
+                                <i className="fa fa-exclamation-triangle"></i>
+                                Confirm Decline
+                            </h5>
+                            <button
+                                type="button"
+                                className="text-gray-500 transition hover:text-gray-800"
+                                onClick={() => setShowDeclineModal(false)}
+                                aria-label="Close"
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <div className="px-5 py-4 text-sm text-gray-700">
+                            <p className="mb-0">
+                                Are you sure you want to <strong>decline</strong> this quote? <br />
+                                This action cannot be undone.
+                            </p>
+                        </div>
+                        <div className="flex justify-end gap-3 border-t border-gray-100 px-5 py-4">
+                            <button
+                                type="button"
+                                className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                onClick={() => setShowDeclineModal(false)}
+                                disabled={signing}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className="inline-flex items-center rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                onClick={handleDeclineConfirm}
+                                disabled={signing}
+                            >
+                                {signing ? 'Declining...' : 'Yes, Decline'}
+                            </button>
                         </div>
                     </div>
                 </div>

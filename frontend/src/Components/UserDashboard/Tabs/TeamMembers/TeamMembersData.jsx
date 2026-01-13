@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetchTeamMembersQuery, useDeleteTeamMemberMutation } from '../../../../store';
 import SubmitButton from '../../../ui/SubmitButton';
@@ -9,6 +9,15 @@ export default function TeamMembersData({ token, setAlert }) {
 
     const { data: teamMemberData, isLoading, error } = useFetchTeamMembersQuery(undefined, { skip: !token });
     const [deleteTeamMember, { isLoading: deleting }] = useDeleteTeamMemberMutation();
+
+    useEffect(() => {
+        if (error) {
+            setAlert({
+                type: 'danger',
+                message: error?.data?.detail || 'Failed to load team members. Please try again later.',
+            });
+        }
+    }, [error, setAlert]);
 
     const handleDeleteClick = (id) => {
         setSelectedTeamMemberId(id);
@@ -32,113 +41,112 @@ export default function TeamMembersData({ token, setAlert }) {
         }
     };
 
-    if (isLoading) return <div>Loading data...</div>;
-
-    if (error) {
-        setAlert({
-            type: 'danger',
-            message: error?.data?.detail || 'Failed to load team members. Please try again later.',
-        });
-        return null;
-    }
+    if (isLoading) return <div className="mt-6 text-center text-gray-600">Loading team members...</div>;
+    if (error) return null;
 
     return (
         <>
-            <div className="row">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {teamMemberData && teamMemberData.length > 0 ? (
                     teamMemberData.map((m) => (
-                        <div key={m.id} className="col-md-6 col-lg-3 mb-3">
-                            <div className="card shadow-sm border h-100">
-                                <div className="card-body">
-                                    <div className="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 className="card-title mb-0">{m.employee_name}</h5>
-                                        <span className="badge bg-dark bg-gradient rounded-pill">{m.role}</span>
-                                    </div>
-
-                                    <p className="text-muted small mb-1">
-                                        <strong>Email:</strong> {m.employee_email}
-                                    </p>
-                                    <p className="text-muted small mb-1">
-                                        <strong>Phone:</strong> {m.employee_phone}
-                                    </p>
-                                    <p className="text-muted small mb-1">
-                                        <strong>Job Duties:</strong> {m.job_duties || '-'}
-                                    </p>
-                                    <p className="text-muted small">
-                                        <strong>Expertise:</strong> {m.expertise || '-'}
-                                    </p>
-
-                                    <div className="d-flex justify-content-between align-items-center gap-2">
-                                        <div>
-                                            <span
-                                                className={`badge bg-gradient rounded-pill ${
-                                                    m.is_active === 'True' ? 'bg-success' : 'bg-danger'
-                                                }`}
-                                            >
-                                                {m.is_active === 'True' ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <Link
-                                                to={`/dashboard/team-member/${m.id}`}
-                                                className="btn btn-sm btn-light me-2"
-                                                title="Edit Team Member"
-                                            >
-                                                <i className="fa fa-pencil"></i> Edit
-                                            </Link>
-
-                                            <button
-                                                type="button"
-                                                className="btn btn-sm btn-light"
-                                                onClick={() => handleDeleteClick(m.id)}
-                                                disabled={m.role === 'MANAGER'}
-                                            >
-                                                <i className="fa fa-trash-alt"></i> Delete
-                                            </button>
-                                        </div>
-                                    </div>
+                        <div key={m.id} className="rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-sm">
+                            <div className="mb-3 flex items-start justify-between gap-3">
+                                <div>
+                                    <h5 className="text-base font-semibold text-primary">{m.employee_name}</h5>
+                                    <p className="text-xs uppercase tracking-wide text-gray-500">{m.role}</p>
                                 </div>
+                                <span
+                                    className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                        m.is_active === 'True'
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : 'bg-rose-100 text-rose-700'
+                                    }`}
+                                >
+                                    {m.is_active === 'True' ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+
+                            <div className="space-y-1 text-sm text-gray-700">
+                                <p>
+                                    <span className="font-semibold text-secondary">Email:</span> {m.employee_email}
+                                </p>
+                                <p>
+                                    <span className="font-semibold text-secondary">Phone:</span> {m.employee_phone}
+                                </p>
+                                <p>
+                                    <span className="font-semibold text-secondary">Job Duties:</span>{' '}
+                                    {m.job_duties || '-'}
+                                </p>
+                                <p>
+                                    <span className="font-semibold text-secondary">Expertise:</span> {m.expertise || '-'}
+                                </p>
+                            </div>
+
+                            <div className="mt-4 flex items-center justify-between gap-2">
+                                <Link
+                                    to={`/dashboard/team-member/${m.id}`}
+                                    className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-secondary hover:border-accent hover:text-accent"
+                                    title="Edit Team Member"
+                                >
+                                    Edit
+                                </Link>
+
+                                <button
+                                    type="button"
+                                    className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-rose-600 hover:border-rose-200 hover:bg-rose-50 disabled:cursor-not-allowed! disabled:opacity-60!"
+                                    onClick={() => handleDeleteClick(m.id)}
+                                    disabled={m.role === 'MANAGER'}
+                                >
+                                    Delete
+                                </button>
                             </div>
                         </div>
                     ))
                 ) : (
-                    <div className="col-12 text-center py-5">
-                        <p className="text-muted mb-0">No team members found.</p>
+                    <div className="col-span-full rounded-xl border border-dashed border-gray-200 bg-white/70 px-6 py-12 text-center text-gray-600">
+                        No team members found.
                     </div>
                 )}
             </div>
 
             {showModal && (
-                <form onSubmit={confirmDelete} className="modal d-block" tabIndex="-1" role="dialog">
-                    <div className="modal-dialog modal-dialog-centered" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Delete Team Member</h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setShowModal(false)}
-                                ></button>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                    <form onSubmit={confirmDelete} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                        <div className="mb-4 flex items-start justify-between gap-3">
+                            <div>
+                                <h5 className="text-lg font-semibold text-primary">Delete Team Member</h5>
+                                <p className="text-sm text-gray-600">This action cannot be undone.</p>
                             </div>
-                            <div className="modal-body">
-                                <p>Are you sure you want to delete this team member?</p>
-                            </div>
-                            <div className="modal-footer">
-                                <button
-                                    type="button"
-                                    className="btn btn-sm btn-dark"
-                                    onClick={() => setShowModal(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <SubmitButton isLoading={deleting} btnClass="btn btn-sm btn-danger" btnName="Delete" />
-                            </div>
+                            <button
+                                type="button"
+                                className="rounded-full p-2 text-gray-500 hover:bg-gray-100"
+                                onClick={() => setShowModal(false)}
+                                aria-label="Close"
+                            >
+                                ×
+                            </button>
                         </div>
-                    </div>
-                </form>
-            )}
 
-            {showModal && <div className="modal-backdrop fade show"></div>}
+                        <p className="text-sm text-gray-700">Are you sure you want to delete this team member?</p>
+
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                type="button"
+                                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                                onClick={() => setShowModal(false)}
+                                disabled={deleting}
+                            >
+                                Cancel
+                            </button>
+                            <SubmitButton
+                                isLoading={deleting}
+                                btnClass="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-rose-700"
+                                btnName="Delete"
+                            />
+                        </div>
+                    </form>
+                </div>
+            )}
         </>
     );
 }

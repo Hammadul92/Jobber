@@ -70,7 +70,7 @@ export default function Quote({ token }) {
 
     if (error) {
         return (
-            <div className="alert alert-danger" role="alert">
+            <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800" role="alert">
                 {error?.data?.detail || 'Failed to load quote.'}
             </div>
         );
@@ -95,35 +95,49 @@ export default function Quote({ token }) {
 
     const statusColor =
         quoteData.status === 'SIGNED'
-            ? 'success'
+            ? 'bg-emerald-100 text-emerald-700'
             : quoteData.status === 'SENT'
-              ? 'primary'
+              ? 'bg-blue-100 text-blue-700'
               : quoteData.status === 'EXPIRED'
-                ? 'danger'
-                : 'secondary';
+                ? 'bg-rose-100 text-rose-700'
+                : quoteData.status === 'DECLINED'
+                  ? 'bg-rose-100 text-rose-700'
+                  : 'bg-gray-100 text-gray-700';
+
+    const badgeBase = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold';
+
+    const pillBadge = `${badgeBase} ${statusColor}`;
+
+    const btnPrimary =
+        'inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight disabled:cursor-not-allowed disabled:opacity-60';
+
+    const cardBase = 'relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm';
+
+    const textMuted = 'text-sm text-gray-600';
 
     return (
         <>
-            <nav aria-label="breadcrumb">
-                <ol className="breadcrumb">
-                    <li className="breadcrumb-item">
-                        <Link to={`/`} className="text-success">
+            <nav aria-label="breadcrumb" className="mb-4">
+                <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                    <li>
+                        <Link to={`/`} className="font-semibold text-accent hover:text-accentLight">
                             Contractorz
                         </Link>
                     </li>
-                    <li className="breadcrumb-item">
-                        <Link to={`/dashboard/home`} className="text-success">
+                    <li className="text-gray-400">/</li>
+                    <li>
+                        <Link to={`/dashboard/home`} className="font-semibold text-secondary hover:text-accent">
                             Dashboard
                         </Link>
                     </li>
-                    <li className="breadcrumb-item">
-                        <Link to={`/dashboard/quotes`} className="text-success">
+                    <li className="text-gray-400">/</li>
+                    <li>
+                        <Link to={`/dashboard/quotes`} className="font-semibold text-secondary hover:text-accent">
                             Quotes
                         </Link>
                     </li>
-                    <li className="breadcrumb-item active" aria-current="page">
-                        Edit Quote ({quoteData.quote_number})
-                    </li>
+                    <li className="text-gray-400">/</li>
+                    <li className="font-semibold text-gray-800">Edit Quote ({quoteData.quote_number})</li>
                 </ol>
             </nav>
 
@@ -135,39 +149,27 @@ export default function Quote({ token }) {
                 />
             )}
 
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <h3 className="mb-0">
-                    {quoteData.quote_number}{' '}
-                    <span className={`badge bg-gradient bg-${statusColor} rounded-pill`}>{quoteData.status}</span>
-                </h3>
-
-                <div className="text-end">
-                    <button
-                        type="button"
-                        className="btn btn-primary bg-gradient"
-                        onClick={handleSendQuote}
-                        disabled={disableSendBtn || sending}
-                    >
-                        {sending ? (
-                            <>
-                                <span
-                                    className="spinner-border spinner-border-sm me-2"
-                                    role="status"
-                                    aria-hidden="true"
-                                ></span>
-                                Sending Quote...
-                            </>
-                        ) : (
-                            'Send Quote'
-                        )}
-                    </button>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                    <h3 className="text-xl font-semibold text-primary">{quoteData.quote_number}</h3>
+                    <span className={pillBadge}>{quoteData.status}</span>
                 </div>
+
+                <button type="button" className={btnPrimary} onClick={handleSendQuote} disabled={disableSendBtn || sending}>
+                    {sending && (
+                        <span
+                            className="h-4 w-4 animate-spin rounded-full border-2 border-white/50 border-t-white"
+                            aria-hidden="true"
+                        ></span>
+                    )}
+                    {sending ? 'Sending Quote...' : 'Send Quote'}
+                </button>
             </div>
 
             {disableSendBtn && (
-                <div className="alert alert-warning mb-3">
-                    <strong>Note:</strong>
-                    <ul className="mb-0 ps-3">
+                <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+                    <p className="font-semibold">Note:</p>
+                    <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
                         {disableReasons.map((reason, idx) => (
                             <li key={idx}>{reason}</li>
                         ))}
@@ -175,144 +177,143 @@ export default function Quote({ token }) {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-                <div className="row">
-                    <div className="col-md-4">
-                        <div className="shadow-sm p-3 rounded mb-3 position-relative border">
-                            <div className="position-absolute top-0 end-0 mt-2 me-2">
-                                {quoteData.client.is_active === 'True' ? (
-                                    <span className="badge bg-success rounded-pill bg-gradient">ACTIVE</span>
-                                ) : (
-                                    <span className="badge bg-danger rounded-pill bg-gradient">INACTIVE</span>
-                                )}
-                            </div>
-
-                            <h5>Client Details</h5>
-
-                            <p className="mb-1 text-muted">Name: {quoteData.client_name}</p>
-                            <p className="mb-1 text-muted">Email: {quoteData.client.client_email}</p>
-                            <p className="mb-1 text-muted">Phone: {quoteData.client.client_phone}</p>
-                        </div>
-
-                        <div className="shadow-sm p-3 rounded mb-3 position-relative border">
-                            <div className="position-absolute top-0 end-0 mt-2 me-2 d-flex gap-1 flex-wrap justify-content-end">
-                                <span className="badge bg-dark rounded-pill bg-gradient">
-                                    {quoteData.service_data.service_type}
+            <form onSubmit={handleSubmit} className="grid gap-5 lg:grid-cols-12">
+                <div className="space-y-4 lg:col-span-4">
+                    <div className={cardBase}>
+                        <div className="absolute right-4 top-4">
+                            {quoteData.client.is_active === 'True' ? (
+                                <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                    ACTIVE
                                 </span>
-                                <span
-                                    className={`badge rounded-pill bg-gradient ${
-                                        ['ACTIVE', 'COMPLETED'].includes(quoteData.service_data.status)
-                                            ? 'bg-success'
-                                            : quoteData.service_data.status === 'PENDING'
-                                              ? 'bg-primary'
-                                              : 'bg-danger'
-                                    }`}
-                                >
-                                    {quoteData.service_data.status}
+                            ) : (
+                                <span className="inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                                    INACTIVE
                                 </span>
-                            </div>
-
-                            <h5>Service Details</h5>
-
-                            <p className="mb-1 text-muted">
-                                Name:{' '}
-                                <Link to={`/dashboard/service/${quoteData.service_data.id}`} className="text-success">
-                                    {quoteData.service_data.service_name}
-                                </Link>
-                            </p>
-
-                            {quoteData.service_data.description && (
-                                <p className="mb-1 p-2 bg-light rounded-3">
-                                    <i className="fa fa-info"></i> {quoteData.service_data.description}
-                                </p>
                             )}
-                            <p className="mb-1 text-muted">
-                                Price: ${quoteData.service_data.price} {quoteData.service_data.currency}
-                            </p>
-                            <p className="mb-1 text-muted">
-                                Billing Cycle: {quoteData.service_data.billing_cycle || '-'}
-                            </p>
-                            <div className="d-flex justify-content-between align-items-center mb-1">
-                                <p className="text-muted mb-0">Start Date: {quoteData.service_data.start_date}</p>
-                                <p className="text-muted mb-0">End Date: {quoteData.service_data.end_date || '-'}</p>
-                            </div>
-                            <p className="mb-1 text-muted">
-                                Service Address: {quoteData.service_data.street_address}, {quoteData.service_data.city},{' '}
-                                {quoteData.service_data.province_state}, {quoteData.service_data.country},{' '}
-                                {quoteData.service_data.postal_code}
-                            </p>
                         </div>
+
+                        <h5 className="text-base font-semibold text-gray-900">Client Details</h5>
+
+                        <p className={`${textMuted} mt-2`}>Name: {quoteData.client_name}</p>
+                        <p className={textMuted}>Email: {quoteData.client.client_email}</p>
+                        <p className={textMuted}>Phone: {quoteData.client.client_phone}</p>
                     </div>
 
-                    <div className="col-md-8">
-                        <div className="shadow-sm p-3 bg-white rounded border">
-                            <div className="row">
-                                <div className="col-md-4">
-                                    <Input
-                                        type="text"
-                                        fieldClass="form-control"
-                                        value={formatDate(quoteData.signed_at)}
-                                        onChange={() => {}}
-                                        isDisabled={true}
-                                        label="Signed At"
-                                        id="quote-signed-at"
-                                    />
-                                </div>
+                    <div className={cardBase}>
+                        <div className="absolute right-4 top-4 flex flex-wrap items-center justify-end gap-2">
+                            <span className="inline-flex items-center rounded-full bg-gray-800 px-3 py-1 text-xs font-semibold text-white">
+                                {quoteData.service_data.service_type}
+                            </span>
+                            <span
+                                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                                    ['ACTIVE', 'COMPLETED'].includes(quoteData.service_data.status)
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : quoteData.service_data.status === 'PENDING'
+                                          ? 'bg-blue-100 text-blue-700'
+                                          : 'bg-rose-100 text-rose-700'
+                                }`}
+                            >
+                                {quoteData.service_data.status}
+                            </span>
+                        </div>
 
-                                <div className="col-md-4">
-                                    <Input
-                                        type="date"
-                                        fieldClass="form-control"
-                                        value={validUntil}
-                                        onChange={setValidUntil}
-                                        isDisabled={isSigned}
-                                        isRequired={true}
-                                        label="Valid Until (*)"
-                                        id="quote-valid-until"
-                                    />
-                                </div>
-                            </div>
+                        <h5 className="text-base font-semibold text-gray-900">Service Details</h5>
 
-                            <div className="mb-3">
-                                <label className="form-label fw-semibold">Terms & Conditions (*)</label>
-                                <textarea
-                                    className="form-control"
-                                    rows="4"
-                                    value={termsConditions}
-                                    onChange={(e) => setTermsConditions(e.target.value)}
-                                    disabled={isSigned}
-                                    required
-                                ></textarea>
-                            </div>
+                        <p className={`${textMuted} mt-2`}>
+                            Name:{' '}
+                            <Link
+                                to={`/dashboard/service/${quoteData.service_data.id}`}
+                                className="font-semibold text-accent hover:text-accentLight"
+                            >
+                                {quoteData.service_data.service_name}
+                            </Link>
+                        </p>
 
-                            <div className="mb-3">
-                                <label className="form-label fw-semibold">Notes</label>
+                        {quoteData.service_data.description && (
+                            <p className="mt-2 rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
+                                <i className="fa fa-info mr-2 text-secondary"></i> {quoteData.service_data.description}
+                            </p>
+                        )}
+                        <p className={textMuted}>
+                            Price: ${quoteData.service_data.price} {quoteData.service_data.currency}
+                        </p>
+                        <p className={textMuted}>Billing Cycle: {quoteData.service_data.billing_cycle || '-'}</p>
+                        <div className="mb-1 flex items-center justify-between text-sm text-gray-600">
+                            <p className="mb-0">Start Date: {quoteData.service_data.start_date}</p>
+                            <p className="mb-0">End Date: {quoteData.service_data.end_date || '-'}</p>
+                        </div>
+                        <p className={textMuted}>
+                            Service Address: {quoteData.service_data.street_address}, {quoteData.service_data.city},{' '}
+                            {quoteData.service_data.province_state}, {quoteData.service_data.country},{' '}
+                            {quoteData.service_data.postal_code}
+                        </p>
+                    </div>
+                </div>
 
-                                <textarea
-                                    className="form-control"
-                                    rows="3"
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    disabled={isSigned}
-                                ></textarea>
-                            </div>
+                <div className="lg:col-span-8">
+                    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <Input
+                                type="text"
+                                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                                value={formatDate(quoteData.signed_at)}
+                                onChange={() => {}}
+                                isDisabled={true}
+                                label="Signed At"
+                                id="quote-signed-at"
+                            />
 
-                            <div className="d-flex justify-content-end mt-3">
-                                <button
-                                    type="button"
-                                    className="btn btn-dark me-2"
-                                    onClick={() => navigate('/dashboard/quotes')}
-                                >
-                                    Cancel
-                                </button>
-                                {!isSigned && (
-                                    <SubmitButton
-                                        isLoading={updating}
-                                        btnClass="btn btn-success"
-                                        btnName="Save Changes"
-                                    />
-                                )}
-                            </div>
+                            <Input
+                                type="date"
+                                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                                value={validUntil}
+                                onChange={setValidUntil}
+                                isDisabled={isSigned}
+                                isRequired={true}
+                                label="Valid Until (*)"
+                                id="quote-valid-until"
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="mb-1 block text-sm font-semibold text-gray-700">Terms & Conditions (*)</label>
+                            <textarea
+                                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                                rows="4"
+                                value={termsConditions}
+                                onChange={(e) => setTermsConditions(e.target.value)}
+                                disabled={isSigned}
+                                required
+                            ></textarea>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="mb-1 block text-sm font-semibold text-gray-700">Notes</label>
+
+                            <textarea
+                                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                                rows="3"
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                disabled={isSigned}
+                            ></textarea>
+                        </div>
+
+                        <div className="mt-4 flex justify-end gap-3">
+                            <button
+                                type="button"
+                                className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                                onClick={() => navigate('/dashboard/quotes')}
+                            >
+                                Cancel
+                            </button>
+                            {!isSigned && (
+                                <SubmitButton
+                                    isLoading={updating}
+                                    btnClass="bg-accent px-4 py-2 text-sm text-white shadow-sm hover:bg-accentLight"
+                                    btnName="Save Changes"
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

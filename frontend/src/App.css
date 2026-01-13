@@ -28,11 +28,10 @@
   --font-sans: 'Inter', Arial, Helvetica, sans-serif;
   --font-intro: 'Open Sans', sans-serif;
   /* Tailwind breakpoints */
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
+  --breakpoint-md: 768px; /* for Tablets */
+  --breakpoint-lg: 1024px; /* for Laptops */
+  --breakpoint-xl: 1280px; /* for Desktops */
+  --breakpoint-2xl: 1536px; /* for Large Desktops */
 }
 
 :root {
@@ -41,12 +40,19 @@
 }
 
 .primary {
-  @apply px-8 py-3 bg-accent rounded-lg text-white font-bold cursor-pointer hover:bg-accentLight transition-colors duration-300;
+  @apply px-8 py-3 bg-accent rounded-lg text-white font-bold cursor-pointer hover:bg-accentLight hover:scale-[1.02] transition-all duration-300;
 }
 
+/* .secondary {
+  @apply px-8 py-3 rounded-lg text-accent border-2 border-accent font-bold cursor-pointer hover:bg-accentLight hover:text-white transition-all duration-300;
+} */
 
 .secondary {
-  @apply px-8 py-3 rounded-lg text-accent border-2 border-accent font-bold cursor-pointer hover:bg-accentLight hover:text-white transition-colors duration-300;
+  @apply px-6 py-2 bg-secondary rounded-lg text-white font-semibold cursor-pointer hover:bg-secondary/90 hover:scale-[1.02] transition-all duration-300;
+}
+
+button {
+  cursor: pointer;
 }
 
 body {

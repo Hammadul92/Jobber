@@ -84,13 +84,13 @@ export default function UserDashboard({ page, token, user }) {
             case 'home':
                 return <DashboardHome token={token} role={user?.role} business={business} />;
             case 'clients':
-                return <Clients token={token} business={business} />;
+                return <Clients token={token} business={business} role={user?.role} />;
             case 'client-services':
                 return <ClientServices token={token} role={user?.role} business={business} />;
             case 'service':
-                return <Service token={token} business={business} />;
+                return <Service token={token} business={business} role={user?.role} />;
             case 'service-questionnaires':
-                return <ServiceQuestionnaires token={token} business={business} />;
+                return <ServiceQuestionnaires token={token} business={business} role={user?.role} />;
             case 'service-questionnaire':
                 return <ServiceQuestionnaire token={token} business={business} />;
             case 'service-questionnaire-form':
@@ -98,7 +98,7 @@ export default function UserDashboard({ page, token, user }) {
             case 'team-members':
                 return <TeamMembers token={token} business={business} />;
             case 'team-member':
-                return <TeamMember token={token} business={business} />;
+                return <TeamMember token={token} business={business} role={user?.role} />;
             case 'quotes':
                 return <Quotes token={token} role={user?.role} business={business} />;
             case 'quote':
@@ -122,13 +122,13 @@ export default function UserDashboard({ page, token, user }) {
         }
     };
 
-    if (loadingBusiness) return <div className="text-center mt-5">Loading business info...</div>;
-    if (errorBusiness) return <div className="text-danger text-center mt-5">Failed to load business info.</div>;
+    if (loadingBusiness) return <div className="mt-8 text-center text-gray-600">Loading business info...</div>;
+    if (errorBusiness) return <div className="mt-8 text-center text-red-500">Failed to load business info.</div>;
 
     return (
-        <div className="dashboard-container">
+        <div className="flex min-h-screen bg-gray-50">
             <SideNav role={user?.role} userId={user?.id} />
-            <main className="container tab-container py-4">{renderTab()}</main>
+            <main className="flex-1 px-4 py-6 md:px-8 lg:px-12 max-h-screen overflow-auto">{renderTab()}</main>
         </div>
     );
 }

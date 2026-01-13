@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaInfoCircle, FaRocket } from 'react-icons/fa';
 import { useCreateServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../ui/SubmitButton';
 import { countries, provinces } from '../../../../../constants/locations';
@@ -101,250 +102,220 @@ export default function CreateClientServiceForm({
     return (
         <>
             {showModal && (
-                <div className="modal d-block" tabIndex="-1" role="dialog">
-                    <div className="modal-dialog modal-lg" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title fw-bold">Add Service</h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setShowModal(false)}
-                                ></button>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/70 px-4">
+                    <div className="w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+                        <div className="bg-gradient-to-r from-accent to-secondary px-6 py-4 text-white">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/80">New service</p>
+                                    <h5 className="text-xl font-semibold leading-tight">Add Client Service</h5>
+                                    <p className="text-sm text-white/80">Use your catalog name to stay on-brand in client emails.</p>
+                                </div>
+                                <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]">
+                                    <FaRocket className="h-4 w-4" /> Fast setup
+                                </span>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-6 px-6 py-6">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <Select
+                                    id="service_name"
+                                    label={'Service Name'}
+                                    value={serviceName}
+                                    isRequired={true}
+                                    onChange={setServiceName}
+                                    options={serviceOptions.map((s) => {
+                                        return { value: s, label: s };
+                                    })}
+                                />
+
+                                <Input
+                                    type="date"
+                                    id="start_date"
+                                    label={'Start Date'}
+                                    value={startDate}
+                                    isRequired={true}
+                                    onChange={setStartDate}
+                                    fieldClass="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                />
+
+                                <Input
+                                    type="date"
+                                    id="end_date"
+                                    label={'End Date'}
+                                    value={endDate}
+                                    onChange={setEndDate}
+                                    fieldClass="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                />
+
+                                <Input
+                                    type="number"
+                                    id="price"
+                                    label={'Price'}
+                                    value={price}
+                                    isRequired={true}
+                                    onChange={setPrice}
+                                    fieldClass="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                />
+
+                                <Select
+                                    id="currency"
+                                    label={'Currency'}
+                                    value={currency}
+                                    isRequired={true}
+                                    onChange={setCurrency}
+                                    options={[
+                                        { value: 'CAD', label: 'CAD' },
+                                        { value: 'USD', label: 'USD' },
+                                    ]}
+                                />
+
+                                <Select
+                                    id="service_type"
+                                    label={'Service Type'}
+                                    value={serviceType}
+                                    isRequired={true}
+                                    onChange={(value) => {
+                                        setServiceType(value);
+                                        setBillingCycle('');
+                                    }}
+                                    options={[
+                                        { value: 'ONE_TIME', label: 'One Time' },
+                                        { value: 'SUBSCRIPTION', label: 'Subscription' },
+                                    ]}
+                                />
+
+                                {serviceType !== 'ONE_TIME' && (
+                                    <Select
+                                        id="billing_cycle"
+                                        label={'Billing Cycle'}
+                                        value={billingCycle}
+                                        isRequired={true}
+                                        onChange={setBillingCycle}
+                                        options={[
+                                            { value: 'MONTHLY', label: 'Monthly' },
+                                            { value: 'YEARLY', label: 'YEARLY' },
+                                        ]}
+                                    />
+                                )}
                             </div>
 
-                            <form onSubmit={handleSubmit}>
-                                <div className="modal-body">
-                                    <div className="row">
-                                        <div className="col-md-6 col-lg-4">
-                                            <Select
-                                                id="service_name"
-                                                label={'Service Name'}
-                                                value={serviceName}
-                                                isRequired={true}
-                                                onChange={setServiceName}
-                                                options={serviceOptions.map((s) => {
-                                                    return { value: s, label: s };
-                                                })}
-                                            />
-                                        </div>
+                            <div className="space-y-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                    <input
+                                        id="generate_quote"
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent"
+                                        checked={autoGenerateQuote}
+                                        onChange={() => setAutoGenerateQuote(!autoGenerateQuote)}
+                                    />
+                                    Auto-generate Quote
+                                </label>
+                                {autoGenerateQuote && (
+                                    <p className="flex items-start gap-2 text-sm text-gray-600">
+                                        <FaInfoCircle className="mt-0.5 h-4 w-4 text-secondary" />
+                                        A quote will be generated automatically after the questionnaire is completed. The client can review and sign; notifications go to both parties.
+                                    </p>
+                                )}
 
-                                        <div className="col-md-6 col-lg-4">
-                                            <Input
-                                                type="date"
-                                                id="start_date"
-                                                label={'Start Date'}
-                                                value={startDate}
-                                                isRequired={true}
-                                                onChange={setStartDate}
-                                                fieldClass={'form-control'}
-                                            />
-                                        </div>
+                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                    <input
+                                        id="generate_invoices"
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent"
+                                        checked={autoGenerateInvoices}
+                                        onChange={() => setAutoGenerateInvoices(!autoGenerateInvoices)}
+                                    />
+                                    Auto-generate Invoice(s)
+                                </label>
+                                {autoGenerateInvoices && (
+                                    <p className="flex items-start gap-2 text-sm text-gray-600">
+                                        <FaInfoCircle className="mt-0.5 h-4 w-4 text-secondary" />
+                                        Invoices will be created once the questionnaire is completed and the quote is signed.
+                                    </p>
+                                )}
+                            </div>
 
-                                        <div className="col-md-6 col-lg-4">
-                                            <Input
-                                                type="date"
-                                                id="end_date"
-                                                label={'End Date'}
-                                                value={endDate}
-                                                onChange={setEndDate}
-                                                fieldClass={'form-control'}
-                                            />
-                                        </div>
-
-                                        <div className="col-md-6 col-lg-3">
-                                            <Input
-                                                type="number"
-                                                id="price"
-                                                label={'Price'}
-                                                value={price}
-                                                isRequired={true}
-                                                onChange={setPrice}
-                                                fieldClass={'form-control'}
-                                            />
-                                        </div>
-
-                                        <div className="col-md-6 col-lg-3">
-                                            <Select
-                                                id="currency"
-                                                label={'Currency'}
-                                                value={currency}
-                                                isRequired={true}
-                                                onChange={setCurrency}
-                                                options={[
-                                                    { value: 'CAD', label: 'CAD' },
-                                                    { value: 'USD', label: 'USD' },
-                                                ]}
-                                            />
-                                        </div>
-
-                                        <div className="col-md-6 col-lg-3">
-                                            <Select
-                                                id="service_type"
-                                                label={'Service Type'}
-                                                value={serviceType}
-                                                isRequired={true}
-                                                onChange={(value) => {
-                                                    setServiceType(value);
-                                                    setBillingCycle('');
-                                                }}
-                                                options={[
-                                                    { value: 'ONE_TIME', label: 'One Time' },
-                                                    { value: 'SUBSCRIPTION', label: 'Subscription' },
-                                                ]}
-                                            />
-                                        </div>
-
-                                        {serviceType !== 'ONE_TIME' && (
-                                            <div className="col-md-6 col-lg-3">
-                                                <Select
-                                                    id="billing_cycle"
-                                                    label={'Billing Cycle'}
-                                                    value={billingCycle}
-                                                    isRequired={true}
-                                                    onChange={setBillingCycle}
-                                                    options={[
-                                                        { value: 'MONTHLY', label: 'Monthly' },
-                                                        { value: 'YEARLY', label: 'YEARLY' },
-                                                    ]}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="form-check form-switch mb-2">
-                                        <input
-                                            id="generate_quote"
-                                            className="form-check-input"
-                                            type="checkbox"
-                                            checked={autoGenerateQuote}
-                                            onChange={() => setAutoGenerateQuote(!autoGenerateQuote)}
+                            <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                                <h5 className="text-base font-semibold text-primary">Service Address</h5>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                    <div className="md:col-span-2">
+                                        <Input
+                                            id="street_address"
+                                            value={streetAddress}
+                                            label={'Street Address'}
+                                            onChange={setStreetAddress}
+                                            isRequired={true}
+                                            fieldClass="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                                         />
-                                        <label className="form-check-label" htmlFor="generate_quote">
-                                            Auto-generate Quote
-                                        </label>
                                     </div>
-                                    {autoGenerateQuote && (
-                                        <p className="small text-muted">
-                                            <i>
-                                                <i className="fa fa-info"></i> A quote will be generated automatically
-                                                once the service questionnaire is completed. The client will be prompted
-                                                to review and sign it. A notification will be sent to the client and a
-                                                confirmation email will be sent to you.
-                                            </i>
-                                        </p>
-                                    )}
-
-                                    <div className="form-check form-switch mb-2">
-                                        <input
-                                            id="generate_invoices"
-                                            className="form-check-input"
-                                            type="checkbox"
-                                            checked={autoGenerateInvoices}
-                                            onChange={() => setAutoGenerateInvoices(!autoGenerateInvoices)}
-                                        />
-                                        <label className="form-check-label" htmlFor="generate_invoices">
-                                            Auto-generate Invoice(s)
-                                        </label>
-                                    </div>
-                                    {autoGenerateInvoices && (
-                                        <p className="small text-muted">
-                                            <i>
-                                                <i className="fa fa-info"></i> Invoices will be created automatically
-                                                once the client has completed the questionnaire and signed the quote for
-                                                this service.
-                                            </i>
-                                        </p>
-                                    )}
-
-                                    <h5 className="fw-bold mt-3">Service Address</h5>
-                                    <div className="row">
-                                        <div className="col-md-8">
-                                            <Input
-                                                id="street_address"
-                                                value={streetAddress}
-                                                label={'Street Address'}
-                                                onChange={setStreetAddress}
-                                                isRequired={true}
-                                                fieldClass={'form-control'}
-                                            />
-                                        </div>
-                                        <div className="col-md-4">
-                                            <Select
-                                                id="country"
-                                                label={'Country'}
-                                                value={country}
-                                                isRequired={true}
-                                                onChange={(value) => {
-                                                    setCountry(value);
-                                                    setProvinceState('');
-                                                }}
-                                                options={countries}
-                                            />
-                                        </div>
-                                        <div className="col-md-4">
-                                            <Select
-                                                id="province"
-                                                label={'Province/State'}
-                                                value={provinceState}
-                                                isRequired={true}
-                                                onChange={setProvinceState}
-                                                options={provinces[country]}
-                                            />
-                                        </div>
-                                        <div className="col-md-4">
-                                            <Input
-                                                id="city"
-                                                value={city}
-                                                label={'City'}
-                                                onChange={setCity}
-                                                isRequired={true}
-                                                fieldClass={'form-control'}
-                                            />
-                                        </div>
-                                        <div className="col-md-4">
-                                            <Input
-                                                id="postal_code"
-                                                value={postalCode}
-                                                label={'Postal/Zip Code'}
-                                                onChange={setPostalCode}
-                                                isRequired={true}
-                                                fieldClass={'form-control'}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-3">
-                                        <label className="form-label fw-bold">Service Description</label>
-                                        <textarea
-                                            className="form-control"
-                                            rows="3"
-                                            value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                        ></textarea>
-                                    </div>
-                                </div>
-
-                                <div className="modal-footer">
-                                    <button
-                                        type="button"
-                                        className="btn btn-sm btn-dark"
-                                        onClick={() => setShowModal(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <SubmitButton
-                                        isLoading={isLoading}
-                                        btnClass="btn btn-sm btn-success"
-                                        btnName="Add Service"
+                                    <Select
+                                        id="country"
+                                        label={'Country'}
+                                        value={country}
+                                        isRequired={true}
+                                        onChange={(value) => {
+                                            setCountry(value);
+                                            setProvinceState('');
+                                        }}
+                                        options={countries}
+                                    />
+                                    <Select
+                                        id="province"
+                                        label={'Province/State'}
+                                        value={provinceState}
+                                        isRequired={true}
+                                        onChange={setProvinceState}
+                                        options={provinces[country]}
+                                    />
+                                    <Input
+                                        id="city"
+                                        value={city}
+                                        label={'City'}
+                                        onChange={setCity}
+                                        isRequired={true}
+                                        fieldClass="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                    />
+                                    <Input
+                                        id="postal_code"
+                                        value={postalCode}
+                                        label={'Postal/Zip Code'}
+                                        onChange={setPostalCode}
+                                        isRequired={true}
+                                        fieldClass="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                                     />
                                 </div>
-                            </form>
-                        </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-semibold text-gray-800">Service Description</label>
+                                    <textarea
+                                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                        rows="3"
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/20"
+                                    onClick={() => setShowModal(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <SubmitButton
+                                    isLoading={isLoading}
+                                    btnClass="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-accent to-secondary px-4 py-2 text-sm font-semibold text-white shadow hover:shadow-lg disabled:opacity-60"
+                                    btnName="Add Service"
+                                />
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
-            {showModal && <div className="modal-backdrop fade show"></div>}
         </>
     );
 }

@@ -42,14 +42,19 @@ export default function Input({
     };
 
     return (
-        <div className="mb-3">
-            <label htmlFor={id} className="form-label fw-semibold">
-                {label} {isRequired && <span className="small text-accent font-bold">*</span>}
-            </label>
+        <div className="mb-4">
+            {label && (
+                <label htmlFor={id} className="mb-1 block text-sm font-semibold text-gray-700">
+                    {label} {isRequired && <span className="text-accent">*</span>}
+                </label>
+            )}
             <input
                 type={type}
                 id={id}
-                className={`${fieldClass} ${error ? 'is-invalid' : ''}`}
+                className={`${
+                    fieldClass ||
+                    'w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500'
+                } ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                 value={value}
                 onChange={handleChange}
                 onBlur={() => {
@@ -63,7 +68,7 @@ export default function Input({
                 disabled={isDisabled}
                 placeholder={isPhone ? '+1555-555-5555' : ''}
             />
-            {error && <div className="invalid-feedback">{error}</div>}
+            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
         </div>
     );
 }

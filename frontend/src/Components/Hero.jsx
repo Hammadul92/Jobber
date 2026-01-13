@@ -78,7 +78,7 @@ function Hero() {
                 </p>
             </div>
             {/* Button and Message Bubble */}
-            <div className='relative z-10 mt-2'>
+            <div className='relative  mt-2'>
                 <div className='absolute -top-3 -left-56'>
                     <img src={MessageBubble} alt="Description" />
                     <span className='absolute top-10.5 left-7 text-white font-medium'>Find Your Plan</span>

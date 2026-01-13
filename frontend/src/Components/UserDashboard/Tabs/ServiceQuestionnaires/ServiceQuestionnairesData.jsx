@@ -54,97 +54,99 @@ export default function ServiceQuestionnairesData({ token, setAlert }) {
 
     return (
         <>
-            <p className="text-muted">
-                <i className="fa fa-info me-1"></i>
-                Please create questionnaires for each service your business offers. These questionnaires will be sent to
-                clients when a service is added, allowing them to provide necessary details. Note that you cannot assign
-                a service to a client unless a corresponding questionnaire has been created.
-            </p>
+            <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                <div className="flex items-start gap-2">
+                    <span className="text-xl text-secondary border border-blue-200 bg-blue-100 rounded-full px-2.5">ℹ</span>
+                    <p className='mt-1.5'>
+                        Create questionnaires for each service. Clients complete these when a service is added, so you
+                        get the details needed. Services cannot be assigned without a questionnaire.
+                    </p>
+                </div>
+            </div>
+
             {questionnaires.length === 0 ? (
-                <div className="text-center py-5 text-muted">
+                <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-10 text-center text-gray-600 shadow-sm">
                     <p className="mb-0">No service questionnaires found.</p>
                 </div>
             ) : (
-                <div className="row">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {questionnaires.map((q) => (
-                        <div key={q.id} className="col-md-6 col-lg-3 mb-3">
-                            <div className="card shadow-sm h-100 border">
-                                <div className="card-body">
-                                    <div className="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 className="card-title mb-0">{q.service_name}</h5>
-                                        <span
-                                            className={`badge bg-gradient rounded-pill ${q.is_active ? 'bg-success' : 'bg-danger'}`}
-                                        >
-                                            {q.is_active ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </div>
-
-                                    <p className="text-muted small">
-                                        <strong>No. of questions:</strong> {q.additional_questions_form?.length || 0}
+                        <div key={q.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                            <div className="flex items-start justify-between gap-2">
+                                <div>
+                                    <h5 className="text-lg font-semibold text-primary">{q.service_name}</h5>
+                                    <p className="text-xs text-gray-500">
+                                        Questions: {q.additional_questions_form?.length || 0}
                                     </p>
-
-                                    <div className="d-flex justify-content-end align-items-center gap-2">
-                                        <Link
-                                            to={`/dashboard/service-questionnaire/${q.id}`}
-                                            className="btn btn-light btn-sm"
-                                        >
-                                            <i className="fa fa-pencil"></i> Edit
-                                        </Link>
-
-                                        <Link
-                                            to={`/dashboard/service-questionnaire/${q.id}/form`}
-                                            className="btn btn-light btn-sm"
-                                        >
-                                            <i className="far fa-file"></i> Preview
-                                        </Link>
-
-                                        <button
-                                            type="button"
-                                            className="btn btn-light btn-sm"
-                                            onClick={() => handleDeleteClick(q.id)}
-                                        >
-                                            <i className="fa fa-trash-alt"></i> Delete
-                                        </button>
-                                    </div>
                                 </div>
+                                <span
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${q.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                                >
+                                    {q.is_active ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+
+                            <div className="mt-4 flex flex-wrap justify-end gap-2">
+                                <Link
+                                    to={`/dashboard/service-questionnaire/${q.id}`}
+                                    className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+                                >
+                                    Edit
+                                </Link>
+
+                                <Link
+                                    to={`/dashboard/service-questionnaire/${q.id}/form`}
+                                    className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+                                >
+                                    Preview
+                                </Link>
+
+                                <button
+                                    type="button"
+                                    className="inline-flex items-center rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50"
+                                    onClick={() => handleDeleteClick(q.id)}
+                                >
+                                    Delete
+                                </button>
                             </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Delete Confirmation Modal */}
             {showModal && (
-                <form onSubmit={confirmDelete} className="modal d-block" tabIndex="-1" role="dialog">
-                    <div className="modal-dialog modal-dialog-centered" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Delete Service Questionnaire</h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setShowModal(false)}
-                                ></button>
-                            </div>
-                            <div className="modal-body">
-                                <p>Are you sure you want to delete this service questionnaire?</p>
-                            </div>
-                            <div className="modal-footer">
-                                <button
-                                    type="button"
-                                    className="btn btn-sm btn-dark"
-                                    onClick={() => setShowModal(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <SubmitButton isLoading={deleting} btnClass="btn btn-sm btn-danger" btnName="Delete" />
-                            </div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-3">
+                    <form onSubmit={confirmDelete} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
+                        <div className="flex items-start justify-between">
+                            <h5 className="text-lg font-semibold text-primary">Delete Service Questionnaire</h5>
+                            <button
+                                type="button"
+                                className="text-gray-500 transition hover:text-gray-700"
+                                onClick={() => setShowModal(false)}
+                            >
+                                ✕
+                            </button>
                         </div>
-                    </div>
-                </form>
+                        <p className="mt-3 text-sm text-gray-700">
+                            Are you sure you want to delete this service questionnaire?
+                        </p>
+                        <div className="mt-5 flex justify-end gap-3">
+                            <button
+                                type="button"
+                                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                                onClick={() => setShowModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <SubmitButton
+                                isLoading={deleting}
+                                btnClass="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700"
+                                btnName="Delete"
+                            />
+                        </div>
+                    </form>
+                </div>
             )}
-
-            {showModal && <div className="modal-backdrop fade show"></div>}
         </>
     );
 }

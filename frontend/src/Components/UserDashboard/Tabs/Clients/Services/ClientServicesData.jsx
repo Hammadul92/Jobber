@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { FaCheckCircle, FaTrashAlt, FaPencilAlt, FaSlidersH } from 'react-icons/fa';
 import { useFetchServicesQuery, useDeleteServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../ui/SubmitButton';
 import { countries, provinces } from '../../../../../constants/locations';
@@ -23,7 +24,7 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
             const msg = error?.data?.detail || 'Failed to load services. Please try again.';
             setAlert({ type: 'danger', message: msg });
         }
-    }, [isError, error]);
+    }, [isError, error, setAlert]);
 
     const filteredServices = useMemo(() => {
         return services.filter((service) => {
@@ -66,94 +67,122 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
     };
 
     const statusColumns = [
-        { key: 'PENDING', label: 'Pending', color: 'bg-secondary' },
-        { key: 'ACTIVE', label: 'Active', color: 'bg-success' },
-        { key: 'COMPLETED', label: 'Completed', color: 'bg-primary' },
-        { key: 'CANCELLED', label: 'Cancelled', color: 'bg-danger' },
+        { key: 'PENDING', label: 'Pending', gradient: 'from-amber-100 to-orange-50', text: 'text-amber-900' },
+        { key: 'ACTIVE', label: 'Active', gradient: 'from-green-100 to-emerald-50', text: 'text-emerald-900' },
+        { key: 'COMPLETED', label: 'Completed', gradient: 'from-blue-100 to-secondary/10', text: 'text-secondary' },
+        { key: 'CANCELLED', label: 'Cancelled', gradient: 'from-red-100 to-rose-50', text: 'text-red-900' },
     ];
+
+    const hasFilters = typeFilter || countryFilter || provinceFilter;
 
     if (isLoading) return <div className="text-center py-4">Loading services...</div>;
 
     return (
         <>
             {/* FILTERS */}
-            <div className="row mb-3 mt-3">
-                <div className="col-md-3 col-6">
-                    <Select
-                        id="type_filter"
-                        label={'Subscription type'}
-                        value={typeFilter}
-                        onChange={setTypeFilter}
-                        options={[
-                            { value: 'ONE_TIME', label: 'One Time' },
-                            { value: 'SUBSCRIPTION', label: 'Subscription' },
-                        ]}
-                    />
+            <div className="mb-4 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-sm">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                        <FaSlidersH className="h-4 w-4 text-secondary" />
+                        Filters
+                    </div>
+                    {hasFilters && (
+                        <button
+                            className="text-xs font-semibold text-secondary underline underline-offset-4"
+                            onClick={() => {
+                                setTypeFilter('');
+                                setCountryFilter('');
+                                setProvinceFilter('');
+                            }}
+                            type="button"
+                        >
+                            Clear filters
+                        </button>
+                    )}
                 </div>
-                <div className="col-md-3 col-6">
-                    <Select
-                        id="country_filter"
-                        label={'Country'}
-                        value={countryFilter}
-                        onChange={(value) => {
-                            setCountryFilter(value);
-                            setProvinceFilter('');
-                        }}
-                        options={countries}
-                    />
-                </div>
-                <div className="col-md-3 col-6">
-                    <Select
-                        id="province_state"
-                        label={'Provice/State'}
-                        value={provinceFilter}
-                        onChange={setProvinceFilter}
-                        options={provinces[countryFilter]}
-                    />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div>
+                        <Select
+                            id="type_filter"
+                            label={'Subscription type'}
+                            value={typeFilter}
+                            onChange={setTypeFilter}
+                            options={[
+                                { value: 'ONE_TIME', label: 'One Time' },
+                                { value: 'SUBSCRIPTION', label: 'Subscription' },
+                            ]}
+                        />
+                    </div>
+                    <div>
+                        <Select
+                            id="country_filter"
+                            label={'Country'}
+                            value={countryFilter}
+                            onChange={(value) => {
+                                setCountryFilter(value);
+                                setProvinceFilter('');
+                            }}
+                            options={countries}
+                        />
+                    </div>
+                    <div>
+                        <Select
+                            id="province_state"
+                            label={'Provice/State'}
+                            value={provinceFilter}
+                            onChange={setProvinceFilter}
+                            options={provinces[countryFilter]}
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* GRID VIEW */}
-            <div className="d-flex flex-nowrap overflow-auto gap-1" style={{ scrollSnapType: 'x mandatory' }}>
-                {statusColumns.map(({ key, label, color }) => (
+            <div className="flex flex-nowrap gap-3 overflow-auto pb-2" style={{ scrollSnapType: 'x mandatory' }}>
+                {statusColumns.map(({ key, label, gradient, text }) => (
                     <div
                         key={key}
                         className="flex-shrink-0"
-                        style={{ minWidth: '300px', maxWidth: '300px', scrollSnapAlign: 'start' }}
+                        style={{ minWidth: '320px', maxWidth: '320px', scrollSnapAlign: 'start' }}
                     >
-                        <div className="h-100 shadow-sm">
-                            <h5 className={`mb-2 text-center ${color} bg-gradient text-white p-3 rounded`}>{label}</h5>
+                        <div className="h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                            <div
+                                className={`bg-gradient-to-r ${gradient} ${text} rounded-t-2xl px-4 py-3 text-center text-sm font-semibold`}
+                            >
+                                {label}
+                            </div>
 
                             {groupedServices[key].length ? (
                                 groupedServices[key].map((service) => (
-                                    <div key={service.id} className={`shadow-sm p-2 m-2 rounded`}>
-                                        <div className="mb-2 d-flex justify-content-between">
-                                            <h6 className="fw-bold text-muted mb-0">{service.service_name}</h6>
-                                            <span className="badge bg-dark bg-gradient rounded-pill">
-                                                {service.service_type}
+                                    <div key={service.id} className="m-3 rounded-xl border border-gray-100 bg-white/90 p-3 shadow-sm">
+                                        <div className="mb-2 flex items-center justify-between gap-2">
+                                            <h6 className="mb-0 text-sm font-semibold text-primary">{service.service_name}</h6>
+                                            <span className="rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase text-secondary">
+                                                {service.service_type === 'SUBSCRIPTION' ? 'Subscription' : 'One-Time'}
                                             </span>
                                         </div>
 
                                         {['ACTIVE', 'COMPLETED'].includes(service.status) && (
-                                            <p className="mb-1 small text-muted">
-                                                <strong>Price:</strong> ${service.price} {service.currency}
+                                            <p className="mb-1 text-xs text-gray-700">
+                                                <span className="font-semibold text-primary">Price:</span> ${service.price} {service.currency}
+                                                {service.billing_cycle ? ` • ${service.billing_cycle}` : ''}
                                             </p>
                                         )}
 
-                                        <p className="mb-1 small d-flex justify-content-between text-muted">
+                                        <p className="mb-1 flex items-center justify-between text-xs text-gray-700">
                                             <span>
-                                                <strong>Start:</strong> {formatDate(service.start_date, false)}
+                                                <span className="font-semibold text-primary">Start:</span> {formatDate(service.start_date, false)}
                                             </span>
                                             {service.end_date && (
                                                 <span>
-                                                    <strong>End:</strong> {formatDate(service.end_date, false)}
+                                                    <span className="font-semibold text-primary">End:</span> {formatDate(service.end_date, false)}
                                                 </span>
                                             )}
                                         </p>
 
-                                        <p className="mb-1 small text-muted">
-                                            <strong>Service Address:</strong> {service.street_address}, {service.city},{' '}
-                                            {service.province_state}, {service.country}
+                                        <p className="mb-2 text-xs text-gray-700">
+                                            <span className="font-semibold text-primary">Service Address:</span>{' '}
+                                            {service.street_address}, {service.city}, {service.province_state}, {service.country}
                                         </p>
 
                                         {role === 'MANAGER' &&
@@ -164,47 +193,44 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
                                                         key={quote.id}
                                                         to={`/dashboard/quote/${quote.id}`}
                                                         title={`Quotation: ${quote.quote_number}`}
-                                                        className={`badge bg-info bg-gradient rounded-pill text-decoration-none me-1`}
+                                                        className="mr-1 inline-flex items-center rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-semibold text-accent"
                                                     >
                                                         {quote.quote_number}
                                                     </Link>
                                                 );
                                             })}
 
-                                        <div className="d-flex justify-content-between align-items-center mt-2">
+                                        <div className="mt-3 flex items-center justify-between gap-2">
                                             {service.service_questionnaires?.id ? (
                                                 <Link
                                                     to={`/dashboard/service-questionnaire/${service.service_questionnaires?.id}/form/${service.id}`}
+                                                    className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold text-white shadow"
                                                 >
-                                                    <span className="badge bg-primary bg-gradient rounded-pill">
-                                                        {service.filled_questionnaire && (
-                                                            <i className="fas fa-check-circle me-1"></i>
-                                                        )}
-                                                        Service Qs:{' '}
-                                                        {service.service_questionnaires?.questionnaire?.length}
-                                                    </span>
+                                                    {service.filled_questionnaire && <FaCheckCircle className="h-3.5 w-3.5" />}
+                                                    Service Qs: {service.service_questionnaires?.questionnaire?.length}
                                                 </Link>
                                             ) : (
-                                                <span className="badge bg-warning text-dark rounded-pill p-2">
+                                                <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-[11px] font-semibold text-amber-800">
                                                     No Questionnaire
                                                 </span>
                                             )}
 
                                             {role === 'MANAGER' && (
-                                                <div className="d-flex gap-2">
+                                                <div className="flex gap-2">
                                                     <button
-                                                        className="btn btn-light btn-sm"
+                                                        className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100"
                                                         onClick={() => handleDeleteClick(service.id)}
                                                         title="Delete Service"
+                                                        type="button"
                                                     >
-                                                        <i className="fa fa-trash-alt"></i> Delete
+                                                        <FaTrashAlt className="h-4 w-4" /> Delete
                                                     </button>
                                                     <Link
-                                                        className="btn btn-light btn-sm"
+                                                        className="inline-flex items-center gap-2 rounded-lg border border-secondary/30 bg-secondary/10 px-3 py-1 text-xs font-semibold text-secondary transition hover:bg-secondary/20"
                                                         to={`/dashboard/service/${service.id}`}
                                                         title="Edit Service"
                                                     >
-                                                        <i className="fa fa-pencil"></i> Edit
+                                                        <FaPencilAlt className="h-4 w-4" /> Edit
                                                     </Link>
                                                 </div>
                                             )}
@@ -212,7 +238,7 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-center text-muted small p-3">No {label.toLowerCase()} services</p>
+                                <p className="p-4 text-center text-xs text-gray-500">No {label.toLowerCase()} services</p>
                             )}
                         </div>
                     </div>
@@ -221,40 +247,43 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
 
             {/* DELETE MODAL */}
             {showModal && (
-                <>
-                    <form onSubmit={confirmDelete} className="modal d-block" tabIndex="-1" role="dialog">
-                        <div className="modal-dialog modal-dialog-centered" role="document">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h5 className="modal-title">Delete Service</h5>
-                                    <button
-                                        type="button"
-                                        className="btn-close"
-                                        onClick={() => setShowModal(false)}
-                                    ></button>
-                                </div>
-                                <div className="modal-body">
-                                    <p>Are you sure you want to delete this service?</p>
-                                </div>
-                                <div className="modal-footer">
-                                    <button
-                                        type="button"
-                                        className="btn btn-sm btn-dark"
-                                        onClick={() => setShowModal(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <SubmitButton
-                                        isLoading={deleting}
-                                        btnClass="btn btn-sm btn-danger"
-                                        btnName="Delete"
-                                    />
-                                </div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                    <form
+                        onSubmit={confirmDelete}
+                        className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
+                        role="dialog"
+                    >
+                        <div className="mb-4 flex items-start justify-between gap-3">
+                            <div>
+                                <h5 className="text-lg font-semibold text-primary">Delete Service</h5>
+                                <p className="mt-1 text-sm text-gray-600">This cannot be undone.</p>
                             </div>
+                            <button
+                                type="button"
+                                className="text-gray-400 transition hover:text-gray-600"
+                                onClick={() => setShowModal(false)}
+                                aria-label="Close"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                                onClick={() => setShowModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <SubmitButton
+                                isLoading={deleting}
+                                btnClass="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 text-sm font-semibold text-white shadow hover:shadow-lg disabled:opacity-60"
+                                btnName="Delete"
+                            />
                         </div>
                     </form>
-                    <div className="modal-backdrop fade show"></div>
-                </>
+                </div>
             )}
         </>
     );

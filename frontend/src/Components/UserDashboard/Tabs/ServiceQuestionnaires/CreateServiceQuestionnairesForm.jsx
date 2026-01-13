@@ -21,11 +21,9 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
     const servicesOffered = business?.services_offered || [];
     const isSubmitting = isCreating;
 
-    const {
-        data: questionnaireData,
-        isLoading,
-        error,
-    } = useFetchServiceQuestionnairesQuery(undefined, { skip: !token });
+    const { data: questionnaireData } = useFetchServiceQuestionnairesQuery(undefined, { skip: !token });
+
+    const existingQuestionnaires = Array.isArray(questionnaireData) ? questionnaireData : [];
 
     const toggleExpand = (index) => setExpandedIndex(expandedIndex === index ? null : index);
 
@@ -98,239 +96,190 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
     if (!showModal) return null;
 
     return (
-        <>
-            <div className="modal d-block" tabIndex="-1" role="dialog">
-                <div className="modal-dialog modal-lg" role="document">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title fw-bold">Create Service Questionnaire</h5>
-                            <button type="button" className="btn-close" onClick={() => setShowModal(false)} />
+        <div className="fixed inset-0 z-50 h-screen flex items-center justify-center bg-black/50 px-3">
+            <div className="w-full max-w-4xl rounded-2xl bg-white shadow-xl">
+                <div className="flex items-start justify-between bg-secondary rounded-t-2xl border-b border-gray-200 px-6 py-4">
+                    <div>
+                        <p className="text-xs font-medium uppercase tracking-[0.08em] text-gray-100">Questionnaire</p>
+                        <h5 className="text-xl font-semibold text-white">Create Service Questionnaire</h5>
+                    </div>
+                    <button
+                        type="button"
+                        className="text-gray-100 font-bold transition hover:text-white"
+                        onClick={() => setShowModal(false)}
+                        aria-label="Close"
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit}>
+                    <div className="space-y-4 px-6 py-5 max-h-[70vh] overflow-y-auto">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <Select
+                                id="service_name"
+                                label={'Service Name'}
+                                value={serviceName}
+                                onChange={setServiceName}
+                                isRequired={true}
+                                options={servicesOffered
+                                    .filter((service) => !existingQuestionnaires.find((q) => q.service_name === service))
+                                    .map((service) => ({ value: service, label: service }))}
+                            />
                         </div>
 
-                        <form onSubmit={handleSubmit}>
-                            <div className="modal-body">
-                                {/* Service selection */}
-                                <div className="row mb-3">
-                                    <div className="col-md-6">
-                                        <Select
-                                            id="service_name"
-                                            label={'Service Name'}
-                                            value={serviceName}
-                                            onChange={setServiceName}
-                                            isRequired={true}
-                                            options={servicesOffered
-                                                .filter(
-                                                    (service) =>
-                                                        !questionnaireData.find((q) => q.service_name === service)
-                                                )
-                                                .map((service) => ({ value: service, label: service }))}
-                                        />
-                                    </div>
-                                </div>
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <label className="text-sm font-semibold text-gray-800">
+                                Questions <sup className="text-red-500">*</sup>
+                            </label>
+                            <button
+                                type="button"
+                                className="inline-flex items-center rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-accentLight"
+                                onClick={handleAddQuestion}
+                            >
+                                + Add Question
+                            </button>
+                        </div>
 
-                                {/* Questions Section */}
-                                <div className="d-flex justify-content-between align-items-center mb-2">
-                                    <label className="form-label fw-bold">
-                                        Questions <sup className="text-danger small">(*)</sup>
-                                    </label>
+                        <div className="space-y-3">
+                            {questions.map((q, index) => (
+                                <div key={index} className="rounded-xl border border-gray-200 bg-gray-50/70 p-4">
                                     <button
                                         type="button"
-                                        className="btn btn-sm btn-primary"
-                                        onClick={handleAddQuestion}
+                                        className="flex w-full items-center justify-between text-left text-sm font-semibold text-primary"
+                                        onClick={() => toggleExpand(index)}
                                     >
-                                        <i className="fa fa-plus"></i> Add Question
+                                        <span className="flex items-center gap-2">
+                                            <span className="text-gray-500">Q{index + 1}:</span>
+                                            {q.text ? q.text.slice(0, 60) : 'New Question'}
+                                        </span>
+                                        <span className="text-gray-500">{expandedIndex === index ? '−' : '+'}</span>
                                     </button>
-                                </div>
 
-                                <div className="accordion" id="questionAccordion">
-                                    {questions.map((q, index) => (
-                                        <div className="accordion-item" key={index}>
-                                            <h2 className="accordion-header" id={`heading-${index}`}>
-                                                <button
-                                                    className={`accordion-button ${
-                                                        expandedIndex === index ? '' : 'collapsed'
-                                                    }`}
-                                                    type="button"
-                                                    onClick={() => toggleExpand(index)}
-                                                >
-                                                    <span className="me-2 fw-semibold">Q{index + 1}:</span>
-                                                    {q.text ? q.text.slice(0, 60) : 'New Question'}
-                                                </button>
-                                            </h2>
+                                    {expandedIndex === index && (
+                                        <div className="mt-3 space-y-3 rounded-lg bg-white p-3">
+                                            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                                <div className="md:col-span-2">
+                                                    <label className="mb-1 block text-sm font-semibold text-gray-800">Question Text</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                                        value={q.text}
+                                                        onChange={(e) => handleQuestionChange(index, 'text', e.target.value)}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="mb-1 block text-sm font-semibold text-gray-800">Field Type</label>
+                                                    <select
+                                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                                        value={q.type}
+                                                        onChange={(e) => handleQuestionChange(index, 'type', e.target.value)}
+                                                    >
+                                                        <option value="input">Input</option>
+                                                        <option value="checkbox-single">Checkbox (Single)</option>
+                                                        <option value="checkbox-multiple">Checkbox (Multiple)</option>
+                                                    </select>
+                                                </div>
 
-                                            <div
-                                                id={`collapse-${index}`}
-                                                className={`accordion-collapse collapse ${
-                                                    expandedIndex === index ? 'show' : ''
-                                                }`}
-                                            >
-                                                <div className="accordion-body">
-                                                    <div className="row">
-                                                        <div className="col-md-8 mb-3">
-                                                            <label className="form-label">Question Text</label>
-                                                            <input
-                                                                type="text"
-                                                                className="form-control"
-                                                                value={q.text}
-                                                                onChange={(e) =>
-                                                                    handleQuestionChange(index, 'text', e.target.value)
-                                                                }
-                                                                required
-                                                            />
-                                                        </div>
-
-                                                        <div className="col-md-4 mb-3">
-                                                            <label className="form-label">Field Type</label>
-                                                            <select
-                                                                className="form-select"
-                                                                value={q.type}
-                                                                onChange={(e) =>
-                                                                    handleQuestionChange(index, 'type', e.target.value)
-                                                                }
-                                                            >
-                                                                <option value="input">Input</option>
-                                                                <option value="checkbox-single">
-                                                                    Checkbox (Single)
-                                                                </option>
-                                                                <option value="checkbox-multiple">
-                                                                    Checkbox (Multiple)
-                                                                </option>
-                                                            </select>
-                                                        </div>
-
-                                                        {q.type === 'input' && (
-                                                            <div className="col-md-4">
-                                                                <label className="form-label">Input Type</label>
-                                                                <select
-                                                                    className="form-select"
-                                                                    value={q.inputType}
-                                                                    onChange={(e) =>
-                                                                        handleQuestionChange(
-                                                                            index,
-                                                                            'inputType',
-                                                                            e.target.value
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <option value="text">Text</option>
-                                                                    <option value="number">Number</option>
-                                                                </select>
-                                                            </div>
-                                                        )}
-
-                                                        <div className="col-md-3 d-flex align-items-end">
-                                                            <div className="form-check form-switch">
-                                                                <input
-                                                                    className="form-check-input"
-                                                                    type="checkbox"
-                                                                    checked={q.required}
-                                                                    onChange={(e) =>
-                                                                        handleQuestionChange(
-                                                                            index,
-                                                                            'required',
-                                                                            e.target.checked
-                                                                        )
-                                                                    }
-                                                                />
-                                                                <label className="form-check-label">Required</label>
-                                                            </div>
-                                                        </div>
-
-                                                        {(q.type === 'checkbox-single' ||
-                                                            q.type === 'checkbox-multiple') && (
-                                                            <div className="col-md-12 mt-2">
-                                                                <label className="form-label">Options</label>
-                                                                <div className="row g-2">
-                                                                    {q.options.map((opt, optIndex) => (
-                                                                        <div
-                                                                            key={optIndex}
-                                                                            className="col-md-4 d-flex align-items-center"
-                                                                        >
-                                                                            <div className="input-group">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    className="form-control form-control-sm"
-                                                                                    placeholder={`Option ${optIndex + 1}`}
-                                                                                    value={opt}
-                                                                                    onChange={(e) =>
-                                                                                        handleOptionChange(
-                                                                                            index,
-                                                                                            optIndex,
-                                                                                            e.target.value
-                                                                                        )
-                                                                                    }
-                                                                                    required
-                                                                                />
-                                                                                {q.options.length > 1 && (
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        className="btn btn-sm btn-light border"
-                                                                                        onClick={() =>
-                                                                                            handleRemoveOption(
-                                                                                                index,
-                                                                                                optIndex
-                                                                                            )
-                                                                                        }
-                                                                                    >
-                                                                                        <i className="fa fa-trash-alt"></i>
-                                                                                    </button>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                    <div className="col">
-                                                                        <button
-                                                                            type="button"
-                                                                            className="btn btn-sm btn-primary"
-                                                                            onClick={() => handleAddOption(index)}
-                                                                        >
-                                                                            <i className="fa fa-plus"></i>
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
+                                                {q.type === 'input' && (
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-semibold text-gray-800">Input Type</label>
+                                                        <select
+                                                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                                            value={q.inputType}
+                                                            onChange={(e) => handleQuestionChange(index, 'inputType', e.target.value)}
+                                                        >
+                                                            <option value="text">Text</option>
+                                                            <option value="number">Number</option>
+                                                        </select>
                                                     </div>
+                                                )}
 
-                                                    <div className="d-flex justify-content-end mt-2">
-                                                        {questions.length > 1 && (
-                                                            <button
-                                                                type="button"
-                                                                className="btn p-0"
-                                                                onClick={() => handleRemoveQuestion(index)}
-                                                            >
-                                                                <i className="fa fa-trash-alt fs-5"></i>
-                                                            </button>
-                                                        )}
-                                                    </div>
+                                                <div className="flex items-end">
+                                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent"
+                                                            checked={q.required}
+                                                            onChange={(e) => handleQuestionChange(index, 'required', e.target.checked)}
+                                                        />
+                                                        Required
+                                                    </label>
                                                 </div>
                                             </div>
+
+                                            {(q.type === 'checkbox-single' || q.type === 'checkbox-multiple') && (
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-semibold text-gray-800">Options</label>
+                                                    <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                                                        {q.options.map((opt, optIndex) => (
+                                                            <div key={optIndex} className="flex items-center gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                                                    placeholder={`Option ${optIndex + 1}`}
+                                                                    value={opt}
+                                                                    onChange={(e) => handleOptionChange(index, optIndex, e.target.value)}
+                                                                    required
+                                                                />
+                                                                {q.options.length > 1 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="rounded-lg border border-gray-200 px-2 py-1 text-sm text-gray-600 transition hover:bg-gray-50"
+                                                                        onClick={() => handleRemoveOption(index, optIndex)}
+                                                                    >
+                                                                        ✕
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                        <button
+                                                            type="button"
+                                                            className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                                                            onClick={() => handleAddOption(index)}
+                                                        >
+                                                            Add option
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="flex justify-end">
+                                                {questions.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        className="text-sm font-semibold text-red-600 transition hover:text-red-700"
+                                                        onClick={() => handleRemoveQuestion(index)}
+                                                    >
+                                                        Remove question
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
-                            </div>
-
-                            <div className="modal-footer">
-                                <button
-                                    type="button"
-                                    className="btn btn-sm btn-dark"
-                                    onClick={() => setShowModal(false)}
-                                    disabled={isSubmitting}
-                                >
-                                    Cancel
-                                </button>
-                                <SubmitButton
-                                    isLoading={isSubmitting}
-                                    btnClass="btn btn-sm btn-success"
-                                    btnName="Create"
-                                />
-                            </div>
-                        </form>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <div className="modal-backdrop fade show"></div>
-        </>
+                    <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4">
+                        <button
+                            type="button"
+                            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                            onClick={() => setShowModal(false)}
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </button>
+                        <SubmitButton
+                            isLoading={isSubmitting}
+                            btnClass="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight disabled:opacity-60"
+                            btnName="Create"
+                        />
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }

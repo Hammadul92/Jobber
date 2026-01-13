@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { FaInfoCircle } from 'react-icons/fa';
 import { useFetchServiceQuery, useUpdateServiceMutation } from '../../../../../store';
 import SubmitButton from '../../../../ui/SubmitButton';
 import AlertDispatcher from '../../../../ui/AlertDispatcher';
@@ -7,11 +8,11 @@ import Select from '../../../../ui/Select';
 import Input from '../../../../ui/Input';
 import { countries, provinces } from '../../../../../constants/locations';
 
-export default function Service({ token, business }) {
+export default function Service({ token, business, role }) {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const { data: serviceData, isLoading, error } = useFetchServiceQuery(id, { skip: !token });
+    const { data: serviceData, isLoading } = useFetchServiceQuery(id, { skip: !token });
     const [updateService, { isLoading: updating, error: updateError, isSuccess }] = useUpdateServiceMutation();
 
     const [serviceName, setServiceName] = useState('');
@@ -22,6 +23,7 @@ export default function Service({ token, business }) {
     const [price, setPrice] = useState('');
     const [currency, setCurrency] = useState('CAD');
     const [billingCycle, setBillingCycle] = useState('');
+
     const [status, setStatus] = useState('PENDING');
     const [streetAddress, setStreetAddress] = useState('');
     const [city, setCity] = useState('');
@@ -32,6 +34,13 @@ export default function Service({ token, business }) {
     const [autoGenerateInvoices, setAutoGenerateInvoices] = useState(false);
 
     const [alert, setAlert] = useState({ type: '', message: '' });
+
+    const statusTone = {
+        PENDING: 'bg-amber-100 text-amber-800',
+        ACTIVE: 'bg-green-100 text-green-800',
+        COMPLETED: 'bg-blue-100 text-blue-800',
+        CANCELLED: 'bg-red-100 text-red-800',
+    };
 
     useEffect(() => {
         if (serviceData) {
@@ -95,6 +104,44 @@ export default function Service({ token, business }) {
 
     return (
         <>
+            <nav aria-label="breadcrumb" className="mb-4">
+                <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                    <li>
+                        <Link to={`/`} className="font-semibold text-accent hover:text-accentLight">
+                            Contractorz
+                        </Link>
+                    </li>
+                    <li className="text-gray-400">/</li>
+                    <li>
+                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
+                            {business?.name ||
+                                (role === 'CLIENT'
+                                    ? 'Client Portal'
+                                    : role === 'EMPLOYEE'
+                                        ? 'Employee Portal'
+                                        : 'Dashboard')}
+                        </Link>
+                    </li>
+                    <li className="text-gray-400">/</li>
+                    <li>
+                        <Link to={`/dashboard/clients`} className="font-semibold text-secondary hover:text-accent">
+                            Clients
+                        </Link>
+                    </li>
+                    <li className="text-gray-400">/</li>
+                    <li>
+                        <Link
+                            to={`/dashboard/client/${serviceData.client}/services`}
+                            className="font-semibold text-secondary hover:text-accent"
+                        >
+                            Services
+                        </Link>
+                    </li>
+                    <li className="text-gray-400">/</li>
+                    <li className="text-gray-700 font-semibold">Edit Service</li>
+                </ol>
+            </nav>
+
             {alert.message && (
                 <AlertDispatcher
                     type={alert.type}
@@ -103,196 +150,169 @@ export default function Service({ token, business }) {
                 />
             )}
 
-            <nav aria-label="breadcrumb" className="mb-3">
-                <ol className="breadcrumb">
-                    <li className="breadcrumb-item">
-                        <Link to={`/`} className="text-success">
-                            Contractorz
-                        </Link>
-                    </li>
-                    <li className="breadcrumb-item">
-                        <Link to="/dashboard/home" className="text-success">
-                            {business?.name ||
-                                (role === 'CLIENT'
-                                    ? 'Client Portal'
-                                    : role === 'EMPLOYEE'
-                                      ? 'Employee Portal'
-                                      : 'Dashboard')}
-                        </Link>
-                    </li>
-                    <li className="breadcrumb-item">
-                        <Link to={`/dashboard/clients`} className="text-success">
-                            Clients
-                        </Link>
-                    </li>
-                    <li className="breadcrumb-item">
-                        <Link to={`/dashboard/client/${serviceData.client}/services`} className="text-success">
-                            Services
-                        </Link>
-                    </li>
-                    <li className="breadcrumb-item active" aria-current="page">
-                        Edit Service
-                    </li>
-                </ol>
-            </nav>
+            <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-accent to-secondary p-[1px] shadow-lg">
+                <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white/95 px-6 py-5">
+                    <div className="space-y-1">
+                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-secondary">Service</p>
+                        <h3 className="text-2xl font-semibold text-primary">
+                            {serviceName || 'Service'} for {serviceData.client_name}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-secondary/10 px-3 py-1 text-[11px] font-semibold uppercase text-secondary">
+                                {serviceType === 'SUBSCRIPTION' ? 'Subscription' : 'One-Time'}
+                            </span>
+                            <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase ${statusTone[status] || 'bg-gray-100 text-gray-700'}`}>
+                                {status}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-2 rounded-xl bg-gradient-to-br from-secondary to-primary px-4 py-3 text-white shadow-md">
+                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">Billing</p>
+                        <p className="text-sm font-semibold">
+                            {price ? `$${price} ${currency}` : 'Price TBD'} {billingCycle && `• ${billingCycle}`}
+                        </p>
+                        <p className="text-xs text-white/80">
+                            {startDate ? `Starts ${startDate}` : 'Start date not set'}
+                            {endDate ? ` • Ends ${endDate}` : ''}
+                        </p>
+                    </div>
+                </div>
+            </div>
 
-            <h3 className="fw-bold mb-3">
-                {serviceName} Service for {serviceData.client_name}
-            </h3>
-
-            <form onSubmit={handleSubmit} className="rounded shadow-sm border p-3 bg-white">
-                <div className="row">
-                    <div className="col-md-6 col-lg-3">
-                        <Input
-                            type="number"
-                            label={'Price'}
-                            value={price}
-                            onChange={setPrice}
-                            fieldClass={'form-control'}
-                            isRequired={true}
-                        />
-                    </div>
-                    <div className="col-md-6 col-lg-3">
-                        <Select
-                            id="currency"
-                            label={'Currency'}
-                            value={currency}
-                            isRequired={true}
-                            onChange={setCurrency}
-                            options={[
-                                { value: 'CAD', label: 'CAD' },
-                                { value: 'USD', label: 'USD' },
-                            ]}
-                        />
-                    </div>
-                    <div className="col-md-6 col-lg-3">
-                        <Select
-                            id="service_type"
-                            label={'Service Type'}
-                            value={serviceType}
-                            isRequired={true}
-                            onChange={(value) => {
-                                setServiceType(value);
-                                setBillingCycle('');
-                            }}
-                            options={[
-                                { value: 'ONE_TIME', label: 'One Time' },
-                                { value: 'SUBSCRIPTION', label: 'Subscription' },
-                            ]}
-                        />
-                    </div>
+            <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-6 shadow-sm">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                    <Input
+                        type="number"
+                        label={'Price'}
+                        value={price}
+                        onChange={setPrice}
+                        fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        isRequired={true}
+                    />
+                    <Select
+                        id="currency"
+                        label={'Currency'}
+                        value={currency}
+                        isRequired={true}
+                        onChange={setCurrency}
+                        options={[
+                            { value: 'CAD', label: 'CAD' },
+                            { value: 'USD', label: 'USD' },
+                        ]}
+                    />
+                    <Select
+                        id="service_type"
+                        label={'Service Type'}
+                        value={serviceType}
+                        isRequired={true}
+                        onChange={(value) => {
+                            setServiceType(value);
+                            setBillingCycle('');
+                        }}
+                        options={[
+                            { value: 'ONE_TIME', label: 'One Time' },
+                            { value: 'SUBSCRIPTION', label: 'Subscription' },
+                        ]}
+                    />
 
                     {serviceType === 'SUBSCRIPTION' && (
-                        <div className="col-md-6 col-lg-3">
-                            <Select
-                                id="billing_cycle"
-                                label={'Billing Cycle'}
-                                value={billingCycle}
-                                isRequired={true}
-                                onChange={setBillingCycle}
-                                options={[
-                                    { value: 'MONTHLY', label: 'Monthly' },
-                                    { value: 'YEARLY', label: 'YEARLY' },
-                                ]}
-                            />
-                        </div>
-                    )}
-
-                    <div className="col-md-6 col-lg-3">
-                        <Input
-                            type="date"
-                            id="start_date"
-                            label={'Start Date'}
-                            value={startDate}
-                            isRequired={true}
-                            onChange={setStartDate}
-                            fieldClass={'form-control'}
-                        />
-                    </div>
-                    <div className="col-md-6 col-lg-3">
-                        <Input
-                            type="date"
-                            id="end_date"
-                            label={'End Date'}
-                            value={endDate}
-                            onChange={setEndDate}
-                            fieldClass={'form-control'}
-                        />
-                    </div>
-                    <div className="col-md-6 col-lg-3">
                         <Select
-                            id="status"
-                            label={'Status'}
-                            value={status}
+                            id="billing_cycle"
+                            label={'Billing Cycle'}
+                            value={billingCycle}
                             isRequired={true}
-                            onChange={setStatus}
+                            onChange={setBillingCycle}
                             options={[
-                                { value: 'PENDING', label: 'Pending' },
-                                { value: 'ACTIVE', label: 'Active' },
-                                { value: 'COMPLETED', label: 'Completed' },
-                                { value: 'CANCELLED', label: 'Cancelled' },
+                                { value: 'MONTHLY', label: 'Monthly' },
+                                { value: 'YEARLY', label: 'YEARLY' },
                             ]}
                         />
-                    </div>
+                    )}
+
+                    <Input
+                        type="date"
+                        id="start_date"
+                        label={'Start Date'}
+                        value={startDate}
+                        isRequired={true}
+                        onChange={setStartDate}
+                        fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    />
+                    <Input
+                        type="date"
+                        id="end_date"
+                        label={'End Date'}
+                        value={endDate}
+                        onChange={setEndDate}
+                        fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    />
+                    <Select
+                        id="status"
+                        label={'Status'}
+                        value={status}
+                        isRequired={true}
+                        onChange={setStatus}
+                        options={[
+                            { value: 'PENDING', label: 'Pending' },
+                            { value: 'ACTIVE', label: 'Active' },
+                            { value: 'COMPLETED', label: 'Completed' },
+                            { value: 'CANCELLED', label: 'Cancelled' },
+                        ]}
+                    />
                 </div>
 
-                <div className="form-check form-switch mb-2">
-                    <input
-                        id="generate_quote"
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={autoGenerateQuote}
-                        onChange={() => setAutoGenerateQuote(!autoGenerateQuote)}
-                        disabled={true}
-                    />
-                    <label className="form-check-label" htmlFor="generate_quote">
-                        Auto-generate Quote
+                <div className="space-y-3 rounded-2xl border border-gray-200 bg-gradient-to-r from-secondary/5 to-gray-50 p-4">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                        <input
+                            id="generate_quote"
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent"
+                            checked={autoGenerateQuote}
+                            onChange={() => setAutoGenerateQuote(!autoGenerateQuote)}
+                            disabled={true}
+                        />
+                        Auto-generate Quote (locked)
                     </label>
-                </div>
-                {autoGenerateQuote && (
-                    <p className="small text-muted">
-                        <i>
-                            <i className="fa fa-info"></i> A quote will be generated automatically once the service
-                            questionnaire is completed. The client will be prompted to review and sign it. A
-                            notification will be sent to the client and a confirmation email will be sent to you.
-                        </i>
-                    </p>
-                )}
+                    {autoGenerateQuote && (
+                        <p className="flex items-start gap-2 text-sm text-gray-600">
+                            <FaInfoCircle className="mt-0.5 h-4 w-4 text-secondary" />
+                            A quote will be generated automatically after the questionnaire is completed. The client
+                            will review and sign; notifications go to both parties.
+                        </p>
+                    )}
 
-                <div className="form-check form-switch mb-2">
-                    <input
-                        id="generate_invoices"
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={autoGenerateInvoices}
-                        onChange={() => setAutoGenerateInvoices(!autoGenerateInvoices)}
-                    />
-                    <label className="form-check-label" htmlFor="generate_invoices">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                        <input
+                            id="generate_invoices"
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent"
+                            checked={autoGenerateInvoices}
+                            onChange={() => setAutoGenerateInvoices(!autoGenerateInvoices)}
+                        />
                         Auto-generate Invoice(s)
                     </label>
+                    {autoGenerateInvoices && (
+                        <p className="flex items-start gap-2 text-sm text-gray-600">
+                            <FaInfoCircle className="mt-0.5 h-4 w-4 text-secondary" />
+                            Invoices will be created automatically once the questionnaire is completed and the quote is
+                            signed.
+                        </p>
+                    )}
                 </div>
-                {autoGenerateInvoices && (
-                    <p className="small text-muted">
-                        <i>
-                            <i className="fa fa-info"></i> Invoices will be created automatically once the client has
-                            completed the questionnaire and signed the quote for this service.
-                        </i>
-                    </p>
-                )}
 
-                <h5 className="mt-3 fw-bold">Service Address</h5>
-                <div className="row">
-                    <div className="col-md-8 col-lg-8">
-                        <Input
-                            id="street_address"
-                            label={'Street Address'}
-                            value={streetAddress}
-                            isRequired={true}
-                            onChange={setStreetAddress}
-                            fieldClass={'form-control'}
-                        />
-                    </div>
-                    <div className="col-md-4">
+                <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <h5 className="text-base font-semibold text-primary">Service Address</h5>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="md:col-span-2">
+                            <Input
+                                id="street_address"
+                                label={'Street Address'}
+                                value={streetAddress}
+                                isRequired={true}
+                                onChange={setStreetAddress}
+                                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                            />
+                        </div>
                         <Select
                             id="country"
                             label={'Country'}
@@ -304,8 +324,6 @@ export default function Service({ token, business }) {
                             }}
                             options={countries}
                         />
-                    </div>
-                    <div className="col-md-4">
                         <Select
                             id="province"
                             label={'Province/State'}
@@ -314,49 +332,49 @@ export default function Service({ token, business }) {
                             onChange={setProvinceState}
                             options={provinces[country]}
                         />
-                    </div>
 
-                    <div className="col-md-4">
                         <Input
                             id="city"
                             value={city}
                             label={'City'}
                             onChange={setCity}
                             isRequired={true}
-                            fieldClass={'form-control'}
+                            fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                         />
-                    </div>
-                    <div className="col-md-4">
                         <Input
                             id="postal_code"
                             value={postalCode}
                             label={'Postal/Zip Code'}
                             onChange={setPostalCode}
                             isRequired={true}
-                            fieldClass={'form-control'}
+                            fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                         />
+                    </div>
+
+                    <div>
+                        <label className="mb-1 block text-sm font-semibold text-gray-800">Service Description</label>
+                        <textarea
+                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                            rows="3"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                        ></textarea>
                     </div>
                 </div>
 
-                <div className="mb-3">
-                    <label className="form-label fw-bold">Service Description</label>
-                    <textarea
-                        className="form-control"
-                        rows="3"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    ></textarea>
-                </div>
-
-                <div className="d-flex justify-content-end">
+                <div className="flex justify-end gap-3">
                     <button
                         type="button"
-                        className="btn btn-dark me-2"
+                        className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/20"
                         onClick={() => navigate(`/dashboard/client/${serviceData.client}/services`)}
                     >
                         Cancel
                     </button>
-                    <SubmitButton isLoading={updating} btnClass="btn btn-success" btnName="Save Changes" />
+                    <SubmitButton
+                        isLoading={updating}
+                        btnClass="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-accent to-secondary px-4 py-2 text-sm font-semibold text-white shadow hover:shadow-lg disabled:opacity-60"
+                        btnName="Save Changes"
+                    />
                 </div>
             </form>
         </>

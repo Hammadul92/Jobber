@@ -32,88 +32,84 @@ export default function AcceptAndSignQuote({ setShowSignModal, handleSignSubmit,
     const isSubmitDisabled = !signatureData;
 
     return (
-        <div
-            className="modal fade show"
-            style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}
-            tabIndex="-1"
-            role="dialog"
-        >
-            <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
-                <div className="modal-content">
-                    <form onSubmit={onSubmit}>
-                        <div className="modal-header">
-                            <h5 className="modal-title">Accept & Sign Quote</h5>
-                            <button
-                                type="button"
-                                className="btn-close"
-                                onClick={() => setShowSignModal(false)}
-                            ></button>
-                        </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" role="dialog" aria-modal="true">
+            <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
+                <form onSubmit={onSubmit}>
+                    <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+                        <h5 className="text-lg font-semibold text-gray-900">Accept & Sign Quote</h5>
+                        <button
+                            type="button"
+                            className="text-gray-500 transition hover:text-gray-800"
+                            onClick={() => setShowSignModal(false)}
+                            aria-label="Close"
+                        >
+                            ×
+                        </button>
+                    </div>
 
-                        <div className="modal-body">
-                            <div className="mb-3">
-                                <div className="d-flex justify-content-between align-items-center mb-2">
-                                    <label className="form-label mb-0">Draw Your Signature</label>
-                                    <div>
-                                        <button
-                                            type="button"
-                                            className="btn text-secondary p-0 me-2"
-                                            onClick={clearSignature}
-                                        >
-                                            Clear
-                                        </button>
-                                        <button type="button" className="btn text-success p-0" onClick={saveSignature}>
-                                            Save Signature
-                                        </button>
-                                    </div>
+                    <div className="px-6 py-5">
+                        <div className="mb-3">
+                            <div className="mb-2 flex items-center justify-between">
+                                <label className="text-sm font-semibold text-gray-800">Draw Your Signature</label>
+                                <div className="flex items-center gap-3 text-sm font-semibold">
+                                    <button
+                                        type="button"
+                                        className="text-gray-600 transition hover:text-gray-900"
+                                        onClick={clearSignature}
+                                    >
+                                        Clear
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="text-accent transition hover:text-accentLight"
+                                        onClick={saveSignature}
+                                    >
+                                        Save Signature
+                                    </button>
                                 </div>
+                            </div>
 
-                                <div className="border rounded bg-light p-2 text-center">
-                                    <SignaturePad
-                                        ref={sigPadRef}
-                                        options={{
-                                            penColor: 'black',
-                                            backgroundColor: '#fff',
-                                            minWidth: 1,
-                                            maxWidth: 2,
-                                        }}
+                            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-center shadow-sm">
+                                <SignaturePad
+                                    ref={sigPadRef}
+                                    options={{
+                                        penColor: 'black',
+                                        backgroundColor: '#fff',
+                                        minWidth: 1,
+                                        maxWidth: 2,
+                                    }}
+                                />
+                            </div>
+
+                            {signatureData && (
+                                <div className="mt-3 flex items-center gap-3 text-sm text-gray-800">
+                                    <span className="font-semibold">Saved Signature Preview:</span>
+                                    <img
+                                        src={signatureData}
+                                        alt="Signature Preview"
+                                        className="h-16 rounded border border-gray-200 bg-white p-2"
                                     />
                                 </div>
-
-                                {signatureData && (
-                                    <div className="mt-3 d-flex">
-                                        <label className="me-2">Saved Signature Preview:</label>
-                                        <img
-                                            src={signatureData}
-                                            alt="Signature Preview"
-                                            className="border rounded p-2"
-                                            style={{
-                                                maxWidth: '100%',
-                                                height: '60px',
-                                            }}
-                                        />
-                                    </div>
-                                )}
-                            </div>
+                            )}
                         </div>
+                    </div>
 
-                        <div className="modal-footer">
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-dark"
-                                onClick={() => setShowSignModal(false)}
-                            >
-                                Cancel
-                            </button>
-                            <SubmitButton
-                                isLoading={signing}
-                                btnClass="btn btn-sm btn-success"
-                                btnName="Submit"
-                                isDisabled={isSubmitDisabled}
-                            />
-                        </div>
-                    </form>
-                </div>
+                    <div className="flex justify-end gap-3 border-t border-gray-100 px-6 py-4">
+                        <button
+                            type="button"
+                            className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                            onClick={() => setShowSignModal(false)}
+                        >
+                            Cancel
+                        </button>
+                        <SubmitButton
+                            isLoading={signing}
+                            btnClass="bg-accent px-4 py-2 text-sm text-white shadow-sm hover:bg-accentLight"
+                            btnName="Submit"
+                            isDisabled={isSubmitDisabled}
+                        />
+                    </div>
+                </form>
             </div>
         </div>
     );
