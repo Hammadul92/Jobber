@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FaInfoCircle, FaLock, FaUserPlus } from 'react-icons/fa';
+import { FaLock } from 'react-icons/fa';
+import { CgClose } from 'react-icons/cg';
 import { useCreateUserMutation, useCreateClientMutation, useCheckUserExistsMutation } from '../../../../store';
 import SubmitButton from '../../../ui/SubmitButton';
 import AlertDispatcher from '../../../ui/AlertDispatcher';
@@ -63,8 +64,8 @@ export default function CreateClientForm({ showModal, setShowModal, setAlert: se
                 err?.data?.detail ||
                 (err?.data && typeof err.data === 'object'
                     ? Object.entries(err.data)
-                          .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
-                          .join(' | ')
+                        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+                        .join(' | ')
                     : err?.message) ||
                 'Failed to create client. Please try again.';
             const danger = { type: 'danger', message };
@@ -77,19 +78,21 @@ export default function CreateClientForm({ showModal, setShowModal, setAlert: se
     return (
         <>
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/70 px-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setShowModal(false)}>
                     <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl">
-                        <div className="bg-secondary px-6 py-4 text-white">
-                            <div className="flex items-center justify-between gap-3">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/80">New client</p>
-                                    <h5 className="text-xl font-semibold leading-tight">Add Client Account</h5>
-                                    <p className="text-sm text-white/80">Secure login is generated automatically and emailed.</p>
-                                </div>
-                                <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em]">
-                                    <FaUserPlus className="h-4 w-4" /> Quick setup
-                                </span>
+                        <div className="p-6 flex items-start bg-secondary text-white rounded-t-lg justify-between gap-3">
+                            <div>
+                                <h5 className="text-xl font-semibold font-heading leading-tight">Add Client Account</h5>
+                                <p className="text-sm text-white/80">Secure login is generated automatically and emailed.</p>
                             </div>
+                            <button
+                                type="button"
+                                className="text-gray-200 transition hover:text-gray-400"
+                                onClick={() => setShowModal(false)}
+                                aria-label="Close"
+                            >
+                                <CgClose className="h-5 w-5" />
+                            </button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5 px-6 py-5">
@@ -142,7 +145,7 @@ export default function CreateClientForm({ showModal, setShowModal, setAlert: se
                             <div className="flex items-center justify-end gap-3 pt-1">
                                 <button
                                     type="button"
-                                    className="secondary px-4! py-2! rounded-xl! text-sm! font-semibold!"
+                                    className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
                                     onClick={() => setShowModal(false)}
                                     disabled={isSubmitting}
                                 >
@@ -150,7 +153,7 @@ export default function CreateClientForm({ showModal, setShowModal, setAlert: se
                                 </button>
                                 <SubmitButton
                                     isLoading={isSubmitting}
-                                    btnClass="primary px-4! py-2! rounded-xl! text-sm! font-semibold!"
+                                    btnClass="primary px-4! py-2! rounded-lg! text-sm! font-semibold!"
                                     btnName="Create Client"
                                 />
                             </div>

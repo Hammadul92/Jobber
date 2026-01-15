@@ -152,6 +152,11 @@ export default function Header() {
         return `hover:text-accent ${isActive ? 'font-bold text-secondary' : ''}`.trim();
     };
 
+    const mobLinkClass = (path) => {
+        const isActive = location.pathname === path;
+        return (isActive ? 'font-bold bg-secondary text-white px-8 py-5' : '').trim();
+    };
+
     useEffect(() => {
         // Close dropdown when clicking outside the menu
         const handleClickOutside = (event) => {
@@ -170,17 +175,45 @@ export default function Header() {
     }, [showDropdown]);
 
     return (
-        <header className='flex items-center justify-between bg-background md:px-16 lg:px-32 pt-8 w-full absolute top-0 left-0 z-10'>
-            
+        <header className='flex items-end md:items-center justify-between bg-background px-6 pt-4 md:px-16 lg:px-32 md:pt-8 w-full absolute top-0 left-0 z-10'>
+
             {/* Mobile Menu Button */}
             <div className='lg:hidden'>
                 <button
                     className="text-secondary mt-3"
                     onClick={() => setShowMenu((open) => !open)}
                 >
-                    {showMenu ? <FaTimes className="text-3xl" /> : <FaBars className="text-3xl" />}
+                    <FaBars className="text-2xl" />
                 </button>
             </div>
+
+            {/* Mobile Navigation Menu */}
+            {showMenu && (
+                <div className='fixed inset-0 w-full h-screen bg-black/50' onClick={() => setShowMenu((open) => !open)}>
+                    <div className='w-4/5 md:w-3/7 h-screen bg-white'>
+                        <div className='p-8 inset-0 flex justify-between'>
+                            <h3 className='font-heading text-2xl' >Menu</h3>
+                            <div onClick={() => setShowMenu(false)}>
+                                <FaTimes className="text-2xl" />
+                            </div>
+                        </div>
+                        <nav className='flex flex-col items-start justify-start font-medium'>
+                            <Link to="/" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/')}>Home</Link>
+                            <Link to="/about" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/about')}>About</Link>
+                            <Link to="/product" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/product')}>Product</Link>
+                            <Link to="/industries" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/industries')}>Industries</Link>
+                            <Link to="/resources" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/resources')}>Resources</Link>
+                            <Link
+                                to="/"
+                                onClick={handlePricingClick}
+                                className='w-full text-lg text-left px-8 py-5'
+                            >
+                                Prices
+                            </Link>
+                        </nav>
+                    </div>
+                </div>
+            )}
 
             {/* Logo */}
             <div>
@@ -209,7 +242,7 @@ export default function Header() {
             )}
 
             {/* Login button and User account dropdown */}
-            <div className="hidden items-center gap-3 md:flex">
+            <div className=" flex items-center gap-3 md:flex">
                 {loading ? (
                     <span className="text-gray-500">Loading...</span>
                 ) : !token || !user ? (
@@ -224,23 +257,23 @@ export default function Header() {
                 ) : (
                     <div className="relative z-30" ref={menuRef}>
                         <button
-                            className="cursor-pointer flex items-center gap-2 rounded-md px-3 py-2 text-gray-800 hover:text-accent"
+                            className="cursor-pointer flex items-center gap-2 rounded-md py-2 text-gray-800 hover:text-accent"
                             type="button"
                             onClick={() => setShowDropdown((open) => !open)}
                             aria-expanded={showDropdown}
                             aria-haspopup="true"
                         >
-                            <FaRegUserCircle className="text-xl" />
-                            <span className="font-bold">{user.name}</span>
+                            <FaRegUserCircle className="text-2xl md:text-xl" />
+                            <span className="hidden md:block font-bold">{user.name}</span>
                             {showDropdown ? (
-                                <FaChevronUp className="text-xs" />
+                                <FaChevronUp className="hidden md:block text-xs" />
                             ) : (
-                                <FaChevronDown className="text-xs" />
+                                <FaChevronDown className="hidden md:block text-xs" />
                             )}
                         </button>
 
                         {showDropdown && (
-                            <div className="absolute z-50 right-0 p-3 mt-3 w-64 rounded-lg bg-white shadow-lg">
+                            <div className="absolute z-50 right-4 lg:right-0 p-3 mt-3 min-w-[50vw] lg:w-64 rounded-lg bg-white shadow-lg">
                                 <div>
                                     <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
                                         {renderLink('/user-account/profile', FaRegUserCircle, 'Profile')}

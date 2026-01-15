@@ -101,7 +101,7 @@ export default function CreateJobForm({ token, showModal, setShowModal, setAlert
                                         { value: '', label: 'Select Service' },
                                         ...(!loadingServices && services
                                             ? services
-                                                .filter((service) => service.status === 'ACTIVE')
+                                                // .filter((service) => service.status === 'ACTIVE')
                                                 .map((service) => ({
                                                     value: service.id,
                                                     label: `${service.service_name} (${service.client_name})`,

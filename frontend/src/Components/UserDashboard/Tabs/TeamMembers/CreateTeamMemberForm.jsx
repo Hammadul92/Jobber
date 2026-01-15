@@ -8,6 +8,7 @@ import {
 import SubmitButton from '../../../ui/SubmitButton';
 import Input from '../../../ui/Input';
 import Select from '../../../ui/Select';
+import { CgClose } from 'react-icons/cg';
 
 function generateStrongPassword(length = 12) {
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?';
@@ -88,22 +89,20 @@ export default function CreateTeamMemberForm({ token, showModal, setShowModal, s
     return (
         <>
             {showModal && (
-                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/40 p-4">
-                    <div className="w-full max-w-2xl rounded-lg bg-white shadow-lg">
-                        <div className="p-6 flex items-start bg-secondary rounded-t-lg justify-between gap-3">
+                <div className="fixed min-h-screen inset-0 z-50 flex flex-col items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
+                    <div className="w-full max-w-2xl rounded-3xl bg-white shadow-lg">
+                        <div className="p-6 flex items-start bg-secondary text-white rounded-t-3xl justify-between gap-3">
                             <div>
-                                <h5 className="text-xl font-semibold text-white">Add New Member</h5>
-                                <p className="text-sm text-gray-200">
-                                    Credentials are generated automatically; a confirmation link will be emailed.
-                                </p>
+                                <h5 className="text-xl font-semibold font-heading leading-tight">Add New Member</h5>
+                                <p className="text-sm text-white/80">Credentials are generated automatically; a confirmation link will be emailed.</p>
                             </div>
                             <button
                                 type="button"
-                                className="rounded-full px-2 text-2xl text-gray-200 hover:bg-sky-800 cursor-pointer"
+                                className="text-gray-200 transition hover:text-gray-400"
                                 onClick={() => setShowModal(false)}
                                 aria-label="Close"
                             >
-                                ×
+                                <CgClose className="h-5 w-5" />
                             </button>
                         </div>
                         <form

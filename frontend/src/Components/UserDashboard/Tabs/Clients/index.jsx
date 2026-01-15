@@ -51,11 +51,11 @@ export default function Clients({ token, business, role }) {
                     <p className="text-sm text-gray-600">Manage client profiles and their active services.</p>
                 </div>
                 <button
-                    className="primary"
+                    className="primary px-4! py-2! text-sm!"
                     onClick={() => setShowModal(true)}
                     type="button"
                 >
-                    <FaPlus className="h-4 w-4 inline-flex mb-1" /> Add Client
+                    Add Client
                 </button>
             </div>
 

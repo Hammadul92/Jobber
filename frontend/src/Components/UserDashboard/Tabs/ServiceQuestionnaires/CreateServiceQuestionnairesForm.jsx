@@ -6,6 +6,7 @@ import {
 } from '../../../../store';
 import SubmitButton from '../../../ui/SubmitButton';
 import Select from '../../../ui/Select';
+import { CgClose } from 'react-icons/cg'
 
 export default function CreateServiceQuestionnairesForm({ token, showModal, setShowModal, setAlert }) {
     const [serviceName, setServiceName] = useState('');
@@ -96,20 +97,20 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
     if (!showModal) return null;
 
     return (
-        <div className="fixed inset-0 z-50 h-screen flex items-center justify-center bg-black/50 px-3">
+        <div className="fixed inset-0 z-50 h-screen flex items-center justify-center bg-black/50 px-3" onClick={() => setShowModal(false)}>
             <div className="w-full max-w-4xl rounded-2xl bg-white shadow-xl">
-                <div className="flex items-start justify-between bg-secondary rounded-t-2xl border-b border-gray-200 px-6 py-4">
+                <div className="flex items-start justify-between bg-secondary rounded-t-2xl border-b border-gray-200 p-6">
                     <div>
+                        <h5 className="text-xl font-semibold font-heading text-white">Create Service Questionnaire</h5>
                         <p className="text-xs font-medium uppercase tracking-[0.08em] text-gray-100">Questionnaire</p>
-                        <h5 className="text-xl font-semibold text-white">Create Service Questionnaire</h5>
                     </div>
                     <button
                         type="button"
-                        className="text-gray-100 font-bold transition hover:text-white"
+                        className="text-gray-200 transition hover:text-gray-400"
                         onClick={() => setShowModal(false)}
                         aria-label="Close"
                     >
-                        ✕
+                        <CgClose className="h-5 w-5" />
                     </button>
                 </div>
 

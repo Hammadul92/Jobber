@@ -82,7 +82,7 @@ export default function UserDashboard({ page, token, user }) {
     const renderTab = () => {
         switch (page) {
             case 'home':
-                return <DashboardHome token={token} role={user?.role} business={business} />;
+                return <DashboardHome token={token} user={user} business={business} />;
             case 'clients':
                 return <Clients token={token} business={business} role={user?.role} />;
             case 'client-services':

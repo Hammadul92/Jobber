@@ -37,7 +37,7 @@ function PricingPlans() {
     const [billing, setBilling] = useState('monthly')
 
     return (
-        <section id='pricingPlans' className='w-full min-h-screen px-32 py-28 bg-background'>
+        <section id='pricingPlans' className='w-full min-h-screen px-6 py-12 lg:px-32 lg:py-28 bg-background'>
             <div>
                 <h2 className='font-heading text-2xl text-secondary max-w-lg mx-auto text-center'>
                     Choose the plan that&apos;s right for you
@@ -51,7 +51,7 @@ function PricingPlans() {
                 <ToggleBilling value={billing} onChange={(v) => setBilling(v)} />
             </div>
 
-            <div className='mt-12 flex items-center justify-center -space-x-5'>
+            <div className='mt-12 flexflex-col lg:flex-row items-center justify-center space-y-10 lg:-space-x-5'>
                 {plans.map((p) => (
                     <PricingCard key={p.id} plan={p} billing={billing} />
                 ))}

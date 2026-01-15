@@ -11,11 +11,11 @@ const testimonial = {
 
 function Testimonials() {
     return (
-        <section className="w-full py-28 px-32">
+        <section className="w-full px-6 py-12 lg:py-28 lg:px-32">
             {/* Header Content */}
             <div>
-                <div className='flex items-end justify-between gap-5 mb-3'>
-                    <div className='pb-12'>
+                <div className='w-full flex flex-wrap lg:flex-nowrap items-end justify-between gap-5 mb6 lg:mb-3'>
+                    <div className='lg:pb-12'>
                         <h2 className='font-heading text-3xl max-w-3xl leading-14'>
                             HERE&apos;S WHAT OUR <span className='text-accent'>CUSTOMERS</span> HAVE TO SAY
                         </h2>
@@ -30,7 +30,7 @@ function Testimonials() {
                 <button className="secondary">Read Customer&apos; Stories</button>
             </div>
             {/* Testimonials Cards */}
-            <div className='grid grid-cols-2 gap-4 mt-8'>
+            <div className='grid md:grid-cols-2 gap-4 mt-8'>
                 <TestimonialCard
                     title={testimonial.title}
                     content={testimonial.content}
