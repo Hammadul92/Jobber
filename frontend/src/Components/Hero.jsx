@@ -17,13 +17,13 @@ function Hero() {
         <section className='relative bg-background overflow-hidden lg:min-h-screen md:h-[70vh] lg:h-screen w-full px-6 py-40 md:px-16 lg:px-32 md:py-24 flex flex-col items-center justify-center gap-3'>
 
             {/* Design Elements */}
-            <div className='absolute bottom-16 left-0'>
+            <div className='absolute md:bottom-10 lg:bottom-16 left-0'>
                 <img src={HorizontalRectangle} alt="Design Element" />
             </div>
             <div className='absolute top-20 right-0 md:w-24 lg:w-fit'>
                 <img src={VerticalRectangle} alt="Design Element" className='w-full' />
             </div>
-            <div className='absolute md:bottom-20 md:right-20 lg:bottom-28 lg:right-70'>
+            <div className='absolute md:bottom-18 md:right-16 lg:bottom-28 lg:right-70'>
                 <img src={Hexagon} alt="Design Element" width={125} />
             </div>
             <div className='absolute z-0 md:top-40 lg:bottom-0 md:-left-10 lg:-left-20 md:rotate-90 lg:-rotate-[6.5deg]'>
@@ -31,7 +31,7 @@ function Hero() {
             </div>
 
             {/* Happy Clients Bubble */}
-            <div className='z-1 md:mb-14 lg:mb-6 flex items-center gap-2 bg-accent/10 rounded-full px-5 py-2.5 border border-accent'>
+            <div className='z-1 md:mb-10 lg:mb-6 flex items-center gap-2 bg-accent/10 rounded-full px-5 py-2.5 border border-accent'>
                 <div className=' flex items-center -space-x-3'>
                     <img
                         src={user} alt="User" width={40} height={40}
@@ -74,7 +74,7 @@ function Hero() {
                     AND <span className='text-accent'>CLARITY</span>.
                 </h1>
                 {/* Subheading */}
-                <p className='text-center px-28 text-2xl section-intro mt-2'>
+                <p className='text-center lg:px-28 text-2xl section-intro mt-2'>
                     Empower your HR team with our all-in-one SaaS platform, designed to streamline your entire hiring process from attracting top talent to seamless onboarding.
                 </p>
             </div>

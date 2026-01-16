@@ -49,7 +49,6 @@
 .marquee-track {
   display: flex;
   align-items: center;
-  gap: 2.5rem;
   width: max-content;
   animation: marquee-scroll 18s linear infinite;
 }

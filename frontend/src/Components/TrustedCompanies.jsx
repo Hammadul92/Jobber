@@ -18,7 +18,7 @@ function TrustedCompanies() {
                 Trusted by Over <b>100+</b> Trusted  Partners
             </span>
             <div className='marquee-wrapper mt-6 lg:mt-3'>
-                <div className='marquee-track'>
+                <div className='marquee-track gap-10 md:gap-14 lg:gap-20'>
                     {marqueeCompanies.map((company, index) => (
                         <div key={`${company.name}-${index}`} className='flex items-center justify-center px-5 gap-2'>
                             <img src={company.logo} alt={company.name} className='h-8 object-contain' />
