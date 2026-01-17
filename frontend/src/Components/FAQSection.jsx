@@ -34,9 +34,9 @@ const FAQ_ITEMS = [
 
 function FAQSection() {
     return (
-        <section className='w-full min-h-screen px-32 py-28 bg-secondary'>
-            <div>
-                <h2 className='font-heading text-3xl font-bold text-white text-center leading-12'>
+        <section className='w-full lg:min-h-screen px-6 py-12 md:px-16 lg:px-32 md:py-28 bg-secondary'>
+            <div className='mb-10 md:mb-4 lg:mb-0' >
+                <h2 className='font-heading text-2xl lg:text-3xl font-bold text-white text-center leading-relaxed lg:leading-12'>
                     Frequently Asked <br /> <span className='text-accent'>Questions</span>
                 </h2>
                 <p className='font-intro text-lg mt-3 text-center text-white/90'>

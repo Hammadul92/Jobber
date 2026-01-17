@@ -31,11 +31,11 @@ export default function Footer() {
         <>
             <footer className="w-full px-6 py-12 md:px-16 lg:px-32 lg:py-18 bg-secondary text-white">
                 {/* Upper Row */}
-                <div className="flex flex-wrap items-start justify-between w-full gap-8 lg:gap-20">
+                <div className="flex flex-wrap lg:flex-nowrap items-start justify-between w-full gap-8 lg:gap-20">
                     {/* About Us Column */}
-                    <div className="lg:max-w-2xs">
+                    <div className="lg:w-2xs lg:max-w-2xs">
                         <h4 className="font-sans text-3xl font-semibold">About Us</h4>
-                        <p className="text-white/70  mt-2 md:mt-5 text-justify">
+                        <p className="text-white/70 mt-2 md:mt-5 text-justify">
                             We&apos;re a team of designers, engineers, and innovators building AI tools that empower
                             anyone to turn imagination into stunning visuals — faster, smarter, and effortlessly.
                         </p>

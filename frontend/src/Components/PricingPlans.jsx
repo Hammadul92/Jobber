@@ -51,7 +51,7 @@ function PricingPlans() {
                 <ToggleBilling value={billing} onChange={(v) => setBilling(v)} />
             </div>
 
-            <div className='mt-12 flexflex-col lg:flex-row items-center justify-center space-y-10 lg:-space-x-5'>
+            <div className='mt-12 flex flex-col lg:flex-row items-center justify-center space-y-10 lg:-space-x-5'>
                 {plans.map((p) => (
                     <PricingCard key={p.id} plan={p} billing={billing} />
                 ))}
