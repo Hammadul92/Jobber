@@ -5,31 +5,59 @@ import PricingCard from './ui/PricingCard'
 
 const plans = [
     {
-        id: 'free',
-        name: 'Free',
-        description: 'Everything you need to supercharge your productivity.',
-        monthly: 0,
-        yearly: 0,
-        features: ['20 design generations/month', 'Low-res downloads', 'Basic style presets', 'Limited customization options'],
-    },
-    {
-        id: 'pro',
-        name: 'Pro',
-        description: 'Unlock a new level of your personal productivity.',
-        monthly: 17,
-        yearly: 170,
+        id: 'basic',
+        name: 'Basic',
+        description: 'Start with the essentials for a lean team.',
+        monthly: 50,
+        yearly: 500,
         discountPct: 20,
-        features: ['Everything in Free', 'Enigma AI', 'Unlimited design generations', 'Custom Themes', 'High-resolution exports', 'Developer Tools'],
-        featured: true,
+        features: [
+            '1 user',
+            '20 clients',
+            'Core scheduling',
+            'Email support',
+            '20 design generations/month',
+            'Low-res downloads',
+            'Basic style presets',
+            'Limited customization options',
+        ],
     },
     {
         id: 'team',
         name: 'Team',
-        description: 'Everything you need to supercharge your productivity.',
-        monthly: 37,
-        yearly: 370,
+        description: 'Grow collaboration with more seats and clients.',
+        monthly: 70,
+        yearly: 700,
         discountPct: 20,
-        features: ['Everything in Free', 'Unlimited Shared Commands', 'Unlimited Shared Quicklinks', 'Priority support'],
+        features: [
+            '10 users',
+            '50 clients',
+            'Shared workflows',
+            'Priority support',
+            'Everything in Basic',
+            'Unlimited Shared Commands',
+            'Unlimited Shared Quicklinks',
+            'Core scheduling',
+        ],
+        featured: true,
+    },
+    {
+        id: 'business',
+        name: 'Business',
+        description: 'Scale with advanced capacity and support.',
+        monthly: 120,
+        yearly: 1200,
+        discountPct: 20,
+        features: [
+            '20 users',
+            '100 clients',
+            'Advanced analytics',
+            'Dedicated success manager',
+            'Everything in Team',
+            'Enigma AI',
+            'Unlimited design generations',
+            'High-resolution exports',
+        ],
     },
 ]
 
@@ -51,7 +79,7 @@ function PricingPlans() {
                 <ToggleBilling value={billing} onChange={(v) => setBilling(v)} />
             </div>
 
-            <div className='mt-12 flex flex-col lg:flex-row items-center justify-center space-y-10 lg:-space-x-5'>
+            <div className='mt-20 flex flex-col md:flex-row items-stretch justify-center md:-space-x-1 lg:-space-x-5 space-y-10 lg:space-y-0'>
                 {plans.map((p) => (
                     <PricingCard key={p.id} plan={p} billing={billing} />
                 ))}

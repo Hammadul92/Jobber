@@ -20,7 +20,7 @@ function Testimonials() {
                             HERE&apos;S WHAT OUR <span className='text-accent'>CUSTOMERS</span> HAVE TO SAY
                         </h2>
                     </div>
-                    <div className='flex md:items-center lg:items-end justify-start gap-4 max-w-sm md:mb-10'>
+                    <div className='flex md:items-center lg:items-end justify-start gap-4 max-w-sm mb-10'>
                         <img
                             src='/images/linesflower.svg'
                             alt="Customer testimonial"

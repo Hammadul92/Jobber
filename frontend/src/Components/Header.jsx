@@ -193,9 +193,6 @@ export default function Header() {
                     <div className='w-4/5 md:w-3/7 h-screen bg-white'>
                         <div className='p-8 inset-0 flex justify-between'>
                             <h3 className='font-heading text-2xl' >Menu</h3>
-                            <div onClick={() => setShowMenu(false)}>
-                                <FaTimes className="text-2xl" />
-                            </div>
                         </div>
                         <nav className='flex flex-col items-start justify-start font-medium'>
                             <Link to="/" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/')}>Home</Link>

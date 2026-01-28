@@ -6,7 +6,10 @@ import { IoIosArrowForward } from "react-icons/io";
 export default function PricingCard({ plan, billing }) {
     const price = billing === 'monthly' ? plan.monthly : plan.yearly
     return (
-        <div className={`rounded-2xl px-14 py-8 shadow-md relative ${plan.featured ? 'scale-105 border-4 border-accent z-10' : ''}`} style={{ backgroundColor: 'var(--color-card)', borderColor: plan.featured ? 'var(--color-accent)' : 'transparent' }}>
+        <div
+            className={`flex h-full flex-col rounded-2xl px-14 py-8 md:px-6 md:py-4 lg:px-14 lg:py-8 shadow-md relative ${plan.featured ? 'md:scale-108 lg:scale-107 border-4 border-accent z-10' : ''}`}
+            style={{ backgroundColor: 'var(--color-card)', borderColor: plan.featured ? 'var(--color-accent)' : 'transparent' }}
+        >
 
             <h3 className={`font-Intro mb-4 ${plan.featured ? 'text-accent text-3xl font-bold' : 'text-white text-xl'}`}>
                 {plan.name}
@@ -37,7 +40,7 @@ export default function PricingCard({ plan, billing }) {
                 </ul>
             </div>
 
-            <div className="mt-6 text-center">
+            <div className="mt-auto pt-2 text-center">
                 <button
                     className="cursor-pointer px-8 py-2.5 rounded-md bg-accent/20 border border-accent/50 text-white font-medium relative z-10 hover:scale-102 transition-all duration-200"
                     style={{ boxShadow: '0 0 58px 6px rgba(255,122,0,0.22)' }}
