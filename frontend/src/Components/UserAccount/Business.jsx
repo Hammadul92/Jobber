@@ -198,13 +198,12 @@ export default function Business({ token, setAlert }) {
                         <button
                             type="button"
                             key={label}
-                            className={`flex items-center gap-3 cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                                isActive
-                                    ? 'border-secondary bg-secondary text-white'
-                                    : isCompleted
-                                        ? 'border-green-200 bg-green-50 text-green-700'
-                                        : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-accent/70 hover:text-accent'
-                            }`}
+                            className={`flex items-center gap-3 cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold transition ${isActive
+                                ? 'border-secondary bg-secondary text-white'
+                                : isCompleted
+                                    ? 'border-green-200 bg-green-50 text-green-700'
+                                    : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-accent/70 hover:text-accent'
+                                }`}
                             onClick={() => {
                                 if (stepNum < step) {
                                     setStep(stepNum);
@@ -228,7 +227,10 @@ export default function Business({ token, setAlert }) {
                                 }
                             }}
                         >
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-gray-700 shadow">
+                            <span className={`hidden md:flex md:h-6 md:w-6 items-center justify-center 
+                                rounded-full md:bg-white text-xs font-bold md:text-secondary 
+                                shadow ${isActive ? 'text-white' : 'text-secondary'}`}
+                            >
                                 {stepNum}
                             </span>
                             <span>{label}</span>
@@ -427,11 +429,10 @@ export default function Business({ token, setAlert }) {
                                     <button
                                         key={service}
                                         type="button"
-                                        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                                            isSelected
-                                                ? 'border-accent bg-accent/10 text-accent'
-                                                : 'border-gray-200 bg-white text-gray-700 hover:border-accent/60 hover:text-accent'
-                                        }`}
+                                        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${isSelected
+                                            ? 'border-accent bg-accent/10 text-accent'
+                                            : 'border-gray-200 bg-white text-gray-700 hover:border-accent/60 hover:text-accent'
+                                            }`}
                                         onClick={() => toggleService(service)}
                                     >
                                         {service}

@@ -67,7 +67,7 @@ export default function UserAccount({ token, user }) {
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 <div className="lg:col-span-3">
-                    <div className="rounded-xl min-h-full border border-gray-200 bg-white shadow-sm">
+                    <div className="rounded-xl overflow-hidden flex items-center justify-between lg:flex-col lg:items-start min-h-full border border-gray-200 bg-white shadow-sm">
                         {menuItems
                             .filter((item) => item.is_visible)
                             .map((item) => {
@@ -76,12 +76,12 @@ export default function UserAccount({ token, user }) {
                                     <Link
                                         to={`/user-account/${item.key}`}
                                         key={item.key}
-                                        className={`flex items-center gap-3 p-4 transition first:rounded-t-xl  ${isActive
+                                        className={`flex items-center md:gap-3 p-4 md:w-1/4 lg:w-full transition ${isActive
                                             ? 'bg-accent text-white font-bold'
                                             : 'text-gray-800 hover:bg-secondary hover:text-white font-medium '
                                             }`}
                                     >
-                                        <item.Icon className="text-base w-5" />
+                                        <item.Icon className="hidden md:inline text-base w-5" />
                                         <span>{item.label}</span>
                                     </Link>
                                 );
