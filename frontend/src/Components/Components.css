@@ -302,3 +302,9 @@ textarea.form-control:focus {
     padding: 1rem;
     border-radius: 8px;
 }
+
+@media (max-width: 767px) {
+    nav[aria-label="breadcrumb"] {
+        display: none;
+    }
+}

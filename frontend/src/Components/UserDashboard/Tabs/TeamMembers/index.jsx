@@ -40,9 +40,9 @@ export default function TeamMembers({ token, business, role }) {
                 </ol>
             </nav>
 
-            <div className="flex items-start justify-between mt-8">
+            <div className="flex flex-wrap items-start justify-between gap-y-2 mt-16 md:mt-8">
                 <div>
-                    <h3 className="text-2xl font-heading font-semibold text-primary">Team Members</h3>
+                    <h3 className="text-xl md:text-2xl font-heading font-semibold text-primary">Team Members</h3>
                     <p className="text-sm text-gray-600">Manage your staff access, duties, and expertise.</p>
                 </div>
                 <button

@@ -31,8 +31,8 @@ export default function Payouts({ token, role, business }) {
                 </ol>
             </nav>
 
-            <div className="mb-5 mt-8">
-                <h3 className="text-2xl font-semibold font-heading text-gray-900">Payouts</h3>
+            <div className="mb-5 mt-16 md:mt-8">
+                <h3 className="text-xl md:text-2xl font-semibold font-heading text-gray-900">Payouts</h3>
                 <p className="text-sm text-gray-500">Track processed payouts and manage refunds.</p>
             </div>
 
