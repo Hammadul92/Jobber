@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFetchBusinessesQuery } from '../../store';
+import Topbar from './Topbar';
 
 import SideNav from './SideNav';
 import DashboardHome from './Tabs/Home/';
@@ -127,6 +128,9 @@ export default function UserDashboard({ page, token, user }) {
 
     return (
         <div className="flex min-h-screen bg-gray-50">
+            <div className='md:hidden'>
+                <Topbar role={user?.role} businessName={business?.name || 'Dashboard'} />
+            </div>
             <SideNav role={user?.role} userId={user?.id} />
             <main className="flex-1 px-4 py-6 md:px-8 lg:px-12 max-h-screen overflow-auto">{renderTab()}</main>
         </div>

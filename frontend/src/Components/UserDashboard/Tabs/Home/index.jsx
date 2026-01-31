@@ -79,11 +79,11 @@ export default function DashboardHome({ business, token, user }) {
                 </ol>
             </nav>
 
-            <div className="mb-6 mt-8 ">
+            <div className="mb-6 mt-16 md:mt-8 ">
                 <div>
-                    <h3 className="text-lg font-semibold font-heading text-accent">
+                    <h3 className="text-sm md:text-base lg:text-lg font-semibold font-heading text-accent">
                         Welcome back! <br />
-                        <span className='text-4xl text-secondary'> {user?.name}</span>
+                        <span className='text-2xl md:text-3xl lg:text-4xl text-secondary'> {user?.name}</span>
                     </h3>
                     <p className="mt-2 max-w-2xl text-sm text-gray-600">
                         Quick overview of your workspace. Use the shortcuts to jump into billing, quotes, jobs, and

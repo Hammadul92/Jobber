@@ -45,9 +45,9 @@ export default function Clients({ token, business, role }) {
                 </ol>
             </nav>
 
-            <div className="mt-8 mb-7 flex flex-wrap items-start justify-between">
+            <div className="mt-16 md:mt-8 mb-7 flex flex-wrap items-start justify-between gap-y-2">
                 <div>
-                    <h3 className="text-2xl font-heading font-semibold text-primary">Clients</h3>
+                    <h3 className="text-xl md:text-2xl font-heading font-semibold text-primary">Clients</h3>
                     <p className="text-sm text-gray-600">Manage client profiles and their active services.</p>
                 </div>
                 <button

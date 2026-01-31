@@ -32,10 +32,10 @@ export default function Questionnaires({ token, business, role }) {
                 </ol>
             </nav>
 
-            <div className="mt-8">
-                <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="mt-16 md:mt-8">
+                <div className="flex flex-wrap items-start justify-between gap-y-2">
                     <div>
-                        <h3 className="text-2xl font-heading font-semibold text-primary">Service Questionnaires</h3>
+                        <h3 className="text-xl md:text-2xl font-heading font-semibold text-primary">Service Questionnaires</h3>
                         <p className="text-sm text-gray-600">
                             Create question sets for each service so clients can provide details when booking.
                         </p>

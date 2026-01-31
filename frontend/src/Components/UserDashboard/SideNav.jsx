@@ -71,7 +71,7 @@ export default function SideNav({ role }) {
 
     return (
         <nav
-            className={`flex h-screen flex-col gap-5 border-r border-accent/10 bg-secondary px-3 py-4 text-white transition-all duration-200 shrink-0 ${
+            className={`hidden md:flex h-screen flex-col gap-5 border-r border-accent/10 bg-secondary px-3 py-4 text-white transition-all duration-200 shrink-0 ${
                 collapsed ? 'w-16 min-w-16' : 'w-64 min-w-[16rem]'
             }`}
         >

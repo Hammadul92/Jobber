@@ -33,9 +33,9 @@ export default function Quotes({ token, role, business }) {
                 </ol>
             </nav>
 
-            <div className="flex items-start justify-between mt-8 mb-5">
+            <div className="flex flex-wrap items-start justify-between mt-16 md:mt-8 mb-5 gap-y-2">
                 <div>
-                    <h3 className="text-2xl font-heading font-semibold text-primary">Quotes</h3>
+                    <h3 className="text-xl md:text-2xl font-heading font-semibold text-primary">Quotes</h3>
                     <p className="text-sm text-gray-600">Manage your staff access, duties, and expertise.</p>
                 </div>
                 <button

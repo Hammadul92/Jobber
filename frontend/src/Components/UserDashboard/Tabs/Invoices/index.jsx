@@ -33,9 +33,9 @@ export default function Invoices({ token, role, business }) {
                 </ol>
             </nav>
 
-            <div className="mb-5 mt-8 flex flex-wrap items-center justify-between gap-3">
+            <div className="mb-5 mt-16 md:mt-8 flex flex-wrap items-center justify-between gap-y-2">
                 <div>
-                    <h3 className="text-2xl font-heading font-semibold text-gray-900">Invoices</h3>
+                    <h3 className="text-xl md:text-2xl font-heading font-semibold text-gray-900">Invoices</h3>
                     <p className="text-sm text-gray-500">Manage billing, due dates, and payments.</p>
                 </div>
                 {role === 'MANAGER' && (
