@@ -1,21 +1,27 @@
+version: "3.9"
+
 services:
+  db:
+    image: postgres:13-alpine
+    restart: always
+    volumes:
+      - prod-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+
   app:
     build:
       context: .
       dockerfile: Dockerfile.prod
     restart: always
-    expose:
-      - "8000"
     env_file:
       - .env
     depends_on:
-      db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+      - db
+    expose:
+      - "8000"
 
   frontend:
     build:
@@ -25,5 +31,8 @@ services:
     ports:
       - "80:80"
     depends_on:
-      app:
-        condition: service_healthy
+      - app
+      - db
+
+volumes:
+  prod-db-data:
