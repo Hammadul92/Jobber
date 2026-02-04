@@ -1,4 +1,3 @@
-# docker-compose.prod.yml
 services:
   # -------------------------------
   # Django backend
@@ -29,15 +28,15 @@ services:
     restart: always
 
   # -------------------------------
-  # React frontend + Nginx (served from frontend container)
+  # React frontend served via Nginx
   # -------------------------------
   frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile.prod
+      context: ./frontend       # frontend folder is build context
+      dockerfile: Dockerfile.prod
     restart: always
     ports:
-      - "80:80"           # Serve frontend on port 80
+      - "80:80"
     depends_on:
       - app
 
