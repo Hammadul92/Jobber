@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run deploy script
+      - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.DROPLET_HOST }}
@@ -28,14 +28,18 @@ jobs:
             # Build & start containers
             docker compose -f docker-compose.prod.yml up -d --build
 
-            # Run migrations
-            docker compose -f docker-compose.prod.yml exec -T app python manage.py migrate --noinput
+            # Run migrations with DJANGO_SETTINGS_MODULE
+            docker compose -f docker-compose.prod.yml exec -T app \
+                env DJANGO_SETTINGS_MODULE=app.settings python manage.py migrate --noinput
 
             # Create superuser if none exists
-            SUPERUSER_EXISTS=$(docker compose -f docker-compose.prod.yml exec -T app python -c "from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).exists())")
+            SUPERUSER_EXISTS=$(docker compose -f docker-compose.prod.yml exec -T app \
+                env DJANGO_SETTINGS_MODULE=app.settings python -c "from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).exists())")
+
             if [ "$SUPERUSER_EXISTS" = "False" ]; then
-                docker compose -f docker-compose.prod.yml exec -T app python manage.py createsuperuser --noinput --username admin --email admin@example.com || true
+                docker compose -f docker-compose.prod.yml exec -T app \
+                    env DJANGO_SETTINGS_MODULE=app.settings python manage.py createsuperuser --noinput --username admin --email admin@example.com || true
             fi
 
-            # Restart Nginx to apply new frontend
-            docker compose -f docker-compose.prod.yml restart nginx
+            # Restart frontend container to reload Nginx with new build
+            docker compose -f docker-compose.prod.yml restart frontend

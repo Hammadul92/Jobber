@@ -1,16 +1,25 @@
 version: "3.9"
 
+volumes:
+  prod-db-data:
+
 services:
+  # -------------------------------
+  # PostgreSQL database
+  # -------------------------------
   db:
     image: postgres:13-alpine
     restart: always
-    volumes:
-      - prod-db-data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - prod-db-data:/var/lib/postgresql/data
 
+  # -------------------------------
+  # Django backend
+  # -------------------------------
   app:
     build:
       context: .
@@ -18,21 +27,20 @@ services:
     restart: always
     env_file:
       - .env
-    depends_on:
-      - db
     expose:
       - "8000"
-
-  frontend:
-    build:
-      context: frontend
-      dockerfile: Dockerfile.prod
-    restart: always
-    ports:
-      - "80:80"
     depends_on:
-      - app
       - db
 
-volumes:
-  prod-db-data:
+  # -------------------------------
+  # React frontend (built and served via Nginx)
+  # -------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    restart: always
+    depends_on:
+      - app
+    ports:
+      - "80:80"  # expose frontend on port 80
