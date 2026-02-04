@@ -33,8 +33,8 @@ services:
   # -------------------------------
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: frontend/Dockerfile.prod
     restart: always
     ports:
       - "80:80"           # Serve frontend on port 80
