@@ -12,11 +12,6 @@ services:
       - .env
     depends_on:
       - db
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
-      interval: 10s
-      retries: 5
-      timeout: 5s
 
   db:
     image: postgres:13-alpine
@@ -30,8 +25,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
+      context: .                  # repo root so nginx.conf is visible
+      dockerfile: frontend/Dockerfile.prod
     restart: always
     depends_on:
       - app
