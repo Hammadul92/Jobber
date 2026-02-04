@@ -1,6 +1,7 @@
 from django.core.mail import send_mail
 from django.conf import settings
 
+
 def send_invoice_email(invoice):
     """Send invoice notification email to client with portal link."""
 

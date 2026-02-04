@@ -1,6 +1,7 @@
 """
 Database models.
 """
+
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -19,7 +20,7 @@ ROLE_CHOICES = [
     ("MANAGER", "Manager"),
     ("EMPLOYEE", "Employee"),
     ("CLIENT", "Client"),
-    ("USER", "User")
+    ("USER", "User"),
 ]
 
 PAYMENT_METHOD_CHOICES = [
@@ -60,7 +61,7 @@ QUOTE_STATUS_CHOICES = [
     ("DRAFT", "Draft"),
     ("SENT", "Sent"),
     ("SIGNED", "Signed"),
-    ("DECLINED", "Declined")
+    ("DECLINED", "Declined"),
 ]
 
 JOB_PHOTO_TYPE_CHOICES = [
@@ -68,10 +69,7 @@ JOB_PHOTO_TYPE_CHOICES = [
     ("AFTER", "After"),
 ]
 
-ACCOUNT_HOLDER_CHOICES = [
-    ("individual", "Individual"),
-    ("company", "Company")
-]
+ACCOUNT_HOLDER_CHOICES = [("individual", "Individual"), ("company", "Company")]
 
 INVOICE_STATUS_CHOICES = [
     ("DRAFT", "Draft"),
@@ -93,7 +91,7 @@ class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         """Create, save and return a new user."""
         if not email:
-            raise ValueError('User must have an email address.')
+            raise ValueError("User must have an email address.")
         user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -112,20 +110,21 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     """User in the system."""
+
     name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)
     phone = models.CharField(max_length=20)
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
-        default="USER"
+        default="USER",
     )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = "email"
 
 
 class SoftDeletableModel(models.Model):
@@ -135,7 +134,7 @@ class SoftDeletableModel(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name="deleted_%(class)s_records"
+        related_name="deleted_%(class)s_records",
     )
     deleted_at = models.DateTimeField(null=True, blank=True)
 
@@ -208,7 +207,7 @@ class Business(SoftDeletableModel):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="owned_businesses",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     name = models.CharField(max_length=50)
     slug = models.CharField(max_length=50)
@@ -231,7 +230,7 @@ class Business(SoftDeletableModel):
 
     services_offered = TaggableManager(
         blank=True,
-        help_text="Add services offered by this business (comma-separated tags).",
+        help_text=("Add services offered by this business (comma-separated tags)."),
     )
 
     timezone = models.CharField(max_length=50, default="America/Edmonton")
@@ -265,7 +264,7 @@ class Client(SoftDeletableModel):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('business', 'user')
+        unique_together = ("business", "user")
 
     def __str__(self):
         return f"{self.user.name} ({self.business.name})"
@@ -293,12 +292,14 @@ class BankingInformation(SoftDeletableModel):
     payment_method_type = models.CharField(
         max_length=20,
         choices=PAYMENT_METHOD_CHOICES,
-        default="CARD"
+        default="CARD",
     )
 
     bank_name = models.CharField(max_length=100, blank=True, null=True)
     account_holder_name = models.CharField(
-        max_length=100, blank=True, null=True
+        max_length=100,
+        blank=True,
+        null=True,
     )
     account_holder_type = models.CharField(
         max_length=20,
@@ -309,7 +310,9 @@ class BankingInformation(SoftDeletableModel):
     country = models.CharField(max_length=2, blank=True, null=True)
     currency = models.CharField(max_length=10, blank=True, null=True)
     account_number_last4 = models.CharField(
-        max_length=4, blank=True, null=True
+        max_length=4,
+        blank=True,
+        null=True,
     )
 
     auto_payments = models.BooleanField(default=False)
@@ -319,17 +322,21 @@ class BankingInformation(SoftDeletableModel):
     card_exp_year = models.IntegerField(blank=True, null=True)
 
     stripe_customer_id = models.CharField(
-        max_length=255, blank=True, null=True
+        max_length=255,
+        blank=True,
+        null=True,
     )
     stripe_payment_method_id = models.CharField(
-        max_length=255, blank=True, null=True
+        max_length=255,
+        blank=True,
+        null=True,
     )
 
     stripe_connected_account_id = models.CharField(
         max_length=255,
         blank=True,
         null=True,
-        help_text="The Stripe connected account this bank account belongs to."
+        help_text="The Stripe connected account this bank account belongs to.",
     )
 
     is_active = models.BooleanField(default=True)
@@ -342,18 +349,13 @@ class BankingInformation(SoftDeletableModel):
                 "Banking Info must be linked to either a Business or a Client."
             )
         if self.business and self.client:
-            raise ValueError(
-                "Banking Info cannot belong to both Business and Client."
-            )
+            raise ValueError("Banking Info cannot belong to both Business and Client.")
 
     def __str__(self):
         owner = self.business.name if self.business else self.client.user.name
         if self.payment_method_type == "BANK_ACCOUNT":
             return f"Bank ••••{self.account_number_last4 or '----'} ({owner})"
-        return (
-            f"{self.card_brand or 'Card'} ••••"
-            f"{self.card_last4 or '----'} ({owner})"
-        )
+        return f"{self.card_brand or 'Card'} ••••{self.card_last4 or '----'} ({owner})"
 
 
 class ServiceQuestionnaire(SoftDeletableModel):
@@ -361,25 +363,25 @@ class ServiceQuestionnaire(SoftDeletableModel):
     all_objects = models.Manager()
 
     business = models.ForeignKey(
-        'Business',
-        related_name='service_questionnaires',
-        on_delete=models.CASCADE
+        "Business",
+        related_name="service_questionnaires",
+        on_delete=models.CASCADE,
     )
     service_name = models.CharField(
         max_length=100,
-        help_text="Name of the service this questionnaire is for"
+        help_text="Name of the service this questionnaire is for",
     )
     additional_questions_form = models.JSONField(
         blank=True,
         null=True,
-        help_text="Stores the dynamic questionnaire structure for the service"
+        help_text=("Stores the dynamic questionnaire structure for the service"),
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['business', 'service_name']
+        ordering = ["business", "service_name"]
 
     def __str__(self):
         return f"{self.service_name} Questionnaire ({self.business.name})"
@@ -387,12 +389,14 @@ class ServiceQuestionnaire(SoftDeletableModel):
     def clean(self):
         offered_services = self.business.services_offered.names()
         if self.service_name not in offered_services:
-            raise ValidationError({
-                'service_name': (
-                    f"Service must be one of the business's offered services: "
-                    f"{offered_services}"
-                )
-            })
+            raise ValidationError(
+                {
+                    "service_name": (
+                        "Service must be one of the business's offered services: "
+                        f"{offered_services}"
+                    )
+                }
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -428,7 +432,7 @@ class Service(SoftDeletableModel):
     currency = models.CharField(
         max_length=3,
         choices=CURRENCY_CHOICES,
-        default="CAD"
+        default="CAD",
     )
 
     billing_cycle = models.CharField(
@@ -456,9 +460,8 @@ class Service(SoftDeletableModel):
         blank=True,
         null=True,
         help_text=(
-            "Stores client responses for this service's "
-            "questionnaire in JSON format"
-        )
+            "Stores client responses for this service's questionnaire in JSON format"
+        ),
     )
 
     auto_generate_quote = models.BooleanField(default=False)
@@ -468,9 +471,7 @@ class Service(SoftDeletableModel):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return (
-            f"{self.service_name} for {self.client.user.name}"
-        )
+        return f"{self.service_name} for {self.client.user.name}"
 
 
 class Job(SoftDeletableModel):
@@ -524,7 +525,7 @@ class JobPhoto(SoftDeletableModel):
     photo = models.ImageField(upload_to="job_photos/")
     photo_type = models.CharField(
         max_length=10,
-        choices=JOB_PHOTO_TYPE_CHOICES
+        choices=JOB_PHOTO_TYPE_CHOICES,
     )
 
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -566,9 +567,7 @@ class Quote(SoftDeletableModel):
     all_objects = models.Manager()
 
     service = models.ForeignKey(
-        "Service",
-        on_delete=models.CASCADE,
-        related_name="service_quotes"
+        "Service", on_delete=models.CASCADE, related_name="service_quotes"
     )
     quote_number = models.CharField(max_length=20, unique=True, editable=False)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -577,14 +576,10 @@ class Quote(SoftDeletableModel):
     status = models.CharField(
         max_length=20,
         choices=QUOTE_STATUS_CHOICES,
-        default="DRAFT"
+        default="DRAFT",
     )
     signed_at = models.DateTimeField(null=True, blank=True)
-    signature = models.ImageField(
-        upload_to="signatures/",
-        null=True,
-        blank=True
-    )
+    signature = models.ImageField(upload_to="signatures/", null=True, blank=True)
 
     terms_conditions = models.TextField()
     notes = models.TextField(blank=True, null=True)
@@ -599,23 +594,22 @@ class Quote(SoftDeletableModel):
     def clean(self):
         """Ensure only one active (non-declined) quote exists per service."""
         if self.service_id:
-            existing_quotes = Quote.objects.filter(
-                service=self.service,
-                is_active=True
-            ).exclude(
-                id=self.id
-            ).exclude(
-                status="DECLINED"
+            existing_quotes = (
+                Quote.objects.filter(service=self.service, is_active=True)
+                .exclude(id=self.id)
+                .exclude(status="DECLINED")
             )
 
             if existing_quotes.exists():
-                raise ValidationError({
-                    "service": (
-                        "A quote already exists for this service. "
-                        "You cannot create another unless the existing "
-                        "one is declined or expired."
-                    )
-                })
+                raise ValidationError(
+                    {
+                        "service": (
+                            "A quote already exists for this service. "
+                            "You cannot create another unless the existing "
+                            "one is declined or expired."
+                        )
+                    }
+                )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -630,8 +624,11 @@ class Quote(SoftDeletableModel):
         year = timezone.now().year
         prefix = f"Q-{year}-"
 
-        last_quote = Quote.objects.filter(quote_number__startswith=prefix) \
-            .order_by("quote_number").last()
+        last_quote = (
+            Quote.objects.filter(quote_number__startswith=prefix)
+            .order_by("quote_number")
+            .last()
+        )
 
         if last_quote:
             last_number = int(last_quote.quote_number.split("-")[-1])
@@ -665,27 +662,29 @@ class Invoice(SoftDeletableModel):
     )
 
     invoice_number = models.CharField(
-        max_length=20, unique=True, editable=False
+        max_length=20,
+        unique=True,
+        editable=False,
     )
     due_date = models.DateField()
     status = models.CharField(
         max_length=20,
         choices=INVOICE_STATUS_CHOICES,
-        default="DRAFT"
+        default="DRAFT",
     )
 
     currency = models.CharField(
         max_length=3,
         choices=CURRENCY_CHOICES,
-        default="CAD"
+        default="CAD",
     )
 
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    tax_rate = models.DecimalField(
-        max_digits=4, default=0, decimal_places=2
-    )
+    tax_rate = models.DecimalField(max_digits=4, default=0, decimal_places=2)
     tax_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0
+        max_digits=10,
+        decimal_places=2,
+        default=0,
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     notes = models.TextField(blank=True, null=True)
@@ -707,9 +706,11 @@ class Invoice(SoftDeletableModel):
     def generate_invoice_number(self):
         year = timezone.now().year
         prefix = f"INV-{year}-"
-        last_invoice = Invoice.objects.filter(
-            invoice_number__startswith=prefix
-        ).order_by("invoice_number").last()
+        last_invoice = (
+            Invoice.objects.filter(invoice_number__startswith=prefix)
+            .order_by("invoice_number")
+            .last()
+        )
         new_number = 1
         if last_invoice:
             try:
@@ -739,30 +740,37 @@ class Payout(SoftDeletableModel):
     currency = models.CharField(
         max_length=3,
         choices=CURRENCY_CHOICES,
-        default="CAD"
+        default="CAD",
     )
 
     status = models.CharField(
         max_length=20,
         choices=PAYOUT_STATUS_CHOICES,
-        default="PENDING"
+        default="PENDING",
     )
 
     # Stripe tracking fields
     stripe_payment_intent_id = models.CharField(
-        max_length=255, blank=True, null=True,
-        help_text="ID of the Stripe PaymentIntent used for the original charge."
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=("ID of the Stripe PaymentIntent used for the original charge."),
     )
     stripe_refund_id = models.CharField(
-        max_length=255, blank=True, null=True,
-        help_text="ID of the Stripe Refund if this payout was refunded."
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=("ID of the Stripe Refund if this payout was refunded."),
     )
 
     # Refund tracking
     is_refunded = models.BooleanField(default=False)
     refunded_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True,
-        help_text="Amount refunded from this payout (if partial refund)."
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Amount refunded from this payout (if partial refund).",
     )
     refund_reason = models.TextField(blank=True, null=True)
 

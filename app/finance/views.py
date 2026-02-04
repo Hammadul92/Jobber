@@ -1,5 +1,4 @@
 import stripe
-import time
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -19,6 +18,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class BankingInformationViewSet(viewsets.ModelViewSet):
     """View for manage banking information APIs."""
+
     serializer_class = serializers.BankingInformationSerializer
     queryset = BankingInformation.objects.filter(is_active=True)
     authentication_classes = [TokenAuthentication]
@@ -50,9 +50,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
         elif client:
             serializer.save(client=client)
         else:
-            raise ValidationError(
-                "User must be linked to a Business or Client."
-            )
+            raise ValidationError("User must be linked to a Business or Client.")
 
     def perform_destroy(self, instance):
         """Soft delete the record."""
@@ -81,7 +79,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
         banking_info, _ = BankingInformation.objects.get_or_create(
             business=business if business else None,
             client=client if client else None,
-            payment_method_type="CARD"
+            payment_method_type="CARD",
         )
 
         if not banking_info.stripe_customer_id:
@@ -92,9 +90,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
             banking_info.stripe_customer_id = customer.id
             banking_info.save(update_fields=["stripe_customer_id"])
 
-        intent = stripe.SetupIntent.create(
-            customer=banking_info.stripe_customer_id
-        )
+        intent = stripe.SetupIntent.create(customer=banking_info.stripe_customer_id)
 
         return Response(
             {"client_secret": intent.client_secret},
@@ -105,7 +101,8 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
     def save_payment_method(self, request):
         """
         Save the Stripe payment method to the user's banking information,
-        along with card metadata (brand, last4, exp_month, exp_year).
+        along with card metadata (brand, last4, exp_month,
+        exp_year).
         """
         user = request.user
         payment_method_id = request.data.get("payment_method_id")
@@ -128,7 +125,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
         banking_info = BankingInformation.objects.filter(
             business=business if business else None,
             client=client if client else None,
-            payment_method_type="CARD"
+            payment_method_type="CARD",
         ).first()
 
         if not banking_info:
@@ -202,8 +199,11 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                     business_profile={
                         "name": business.name,
                         "mcc": "7349",
-                        "url": business.website or f"https://contractorz.com/businesses/{business.slug}",
-                        "product_description": f"Payouts for {business.name}",
+                        "url": (
+                            business.website
+                            or f"https://contractorz.com/businesses/{business.slug}"
+                        ),
+                        "product_description": (f"Payouts for {business.name}"),
                     },
                     metadata={"business_id": str(business.id)},
                 )
@@ -219,12 +219,14 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                     banking_info.save(update_fields=["stripe_connected_account_id"])
 
             else:
-                connected_account = stripe.Account.retrieve(banking_info.stripe_connected_account_id)
+                connected_account = stripe.Account.retrieve(
+                    banking_info.stripe_connected_account_id
+                )
 
             account_link = stripe.AccountLink.create(
                 account=connected_account.id,
-                refresh_url=f"{settings.FRONTEND_URL}/reauth",
-                return_url=f"{settings.FRONTEND_URL}/user-account/banking",
+                refresh_url=(f"{settings.FRONTEND_URL}/reauth"),
+                return_url=(f"{settings.FRONTEND_URL}/user-account/banking"),
                 type="account_onboarding",
             )
 
@@ -237,12 +239,16 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
             )
 
         except stripe.StripeError as e:
-            return Response({"detail": f"Stripe error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": f"Stripe error: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @action(detail=False, methods=["post"], url_path="check-bank-account")
     def check_bank_account(self, request):
         """
-        Retrieve and update bank account info from Stripe for the connected Express account.
+        Retrieve and update bank account info from Stripe for the connected
+        Express account.
         """
         user = request.user
         business = Business.objects.filter(owner=user).first()
@@ -273,7 +279,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
             external_accounts = connected_account.external_accounts.data
             if not external_accounts:
                 return Response(
-                    {"detail": "No bank account found for this Stripe account."},
+                    {"detail": ("No bank account found for this Stripe account.")},
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
@@ -282,7 +288,9 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
             banking_info.account_number_last4 = bank_account.last4
             banking_info.currency = bank_account.currency
             banking_info.country = bank_account.country
-            banking_info.account_holder_name = bank_account.account_holder_name or business.name
+            banking_info.account_holder_name = (
+                bank_account.account_holder_name or business.name
+            )
             banking_info.account_holder_type = bank_account.account_holder_type
             banking_info.save()
 
@@ -294,11 +302,15 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
             )
 
         except stripe.StripeError as e:
-            return Response({"detail": f"Stripe error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": f"Stripe error: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
     """ViewSet for managing invoices."""
+
     serializer_class = serializers.InvoiceSerializer
     queryset = Invoice.objects.all()
     authentication_classes = [TokenAuthentication]
@@ -311,14 +323,18 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
         business = Business.objects.filter(owner=user).first()
         if business:
-            return self.queryset \
-                .filter(business=business, is_active=True).order_by("-id")
+            return self.queryset.filter(
+                business=business,
+                is_active=True,
+            ).order_by("-id")
 
         client = Client.objects.filter(user=user).first()
         if client:
-            return self.queryset.filter(client=client, is_active=True) \
-                .exclude(status="DRAFT") \
+            return (
+                self.queryset.filter(client=client, is_active=True)
+                .exclude(status="DRAFT")
                 .order_by("-id")
+            )
 
         return self.queryset.none()
 
@@ -373,7 +389,10 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         business = invoice.business
 
         if invoice.status == "PAID":
-            return Response({"detail": "Invoice already paid."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Invoice already paid."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         client_bank_info = client.banking_information.filter(is_active=True).first()
         if not client_bank_info or not client_bank_info.stripe_payment_method_id:
@@ -383,7 +402,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             )
 
         business_bank_info = business.banking_information.filter(
-            is_active=True, payment_method_type="BANK_ACCOUNT"
+            is_active=True,
+            payment_method_type="BANK_ACCOUNT",
         ).first()
 
         if not business_bank_info or not business_bank_info.stripe_connected_account_id:
@@ -402,8 +422,10 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 payment_method=client_bank_info.stripe_payment_method_id,
                 off_session=True,
                 confirm=True,
-                transfer_data={"destination": business_bank_info.stripe_connected_account_id},
-                description=f"Payment for Invoice #{invoice.invoice_number}",
+                transfer_data={
+                    "destination": (business_bank_info.stripe_connected_account_id)
+                },
+                description=(f"Payment for Invoice #{invoice.invoice_number}"),
                 metadata={"invoice_id": str(invoice.id)},
             )
 
@@ -421,7 +443,10 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 processed_at=timezone.now(),
             )
 
-            return Response({"detail": "Payment successful and payout recorded."}, status=200)
+            return Response(
+                {"detail": "Payment successful and payout recorded."},
+                status=200,
+            )
 
         except stripe.StripeError as e:
             return Response({"error": f"Stripe error: {str(e)}"}, status=400)
@@ -446,7 +471,10 @@ class PayoutViewSet(viewsets.ModelViewSet):
         business = Business.objects.filter(owner=user).first()
 
         if business:
-            return self.queryset.filter(business=business, is_active=True).order_by("-id")
+            return self.queryset.filter(
+                business=business,
+                is_active=True,
+            ).order_by("-id")
         return self.queryset.none()
 
     def perform_destroy(self, instance):
@@ -462,7 +490,10 @@ class PayoutViewSet(viewsets.ModelViewSet):
         """
         payout = self.get_object()
         amount = request.data.get("amount")
-        reason = request.data.get("reason", "Customer requested refund")
+        reason = request.data.get(
+            "reason",
+            "Customer requested refund",
+        )
 
         if not payout.stripe_payment_intent_id:
             return Response(
