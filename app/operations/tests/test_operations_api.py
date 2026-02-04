@@ -10,10 +10,10 @@ from rest_framework.test import APIClient
 
 from core.models import Business
 
-from business.serializers import BusinessSerializer
+from operations.serializers import BusinessSerializer
 
 
-BUSINESSES_URL = reverse('business:business-list')
+BUSINESSES_URL = reverse('operations:business-list')
 
 
 def create_business(owner, **params):

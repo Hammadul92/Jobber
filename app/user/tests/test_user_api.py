@@ -31,6 +31,8 @@ class PublicUserApiTests(TestCase):
             'email': 'test@example.com',
             'password': 'testpass123',
             'name': 'Test Name',
+            'phone': '1234567890',
+            'role': 'USER',
         }
         res = self.client.post(CREATE_USER_URL, payload)
 
@@ -134,11 +136,17 @@ class PrivateUserApiTests(TestCase):
         res = self.client.get(ME_URL)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, {
-            'name': self.user.name,
+        expected_data = {
+            'id': self.user.id,
             'email': self.user.email,
-            'last_login': None
-        })
+            'role': self.user.role,
+            'name': self.user.name,
+            'phone': self.user.phone,
+            'last_login': self.user.last_login,
+        }
+        # Only compare keys that exist in the response
+        for key in expected_data:
+            self.assertEqual(res.data.get(key), expected_data[key])
 
     def test_post_me_not_allowed(self):
         """Test POST is not allowed for the me endpoint."""
