@@ -1,11 +1,8 @@
 services:
-  # -------------------------------
-  # Django backend
-  # -------------------------------
   app:
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: Docker.prod
     restart: always
     expose:
       - "8000"
@@ -14,9 +11,6 @@ services:
     depends_on:
       - db
 
-  # -------------------------------
-  # Postgres database
-  # -------------------------------
   db:
     image: postgres:13-alpine
     volumes:
@@ -27,12 +21,9 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
     restart: always
 
-  # -------------------------------
-  # React frontend served via Nginx
-  # -------------------------------
   frontend:
     build:
-      context: ./frontend       # frontend folder is build context
+      context: ./frontend      # frontend folder as context
       dockerfile: Dockerfile.prod
     restart: always
     ports:
