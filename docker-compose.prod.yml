@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Docker.prod
+      dockerfile: Dockerfile.prod
     restart: always
     expose:
       - "8000"
