@@ -9,27 +9,21 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
-
-  db:
-    image: postgres:13-alpine
-    volumes:
-      - prod-db-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-    restart: always
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   frontend:
     build:
-      context: ./frontend      # frontend folder as context
+      context: frontend
       dockerfile: Dockerfile.prod
     restart: always
     ports:
       - "80:80"
     depends_on:
-      - app
-
-volumes:
-  prod-db-data:
+      app:
+        condition: service_healthy
