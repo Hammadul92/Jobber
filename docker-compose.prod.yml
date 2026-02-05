@@ -43,6 +43,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
     restart: always
+    volumes:
+      - static-files:/usr/share/nginx/html/static
     depends_on:
       - app
     ports:
