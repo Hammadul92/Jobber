@@ -32,5 +32,9 @@ jobs:
             docker compose -f docker-compose.prod.yml exec -T app \
                 env DJANGO_SETTINGS_MODULE=app.settings python manage.py migrate --noinput
 
+            # Collect static files
+            docker compose -f docker-compose.prod.yml exec -T app \
+                env DJANGO_SETTINGS_MODULE=app.settings python manage.py collectstatic --noinput
+
             # Restart frontend container to reload Nginx with new build
             docker compose -f docker-compose.prod.yml restart frontend
