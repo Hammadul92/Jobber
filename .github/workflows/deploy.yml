@@ -32,14 +32,5 @@ jobs:
             docker compose -f docker-compose.prod.yml exec -T app \
                 env DJANGO_SETTINGS_MODULE=app.settings python manage.py migrate --noinput
 
-            # Create superuser if none exists
-            SUPERUSER_EXISTS=$(docker compose -f docker-compose.prod.yml exec -T app \
-                env DJANGO_SETTINGS_MODULE=app.settings python -c "from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).exists())")
-
-            if [ "$SUPERUSER_EXISTS" = "False" ]; then
-                docker compose -f docker-compose.prod.yml exec -T app \
-                    env DJANGO_SETTINGS_MODULE=app.settings python manage.py createsuperuser --noinput --username admin --email admin@example.com || true
-            fi
-
             # Restart frontend container to reload Nginx with new build
             docker compose -f docker-compose.prod.yml restart frontend

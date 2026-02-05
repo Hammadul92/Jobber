@@ -1,7 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { getBaseUrl } from './baseConfig';
 
 const rawBaseQuery = fetchBaseQuery({
-    baseUrl: 'http://localhost:8000/api/finance',
+    baseUrl: `${getBaseUrl()}/finance`,
     prepareHeaders: (headers) => {
         const token = localStorage.getItem('token');
         if (token) {
