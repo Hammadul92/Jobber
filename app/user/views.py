@@ -115,11 +115,6 @@ class RequestPasswordResetView(generics.GenericAPIView):
             send_password_reset_email(user, token)
         except get_user_model().DoesNotExist:
             pass
-        except Exception as e:
-            return Response(
-                {"detail": f"Error sending password reset email. {e}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
 
         return Response(
             {

@@ -20,36 +20,45 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
+            set -e
+
             cd ~/Contractorz/Jobber
 
-            # Pull latest code
+            echo "Pulling latest code..."
             git pull
 
-            # Build & start containers only if needed
             NEED_BUILD=0
-            # Check for changes in backend Dockerfile or requirements
-            if git diff --name-only HEAD~1 HEAD | grep -E 'Dockerfile|requirements\\.txt'; then
+
+            # Backend changes that require rebuild
+            if git diff --name-only HEAD~1 HEAD | grep -E 'Dockerfile|requirements\.txt'; then
               NEED_BUILD=1
             fi
-            # Check for changes in frontend Dockerfile or package.json
-            if git diff --name-only HEAD~1 HEAD | grep -E 'frontend/Dockerfile|frontend/package\\.json'; then
+
+            # Frontend changes that require rebuild
+            if git diff --name-only HEAD~1 HEAD | grep -E 'frontend/Dockerfile|frontend/package\.json'; then
               NEED_BUILD=1
             fi
+
             if [ "$NEED_BUILD" -eq 1 ]; then
-              echo "Building images due to detected changes..."
+              echo "Build-related changes detected. Rebuilding images..."
               docker compose -f docker-compose.prod.yml up -d --build
             else
-              echo "No build-related changes detected. Starting containers without rebuild."
-              docker compose -f docker-compose.prod.yml up -d
+              echo "No build changes. Recreating containers to reload env vars..."
+              docker compose -f docker-compose.prod.yml up -d --force-recreate
             fi
 
-            # Run migrations with DJANGO_SETTINGS_MODULE
+            echo "Running migrations..."
             docker compose -f docker-compose.prod.yml exec -T app \
-                env DJANGO_SETTINGS_MODULE=app.settings python manage.py migrate --noinput
+              env DJANGO_SETTINGS_MODULE=app.settings python manage.py migrate --noinput
 
-            # Collect static files
+            echo "Collecting static files..."
             docker compose -f docker-compose.prod.yml exec -T app \
-                env DJANGO_SETTINGS_MODULE=app.settings python manage.py collectstatic --noinput
+              env DJANGO_SETTINGS_MODULE=app.settings python manage.py collectstatic --noinput
 
-            # Restart frontend container to reload Nginx with new build
+            echo "Restarting Django app to ensure fresh env..."
+            docker compose -f docker-compose.prod.yml restart app
+
+            echo "Restarting frontend..."
             docker compose -f docker-compose.prod.yml restart frontend
+
+            echo "Deployment completed successfully"
