@@ -4,6 +4,8 @@ Views for the user API.
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 from rest_framework import generics, authentication, permissions, status
@@ -36,6 +38,10 @@ class CreateUserView(generics.CreateAPIView):
 
     serializer_class = UserSerializer
 
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def perform_create(self, serializer):
         user = serializer.save()
         token = generate_email_token(user)
@@ -44,6 +50,10 @@ class CreateUserView(generics.CreateAPIView):
 
 class VerifyEmailView(APIView):
     """Verify user email via token."""
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def get(self, request):
         token = request.query_params.get("token")
@@ -78,6 +88,10 @@ class CreateTokenView(ObtainAuthToken):
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         token = Token.objects.get(key=response.data["token"])
@@ -103,6 +117,10 @@ class RequestPasswordResetView(generics.GenericAPIView):
     """Generate password reset email with token."""
 
     serializer_class = RequestPasswordResetSerializer
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -130,6 +148,10 @@ class ResetPasswordView(generics.GenericAPIView):
     """Reset password using token."""
 
     serializer_class = ResetPasswordSerializer
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)

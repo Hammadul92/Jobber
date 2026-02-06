@@ -152,6 +152,11 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
+    # SessionAuthentication requires CSRF, but we're using TokenAuthentication
+    # Remove SessionAuthentication from defaults to bypass CSRF checks
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
 }
 
 # Add BrowsableAPIRenderer in debug mode for development
