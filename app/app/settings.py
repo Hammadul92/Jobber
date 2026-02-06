@@ -151,8 +151,7 @@ FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
 CORS_ALLOWED_ORIGINS = [
     "http://138.197.151.74",
-    "http://localhost",
-    "http://127.0.0.1",
+    "http://localhost:5173",
 ]
 
 # Email settings
