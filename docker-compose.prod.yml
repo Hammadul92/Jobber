@@ -36,7 +36,10 @@ services:
     restart: always
     volumes:
       - static-files:/usr/share/nginx/html/static
+      - /etc/letsencrypt/live/getcontractorz.com/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
+      - /etc/letsencrypt/live/getcontractorz.com/privkey.pem:/etc/ssl/private/privkey.pem:ro
     depends_on:
       - app
     ports:
-      - "80:80"  # expose frontend on port 80
+      - "80:80"
+      - "443:443"
