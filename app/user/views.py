@@ -1,6 +1,7 @@
 """
 Views for the user API.
 """
+
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
@@ -19,7 +20,7 @@ from user.serializers import (
     AuthTokenSerializer,
     RequestPasswordResetSerializer,
     ResetPasswordSerializer,
-    CheckUserExistsSerializer
+    CheckUserExistsSerializer,
 )
 from user.utils import (
     generate_email_token,
@@ -32,6 +33,7 @@ from user.emails import send_registration_email, send_password_reset_email
 
 class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system."""
+
     serializer_class = UserSerializer
 
     def perform_create(self, serializer):
@@ -49,46 +51,45 @@ class VerifyEmailView(APIView):
         if not user_id:
             return Response(
                 {"detail": "Invalid or expired token."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
             user = get_user_model().objects.get(id=user_id)
             if user.is_active:
                 return Response(
-                    {"detail": "Email already verified."},
-                    status=status.HTTP_200_OK
+                    {"detail": "Email already verified."}, status=status.HTTP_200_OK
                 )
 
             user.is_active = True
             user.save(update_fields=["is_active"])
             return Response(
-                {"detail": "Email verified successfully."},
-                status=status.HTTP_200_OK
+                {"detail": "Email verified successfully."}, status=status.HTTP_200_OK
             )
         except get_user_model().DoesNotExist:
             return Response(
-                {"detail": "User not found."},
-                status=status.HTTP_404_NOT_FOUND
+                {"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
 
 class CreateTokenView(ObtainAuthToken):
     """Create a new auth token for user and update last_login."""
+
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
-        token = Token.objects.get(key=response.data['token'])
+        token = Token.objects.get(key=response.data["token"])
         user = token.user
         user.last_login = timezone.now()
-        user.save(update_fields=['last_login'])
+        user.save(update_fields=["last_login"])
         return response
 
 
 class ManageUserView(generics.RetrieveUpdateAPIView):
     """Manage the authenticated user."""
+
     serializer_class = UserSerializer
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -100,25 +101,30 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
 
 class RequestPasswordResetView(generics.GenericAPIView):
     """Generate password reset email with token."""
+
     serializer_class = RequestPasswordResetSerializer
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data['email']
+        email = serializer.validated_data["email"]
         try:
             user = get_user_model().objects.get(email=email)
             token = generate_password_reset_token(user)
             send_password_reset_email(user, token)
         except get_user_model().DoesNotExist:
             pass
+        except Exception as e:
+            return Response(
+                {"detail": f"Error sending password reset email. {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(
             {
                 "detail": (
-                    "If an account exists for this email, "
-                    "a reset link will be sent."
+                    "If an account exists for this email, a reset link will be sent."
                 )
             },
             status=status.HTTP_200_OK,
@@ -127,33 +133,34 @@ class RequestPasswordResetView(generics.GenericAPIView):
 
 class ResetPasswordView(generics.GenericAPIView):
     """Reset password using token."""
+
     serializer_class = ResetPasswordSerializer
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        token = serializer.validated_data['token']
-        new_password = serializer.validated_data['password']
+        token = serializer.validated_data["token"]
+        new_password = serializer.validated_data["password"]
 
         user = verify_password_reset_token(token)
         if not user:
             return Response(
                 {"detail": "Invalid or expired token."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         user.set_password(new_password)
         user.save()
 
         return Response(
-            {"detail": "Password reset successfully."},
-            status=status.HTTP_200_OK
+            {"detail": "Password reset successfully."}, status=status.HTTP_200_OK
         )
 
 
 class CheckUserExistsView(generics.GenericAPIView):
     """Check if a user exists by email, authenticated only."""
+
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = CheckUserExistsSerializer
@@ -164,7 +171,4 @@ class CheckUserExistsView(generics.GenericAPIView):
         email = serializer.validated_data["email"]
 
         user = get_user_model().objects.filter(email=email).first()
-        return Response(
-            {"id": user.id if user else None},
-            status=status.HTTP_200_OK
-        )
+        return Response({"id": user.id if user else None}, status=status.HTTP_200_OK)
