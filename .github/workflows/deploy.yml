@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Deploy to server via SSH
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -29,76 +27,50 @@ jobs:
             echo "Pulling latest code..."
             git pull
 
-            # -------------------------------
-            # Detect changed files
-            # -------------------------------
-            git fetch origin main
-            CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
 
             NEED_BUILD_BACKEND=0
             NEED_BUILD_FRONTEND=0
             NEED_RESTART_NGINX=0
 
-            # Backend changes
             if echo "$CHANGED_FILES" | grep -E 'Dockerfile|requirements\.txt'; then
-              NEED_BUILD_BACKEND=1
+                NEED_BUILD_BACKEND=1
             fi
 
-            # Frontend build changes
             if echo "$CHANGED_FILES" | grep -E 'frontend/(Dockerfile|package\.json)'; then
-              NEED_BUILD_FRONTEND=1
+                NEED_BUILD_FRONTEND=1
             fi
 
-            # Nginx config changes
             if echo "$CHANGED_FILES" | grep -E 'frontend/nginx\.conf'; then
-              NEED_RESTART_NGINX=1
+                NEED_RESTART_NGINX=1
             fi
 
-            # -------------------------------
-            # Backend deployment
-            # -------------------------------
             if [ "$NEED_BUILD_BACKEND" -eq 1 ]; then
-              echo "Backend changes detected. Rebuilding backend..."
-              docker compose -f docker-compose.prod.yml up -d --build app
+                docker compose -f docker-compose.prod.yml up -d --build app
             else
-              echo "No backend build changes. Recreating container to reload env..."
-              docker compose -f docker-compose.prod.yml up -d --force-recreate app
+                docker compose -f docker-compose.prod.yml up -d --force-recreate app
             fi
 
-            # -------------------------------
-            # Frontend deployment (includes Nginx)
-            # -------------------------------
             if [ "$NEED_BUILD_FRONTEND" -eq 1 ] || [ "$NEED_RESTART_NGINX" -eq 1 ]; then
-                echo "Frontend or Nginx changes detected. Rebuilding frontend..."
                 docker compose -f docker-compose.prod.yml up -d --build frontend
             else
-                echo "No frontend changes. Recreating container to reload env..."
                 docker compose -f docker-compose.prod.yml up -d --force-recreate frontend
             fi
 
-            # -------------------------------
-            # Test Nginx inside frontend container
-            # -------------------------------
-            echo "Testing Nginx config..."
+            echo "Testing Nginx configuration inside frontend..."
             docker compose -f docker-compose.prod.yml exec frontend nginx -t || { echo "Nginx config test failed"; exit 1; }
 
-            # -------------------------------
-            # Django migrations & static files
-            # -------------------------------
-            echo "Running migrations..."
+            echo "Running Django migrations..."
             docker compose -f docker-compose.prod.yml exec -T app \
-              env DJANGO_SETTINGS_MODULE=app.settings python manage.py migrate --noinput
+                env DJANGO_SETTINGS_MODULE=app.settings python manage.py migrate --noinput
 
             echo "Collecting static files..."
             docker compose -f docker-compose.prod.yml exec -T app \
-              env DJANGO_SETTINGS_MODULE=app.settings python manage.py collectstatic --noinput
+                env DJANGO_SETTINGS_MODULE=app.settings python manage.py collectstatic --noinput
 
             echo "Restarting backend..."
             docker compose -f docker-compose.prod.yml restart app
 
-            # -------------------------------
-            # Restart frontend to pick up SSL certs if renewed
-            # -------------------------------
             echo "Restarting frontend to ensure fresh Nginx and SSL..."
             docker compose -f docker-compose.prod.yml restart frontend
 
