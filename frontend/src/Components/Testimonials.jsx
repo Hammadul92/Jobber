@@ -2,7 +2,7 @@ import React from 'react'
 import TestimonialCard from './ui/TestimonialCard'
 
 const testimonial = {
-    title: "Amazing Tool! Saved me months of work.",
+    title: "Amazing Tool! Saved me months for sure.",
     content: "Contractorz transformed our hiring process. The platform is intuitive and has saved us countless hours.",
     userName: "Ali Ahsan",
     userRole: "Director, ABC.com",
