@@ -151,9 +151,11 @@ REST_FRAMEWORK = {
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
-CORS_ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "localhost,127.0.0.1").split(
-    ","
-)
+ALLOWED_HOSTS = [
+    "138.197.151.74",
+    "localhost",
+    "127.0.0.1",
+]
 
 # Email settings
 if DEBUG:
