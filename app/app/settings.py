@@ -145,7 +145,20 @@ AUTH_USER_MODEL = "core.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    # Don't require CSRF for API requests authenticated with tokens
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
 }
+
+# Add BrowsableAPIRenderer in debug mode for development
+if DEBUG:
+    REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"].append(
+        "rest_framework.renderers.BrowsableAPIRenderer"
+    )
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
@@ -168,6 +181,16 @@ CORS_ALLOWED_ORIGINS = [
 # In production with no explicit CORS origins, allow all
 if not DEBUG and not os.environ.get("CORS_ALLOWED_ORIGINS"):
     CORS_ALLOW_ALL_ORIGINS = True
+
+# CSRF Trusted Origins - required for POST requests through proxy
+# Parse from environment variable (comma-separated)
+CSRF_TRUSTED_ORIGINS_ENV = os.environ.get(
+    "CSRF_TRUSTED_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173"
+)
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in CSRF_TRUSTED_ORIGINS_ENV.split(",")
+]
 
 # Email settings
 if DEBUG:
