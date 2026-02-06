@@ -5,9 +5,6 @@ volumes:
   static-files:
 
 services:
-  # -------------------------------
-  # PostgreSQL database
-  # -------------------------------
   db:
     image: postgres:13-alpine
     restart: always
@@ -18,9 +15,6 @@ services:
     volumes:
       - prod-db-data:/var/lib/postgresql/data
 
-  # -------------------------------
-  # Django backend
-  # -------------------------------
   app:
     build:
       context: .
@@ -35,9 +29,6 @@ services:
     depends_on:
       - db
 
-  # -------------------------------
-  # React frontend (built and served via Nginx)
-  # -------------------------------
   frontend:
     build:
       context: ./frontend
