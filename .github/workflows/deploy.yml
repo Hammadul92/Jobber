@@ -27,27 +27,16 @@ jobs:
             echo "Pulling latest code..."
             git pull
 
-            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD || true)
 
             NEED_BUILD_BACKEND=0
-            NEED_BUILD_FRONTEND=0
 
             if echo "$CHANGED_FILES" | grep -E 'Dockerfile|requirements\.txt'; then
                 NEED_BUILD_BACKEND=1
             fi
 
-            if echo "$CHANGED_FILES" | grep -E 'frontend/(Dockerfile|package\.json|nginx\.conf)'; then
-                NEED_BUILD_FRONTEND=1
-            fi
-
-            if [ "$NEED_BUILD_FRONTEND" -eq 1 ]; then
-                echo "Frontend changed → Building"
-                docker compose -f docker-compose.prod.yml build frontend
-                docker compose -f docker-compose.prod.yml up -d frontend
-            else
-                echo "Frontend unchanged → Restart only"
-                docker compose -f docker-compose.prod.yml restart frontend
-            fi
+            docker compose -f docker-compose.prod.yml build frontend
+            docker compose -f docker-compose.prod.yml up -d frontend
 
             if [ "$NEED_BUILD_BACKEND" -eq 1 ]; then
                 echo "Backend changed → Building"
