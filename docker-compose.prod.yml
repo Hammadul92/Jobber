@@ -1,9 +1,3 @@
-version: "3.9"
-
-volumes:
-  prod-db-data:
-  static-files:
-
 services:
   db:
     image: postgres:13-alpine
@@ -16,7 +10,7 @@ services:
       - prod-db-data:/var/lib/postgresql/data
 
   app:
-    image: ghcr.io/hammadul92/jobber-backend:latest
+    image: ghcr.io/hammadul92/jobber-backend:${IMAGE_TAG}
     restart: always
     env_file:
       - .env
@@ -28,10 +22,10 @@ services:
       - db
 
   frontend:
-    image: ghcr.io/hammadul92/jobber-frontend:latest
+    image: ghcr.io/hammadul92/jobber-frontend:${IMAGE_TAG}
     restart: always
+    # Removed the static volume mount for React build
     volumes:
-      - static-files:/usr/share/nginx/html/static
       - /etc/letsencrypt/live/getcontractorz.com/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
       - /etc/letsencrypt/live/getcontractorz.com/privkey.pem:/etc/ssl/private/privkey.pem:ro
     depends_on:
@@ -39,3 +33,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+
+volumes:
+  prod-db-data:
+  static-files:
