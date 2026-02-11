@@ -24,12 +24,17 @@ jobs:
             echo "Pulling images..."
             docker compose -f docker-compose.prod.yml pull
 
+            echo "Building frontend..."
+            docker compose -f docker-compose.prod.yml build frontend
+
             echo "Starting containers..."
             docker compose -f docker-compose.prod.yml up -d
 
+            echo "Running migrations..."
             docker compose -f docker-compose.prod.yml exec -T app \
               python manage.py migrate --noinput
 
+            echo "Collecting static files..."
             docker compose -f docker-compose.prod.yml exec -T app \
               python manage.py collectstatic --noinput
 
