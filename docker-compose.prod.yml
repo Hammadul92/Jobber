@@ -16,9 +16,7 @@ services:
       - prod-db-data:/var/lib/postgresql/data
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
+    image: ghcr.io/hammadul92/jobber-backend:latest
     restart: always
     env_file:
       - .env
@@ -30,9 +28,7 @@ services:
       - db
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
+    image: ghcr.io/hammadul92/jobber-frontend:latest
     restart: always
     volumes:
       - static-files:/usr/share/nginx/html/static

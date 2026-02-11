@@ -1,18 +1,16 @@
 name: Deploy to Droplet
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Build & Push Docker Images"]
+    types:
+      - completed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -21,38 +19,18 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
             set -e
-
             cd ~/Contractorz/Jobber
 
-            echo "Pulling latest code..."
-            git pull
+            echo "Pulling images..."
+            docker compose -f docker-compose.prod.yml pull
 
-            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD || true)
-
-            NEED_BUILD_BACKEND=0
-
-            if echo "$CHANGED_FILES" | grep -E 'Dockerfile|requirements\.txt'; then
-                NEED_BUILD_BACKEND=1
-            fi
-
-            docker compose -f docker-compose.prod.yml build frontend
-            docker compose -f docker-compose.prod.yml up -d frontend
-
-            if [ "$NEED_BUILD_BACKEND" -eq 1 ]; then
-                echo "Backend changed → Building"
-                docker compose -f docker-compose.prod.yml build app
-                docker compose -f docker-compose.prod.yml up -d app
-            else
-                echo "Backend unchanged → Restart only"
-                docker compose -f docker-compose.prod.yml restart app
-            fi
-
-            docker compose -f docker-compose.prod.yml exec frontend nginx -t
+            echo "Starting containers..."
+            docker compose -f docker-compose.prod.yml up -d
 
             docker compose -f docker-compose.prod.yml exec -T app \
-                env DJANGO_SETTINGS_MODULE=app.settings python manage.py migrate --noinput
+              python manage.py migrate --noinput
 
             docker compose -f docker-compose.prod.yml exec -T app \
-                env DJANGO_SETTINGS_MODULE=app.settings python manage.py collectstatic --noinput
+              python manage.py collectstatic --noinput
 
-            echo "Deployment completed successfully"
+            echo "✅ Deployment completed"
