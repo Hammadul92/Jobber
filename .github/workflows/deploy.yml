@@ -21,11 +21,11 @@ jobs:
             set -e
             cd ~/Contractorz/Jobber
 
-            # Get the SHA of the build workflow run
+            # Get SHA of the build workflow run
             IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
             echo "Deploying image tag: $IMAGE_TAG"
 
-            # Pull backend and frontend images using SHA
+            # Pull backend & frontend images
             IMAGE_TAG=$IMAGE_TAG docker compose -f docker-compose.prod.yml pull
 
             # Recreate all containers

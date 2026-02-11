@@ -24,7 +24,6 @@ services:
   frontend:
     image: ghcr.io/hammadul92/jobber-frontend:${IMAGE_TAG}
     restart: always
-    # Removed the static volume mount for React build
     volumes:
       - /etc/letsencrypt/live/getcontractorz.com/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
       - /etc/letsencrypt/live/getcontractorz.com/privkey.pem:/etc/ssl/private/privkey.pem:ro
