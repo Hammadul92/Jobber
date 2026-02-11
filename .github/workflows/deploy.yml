@@ -21,21 +21,16 @@ jobs:
             set -e
             cd ~/Contractorz/Jobber
 
-            echo "Pulling images..."
+            echo "Pulling latest images..."
             docker compose -f docker-compose.prod.yml pull
 
-            echo "Building frontend..."
-            docker compose -f docker-compose.prod.yml build frontend
+            echo "Recreating containers..."
+            docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
 
-            echo "Starting containers..."
-            docker compose -f docker-compose.prod.yml up -d
-
-            echo "Running migrations..."
-            docker compose -f docker-compose.prod.yml exec -T app \
-              python manage.py migrate --noinput
+            echo "Running Django migrations..."
+            docker compose -f docker-compose.prod.yml exec -T app python manage.py migrate --noinput
 
             echo "Collecting static files..."
-            docker compose -f docker-compose.prod.yml exec -T app \
-              python manage.py collectstatic --noinput
+            docker compose -f docker-compose.prod.yml exec -T app python manage.py collectstatic --noinput
 
             echo "✅ Deployment completed"
