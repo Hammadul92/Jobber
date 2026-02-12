@@ -26,11 +26,16 @@ jobs:
             export IMAGE_TAG=${IMAGE_TAG}
             envsubst < docker-compose.prod.yml > docker-compose.prod.subst.yml
 
+
+            echo "Removing old images to force fresh pull..."
+            docker image rm -f ghcr.io/hammadul92/jobber-backend:${IMAGE_TAG} || true
+            docker image rm -f ghcr.io/hammadul92/jobber-frontend:${IMAGE_TAG} || true
+
             echo "Pulling latest images..."
             docker compose -f docker-compose.prod.subst.yml pull
 
             echo "Recreating containers..."
-            docker compose -f docker-compose.prod.subst.yml up -d --force-recreate --remove-orphans
+            docker compose -f docker-compose.prod.subst.yml up -d --pull always --force-recreate --remove-orphans
 
             echo "Running Django migrations..."
             docker compose -f docker-compose.prod.subst.yml exec -T app python manage.py migrate --noinput
