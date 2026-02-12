@@ -69,15 +69,15 @@ export default function ResetPassword() {
     };
 
     return (
-        <section className="min-h-screen w-full p-32 flex flex-col items-center justify-center">
+        <section className="min-h-screen w-full px-6 py-40 md:px-16 lg:px-32 md:py-24 flex flex-col items-center justify-center">
             <div className="text-center mb-6">
-                <h2 className="text-3xl sm:text-4xl font-heading font-bold text-secondary">Reset Your Password</h2>
+                <h2 className="text-3xl md:text-4xl font-heading font-bold text-secondary">Reset Your Password</h2>
                 <p className="text-gray-600 mt-2">Create a new password to secure your account.</p>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-2 w-full mx-auto">
+            <div className="grid gap-8 grid-cols-1 lg:grid-cols-2 w-full mx-auto">
                 {/* Left: Password Rules */}
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100">
+                <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
                     <h5 className="text-xl font-semibold text-secondary mb-4">Password Requirements</h5>
                     <ul className="space-y-3 text-base">
                         <li className={`flex items-center ${passwordRules.length ? 'text-green-600' : 'text-gray-500'}`}>
@@ -103,7 +103,7 @@ export default function ResetPassword() {
                 </div>
 
                 {/* Right: Reset Form */}
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100">
+                <div className="bg-white w-full rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {alert && (
                             <div

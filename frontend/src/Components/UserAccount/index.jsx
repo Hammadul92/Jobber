@@ -67,7 +67,7 @@ export default function UserAccount({ token, user }) {
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 <div className="lg:col-span-3">
-                    <div className="rounded-xl overflow-hidden flex items-center justify-between lg:flex-col lg:items-start min-h-full border border-gray-200 bg-white shadow-sm">
+                    <div className="rounded-xl overflow-hidden flex items-center justify-start lg:flex-col lg:items-start min-h-full border border-gray-200 bg-white shadow-sm">
                         {menuItems
                             .filter((item) => item.is_visible)
                             .map((item) => {

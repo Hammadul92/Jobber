@@ -88,7 +88,7 @@ export default function Register() {
     };
 
     return (
-        <section className="min-h-screen w-full p-32 flex flex-col items-center justify-center">
+        <section className="min-h-screen w-full px-6 py-40 md:px-16 lg:px-32 md:py-24 flex flex-col items-center justify-center">
             <div className="mx-auto">
                 <h2 className="text-3xl sm:text-4xl font-heading font-bold text-secondary text-center mb-3">
                     Create Your Account

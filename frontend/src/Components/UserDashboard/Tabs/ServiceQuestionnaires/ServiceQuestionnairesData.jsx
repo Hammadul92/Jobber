@@ -116,7 +116,7 @@ export default function ServiceQuestionnairesData({ token, setAlert }) {
 
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-3">
-                    <form onSubmit={confirmDelete} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
+                    <form onSubmit={confirmDelete} className="max-w-md rounded-2xl bg-white p-6 shadow-lg">
                         <div className="flex items-start justify-between">
                             <h5 className="text-lg font-semibold text-primary">Delete Service Questionnaire</h5>
                             <button

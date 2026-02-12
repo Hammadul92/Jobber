@@ -89,8 +89,11 @@ export default function CreateTeamMemberForm({ token, showModal, setShowModal, s
     return (
         <>
             {showModal && (
-                <div className="fixed min-h-screen inset-0 z-50 flex flex-col items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
-                    <div className="w-full max-w-2xl rounded-3xl bg-white shadow-lg">
+                <div className="fixed min-h-screen inset-0 z-30 flex flex-col items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
+                    <div
+                        className="max-w-2xl z-40 rounded-3xl bg-white shadow-lg"
+                        onClick={(event) => event.stopPropagation()}
+                    >
                         <div className="p-6 flex items-start bg-secondary text-white rounded-t-3xl justify-between gap-3">
                             <div>
                                 <h5 className="text-xl font-semibold font-heading leading-tight">Add New Member</h5>

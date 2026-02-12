@@ -46,9 +46,9 @@ export default function SignIn() {
     };
 
     return (
-        <section className="min-h-screen w-full p-32 flex flex-col items-center justify-center">
-            <div className="max-w-4xl mx-auto text-center">
-                <h2 className="text-3xl sm:text-4xl font-heading font-bold text-secondary mb-3">Sign In</h2>
+        <section className="min-h-screen w-full px-6 py-40 md:px-16 lg:px-32 md:py-24 flex flex-col items-center justify-center">
+            <div className="max-w-xl mx-auto text-center">
+                <h2 className="text-3xl md:text-4xl font-heading font-bold text-secondary mb-3">Sign In</h2>
                 <p className="text-gray-600">Access your workspace and keep your projects moving.</p>
             </div>
 
@@ -72,8 +72,8 @@ export default function SignIn() {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-10 w-7xl flex justify-center">
-                <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100">
+            <form onSubmit={handleSubmit} className="mt-10 md:w-2xl flex justify-center">
+                <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
                     {signinError && (
                         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-center text-sm font-medium">
                             {signinError?.data?.detail || 'Invalid credentials'}
