@@ -10,7 +10,7 @@ services:
       - prod-db-data:/var/lib/postgresql/data
 
   app:
-    image: ghcr.io/hammadul92/jobber-backend:latest
+    image: ghcr.io/hammadul92/jobber-backend:${IMAGE_TAG}
     restart: always
     env_file:
       - .env
@@ -22,7 +22,7 @@ services:
       - db
 
   frontend:
-    image: ghcr.io/hammadul92/jobber-frontend:latest
+    image: ghcr.io/hammadul92/jobber-frontend:${IMAGE_TAG}
     restart: always
     # Only mount SSL certs, do NOT overwrite React build
     volumes:
