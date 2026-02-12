@@ -21,20 +21,17 @@ jobs:
             set -e
             cd ~/Contractorz/Jobber
 
-            # Get SHA of the build workflow run
             IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
             echo "Deploying image tag: $IMAGE_TAG"
 
-            # Pull backend & frontend images
+            # Pull exact SHA-tagged images
             IMAGE_TAG=$IMAGE_TAG docker compose -f docker-compose.prod.yml pull
 
-            # Recreate all containers
+            # Recreate containers automatically
             IMAGE_TAG=$IMAGE_TAG docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
 
-            # Run Django migrations
+            # Django migrations & collectstatic
             IMAGE_TAG=$IMAGE_TAG docker compose -f docker-compose.prod.yml exec -T app python manage.py migrate --noinput
-
-            # Collect static files for Django
             IMAGE_TAG=$IMAGE_TAG docker compose -f docker-compose.prod.yml exec -T app python manage.py collectstatic --noinput
 
             echo "✅ Deployment completed"
