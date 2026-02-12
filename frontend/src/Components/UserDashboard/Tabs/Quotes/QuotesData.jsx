@@ -222,7 +222,7 @@ export default function QuotesData({ token, role, setAlert }) {
                     role="dialog"
                     aria-modal="true"
                 >
-                    <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+                    <div className="max-w-md rounded-2xl bg-white shadow-2xl">
                         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
                             <h5 className="text-base font-semibold text-gray-900">Delete Quote</h5>
                             <button

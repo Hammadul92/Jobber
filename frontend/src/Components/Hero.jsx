@@ -83,7 +83,6 @@ function Hero() {
             <div className='relative z-1 mt-2'>
                 <div className='absolute -top-6 -left-8 md:-top-6 lg:-top-3 md:-left-48 lg:-left-56'>
                     <img src={MessageBubble} alt="Description" className='w-36 md:w-auto' />
-                    <span className='absolute top-8 left-4 md:top-10.5 md:left-7 text-white text-sm md:text-base font-medium'>Find Your Plan</span>
                 </div>
                 <button onClick={() => { navigate('/contact-us') }} className='primary md:min-w-sm mt-12'>
                     Get Free Consultation <FaArrowRight className='inline-block ml-2' size={22} />

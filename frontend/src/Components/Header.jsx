@@ -15,6 +15,7 @@ import {
     FaUserFriends,
     FaBars,
 } from 'react-icons/fa';
+import { FiLogIn } from "react-icons/fi";
 import { FaBuildingColumns, FaClipboardCheck, FaFileInvoice, FaFileSignature, FaListCheck } from 'react-icons/fa6';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -115,13 +116,13 @@ export default function Header() {
     const managerMenu = (
         <>
             {renderLink('/dashboard/home', FaChartLine, 'Dashboard')}
+            {renderLink('/dashboard/team-members', FaUserFriends, 'Team Members')}
             {renderLink('/dashboard/clients', FaUsers, 'Clients')}
             {renderLink('/dashboard/service-questionnaires', FaListCheck, 'Questionnaires')}
             {renderLink('/dashboard/quotes', FaFileSignature, 'Quotes')}
             {renderLink('/dashboard/jobs', FaClipboardCheck, 'Jobs')}
-            {renderLink('/dashboard/invoices', FaFileInvoice, 'Invoices')}
             {renderLink('/dashboard/payouts', FaCreditCard, 'Payouts')}
-            {renderLink('/dashboard/team-members', FaUserFriends, 'Team Members')}
+            {renderLink('/dashboard/invoices', FaFileInvoice, 'Invoices')}
         </>
     );
 
@@ -174,6 +175,16 @@ export default function Header() {
         };
     }, [showDropdown]);
 
+    useEffect(() => {
+        if (showDropdown) {
+            document.body.classList.add('scroll-disabled');
+            return () => document.body.classList.remove('scroll-disabled');
+        }
+
+        document.body.classList.remove('scroll-disabled');
+        return undefined;
+    }, [showDropdown]);
+
     return (
         <header className='flex items-end md:items-center justify-between bg-background px-6 pt-4 md:px-16 lg:px-32 md:pt-8 w-full absolute top-0 left-0 z-10'>
 
@@ -183,7 +194,7 @@ export default function Header() {
                     className="text-secondary mt-3"
                     onClick={() => setShowMenu((open) => !open)}
                 >
-                    <FaBars className="text-2xl" />
+                    <FaBars className="text-xl" />
                 </button>
             </div>
 
@@ -215,7 +226,7 @@ export default function Header() {
             {/* Logo */}
             <div>
                 <Link to="/">
-                    <img src={contractorzLogo} alt="Logo" width={170} height={0} />
+                    <img src={contractorzLogo} alt="Logo" width={170} height={0} className='w-38 lg:w-44' />
                 </Link>
             </div>
 
@@ -245,7 +256,13 @@ export default function Header() {
                 ) : !token || !user ? (
                     <>
                         <Link
-                            className="primary"
+                            className="text-2xl md:text-xl md:hidden font-bold"
+                            to="/sign-in"
+                        >
+                            <FiLogIn className="mb-1" />
+                        </Link>
+                        <Link
+                            className="primary hidden md:inline text-sm font-mono px-3! py-1.5! lg:px-8 lg:py-3"
                             to="/sign-in"
                         >
                             Login
@@ -270,7 +287,7 @@ export default function Header() {
                         </button>
 
                         {showDropdown && (
-                            <div className="absolute z-50 right-4 lg:right-0 p-3 mt-3 min-w-[50vw] lg:w-64 rounded-lg bg-white shadow-lg">
+                            <div className="absolute z-50 right-4 lg:right-0 p-3 mt-3 min-w-[70vw] lg:min-w-[20vw] rounded-lg bg-white shadow-lg">
                                 <div>
                                     <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
                                         {renderLink('/user-account/profile', FaRegUserCircle, 'Profile')}
@@ -283,7 +300,7 @@ export default function Header() {
 
                                 {user.role && user.role !== 'USER' && (
                                     <div>
-                                        <h5 className="mt-2  font-semibold text-accent font-heading">
+                                        <h5 className="mt-2 font-semibold text-accent font-heading">
                                             {user.role === 'MANAGER'
                                                 ? business?.name
                                                 : user.role === 'CLIENT'

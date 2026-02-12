@@ -79,7 +79,10 @@ export default function CreateClientForm({ showModal, setShowModal, setAlert: se
         <>
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setShowModal(false)}>
-                    <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+                    <div 
+                    className="max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+                    onClick={(event) => event.stopPropagation()}
+                    >
                         <div className="p-6 flex items-start bg-secondary text-white rounded-t-lg justify-between gap-3">
                             <div>
                                 <h5 className="text-xl font-semibold font-heading leading-tight">Add Client Account</h5>
