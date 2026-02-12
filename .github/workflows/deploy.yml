@@ -21,17 +21,16 @@ jobs:
             set -e
             cd ~/Contractorz/Jobber
 
-            IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
-            echo "Deploying image tag: $IMAGE_TAG"
+            echo "Pulling latest images..."
+            docker compose -f docker-compose.prod.yml pull
 
-            # Pull exact SHA-tagged images
-            IMAGE_TAG=$IMAGE_TAG docker compose -f docker-compose.prod.yml pull
+            echo "Recreating containers..."
+            docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
 
-            # Recreate containers automatically
-            IMAGE_TAG=$IMAGE_TAG docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
+            echo "Running Django migrations..."
+            docker compose -f docker-compose.prod.yml exec -T app python manage.py migrate --noinput
 
-            # Django migrations & collectstatic
-            IMAGE_TAG=$IMAGE_TAG docker compose -f docker-compose.prod.yml exec -T app python manage.py migrate --noinput
-            IMAGE_TAG=$IMAGE_TAG docker compose -f docker-compose.prod.yml exec -T app python manage.py collectstatic --noinput
+            echo "Collecting static files..."
+            docker compose -f docker-compose.prod.yml exec -T app python manage.py collectstatic --noinput
 
             echo "✅ Deployment completed"

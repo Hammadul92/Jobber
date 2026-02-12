@@ -1,3 +1,8 @@
+version: "3.9"
+
+volumes:
+  prod-db-data:
+
 services:
   db:
     image: postgres:13-alpine
@@ -10,20 +15,19 @@ services:
       - prod-db-data:/var/lib/postgresql/data
 
   app:
-    image: ghcr.io/hammadul92/jobber-backend:${IMAGE_TAG}
+    image: ghcr.io/hammadul92/jobber-backend:latest
     restart: always
     env_file:
       - .env
     expose:
       - "8000"
-    volumes:
-      - static-files:/app/static
     depends_on:
       - db
 
   frontend:
-    image: ghcr.io/hammadul92/jobber-frontend:${IMAGE_TAG}
+    image: ghcr.io/hammadul92/jobber-frontend:latest
     restart: always
+    # Only mount SSL certs, no frontend volumes
     volumes:
       - /etc/letsencrypt/live/getcontractorz.com/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
       - /etc/letsencrypt/live/getcontractorz.com/privkey.pem:/etc/ssl/private/privkey.pem:ro
@@ -32,7 +36,3 @@ services:
     ports:
       - "80:80"
       - "443:443"
-
-volumes:
-  prod-db-data:
-  static-files:
