@@ -23,7 +23,7 @@ jobs:
             cd ~/Contractorz/Jobber
 
             echo "Injecting image tag..."
-            export IMAGE_TAG=${IMAGE_TAG}
+            export IMAGE_TAG="${IMAGE_TAG:-latest}"
             envsubst < docker-compose.prod.yml > docker-compose.prod.subst.yml
 
 
