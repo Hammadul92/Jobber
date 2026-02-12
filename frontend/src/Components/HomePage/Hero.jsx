@@ -1,4 +1,4 @@
-import '../App.css'
+import '../../App.css'
 import { FaArrowRight } from 'react-icons/fa6';
 import { FaStar } from "react-icons/fa";
 // Use public path for images in public directory

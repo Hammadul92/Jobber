@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import FAQAccordian from './ui/FAQAccordian'
+import FAQAccordian from '../ui/FAQAccordian'
 
 
 const FAQ_ITEMS = [

@@ -262,7 +262,7 @@ export default function Header() {
                             <FiLogIn className="mb-1" />
                         </Link>
                         <Link
-                            className="primary hidden md:inline text-sm font-mono px-3! py-1.5! lg:px-8 lg:py-3"
+                            className="primary hidden md:inline"
                             to="/sign-in"
                         >
                             Login
