@@ -1,5 +1,5 @@
 import React from 'react'
-import TestimonialCard from './ui/TestimonialCard'
+import TestimonialCard from '../ui/TestimonialCard'
 
 const testimonial = {
     title: "Amazing Tool! Saved me months for sure.",

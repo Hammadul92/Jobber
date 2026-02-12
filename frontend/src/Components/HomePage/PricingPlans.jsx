@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react'
-import ToggleBilling from './ui/ToggleBilling'
-import PricingCard from './ui/PricingCard'
+import ToggleBilling from '../ui/ToggleBilling'
+import PricingCard from '../ui/PricingCard'
 
 const plans = [
     {
