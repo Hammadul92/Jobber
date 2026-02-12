@@ -25,7 +25,7 @@ jobs:
             docker compose -f docker-compose.prod.yml pull
 
             echo "Recreating containers..."
-            docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
+            docker compose -f docker-compose.prod.yml up -d --pull always --force-recreate --remove-orphans
 
             echo "Running Django migrations..."
             docker compose -f docker-compose.prod.yml exec -T app python manage.py migrate --noinput
