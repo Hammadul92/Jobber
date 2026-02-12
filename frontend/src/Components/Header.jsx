@@ -231,18 +231,18 @@ export default function Header() {
             </div>
 
             {/* Navigation Menu */}
-            <nav className='hidden lg:flex items-center gap-10 font-medium'>
+            <nav className='hidden lg:flex items-center md:text-lg gap-x-10 lg:mt-2 font-medium'>
                 <Link to="/" className={linkClass('/')}>Home</Link>
-                <Link to="/about" className={linkClass('/about')}>About</Link>
-                <Link to="/product" className={linkClass('/product')}>Product</Link>
                 <Link to="/industries" className={linkClass('/industries')}>Industries</Link>
-                <Link to="/resources" className={linkClass('/resources')}>Resources</Link>
                 <Link
                     to="/"
                     onClick={handlePricingClick}
                 >
-                    Prices
+                    Pricing
                 </Link>
+                <Link to="/faqs" className={linkClass('/faqs')}>FAQ's</Link>
+                <Link to="/about" className={linkClass('/about')}>About Us</Link>
+                <Link to="/contact" className={linkClass('/contact')}>Contact Us</Link>
             </nav>
 
             {showDropdown && (

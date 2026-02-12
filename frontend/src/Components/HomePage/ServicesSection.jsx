@@ -13,6 +13,7 @@ import {
   LuPackageOpen,
   LuHammer
 } from "react-icons/lu";
+import { Link } from 'react-router-dom'
 import { BsStars } from "react-icons/bs";
 
 const services = [
@@ -111,9 +112,9 @@ function Services() {
           ))}
         </div>
         <div className='mt-20 flex flex-col items-center gap-3'>
-          <button className='rounded-full bg-accent px-8 py-3 font-semibold text-white shadow-lg shadow-orange-500/30'>
+          <Link to="/services" className='rounded-full bg-accent px-8 py-3 font-semibold text-white shadow-lg shadow-orange-500/30'>
             Explore all 50+ services <FiChevronRight className='ml-1 inline-flex h-6 w-6' />
-          </button>
+          </Link>
           <span className='text-xs text-slate-200'>Trusted by over 100,000 homeowners</span>
         </div>
       </div>
