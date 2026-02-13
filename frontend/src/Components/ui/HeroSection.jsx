@@ -5,7 +5,7 @@ const Hexagon = '/images/hexagon.svg';
 
 function HeroSection({ children }) {
     return (
-        <section className='relative bg-background overflow-hidden lg:min-h-screen md:h-[70vh] lg:h-screen w-full px-6 py-40 md:px-16 lg:px-32 md:py-24 flex flex-col items-center justify-center gap-3'>
+        <section className='relative bg-background overflow-hidden lg:min-h-screen md:h-[70vh] lg:h-screen w-full px-6 py-40 md:px-16 lg:px-32 md:py-34 flex flex-col items-center justify-start gap-3'>
 
             {/* Design Elements */}
             <div className='absolute w-40 bottom-7 md:w-auto md:bottom-10 lg:bottom-16 left-0'>

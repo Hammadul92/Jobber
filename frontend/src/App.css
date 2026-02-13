@@ -115,7 +115,7 @@ body {
   }
 
   .form-control {
-    @apply w-full max-w-[140px] rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-700 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30;
+    @apply w-full max-w-35 rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-700 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30;
   }
 
   .pagination {

@@ -4,7 +4,7 @@ import Testimonials from "../Components/HomePage/Testimonials";
 import Services from "../Components/HomePage/ServicesSection";
 import PricingPlans from "../Components/HomePage/PricingPlans";
 import FAQSection from "../Components/HomePage/FAQSection";
-import CTASection from "../Components/HomePage/CTASection";
+import CTASection from "../Components/CTASection";
 
 
 export default function Home() {
