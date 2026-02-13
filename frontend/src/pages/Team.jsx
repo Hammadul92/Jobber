@@ -1,5 +1,5 @@
 import React from 'react'
-import CTASection from '../Components/HomePage/CTASection.jsx';
+import CTASection from '../Components/CTASection.jsx';
 
 const teamMembers = [
     {

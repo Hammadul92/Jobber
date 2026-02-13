@@ -3,7 +3,7 @@ import './App.css';
 import { useFetchUserQuery } from './store';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 
-import Navbar from './Components/Header';
+import Header from './Components/Header';
 import Footer from './Components/Footer';
 import PageNotFound from './Components/PageNotFound';
 import Home from './pages/Home';
@@ -56,7 +56,7 @@ function MainApp() {
 
     return (
         <>
-            {!isDashboardRoute && <Navbar />}
+            {!isDashboardRoute && <Header />}
 
             {/* <main> */}
                 <Routes>
@@ -71,7 +71,7 @@ function MainApp() {
                     <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="/faqs" element={<FAQs />} />
-                    
+
                     {/* Authentication routes */}
                     <Route path="/sign-in" element={<SignIn />} />
                     <Route path="/register" element={<Register />} />
