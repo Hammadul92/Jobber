@@ -37,7 +37,7 @@ export default function Footer() {
                         <h4 className="font-sans text-3xl font-semibold">About Us</h4>
                         <p className="text-white/70 mt-2 md:mt-5 text-justify">
                             We&apos;re a team of designers, engineers, and innovators building AI tools that empower
-                            anyone to turn imagination into stunning visuals — faster, smarter, and effortlessly.
+                            anyone to turn imagination into stunning visuals, faster, smarter, and effortlessly.
                         </p>
                     </div>
                     {/* Useful Links Column */}

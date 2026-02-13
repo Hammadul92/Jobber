@@ -205,7 +205,7 @@ export default function Header() {
     return (
         <>
             <AnnouncementBar />
-            <header id='site-header' className='fixed top-9 left-0 z-10 flex items-end md:items-center justify-between bg-background px-6 pt-2 md:pt-4 md:px-16 lg:px-32 w-full transition-[top] duration-150 ease-in-out'>
+            <header id='site-header' className='fixed top-9 left-0 z-30 flex items-end md:items-center justify-between bg-background px-6 pt-2 md:pt-4 md:px-16 lg:px-32 w-full transition-[top] duration-150 ease-in-out'>
 
                 {/* Mobile Menu Button */}
                 <div className='lg:hidden'>
