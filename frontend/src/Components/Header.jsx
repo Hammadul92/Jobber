@@ -188,10 +188,24 @@ export default function Header() {
         return undefined;
     }, [showDropdown]);
 
+    document.addEventListener('scroll', () => {
+        const h = document.getElementById('site-header');
+        if (!h) return;
+        const atTop = window.scrollY === 0;
+        h.classList.toggle('top-0', !atTop);
+        h.classList.toggle('top-9', atTop);
+        h.classList.toggle('pb-2', !atTop);
+        h.classList.toggle('pb-0', atTop);
+        h.classList.toggle('md:pb-4', !atTop);
+        h.classList.toggle('md:pb-0', atTop);
+        h.classList.toggle('shadow', !atTop);
+        h.classList.toggle('shadow-none', atTop);
+    });
+
     return (
         <>
             <AnnouncementBar />
-            <header className='flex items-end md:items-center justify-between bg-background px-6 pt-4 md:px-16 lg:px-32 md:pt-4 w-full absolute top-9 left-0 z-10'>
+            <header id='site-header' className='fixed top-9 left-0 z-10 flex items-end md:items-center justify-between bg-background px-6 pt-2 md:pt-4 md:px-16 lg:px-32 w-full transition-[top] duration-150 ease-in-out'>
 
                 {/* Mobile Menu Button */}
                 <div className='lg:hidden'>
