@@ -61,7 +61,7 @@ function Hero() {
             <div className='z-1 flex flex-col items-center gap-5 md:max-w-7xl mt-4'>
                 {/* Main Heading */}
                 <h1 className='font-heading text-[1.2rem] md:text-4xl lg:text-[3.2rem] text-center leading-snug md:max-w-7xl'>
-                    OPERATE YOUR BUSINESS WITH <span className='text-accent'>ASSURANCE </span>
+                    OPERATE YOUR BUSINESS WITH <span className='text-accent'>ASSURANCE</span>
                     AND <span className='text-accent'>CLARITY</span>.
                 </h1>
                 {/* Subheading */}

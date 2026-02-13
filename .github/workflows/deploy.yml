@@ -1,69 +1,46 @@
 name: Deploy to Droplet
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Build & Push Docker Images"]
+    types:
+      - completed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
+          envs: IMAGE_TAG=${{ github.sha }}
           script: |
             set -e
-
             cd ~/Contractorz/Jobber
 
-            echo "Pulling latest code..."
-            git pull
+            echo "Injecting image tag..."
+            export IMAGE_TAG="${IMAGE_TAG:-latest}"
+            envsubst < docker-compose.prod.yml > docker-compose.prod.subst.yml
 
-            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
 
-            NEED_BUILD_BACKEND=0
-            NEED_BUILD_FRONTEND=0
+            echo "Removing old images to force fresh pull..."
+            docker image rm -f ghcr.io/hammadul92/jobber-backend:${IMAGE_TAG} || true
+            docker image rm -f ghcr.io/hammadul92/jobber-frontend:${IMAGE_TAG} || true
 
-            if echo "$CHANGED_FILES" | grep -E 'Dockerfile|requirements\.txt'; then
-                NEED_BUILD_BACKEND=1
-            fi
+            echo "Pulling latest images..."
+            docker compose -f docker-compose.prod.subst.yml pull
 
-            if echo "$CHANGED_FILES" | grep -E 'frontend/(Dockerfile|package\.json|nginx\.conf)'; then
-                NEED_BUILD_FRONTEND=1
-            fi
+            echo "Recreating containers..."
+            docker compose -f docker-compose.prod.subst.yml up -d --pull always --force-recreate --remove-orphans
 
-            if [ "$NEED_BUILD_FRONTEND" -eq 1 ]; then
-                echo "Frontend changed → Building"
-                docker compose -f docker-compose.prod.yml build frontend
-                docker compose -f docker-compose.prod.yml up -d frontend
-            else
-                echo "Frontend unchanged → Restart only"
-                docker compose -f docker-compose.prod.yml restart frontend
-            fi
+            echo "Running Django migrations..."
+            docker compose -f docker-compose.prod.subst.yml exec -T app python manage.py migrate --noinput
 
-            if [ "$NEED_BUILD_BACKEND" -eq 1 ]; then
-                echo "Backend changed → Building"
-                docker compose -f docker-compose.prod.yml build app
-                docker compose -f docker-compose.prod.yml up -d app
-            else
-                echo "Backend unchanged → Restart only"
-                docker compose -f docker-compose.prod.yml restart app
-            fi
+            echo "Collecting static files..."
+            docker compose -f docker-compose.prod.subst.yml exec -T app python manage.py collectstatic --noinput
 
-            docker compose -f docker-compose.prod.yml exec frontend nginx -t
-
-            docker compose -f docker-compose.prod.yml exec -T app \
-                env DJANGO_SETTINGS_MODULE=app.settings python manage.py migrate --noinput
-
-            docker compose -f docker-compose.prod.yml exec -T app \
-                env DJANGO_SETTINGS_MODULE=app.settings python manage.py collectstatic --noinput
-
-            echo "Deployment completed successfully"
+            echo "✅ Deployment completed"
