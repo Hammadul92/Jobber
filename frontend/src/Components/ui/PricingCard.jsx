@@ -18,7 +18,7 @@ export default function PricingCard({ plan, billing }) {
 
             <div className="mb-6">
                 <div className="flex items-end lg:gap-3">
-                    <div className="text-lg lg:text-4xl font-bold text-white">${price}</div>
+                    <div className="text-4xl font-bold text-white">${price}</div>
                     <div className="text-sm text-white/80">/ {billing === 'monthly' ? 'month' : 'year'}</div>
                     {plan.discountPct && (
                         <div className="lg:ml-2 px-2 py-1 text-xs rounded-full bg-accent text-white">-{plan.discountPct}%</div>
