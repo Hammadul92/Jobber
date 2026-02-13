@@ -7,7 +7,7 @@ function CTASection() {
         flex flex-col items-center text-center gap-6">
             <div
                 className='min-w-full lg:min-w-6xl bg-cover bg-no-repeat bg-center border-2 border-accent 
-                rounded-3xl px-10 py-16 lg:py-28 flex flex-col items-center gap-8'
+                rounded-3xl px-6 py-8 md:px-10 md:py-16 lg:py-28 flex flex-col items-center gap-4 md:gap-8'
                 style={{ backgroundImage: `url(/images/CTA-Gradient.svg)` }}
             >
                 <h3 className='font-intro text-4xl lg:text-5xl font-bold text-cardLight'>Ready To Design Smarter?</h3>
