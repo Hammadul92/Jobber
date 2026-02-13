@@ -11,7 +11,7 @@ export default function PricingCard({ plan, billing }) {
             style={{ backgroundColor: 'var(--color-card)', borderColor: plan.featured ? 'var(--color-accent)' : 'transparent' }}
         >
 
-            <h3 className={`font-Intro mb-4 ${plan.featured ? 'text-accent text-3xl font-bold' : 'text-white text-xl'}`}>
+            <h3 className={`font-Intro mb-4 ${plan.featured ? 'text-accent text-3xl font-bold' : 'text-white text-2xl font-bold'}`}>
                 {plan.name}
             </h3>
             {plan.description && <p className="text-sm text-white/80 mb-6">{plan.description}</p>}

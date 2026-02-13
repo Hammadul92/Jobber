@@ -50,7 +50,13 @@
   display: flex;
   align-items: center;
   width: max-content;
-  animation: marquee-scroll 8s linear infinite;
+  max-width: none;
+  white-space: nowrap;
+  animation: marquee-scroll 14s linear infinite;
+}
+
+.marquee-track > * {
+  flex: 0 0 auto;
 }
 
 @keyframes marquee-scroll {
@@ -74,7 +80,7 @@
 }
 
 .primary {
-  @apply md:px-4 md:py-1.5 lg:px-6 lg:py-2.5 bg-accent rounded-lg text-white font-bold cursor-pointer hover:bg-accentLight hover:scale-[1.02] transition-all duration-300;
+  @apply  px-4 py-1.5 lg:px-6 lg:py-2.5 bg-accent rounded-lg text-white font-bold cursor-pointer hover:bg-accentLight hover:scale-[1.02] transition-all duration-300;
 }
 
 /* .secondary {
