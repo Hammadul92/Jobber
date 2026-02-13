@@ -110,7 +110,10 @@ export default function CreateInvoiceForm({ token, showModal, setShowModal, setA
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="fixed inset-0 bg-black/50" onClick={() => setShowModal(false)}></div>
-                    <div className='relative z-10 w-full max-w-4xl rounded-2xl bg-white shadow-xl'>
+                    <div 
+                    className='relative z-10 max-w-4xl rounded-2xl bg-white shadow-xl'
+                    onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="flex items-center justify-between p-6 rounded-t-2xl bg-secondary text-white border-b border-gray-100">
                             <h5 className="text-lg font-semibold font-heading">Create New Invoice</h5>
                             <button

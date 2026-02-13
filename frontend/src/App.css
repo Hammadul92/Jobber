@@ -97,12 +97,57 @@ body {
   overflow-x: hidden;
 }
 
+@layer components {
+  .table {
+    @apply w-full border-separate border-spacing-0 text-sm;
+  }
+
+  .table thead th {
+    @apply bg-gray-50 px-4 py-3 text-[11px] font-semibold text-left uppercase tracking-[0.06em] text-gray-600;
+  }
+
+  .table tbody td {
+    @apply border-t border-gray-100 px-4 py-3 align-middle text-gray-700;
+  }
+
+  .table tbody tr:hover td {
+    @apply bg-gray-50;
+  }
+
+  .form-control {
+    @apply w-full max-w-35 rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-700 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30;
+  }
+
+  .pagination {
+    @apply flex items-center gap-1;
+  }
+
+  .page-link {
+    @apply inline-flex items-center justify-center rounded-md border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-100;
+  }
+
+  .page-item.active .page-link {
+    @apply border-accent bg-accent text-white;
+  }
+
+  .page-item.disabled .page-link {
+    @apply cursor-not-allowed text-gray-300;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-100;
+  }
+
+  .btn.btn-secondary {
+    @apply border-accent bg-accent text-white;
+  }
+
+  .btn.btn-outline-secondary {
+    @apply border-gray-200 text-gray-600;
+  }
+}
+
 .section-intro,
 .main-heading-intro {
   font-family: var(--font-intro);
-}
-
-.scroll-disabled {
-  --webkit-scrollbar: none;
-  -ms-overflow-style: none;
 }

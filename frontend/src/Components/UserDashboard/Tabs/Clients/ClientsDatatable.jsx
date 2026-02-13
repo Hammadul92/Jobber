@@ -111,7 +111,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                         <span
                             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
                                 props.row.is_active === 'True'
-                                    ? 'bg-green-100 text-green-700'
+                                    ? 'bg-accent/15 text-accent'
                                     : 'bg-amber-100 text-amber-800'
                             }`}
                         >
@@ -156,7 +156,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                 ))}
             </div>
 
-            <div className="min-h-[50vh] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="min-h-[50vh] overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
                 {isEmpty ? (
                     <div className="flex flex-col items-center justify-center mt-18 gap-2 px-6 py-10 text-center">
                         <p className="text-2xl font-semibold text-primary">No clients yet</p>
@@ -200,7 +200,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
                     <form
                         onSubmit={confirmDelete}
-                        className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
+                        className="min-w-md rounded-xl bg-white p-6 shadow-2xl"
                         role="dialog"
                     >
                         <div className="mb-4 flex items-start justify-between gap-3">

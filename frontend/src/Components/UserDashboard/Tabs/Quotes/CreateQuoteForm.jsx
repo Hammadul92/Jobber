@@ -52,7 +52,10 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
         <>
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" role="dialog" aria-modal="true" onClick={() => setShowModal(false)}>
-                    <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
+                    <div
+                        className="max-w-3xl rounded-2xl bg-white shadow-2xl"
+                        onClick={(event) => event.stopPropagation()}
+                    >
                         <div className="flex items-start justify-between rounded-t-2xl border-b border-gray-100 bg-secondary text-white px-6 py-4">
                             <div>
                                 <h5 className="text-lg font-semibold font-heading">Create New Quote</h5>

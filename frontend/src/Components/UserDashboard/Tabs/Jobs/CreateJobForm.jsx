@@ -69,7 +69,10 @@ export default function CreateJobForm({ token, showModal, setShowModal, setAlert
                     {/* Backdrop Background */}
                     <div className="fixed inset-0 bg-black/50" onClick={() => setShowModal(false)}></div>
                     {/* Container */}
-                    <div className='relative z-10 w-full max-w-2xl rounded-2xl bg-white shadow-xl'>
+                    <div
+                        className='relative z-10 max-w-2xl rounded-2xl bg-white shadow-xl'
+                        onClick={(event) => event.stopPropagation()}
+                    >
                         {/* Header */}
                         <div className="flex items-start justify-between p-6 border-b border-gray-100 bg-secondary text-white rounded-t-2xl">
                             <h5 className="text-lg font-semibold font-heading">Create New Job</h5>

@@ -19,14 +19,14 @@ export default function ForgotPassword() {
     };
 
     return (
-        <section className="min-h-screen w-full p-32 flex flex-col items-center justify-center">
-            <div className="max-w-4xl mx-auto text-center">
+        <section className="min-h-screen w-full px-6 py-40 md:px-16 lg:px-32 md:py-24 flex flex-col items-center justify-center">
+            <div className="max-w-2xl mx-auto text-center">
                 <h2 className="text-3xl sm:text-4xl font-heading font-bold text-secondary mb-3">Forgot Password</h2>
                 <p className="text-gray-600">Enter your email and we&apos;ll send you a link to reset your password.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-10 min-w-4xl flex justify-center">
-                <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-gray-100">
+            <form onSubmit={handleSubmit} className="mt-10 w-full flex justify-center">
+                <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
                     {error && (
                         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-center text-sm font-medium">
                             {error?.data?.detail || 'Something went wrong. Please try again.'}

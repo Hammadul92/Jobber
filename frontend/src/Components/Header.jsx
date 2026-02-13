@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import './Components.css';
 import {
     FaArrowRight,
     FaBriefcase,
@@ -15,9 +18,8 @@ import {
     FaUserFriends,
     FaBars,
 } from 'react-icons/fa';
+import { FiLogIn } from "react-icons/fi";
 import { FaBuildingColumns, FaClipboardCheck, FaFileInvoice, FaFileSignature, FaListCheck } from 'react-icons/fa6';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
 import {
     useFetchUserQuery,
     useLogoutUserMutation,
@@ -33,7 +35,9 @@ import {
     bankingInformationApi,
     invoiceApi,
 } from '../store';
-import './Components.css';
+import AnnouncementBar from './AnnouncementBar';
+
+
 // import contractorzLogo from '../../public/images/contractorz-logo-horizontal.svg'
 // Use public path for images in public directory
 const contractorzLogo = '/images/contractorz-logo-horizontal.svg';
@@ -115,13 +119,13 @@ export default function Header() {
     const managerMenu = (
         <>
             {renderLink('/dashboard/home', FaChartLine, 'Dashboard')}
+            {renderLink('/dashboard/team-members', FaUserFriends, 'Team Members')}
             {renderLink('/dashboard/clients', FaUsers, 'Clients')}
             {renderLink('/dashboard/service-questionnaires', FaListCheck, 'Questionnaires')}
             {renderLink('/dashboard/quotes', FaFileSignature, 'Quotes')}
             {renderLink('/dashboard/jobs', FaClipboardCheck, 'Jobs')}
-            {renderLink('/dashboard/invoices', FaFileInvoice, 'Invoices')}
             {renderLink('/dashboard/payouts', FaCreditCard, 'Payouts')}
-            {renderLink('/dashboard/team-members', FaUserFriends, 'Team Members')}
+            {renderLink('/dashboard/invoices', FaFileInvoice, 'Invoices')}
         </>
     );
 
@@ -174,139 +178,158 @@ export default function Header() {
         };
     }, [showDropdown]);
 
+    useEffect(() => {
+        if (showDropdown) {
+            document.body.classList.add('scroll-disabled');
+            return () => document.body.classList.remove('scroll-disabled');
+        }
+
+        document.body.classList.remove('scroll-disabled');
+        return undefined;
+    }, [showDropdown]);
+
     return (
-        <header className='flex items-end md:items-center justify-between bg-background px-6 pt-4 md:px-16 lg:px-32 md:pt-8 w-full absolute top-0 left-0 z-10'>
+        <>
+            <AnnouncementBar />
+            <header className='flex items-end md:items-center justify-between bg-background px-6 pt-4 md:px-16 lg:px-32 md:pt-4 w-full absolute top-9 left-0 z-10'>
 
-            {/* Mobile Menu Button */}
-            <div className='lg:hidden'>
-                <button
-                    className="text-secondary mt-3"
-                    onClick={() => setShowMenu((open) => !open)}
-                >
-                    <FaBars className="text-2xl" />
-                </button>
-            </div>
-
-            {/* Mobile Navigation Menu */}
-            {showMenu && (
-                <div className='fixed inset-0 w-full h-screen bg-black/50' onClick={() => setShowMenu((open) => !open)}>
-                    <div className='w-4/5 md:w-3/7 h-screen bg-white'>
-                        <div className='p-8 inset-0 flex justify-between'>
-                            <h3 className='font-heading text-2xl' >Menu</h3>
-                        </div>
-                        <nav className='flex flex-col items-start justify-start font-medium'>
-                            <Link to="/" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/')}>Home</Link>
-                            <Link to="/about" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/about')}>About</Link>
-                            <Link to="/product" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/product')}>Product</Link>
-                            <Link to="/industries" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/industries')}>Industries</Link>
-                            <Link to="/resources" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/resources')}>Resources</Link>
-                            <Link
-                                to="/"
-                                onClick={handlePricingClick}
-                                className='w-full text-lg text-left px-8 py-5'
-                            >
-                                Prices
-                            </Link>
-                        </nav>
-                    </div>
+                {/* Mobile Menu Button */}
+                <div className='lg:hidden'>
+                    <button
+                        className="text-secondary mt-3"
+                        onClick={() => setShowMenu((open) => !open)}
+                    >
+                        <FaBars className="text-xl" />
+                    </button>
                 </div>
-            )}
 
-            {/* Logo */}
-            <div>
-                <Link to="/">
-                    <img src={contractorzLogo} alt="Logo" width={170} height={0} />
-                </Link>
-            </div>
-
-            {/* Navigation Menu */}
-            <nav className='hidden lg:flex items-center gap-10 font-medium'>
-                <Link to="/" className={linkClass('/')}>Home</Link>
-                <Link to="/about" className={linkClass('/about')}>About</Link>
-                <Link to="/product" className={linkClass('/product')}>Product</Link>
-                <Link to="/industries" className={linkClass('/industries')}>Industries</Link>
-                <Link to="/resources" className={linkClass('/resources')}>Resources</Link>
-                <Link
-                    to="/"
-                    onClick={handlePricingClick}
-                >
-                    Prices
-                </Link>
-            </nav>
-
-            {showDropdown && (
-                <div className='absolute top-0 left-0 bg-black/40 w-full h-screen' />
-            )}
-
-            {/* Login button and User account dropdown */}
-            <div className=" flex items-center gap-3 md:flex">
-                {loading ? (
-                    <span className="text-gray-500">Loading...</span>
-                ) : !token || !user ? (
-                    <>
-                        <Link
-                            className="primary"
-                            to="/sign-in"
-                        >
-                            Login
-                        </Link>
-                    </>
-                ) : (
-                    <div className="relative z-30" ref={menuRef}>
-                        <button
-                            className="cursor-pointer flex items-center gap-2 rounded-md py-2 text-gray-800 hover:text-accent"
-                            type="button"
-                            onClick={() => setShowDropdown((open) => !open)}
-                            aria-expanded={showDropdown}
-                            aria-haspopup="true"
-                        >
-                            <FaRegUserCircle className="text-2xl md:text-xl" />
-                            <span className="hidden md:block font-bold">{user.name}</span>
-                            {showDropdown ? (
-                                <FaChevronUp className="hidden md:block text-xs" />
-                            ) : (
-                                <FaChevronDown className="hidden md:block text-xs" />
-                            )}
-                        </button>
-
-                        {showDropdown && (
-                            <div className="absolute z-50 right-4 lg:right-0 p-3 mt-3 min-w-[50vw] lg:w-64 rounded-lg bg-white shadow-lg">
-                                <div>
-                                    <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
-                                        {renderLink('/user-account/profile', FaRegUserCircle, 'Profile')}
-                                        {(user.role === 'USER' || user.role === 'MANAGER') &&
-                                            renderLink('/user-account/business', FaBriefcase, 'Business')}
-                                        {renderLink('/user-account/banking', FaBuildingColumns, 'Banking')}
-                                        {renderLink('/user-account/credentials', FaKey, 'Credentials')}
-                                    </ul>
-                                </div>
-
-                                {user.role && user.role !== 'USER' && (
-                                    <div>
-                                        <h5 className="mt-2  font-semibold text-accent font-heading">
-                                            {user.role === 'MANAGER'
-                                                ? business?.name
-                                                : user.role === 'CLIENT'
-                                                    ? 'Client Portal'
-                                                    : 'Employee Portal'}
-                                        </h5>
-                                        <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
-                                            {roleMenus[user.role]}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                <button
-                                    onClick={handleLogout}
-                                    className="cursor-pointer rounded-lg mt-1 flex items-center justify-center gap-2 w-full bg-red-500 px-4 py-2 text-white shadow hover:bg-red-600"
-                                >
-                                    <FaPowerOff /> Logout
-                                </button>
+                {/* Mobile Navigation Menu */}
+                {showMenu && (
+                    <div className='fixed inset-0 w-full h-screen bg-black/50' onClick={() => setShowMenu((open) => !open)}>
+                        <div className='w-4/5 md:w-3/7 h-screen bg-white'>
+                            <div className='p-8 inset-0 flex justify-between'>
+                                <h3 className='font-heading text-2xl' >Menu</h3>
                             </div>
-                        )}
+                            <nav className='flex flex-col items-start justify-start font-medium'>
+                                <Link to="/" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/')}>Home</Link>
+                                <Link to="/about" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/about')}>About</Link>
+                                <Link to="/product" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/product')}>Product</Link>
+                                <Link to="/industries" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/industries')}>Industries</Link>
+                                <Link to="/resources" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/resources')}>Resources</Link>
+                                <Link
+                                    to="/"
+                                    onClick={handlePricingClick}
+                                    className='w-full text-lg text-left px-8 py-5'
+                                >
+                                    Prices
+                                </Link>
+                            </nav>
+                        </div>
                     </div>
                 )}
-            </div>
-        </header>
+
+                {/* Logo */}
+                <div>
+                    <Link to="/">
+                        <img src={contractorzLogo} alt="Logo" width={170} height={0} className='w-38 lg:w-44' />
+                    </Link>
+                </div>
+
+                {/* Navigation Menu */}
+                <nav className='hidden lg:flex items-center md:text-lg gap-x-10 lg:mt-2 font-medium'>
+                    <Link to="/" className={linkClass('/')}>Home</Link>
+                    <Link to="/industries" className={linkClass('/industries')}>Industries</Link>
+                    <Link
+                        to="/"
+                        onClick={handlePricingClick}
+                    >
+                        Pricing
+                    </Link>
+                    <Link to="/faqs" className={linkClass('/faqs')}>FAQ's</Link>
+                    <Link to="/about" className={linkClass('/about')}>About Us</Link>
+                    <Link to="/contact" className={linkClass('/contact')}>Contact Us</Link>
+                </nav>
+
+                {showDropdown && (
+                    <div className='absolute top-0 left-0 bg-black/40 w-full h-screen' />
+                )}
+
+                {/* Login button and User account dropdown */}
+                <div className=" flex items-center gap-3 md:flex">
+                    {loading ? (
+                        <span className="text-gray-500">Loading...</span>
+                    ) : !token || !user ? (
+                        <>
+                            <Link
+                                className="text-2xl md:text-xl md:hidden font-bold"
+                                to="/sign-in"
+                            >
+                                <FiLogIn className="mb-1" />
+                            </Link>
+                            <Link
+                                className="primary hidden md:inline"
+                                to="/sign-in"
+                            >
+                                Login
+                            </Link>
+                        </>
+                    ) : (
+                        <div className="relative z-30" ref={menuRef}>
+                            <button
+                                className="cursor-pointer flex items-center gap-2 rounded-md py-2 text-gray-800 hover:text-accent"
+                                type="button"
+                                onClick={() => setShowDropdown((open) => !open)}
+                                aria-expanded={showDropdown}
+                                aria-haspopup="true"
+                            >
+                                <FaRegUserCircle className="text-2xl md:text-xl" />
+                                <span className="hidden md:block font-bold">{user.name}</span>
+                                {showDropdown ? (
+                                    <FaChevronUp className="hidden md:block text-xs" />
+                                ) : (
+                                    <FaChevronDown className="hidden md:block text-xs" />
+                                )}
+                            </button>
+
+                            {showDropdown && (
+                                <div className="absolute z-50 right-4 lg:right-0 p-3 mt-3 min-w-[70vw] lg:min-w-[20vw] rounded-lg bg-white shadow-lg">
+                                    <div>
+                                        <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
+                                            {renderLink('/user-account/profile', FaRegUserCircle, 'Profile')}
+                                            {(user.role === 'USER' || user.role === 'MANAGER') &&
+                                                renderLink('/user-account/business', FaBriefcase, 'Business')}
+                                            {renderLink('/user-account/banking', FaBuildingColumns, 'Banking')}
+                                            {renderLink('/user-account/credentials', FaKey, 'Credentials')}
+                                        </ul>
+                                    </div>
+
+                                    {user.role && user.role !== 'USER' && (
+                                        <div>
+                                            <h5 className="mt-2 font-semibold text-accent font-heading">
+                                                {user.role === 'MANAGER'
+                                                    ? business?.name
+                                                    : user.role === 'CLIENT'
+                                                        ? 'Client Portal'
+                                                        : 'Employee Portal'}
+                                            </h5>
+                                            <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
+                                                {roleMenus[user.role]}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={handleLogout}
+                                        className="cursor-pointer rounded-lg mt-1 flex items-center justify-center gap-2 w-full bg-red-500 px-4 py-2 text-white shadow hover:bg-red-600"
+                                    >
+                                        <FaPowerOff /> Logout
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </header>
+        </>
     );
 }

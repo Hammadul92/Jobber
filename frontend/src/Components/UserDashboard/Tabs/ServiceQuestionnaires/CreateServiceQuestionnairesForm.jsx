@@ -98,7 +98,10 @@ export default function CreateServiceQuestionnairesForm({ token, showModal, setS
 
     return (
         <div className="fixed inset-0 z-50 h-screen flex items-center justify-center bg-black/50 px-3" onClick={() => setShowModal(false)}>
-            <div className="w-full max-w-4xl rounded-2xl bg-white shadow-xl">
+            <div
+                className="max-w-4xl rounded-2xl bg-white shadow-xl"
+                onClick={(event) => event.stopPropagation()}
+            >
                 <div className="flex items-start justify-between bg-secondary rounded-t-2xl border-b border-gray-200 p-6">
                     <div>
                         <h5 className="text-xl font-semibold font-heading text-white">Create Service Questionnaire</h5>
