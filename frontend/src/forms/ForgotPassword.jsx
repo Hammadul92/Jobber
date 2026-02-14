@@ -26,7 +26,7 @@ export default function ForgotPassword() {
             </div>
 
             <form onSubmit={handleSubmit} className="mt-10 w-full flex justify-center">
-                <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
+                <div className="min-w-2xl bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
                     {error && (
                         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-center text-sm font-medium">
                             {error?.data?.detail || 'Something went wrong. Please try again.'}
