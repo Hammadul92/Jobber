@@ -9,12 +9,9 @@ function Team() {
     ]
 
     return (
-        <section className="bg-white px-6 py-40 md:px-16 lg:px-32 md:py-24 flex flex-col gap-10 md:flex-row md:items-center md:gap-14">
+        <section className="bg-white px-6 py-20 md:px-16 lg:px-32 md:py-24 flex flex-col gap-10 md:flex-row md:items-center justify-center md:gap-7 lg:gap-14">
             {/* Left side Images Column */}
-            <div
-                className="flex items-center gap-4 md:gap-6 place-items-center min-w-[50%] flex-1"
-                style={{ flex: '1 1 50%', maxWidth: '50%' }}
-            >
+            <div className="flex min-w-[48%] flex-1 items-center gap-4 md:gap-6">
                 {/* Left Images Column */}
                 <div className='pt-6 space-y-4 md:space-y-6'>
                     <div className="rounded-2xl flex items-end">
@@ -46,9 +43,9 @@ function Team() {
             </div>
 
             {/* Right Side Text Content */}
-            <div className="min-w-[50%] flex-1 space-y-6 md:space-y-8">
+            <div className="min-w-[48%] flex-1 space-y-6 md:space-y-8">
                 <div className="space-y-4">
-                    <h3 className="text-2xl md:text-4xl font-black uppercase text-primary tracking-tighter">
+                    <h3 className="text-xl md:text-2xl lg:text-3xl font-heading uppercase text-primary tracking-tighter">
                         More than just software.
                     </h3>
                     <p className="leading-relaxed text-gray-600 md:text-2xl">

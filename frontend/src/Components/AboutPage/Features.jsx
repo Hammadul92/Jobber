@@ -25,11 +25,11 @@ function Features() {
     ]
 
     return (
-        <section className="px-6 py-40 md:px-16 lg:px-32 md:py-24 bg-background">
+        <section className="px-6 py-20 md:px-16 lg:px-32 md:py-24 bg-background">
             <div className="mx-auto max-w-6xl">
                 <div className="space-y-6 md:space-y-8">
                     <div className="max-w-3xl space-y-4">
-                        <h3 className="text-4xl font-black leading-tight text-gray-900 md:text-[42px]">
+                        <h3 className="text-xl md:text-2xl lg:text-3xl font-heading text-gray-900">
                             Everything in one place.
                         </h3>
                         <p className="md:text-xl font-intro leading-relaxed text-gray-600">
@@ -48,7 +48,7 @@ function Features() {
                                 </div>
                                 <div className="space-y-3">
                                     <h3 className="text-xl font-medium text-primary">{feature.title}</h3>
-                                    <p className="text-xl leading-relaxed text-gray-600">{feature.description}</p>
+                                    <p className="md:text-lg lg:text-xl leading-relaxed text-gray-600">{feature.description}</p>
                                 </div>
                             </article>
                         ))}

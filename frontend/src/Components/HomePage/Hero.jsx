@@ -65,7 +65,7 @@ function Hero() {
                     AND <span className='text-accent'>CLARITY</span>.
                 </h1>
                 {/* Subheading */}
-                <p className='text-center md:px-28 md:text-xl lg:text2xl section-intro md:mt-2'>
+                <p className='text-center md:px-28 md:text-xl lg:text-2xl section-intro md:mt-2'>
                     Empower your HR team with our all-in-one SaaS platform, designed to streamline your entire hiring process from attracting top talent to seamless onboarding.
                 </p>
             </div>
