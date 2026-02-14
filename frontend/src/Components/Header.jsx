@@ -306,7 +306,7 @@ export default function Header() {
                             </button>
 
                             {showDropdown && (
-                                <div className="absolute z-50 right-4 lg:right-0 p-3 mt-3 min-w-[70vw] lg:min-w-[20vw] rounded-lg bg-white shadow-lg">
+                                <div className="absolute z-50 top-4 right-4 lg:right-0 p-3 mt-3 min-w-[70vw] lg:min-w-[20vw] rounded-lg bg-white shadow-lg">
                                     <div>
                                         <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
                                             {renderLink('/user-account/profile', FaRegUserCircle, 'Profile')}
@@ -319,7 +319,7 @@ export default function Header() {
 
                                     {user.role && user.role !== 'USER' && (
                                         <div>
-                                            <h5 className="mt-2 font-semibold text-accent font-heading">
+                                            <h5 className="mt-5 mb-2 font-semibold text-accent font-heading">
                                                 {user.role === 'MANAGER'
                                                     ? business?.name
                                                     : user.role === 'CLIENT'
