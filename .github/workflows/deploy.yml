@@ -24,22 +24,22 @@ jobs:
 
             echo "Using IMAGE_TAG=${IMAGE_TAG}"
 
-            # Pull latest backend/frontend images
+            # 1️⃣ Pull latest backend/frontend images
             docker compose -f docker-compose.prod.yml pull
 
-            # Start/recreate backend first (app)
+            # 2️⃣ Recreate backend (app)
             docker compose -f docker-compose.prod.yml up -d --pull always --force-recreate --remove-orphans app
 
+            # 3️⃣ Run Django migrations
             echo "Running Django migrations..."
             docker compose -f docker-compose.prod.yml exec -T app python manage.py migrate --noinput
 
+            # 4️⃣ Collect static files into shared volume
             echo "Collecting static files..."
             docker compose -f docker-compose.prod.yml exec -T app python manage.py collectstatic --noinput
 
-            # Start/recreate frontend now, after volume has static files
-            docker compose -f docker-compose.prod.yml up -d frontend
-
-            # Optional: start any remaining services (db, etc.) if not already up
-            docker compose -f docker-compose.prod.yml up -d --no-deps --pull always --force-recreate
+            # 5️⃣ Recreate frontend so it sees populated static volume
+            echo "Restarting frontend to pick up static files..."
+            docker compose -f docker-compose.prod.yml up -d --pull always --force-recreate --remove-orphans frontend
 
             echo "✅ Deployment completed"
