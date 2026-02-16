@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import MegaMenu from './MegaMenu';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import './Components.css';
@@ -7,6 +8,7 @@ import {
     FaBriefcase,
     FaChartLine,
     FaChevronDown,
+    FaChevronRight,
     FaChevronUp,
     FaCogs,
     FaCreditCard,
@@ -35,6 +37,7 @@ import {
     bankingInformationApi,
     invoiceApi,
 } from '../store';
+import { SiCodeblocks } from "react-icons/si";
 import AnnouncementBar from './AnnouncementBar';
 
 
@@ -45,7 +48,8 @@ const contractorzLogo = '/images/contractorz-logo-horizontal.svg';
 export default function Header() {
     // const [isOpen, setIsOpen] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [showMenu, setShowMenu] = useState(false);
+    const [showMegaMenu, setShowMegaMenu] = useState(false);
+    const [showMobileIndustries, setShowMobileIndustries] = useState(false);
     const menuRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
@@ -161,22 +165,29 @@ export default function Header() {
         return (isActive ? 'font-bold bg-secondary text-white px-8 py-5' : '').trim();
     };
 
+    // Prevent immediate re-open after toggle
+    const justToggledMegaMenu = useRef(false);
     useEffect(() => {
-        // Close dropdown when clicking outside the menu
+        // Close dropdown and mega menu when clicking outside
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setShowDropdown(false);
             }
+            if (megaMenuRef.current && !megaMenuRef.current.contains(event.target)) {
+                // Only close if not just toggled
+                if (!justToggledMegaMenu.current) {
+                    setShowMegaMenu(false);
+                }
+            }
+            justToggledMegaMenu.current = false;
         };
-
-        if (showDropdown) {
+        if (showDropdown || showMegaMenu) {
             document.addEventListener('mousedown', handleClickOutside);
         }
-
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [showDropdown]);
+    }, [showDropdown, showMegaMenu]);
 
     useEffect(() => {
         if (showDropdown) {
@@ -202,6 +213,20 @@ export default function Header() {
         h.classList.toggle('shadow-none', atTop);
     });
 
+    const megaMenuRef = useRef(null);
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+    useEffect(() => {
+        if (mobileNavOpen) {
+            document.body.classList.add('overflow-hidden');
+        } else {
+            document.body.classList.remove('overflow-hidden');
+        }
+        return () => {
+            document.body.classList.remove('overflow-hidden');
+        };
+    }, [mobileNavOpen]);
+
     return (
         <>
             <AnnouncementBar />
@@ -211,32 +236,62 @@ export default function Header() {
                 <div className='lg:hidden'>
                     <button
                         className="text-secondary mt-3"
-                        onClick={() => setShowMenu((open) => !open)}
+                        onClick={() => setMobileNavOpen(!mobileNavOpen)}
                     >
                         <FaBars className="text-xl" />
                     </button>
                 </div>
 
                 {/* Mobile Navigation Menu */}
-                {showMenu && (
-                    <div className='fixed inset-0 w-full h-screen bg-black/50' onClick={() => setShowMenu((open) => !open)}>
-                        <div className='w-4/5 md:w-3/7 h-screen bg-white'>
+                {mobileNavOpen && (
+                    <div className='fixed inset-0 w-full h-screen bg-black/50' onClick={() => setMobileNavOpen(false)}>
+                        <div className='w-4/5 md:w-3/7 h-screen bg-white overflow-y-auto' onClick={e => e.stopPropagation()}>
                             <div className='p-8 inset-0 flex justify-between'>
                                 <h3 className='font-heading text-2xl' >Menu</h3>
                             </div>
                             <nav className='flex flex-col items-start justify-start font-medium'>
-                                <Link to="/" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/')}>Home</Link>
-                                <Link to="/about" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/about')}>About</Link>
-                                <Link to="/product" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/product')}>Product</Link>
-                                <Link to="/industries" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/industries')}>Industries</Link>
-                                <Link to="/resources" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/resources')}>Resources</Link>
-                                <Link
-                                    to="/"
-                                    onClick={handlePricingClick}
-                                    className='w-full text-lg text-left px-8 py-5'
+                                <Link onClick={e => {
+                                    e.stopPropagation();
+                                    setMobileNavOpen(false);
+                                }}
+                                    to="/" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/')}>Home</Link>
+                                <div
+                                    className={"w-full text-lg text-left px-8 py-5 flex items-center justify-between" + mobLinkClass('/industries')}
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setShowMobileIndustries(open => !open);
+                                    }}
                                 >
-                                    Prices
-                                </Link>
+                                    <span>Industries</span>
+                                    {showMobileIndustries ? <FaChevronUp className="ml-2" /> : <FaChevronDown className="ml-2" />}
+                                </div>
+                                {showMobileIndustries && (
+                                    <div className="pl-14 pb-2">
+                                        <div className="flex flex-col gap-3 mb-2 text-gray-600">
+                                            <span>HVAC</span>
+                                            <span>Landscaping</span>
+                                            <span>Painting</span>
+                                            <span>Residential Cleaning</span>
+                                            <span>Plumbing</span>
+                                            <span>Lawn Care</span>
+                                            <span>Renovations</span>
+                                            <span>Janitorial Cleaning</span>
+                                            <span>Electrician</span>
+                                            <span>Tree Care</span>
+                                            <span>Appliance Repair</span>
+                                            <span>Pressure Washing</span>
+                                            <span>Roofing</span>
+                                            <span>Pool Service</span>
+                                        </div>
+                                        <Link to="/industries" className={"text-secondary font-semibold flex items-center gap-1 hover:underline mb-2"} onClick={() => { setMobileNavOpen(false); setShowMobileIndustries(false); }}>
+                                            SEE ALL INDUSTRIES <FaChevronRight className="text-secondary mb-px" />
+                                        </Link>
+                                    </div>
+                                )}
+                                <Link to="/" onClick={handlePricingClick} className='w-full text-lg text-left px-8 py-5'>Pricing</Link>
+                                <Link to="/faqs" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/faqs')}>FAQ's</Link>
+                                <Link to="/about" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/about')}>About Us</Link>
+                                <Link to="/contact" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/contact')}>Contact Us</Link>
                             </nav>
                         </div>
                     </div>
@@ -252,7 +307,32 @@ export default function Header() {
                 {/* Navigation Menu */}
                 <nav className='hidden lg:flex items-center md:text-lg gap-x-10 lg:mt-2 font-medium'>
                     <Link to="/" className={linkClass('/')}>Home</Link>
-                    <Link to="/industries" className={linkClass('/industries')}>Industries</Link>
+                    <div className="relative inline-block">
+                        <button
+                            className={linkClass('/industries') + ' relative'}
+                            type="button"
+                            aria-haspopup="true"
+                            aria-expanded={showMegaMenu}
+                            style={{ background: 'none', border: 'none', padding: 0, margin: 0 }}
+                            onClick={e => {
+                                e.stopPropagation();
+                                justToggledMegaMenu.current = true;
+                                setShowMegaMenu(open => !open);
+                            }}
+                        >
+                            Industries
+                            {showMegaMenu ? <FaChevronUp className="inline-flex ml-1 text-xs" /> : <FaChevronDown className="inline-flex ml-1 text-xs" />}
+                        </button>
+                        {/* Mega Menu */}
+                        {showMegaMenu && (
+                            <div
+                                ref={megaMenuRef}
+                                className="absolute left-0 top-full min-w-180 max-w-225 bg-white shadow-2xl rounded-xl border border-gray-200 z-40"
+                            >
+                                <MegaMenu onClose={() => setShowMegaMenu(false)} />
+                            </div>
+                        )}
+                    </div>
                     <Link
                         to="/"
                         onClick={handlePricingClick}
@@ -263,6 +343,7 @@ export default function Header() {
                     <Link to="/about" className={linkClass('/about')}>About Us</Link>
                     <Link to="/contact" className={linkClass('/contact')}>Contact Us</Link>
                 </nav>
+
 
                 {showDropdown && (
                     <div className='absolute top-0 left-0 bg-black/40 w-full h-screen' />
