@@ -1,5 +1,9 @@
 version: "3.9"
 
+volumes:
+  prod-db-data:
+  static-files:  # only used by backend
+
 services:
   db:
     image: postgres:13-alpine
@@ -26,15 +30,11 @@ services:
   frontend:
     image: ghcr.io/hammadul92/jobber-frontend:${IMAGE_TAG}
     restart: always
-    volumes:
-      - /etc/letsencrypt/live/getcontractorz.com/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
-      - /etc/letsencrypt/live/getcontractorz.com/privkey.pem:/etc/ssl/private/privkey.pem:ro
     depends_on:
       - app
     ports:
       - "80:80"
       - "443:443"
-
-volumes:
-  prod-db-data:
-  static-files:
+    volumes:
+      - /etc/letsencrypt/live/getcontractorz.com/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
+      - /etc/letsencrypt/live/getcontractorz.com/privkey.pem:/etc/ssl/private/privkey.pem:ro
