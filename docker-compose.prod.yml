@@ -26,6 +26,7 @@ services:
     restart: always
     # Only mount SSL certs, do NOT overwrite React build
     volumes:
+      - static-files:/app/static
       - /etc/letsencrypt/live/getcontractorz.com/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
       - /etc/letsencrypt/live/getcontractorz.com/privkey.pem:/etc/ssl/private/privkey.pem:ro
     depends_on:
