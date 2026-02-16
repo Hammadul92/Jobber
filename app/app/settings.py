@@ -163,7 +163,6 @@ if not DEBUG and not os.environ.get("CORS_ALLOWED_ORIGINS"):
     CORS_ALLOW_ALL_ORIGINS = True
 
 # CSRF Trusted Origins - required for POST requests through proxy
-# Parse from environment variable (comma-separated)
 CSRF_TRUSTED_ORIGINS_ENV = os.environ.get(
     "CSRF_TRUSTED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
 )
