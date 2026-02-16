@@ -22,25 +22,18 @@ jobs:
             set -e
             cd ~/Contractorz/Jobber
 
-            echo "Injecting image tag..."
-            export IMAGE_TAG="${IMAGE_TAG:-latest}"
-            envsubst < docker-compose.prod.yml > docker-compose.prod.subst.yml
-
-
-            echo "Removing old images to force fresh pull..."
-            docker image rm -f ghcr.io/hammadul92/jobber-backend:${IMAGE_TAG} || true
-            docker image rm -f ghcr.io/hammadul92/jobber-frontend:${IMAGE_TAG} || true
+            echo "Using IMAGE_TAG=${IMAGE_TAG}"
 
             echo "Pulling latest images..."
-            docker compose -f docker-compose.prod.subst.yml pull
+            docker compose -f docker-compose.prod.yml pull
 
             echo "Recreating containers..."
-            docker compose -f docker-compose.prod.subst.yml up -d --pull always --force-recreate --remove-orphans
+            docker compose -f docker-compose.prod.yml up -d --pull always --force-recreate --remove-orphans
 
             echo "Running Django migrations..."
-            docker compose -f docker-compose.prod.subst.yml exec -T app python manage.py migrate --noinput
+            docker compose -f docker-compose.prod.yml exec -T app python manage.py migrate --noinput
 
             echo "Collecting static files..."
-            docker compose -f docker-compose.prod.subst.yml exec -T app python manage.py collectstatic --noinput
+            docker compose -f docker-compose.prod.yml exec -T app python manage.py collectstatic --noinput
 
             echo "✅ Deployment completed"
