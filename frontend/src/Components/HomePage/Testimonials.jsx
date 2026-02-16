@@ -29,7 +29,7 @@ function Testimonials() {
                             className='md:w-10 lg:w-18 h-auto'
                         />
                         <p className='text-3xs leading-tight'>
-                            [short description goes in here] lorem ipsum is a placeholder text to demonstrate.
+                            lorem ipsum is a placeholder text to demonstrate.
                         </p>
                     </div>
                 </div>
