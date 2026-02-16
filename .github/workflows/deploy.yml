@@ -27,19 +27,21 @@ jobs:
             # Pull latest images
             docker compose -f docker-compose.prod.yml pull
 
-            # ✅ Start backend only first
+            # Start backend only
             docker compose -f docker-compose.prod.yml up -d --pull always --force-recreate --no-deps app
 
+            # Run Django migrations
             echo "Running Django migrations..."
             docker compose -f docker-compose.prod.yml exec -T app python manage.py migrate --noinput
 
+            # Collect static files for admin / rest_framework
             echo "Collecting static files..."
             docker compose -f docker-compose.prod.yml exec -T app python manage.py collectstatic --noinput
 
-            # ✅ Start frontend after static files exist
+            # Start frontend after static files exist
             docker compose -f docker-compose.prod.yml up -d frontend
 
-            # ✅ Recreate any remaining services if needed
+            # Recreate any other services if needed
             docker compose -f docker-compose.prod.yml up -d --no-deps --pull always --force-recreate
 
             echo "✅ Deployment completed"
