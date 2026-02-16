@@ -102,6 +102,7 @@ export default function Header() {
         }
 
         scrollToPricing();
+        setMobileNavOpen(false);
     };
 
     const renderLink = (to, Icon, label) => (
@@ -255,6 +256,7 @@ export default function Header() {
                                     setMobileNavOpen(false);
                                 }}
                                     to="/" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/')}>Home</Link>
+                                {/* Industries Link */}
                                 <div
                                     className={"w-full text-lg text-left px-8 py-5 flex items-center justify-between" + mobLinkClass('/industries')}
                                     onClick={e => {
@@ -289,9 +291,21 @@ export default function Header() {
                                     </div>
                                 )}
                                 <Link to="/" onClick={handlePricingClick} className='w-full text-lg text-left px-8 py-5'>Pricing</Link>
-                                <Link to="/faqs" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/faqs')}>FAQ's</Link>
-                                <Link to="/about" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/about')}>About Us</Link>
-                                <Link to="/contact" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/contact')}>Contact Us</Link>
+                                <Link onClick={e => {
+                                    e.stopPropagation();
+                                    setMobileNavOpen(false);
+                                }}
+                                    to="/faqs" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/faqs')}>FAQ's</Link>
+                                <Link onClick={e => {
+                                    e.stopPropagation();
+                                    setMobileNavOpen(false);
+                                }}
+                                    to="/about" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/about')}>About Us</Link>
+                                <Link onClick={e => {
+                                    e.stopPropagation();
+                                    setMobileNavOpen(false);
+                                }}
+                                    to="/contact" className={"w-full text-lg text-left px-8 py-5" + mobLinkClass('/contact')}>Contact Us</Link>
                             </nav>
                         </div>
                     </div>

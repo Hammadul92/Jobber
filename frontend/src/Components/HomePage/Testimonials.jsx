@@ -16,7 +16,7 @@ function Testimonials() {
             <div>
                 <div className='w-full flex flex-wrap lg:flex-nowrap items-end justify-between gap-5 mb6 lg:mb-3'>
                     <div className='lg:pb-12'>
-                        <h2 className='font-heading text-2xl lg:text-3xl max-w-3xl leading-relaxed lg:leading-14'>
+                        <h2 className='font-heading text-xl md:text-2xl lg:text-3xl max-w-3xl leading-relaxed lg:leading-14'>
                             HERE&apos;S WHAT OUR <span className='text-accent'>CUSTOMERS</span> HAVE TO SAY
                         </h2>
                     </div>

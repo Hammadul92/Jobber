@@ -29,9 +29,9 @@ function Features() {
             <div className="mx-auto max-w-6xl">
                 <div className="space-y-6 md:space-y-8">
                     <div className="max-w-3xl space-y-4">
-                        <h3 className="text-xl md:text-2xl lg:text-3xl font-heading text-gray-900">
+                        <h2 className="text-xl md:text-2xl lg:text-3xl font-heading text-gray-900">
                             Everything in one place.
-                        </h3>
+                        </h2>
                         <p className="md:text-xl font-intro leading-relaxed text-gray-600">
                             We replace the dozen disconnected apps you currently use with one streamlined operating system.
                         </p>

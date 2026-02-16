@@ -45,9 +45,9 @@ function Team() {
             {/* Right Side Text Content */}
             <div className="min-w-[48%] flex-1 space-y-6 md:space-y-8">
                 <div className="space-y-4">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-heading uppercase text-primary tracking-tighter">
+                    <h2 className="text-xl md:text-2xl lg:text-3xl font-heading uppercase text-primary tracking-tighter">
                         More than just software.
-                    </h3>
+                    </h2>
                     <p className="leading-relaxed text-gray-600 md:text-2xl">
                         We aren&apos;t just developers; we are partners in your growth. Our team is composed of industry veterans
                         and tech experts united by a single goal making your life easier.

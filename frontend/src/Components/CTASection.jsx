@@ -11,8 +11,8 @@ function CTASection() {
                 style={{ backgroundImage: `url(/images/CTA-Gradient.svg)` }}
             >
                 <h3 className='font-intro text-4xl lg:text-5xl font-bold text-cardLight'>Ready To Design Smarter?</h3>
-                <p className='w-md md:w-lg max-w-lg text-black/80 font-medium md:text-lg'>
-                    Whether you&apos;re a freelancer, a team, or a growing agency—our tools
+                <p className='w-md md:w-lg max-w-lg text-black/80 font-medium text-base md:text-lg'>
+                    Whether you&apos;re a freelancer, a team, or a growing agency, our tools
                     adapt to your workflow. Design faster. Deliver better.
                 </p>
                 <Link to="/register" className='primary'>

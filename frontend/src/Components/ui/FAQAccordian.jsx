@@ -19,7 +19,7 @@ function FAQAccordian({ items, defaultOpenIndex = 0 }) {
 
   return (
     <section
-      className="w-full"
+      className="z-20 w-full px-6 md:px-16 lg:px-32"
     >
       <div className="max-w-4xl mx-auto">
         {items.map((item, idx) => {
