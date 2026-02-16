@@ -89,7 +89,7 @@ function Services() {
       style={{ backgroundImage: `url(/images/industries-section-bg.png)` }}
     >
       <div className='max-w-6xl'>
-        <h2 className='font-heading text-2xl md:text-2xl lg:text-3xl max-w-2xl lg:pr-60 font-bold leading-relaxed lg:leading-[1.6] text-white'>
+        <h2 className='font-heading text-xl md:text-2xl lg:text-3xl max-w-2xl lg:pr-60 font-bold leading-relaxed lg:leading-[1.6] text-white'>
           Supporting home service businesses across <span className='text-accent'>50+ industries</span>.
         </h2>
         <div className='mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>

@@ -34,7 +34,7 @@ export default function Footer() {
                 <div className="flex flex-wrap lg:flex-nowrap items-start justify-between w-full gap-8 lg:gap-20">
                     {/* About Us Column */}
                     <div className="lg:w-2xs lg:max-w-2xs">
-                        <h4 className="font-sans text-3xl font-semibold">About Us</h4>
+                        <h4 className="font-sans text-xl md:text-3xl  font-semibold">About Us</h4>
                         <p className="text-white/70 mt-2 md:mt-5 text-justify">
                             We&apos;re a team of designers, engineers, and innovators building AI tools that empower
                             anyone to turn imagination into stunning visuals, faster, smarter, and effortlessly.
@@ -42,7 +42,7 @@ export default function Footer() {
                     </div>
                     {/* Useful Links Column */}
                     <div>
-                        <h4 className="font-sans text-2xl font-medium">Useful Links</h4>
+                        <h4 className="font-sans text-xl md:text-2xl font-medium">Useful Links</h4>
                         <div className="flex flex-col items-start lg:gap-3 mt-2 md:mt-5">
                             <Link to="/" className="text-white/70 hover:text-white">
                                 About
@@ -60,7 +60,7 @@ export default function Footer() {
                     </div>
                     {/* Help Column */}
                     <div>
-                        <h4 className="font-sans text-2xl font-medium">Help</h4>
+                        <h4 className="font-sans text-xl md:text-2xl font-medium">Help</h4>
                         <div className="flex flex-col items-start lg:gap-3 mt-2 md:mt-5">
                             <Link to="/customer-support" className="text-white/70 hover:text-white">
                                 Customer Support
@@ -78,7 +78,7 @@ export default function Footer() {
                     </div>
                     {/* Connect With Us Column */}
                     <div>
-                        <h4 className="font-sans text-2xl font-medium">Connect With Us</h4>
+                        <h4 className="font-sans text-xl md:text-2xl font-medium">Connect With Us</h4>
                         <div className="flex flex-col items-start lg:gap-4 mt-2 md:mt-5 max-w-3xs text-white/70">
                             <p>27 Division St, New York, NY 10002, USA</p>
                             <p>+123 324 2653</p>

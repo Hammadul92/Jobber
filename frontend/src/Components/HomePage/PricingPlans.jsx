@@ -67,7 +67,7 @@ function PricingPlans() {
     return (
         <section id='pricingPlans' className='w-full min-h-screen px-6 py-12 lg:px-32 lg:py-28 bg-background'>
             <div>
-                <h2 className='font-heading text-2xl text-secondary max-w-lg mx-auto text-center'>
+                <h2 className='font-heading text-xl md:text-2xl lg:text-3xl text-secondary max-w-lg mx-auto text-center'>
                     Choose the plan that&apos;s right for you
                 </h2>
                 <p className='font-intro mt-3 text-lg text-black/70 max-w-2xl text-center mx-auto'>
