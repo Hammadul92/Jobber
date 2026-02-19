@@ -1,12 +1,12 @@
 import React from 'react'
-import FAQHome from '../Components/FAQPage/FAQHome';
+import FAQHero from '../Components/FAQPage/FAQHero';
 import FAQSection from '../Components/HomePage/FAQSection';
 import CTASection from '../Components/CTASection';
 
 function FAQs() {
   return (
     <main>
-      <FAQHome />
+      <FAQHero />
       <FAQSection />
       <CTASection />
     </main>

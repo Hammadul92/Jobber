@@ -1,7 +1,7 @@
 import React from 'react'
 import HeroSection from '../ui/HeroSection'
 
-function FAQHome() {
+function FAQHero() {
     return (
         <HeroSection>
             {/* Badge */}
@@ -12,7 +12,7 @@ function FAQHome() {
             </div>
             <div className='z-20'>
                 {/* content */}
-                <h1 className='font-heading text-[1.5rem] md:text-4xl lg:text-[3.5rem] text-center leading-snug md:max-w-6xl md:w-8xl'>
+                <h1 className='font-heading text-[1.5rem] md:text-4xl lg:text-[3.5rem] text-center leading-snug md:max-w-6xl md:w-6xl text-center'>
                     FREQUENTLY <span className='text-accent'>ASKED</span> QUESTIONS
                 </h1>
                 <p className='w-6xl text-gray-600 mx-auto text-center md:px-28 md:text-xl lg:text-2xl section-intro mt-1 lg:mt-10'>
@@ -24,4 +24,4 @@ function FAQHome() {
     )
 }
 
-export default FAQHome
+export default FAQHero
