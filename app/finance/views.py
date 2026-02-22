@@ -226,7 +226,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
             account_link = stripe.AccountLink.create(
                 account=connected_account.id,
                 refresh_url=(f"{settings.FRONTEND_URL}/reauth"),
-                return_url=(f"{settings.FRONTEND_URL}/user-account/banking"),
+                return_url=(f"{settings.FRONTEND_URL}/user/banking"),
                 type="account_onboarding",
             )
 
