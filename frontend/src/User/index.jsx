@@ -68,7 +68,7 @@ export default function UserDashboard({ page, token, user }) {
 
         // Redirect to home if user role is not allowed
         const userRole = user?.role;
-        if (!userRole || userRole === 'USER') {
+        if (!userRole) {
             navigate('/', { replace: true });
             return;
         }
