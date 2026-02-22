@@ -77,7 +77,7 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                                     <div className="md:col-span-2">
                                         <Select
                                             id="quote-service"
-                                            label="Service (*)"
+                                            label="Service"
                                             value={serviceId}
                                             onChange={setServiceId}
                                             isRequired={true}
@@ -101,8 +101,9 @@ export default function CreateQuoteForm({ token, showModal, setShowModal, setAle
                                             value={validUntil}
                                             onChange={setValidUntil}
                                             isRequired={true}
-                                            label="Valid Until (*)"
+                                            label="Valid Until"
                                             id="quote-valid-until"
+                                            className="w-full rounded-lg! border border-gray-200 bg-white px-3! py-2.5! text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                                         />
                                     </div>
                                 </div>

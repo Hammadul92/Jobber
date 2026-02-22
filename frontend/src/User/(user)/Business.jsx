@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FaChevronLeft, FaChevronRight, FaImage } from 'react-icons/fa';
+import { LuCheck } from "react-icons/lu";
 import { provinces, countries } from '../../constants/locations';
 import { useFetchBusinessesQuery, useCreateBusinessMutation, useUpdateBusinessMutation } from '../../store';
 import SubmitButton from '../../Components/ui/SubmitButton';
 import Input from '../../Components/ui/Input';
+import { useFetchUserQuery } from '../../store';
+import { NavLink } from 'react-router-dom';
 
 export default function Business({ token, setAlert }) {
     const [step, setStep] = useState(1);
@@ -26,7 +29,9 @@ export default function Business({ token, setAlert }) {
     const [timezone, setTimezone] = useState('America/Edmonton');
     const [selectedServices, setSelectedServices] = useState([]);
     const [logo, setLogo] = useState(null);
+    const [dragActive, setDragActive] = useState(false); // @eslint-disable-line no-unused-vars
 
+    const { data: user } = useFetchUserQuery(undefined, { skip: !token });
     const { data: businessData, isLoading, refetch } = useFetchBusinessesQuery(undefined, { skip: !token });
     const [createBusiness, { isLoading: isCreating }] = useCreateBusinessMutation();
     const [updateBusiness, { isLoading: isUpdating }] = useUpdateBusinessMutation();
@@ -179,327 +184,392 @@ export default function Business({ token, setAlert }) {
     };
 
     const steps = ['Details', 'Address', 'Services', 'Logo'];
-    const inputClass =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
-    const selectClass = inputClass;
+    const inputClass = 'w-full rounded-lg border border-gray-300 bg-white p-3 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
+    const selectClass = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-3.5 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
     const textareaClass = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
 
     if (isLoading) return <div>Loading business data...</div>;
 
     return (
         <>
-            <div className="mb-6 flex flex-wrap items-center gap-3">
-                {steps.map((label, index) => {
-                    const stepNum = index + 1;
-                    const isActive = stepNum === step;
-                    const isCompleted = stepNum !== step && isStepVisuallyComplete(stepNum);
-
-                    return (
-                        <button
-                            type="button"
-                            key={label}
-                            className={`flex items-center gap-3 cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold transition ${isActive
-                                ? 'border-secondary bg-secondary text-white'
-                                : isCompleted
-                                    ? 'border-green-200 bg-green-50 text-green-700'
-                                    : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-accent/70 hover:text-accent'
-                                }`}
-                            onClick={() => {
-                                if (stepNum < step) {
-                                    setStep(stepNum);
-                                } else if (stepNum > step) {
-                                    let canProceed = true;
-                                    for (let i = step; i < stepNum; i++) {
-                                        if (!isStepComplete(i)) {
-                                            canProceed = false;
-                                            break;
-                                        }
-                                    }
-
-                                    if (canProceed) {
-                                        setStep(stepNum);
-                                    } else {
-                                        setAlert({
-                                            type: 'danger',
-                                            message: 'Please fill all required fields before continuing.',
-                                        });
-                                    }
-                                }
-                            }}
-                        >
-                            <span className={`hidden md:flex md:h-6 md:w-6 items-center justify-center 
-                                rounded-full md:bg-white text-xs font-bold md:text-secondary 
-                                shadow ${isActive ? 'text-white' : 'text-secondary'}`}
-                            >
-                                {stepNum}
-                            </span>
-                            <span>{label}</span>
-                        </button>
-                    );
-                })}
+            <div>
+                <h2 className="text-4xl font-bold mb-1">Welcome, {user?.name || 'User'}!</h2>
+                <p className="text-gray-500 mb-6">Manage your profile and account settings.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-                {step === 1 && (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <Input
-                                id="business_name"
-                                label={'Business Name'}
-                                value={name}
-                                isRequired={true}
-                                onChange={setName}
-                                fieldClass={inputClass}
-                            />
-                            <Input
-                                id="slug"
-                                label={'Slug'}
-                                value={slug}
-                                isRequired={true}
-                                onChange={setSlug}
-                                fieldClass={inputClass}
-                            />
-                            <Input
-                                type="email"
-                                id="email"
-                                label={'Email'}
-                                value={email}
-                                isRequired={true}
-                                onChange={setEmail}
-                                fieldClass={inputClass}
-                            />
-                        </div>
+            <div className='min-h-[75vh] p-10 bg-white rounded-xl shadow-md'>
+                <div className="mb-6 flex flex-wrap items-center">
+                    {steps.map((label, index) => {
+                        const stepNum = index + 1;
+                        const isActive = stepNum === step;
+                        const isCompleted = stepNum !== step && isStepVisuallyComplete(stepNum);
 
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <Input
-                                type="tel"
-                                id="phone"
-                                label={'Phone'}
-                                value={phone}
-                                isRequired={true}
-                                onChange={setPhone}
-                                fieldClass={inputClass}
-                            />
-                            <Input
-                                type="url"
-                                id="phone"
-                                label={'Business Website'}
-                                value={website}
-                                isRequired={false}
-                                onChange={setWebsite}
-                                fieldClass={inputClass}
-                            />
-                        </div>
+                        return (
+                            <div key={label} className='flex items-center gap-3'>
+                                {stepNum <= steps.length && stepNum > 1 && <div className={`h-0.5 w-20 rounded-full ${isCompleted ? 'bg-green-600' : 'bg-gray-300'}`} />}
+                                <button
+                                    type="button"
+                                    className={`flex items-center gap-3 cursor-pointer rounded-full pr-3 transition 
+                                    ${isActive ? 'text-black font-bold' : 'text-gray-700 font-normal'}`}
+                                    onClick={() => {
+                                        if (stepNum < step) {
+                                            setStep(stepNum);
+                                        } else if (stepNum > step) {
+                                            let canProceed = true;
+                                            for (let i = step; i < stepNum; i++) {
+                                                if (!isStepComplete(i)) {
+                                                    canProceed = false;
+                                                    break;
+                                                }
+                                            }
 
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <div className="flex flex-col">
-                                <label className="font-medium" htmlFor="timezone">
-                                    Timezone <sup className="text-accent">*</sup>
-                                </label>
-                                <select
-                                    id="timezone"
-                                    value={timezone}
-                                    onChange={(e) => setTimezone(e.target.value)}
-                                    required
-                                    className={selectClass}
+                                            if (canProceed) {
+                                                setStep(stepNum);
+                                            } else {
+                                                setAlert({
+                                                    type: 'danger',
+                                                    message: 'Please fill all required fields before continuing.',
+                                                });
+                                            }
+                                        }
+                                    }}
                                 >
-                                    <option value="">-- Select Timezone --</option>
-                                    {timezones.map((opt) => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <span className={`hidden md:flex md:h-7 md:w-7 items-center justify-center 
+                                    rounded-full text-sm font-bold 
+                                    ${isActive ? 'bg-secondary text-white' :
+                                        isCompleted ? 'bg-green-600 text-white' : 'bg-transparent border-2 border-gray-300 text-gray-700'}
+                                    `}>
+                                        {isCompleted ? <LuCheck className='w-4 h-4 font-black' /> : <span className="text-sm">{stepNum}</span>}
+                                    </span>
+                                    <span>{label}</span>
+                                </button>
                             </div>
-                            <Input
-                                id="business_number"
-                                label={'Business Number'}
-                                value={businessNumber}
-                                isRequired={true}
-                                onChange={setBusinessNumber}
-                                fieldClass={inputClass}
-                            />
-                            <Input
-                                type="number"
-                                id="tax_rate"
-                                label={'Tax Rate'}
-                                value={taxRate}
-                                isRequired={true}
-                                onChange={setTaxRate}
-                                fieldClass={inputClass}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="font-medium">
-                                Business Description <sup className="text-accent">*</sup>
-                            </label>
-                            <textarea
-                                className={textareaClass}
-                                rows={3}
-                                value={businessDescription}
-                                onChange={(e) => setBusinessDescription(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {step === 2 && (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div className="flex flex-col">
-                                <label className="mb-1 text-sm font-semibold text-gray-800" htmlFor="country">
-                                    Country <sup className="text-accent">*</sup>
-                                </label>
-                                <select
-                                    id="country"
-                                    value={country}
-                                    onChange={(e) => setCountry(e.target.value)}
-                                    required
-                                    className={selectClass}
-                                >
-                                    <option value="">-- Select Country --</option>
-                                    {countries.map((option, index) => (
-                                        <option key={index} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex flex-col">
-                                <label className="mb-1 text-sm font-semibold text-gray-800" htmlFor="province">
-                                    Province / State <sup className="text-accent">*</sup>
-                                </label>
-                                <select
-                                    id="province"
-                                    value={provinceState}
-                                    onChange={(e) => setProvinceState(e.target.value)}
-                                    required
-                                    className={selectClass}
-                                >
-                                    <option value="">-- Select Province / State --</option>
-                                    {(provinces[country] || []).map((option, index) => (
-                                        <option key={index} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
-                        <Input
-                            id="street_address"
-                            label={'Street Address'}
-                            value={streetAddress}
-                            isRequired={true}
-                            onChange={setStreetAddress}
-                            fieldClass={inputClass}
-                        />
-
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <Input
-                                id="city"
-                                label={'City'}
-                                value={city}
-                                isRequired={true}
-                                onChange={setCity}
-                                fieldClass={inputClass}
-                            />
-
-                            <Input
-                                id="postal_code"
-                                label={'Postal / ZIP Code'}
-                                value={postalCode}
-                                isRequired={true}
-                                onChange={setPostalCode}
-                                fieldClass={inputClass}
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {step === 3 && (
-                    <div className="space-y-4">
-                        <p className="text-sm text-gray-600">Select all services you offer.</p>
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                            {services.map((service) => {
-                                const isSelected = selectedServices.includes(service);
-                                return (
-                                    <button
-                                        key={service}
-                                        type="button"
-                                        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${isSelected
-                                            ? 'border-accent bg-accent/10 text-accent'
-                                            : 'border-gray-200 bg-white text-gray-700 hover:border-accent/60 hover:text-accent'
-                                            }`}
-                                        onClick={() => toggleService(service)}
-                                    >
-                                        {service}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {step === 4 && (
-                    <div className="space-y-4">
-                        <div className="flex h-40 items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50">
-                            {logo ? (
-                                <img
-                                    src={typeof logo === 'string' ? logo : URL.createObjectURL(logo)}
-                                    alt="Business Logo"
-                                    className="max-h-36 rounded object-contain"
-                                />
-                            ) : (
-                                <div className="text-center text-sm text-gray-500">
-                                    <FaImage className="text-6xl text-gray-300" />
-                                    <div className="mt-2">Upload your logo</div>
-                                </div>
-                            )}
-                        </div>
-                        <div>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                className="block w-full max-w-sm rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                                onChange={(e) => setLogo(e.target.files[0])}
-                            />
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex items-center justify-between gap-3 pt-2">
-                    {step > 1 && (
-                        <button
-                            type="button"
-                            className="secondary"
-                            onClick={prevStep}
-                        >
-                            <FaChevronLeft className='inline mb-0.5 mr-2' />
-                            Back
-                        </button>
-                    )}
-                    {step < totalSteps ? (
-                        <button
-                            type="button"
-                            className="primary"
-                            onClick={nextStep}
-                        >
-                            Next
-                            <FaChevronRight className='inline mb-0.5 ml-2' />
-                        </button>
-                    ) : (
-                        <SubmitButton
-                            isLoading={isCreating || isUpdating}
-                            btnClass="ml-auto inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accent/90 disabled:opacity-60 disabled:cursor-not-allowed"
-                            btnName="Save Changes"
-                            isDisabled={!validateStep()}
-                        />
-                    )}
+                        );
+                    })}
                 </div>
-            </form>
+
+                <form onSubmit={handleSubmit} className="min-h-[60vh] flex flex-col justify-between h-full space-y-5">
+                    {step === 1 && (
+                        <div className="space-y-4">
+                            <div className='mt-10 mb-6'>
+                                <h2 className="text-3xl font-bold">Core Business Information</h2>
+                                <p className="text-gray-400">Please provide your original business details to proceed.</p>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                <Input
+                                    id="business_name"
+                                    label={'Business Name'}
+                                    value={name}
+                                    isRequired={true}
+                                    onChange={setName}
+                                    fieldClass={inputClass}
+                                />
+                                <Input
+                                    id="slug"
+                                    label={'Slug'}
+                                    value={slug}
+                                    isRequired={true}
+                                    onChange={setSlug}
+                                    fieldClass={inputClass}
+                                />
+                                <Input
+                                    type="email"
+                                    id="email"
+                                    label={'Email'}
+                                    value={email}
+                                    isRequired={true}
+                                    onChange={setEmail}
+                                    fieldClass={inputClass}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <Input
+                                    type="tel"
+                                    id="phone"
+                                    label={'Phone'}
+                                    value={phone}
+                                    isRequired={true}
+                                    onChange={setPhone}
+                                    fieldClass={inputClass}
+                                />
+                                <Input
+                                    type="url"
+                                    id="phone"
+                                    label={'Business Website'}
+                                    value={website}
+                                    isRequired={false}
+                                    onChange={setWebsite}
+                                    fieldClass={inputClass}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                <div className="flex flex-col">
+                                    <label className="mb-1 block text-sm font-semibold text-gray-500 uppercase" htmlFor="timezone">
+                                        Timezone <sup className="text-accent">*</sup>
+                                    </label>
+                                    <select
+                                        id="timezone"
+                                        value={timezone}
+                                        onChange={(e) => setTimezone(e.target.value)}
+                                        required
+                                        className={selectClass}
+                                    >
+                                        <option value="">-- Select Timezone --</option>
+                                        {timezones.map((opt) => (
+                                            <option key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <Input
+                                    id="business_number"
+                                    label={'Business Number'}
+                                    value={businessNumber}
+                                    isRequired={true}
+                                    onChange={setBusinessNumber}
+                                    fieldClass={inputClass}
+                                />
+                                <Input
+                                    type="number"
+                                    id="tax_rate"
+                                    label={'Tax Rate'}
+                                    value={taxRate}
+                                    isRequired={true}
+                                    onChange={setTaxRate}
+                                    fieldClass={inputClass}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="mb-1 block text-sm font-semibold text-gray-500 uppercase">
+                                    Business Description <sup className="text-accent">*</sup>
+                                </label>
+                                <textarea
+                                    className={textareaClass}
+                                    rows={3}
+                                    value={businessDescription}
+                                    onChange={(e) => setBusinessDescription(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="space-y-4">
+                            <div className='mt-10 mb-6'>
+                                <h2 className="text-3xl font-bold">Business Address</h2>
+                                <p className="text-gray-400">Provide the physical location of your business operations.</p>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className="flex flex-col">
+                                    <label className="mb-1 text-sm font-semibold text-gray-500 uppercase" htmlFor="country">
+                                        Country <sup className="text-accent">*</sup>
+                                    </label>
+                                    <select
+                                        id="country"
+                                        value={country}
+                                        onChange={(e) => setCountry(e.target.value)}
+                                        required
+                                        className={selectClass}
+                                    >
+                                        <option value="">-- Select Country --</option>
+                                        {countries.map((option, index) => (
+                                            <option key={index} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="flex flex-col">
+                                    <label className="mb-1 text-sm font-semibold text-gray-500 uppercase" htmlFor="province">
+                                        Province / State <sup className="text-accent">*</sup>
+                                    </label>
+                                    <select
+                                        id="province"
+                                        value={provinceState}
+                                        onChange={(e) => setProvinceState(e.target.value)}
+                                        required
+                                        className={selectClass}
+                                    >
+                                        <option value="">-- Select Province / State --</option>
+                                        {(provinces[country] || []).map((option, index) => (
+                                            <option key={index} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <Input
+                                id="street_address"
+                                label={'Street Address'}
+                                value={streetAddress}
+                                isRequired={true}
+                                onChange={setStreetAddress}
+                                fieldClass={inputClass}
+                            />
+
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <Input
+                                    id="city"
+                                    label={'City'}
+                                    value={city}
+                                    isRequired={true}
+                                    onChange={setCity}
+                                    fieldClass={inputClass}
+                                />
+
+                                <Input
+                                    id="postal_code"
+                                    label={'Postal / ZIP Code'}
+                                    value={postalCode}
+                                    isRequired={true}
+                                    onChange={setPostalCode}
+                                    fieldClass={inputClass}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div className="space-y-4">
+                            <div className='mt-10 mb-6'>
+                                <h2 className="text-3xl font-bold">Your Services</h2>
+                                <p className="text-gray-400">Select the categories that best describe your business capabilities.</p>
+                            </div>
+                            <h3 className="text-xl leading-tighter font-semibold">Select all services you offer.</h3>
+                            <p className='text-gray-400 -mt-4'>This helps us customize your dashboard and client workflows.</p>
+                            <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+                                {services.map((service) => {
+                                    const isSelected = selectedServices.includes(service);
+                                    return (
+                                        <button
+                                            key={service}
+                                            type="button"
+                                            className={`relative rounded-xl border-2 px-3 py-10 text-sm font-medium transition ${isSelected
+                                                ? 'border-accent bg-accent/10 text-accent'
+                                                : 'border-gray-200 bg-white text-gray-700 hover:border-accent/60 hover:text-accent'
+                                                }`}
+                                            onClick={() => toggleService(service)}
+                                        >
+                                            {isSelected && (
+                                                <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-white">
+                                                    <LuCheck className="w-3 h-3" />
+                                                </span>
+                                            )}
+                                            {service}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 4 && (
+                        <div className="space-y-4">
+                            <div className='mt-10 mb-6'>
+                                <h2 className="text-3xl font-bold">Final Step: Brand Identity</h2>
+                                <p className="text-gray-400">Upload your official logo to complete the setup process.</p>
+                            </div>
+                            <h3 className="text-xl leading-tighter font-semibold">Upload your business logo</h3>
+                            <p className='text-gray-400 -mt-4'>This will be used for invoices, quotes, and your public profile.</p>
+                            <div
+                                onDragEnter={e => { e.preventDefault(); e.stopPropagation(); setLogo(prev => prev); setDragActive(true); }}
+                                onDragLeave={e => { e.preventDefault(); e.stopPropagation(); setDragActive(false); }}
+                                onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragActive(true); }}
+                                onDrop={e => {
+                                    e.preventDefault(); e.stopPropagation(); setDragActive(false);
+                                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                                        setLogo(e.dataTransfer.files[0]);
+                                    }
+                                }}
+                                className={`flex flex-col items-center justify-center h-80 rounded-xl border-2 border-dashed ${logo ? 'border-green-400' : 'border-gray-300'} bg-gray-50 transition-all duration-200 relative`}
+                                style={{ cursor: 'pointer', position: 'relative' }}
+                            >
+                                {!logo ? (
+                                    <>
+                                        <FaImage className="text-6xl text-gray-300 mb-4" />
+                                        <div className="font-semibold text-lg mb-2">Click to upload or drag & drop</div>
+                                        <div className="text-gray-400 mb-4">Supported formats: PNG, JPG, SVG (Max 5MB)</div>
+                                        <label className="inline-block px-6 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer font-medium text-sm">
+                                            Choose File
+                                            <input
+                                                type="file"
+                                                accept="image/png, image/jpeg, image/svg+xml"
+                                                style={{ display: 'none' }}
+                                                onChange={e => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        setLogo(e.target.files[0]);
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center">
+                                        <div className="mb-2 font-medium text-sm">Selected file: {logo.name || 'Logo'}</div>
+                                        {logo.type && logo.type.startsWith('image/') && (
+                                            <img
+                                                src={typeof logo === 'string' ? logo : URL.createObjectURL(logo)}
+                                                alt="Business Logo"
+                                                className="max-h-36 rounded object-contain mb-4"
+                                            />
+                                        )}
+                                        <button
+                                            type="button"
+                                            className="px-4 py-1 bg-red-500 text-white rounded-lg text-sm font-medium"
+                                            onClick={() => setLogo(null)}
+                                        >Remove</button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-3 pt-2">
+                        {step > 1 && (
+                            <button
+                                type="button"
+                                className="secondary"
+                                onClick={prevStep}
+                            >
+                                <FaChevronLeft className='inline mb-0.5 mr-2' />
+                                Back
+                            </button>
+                        )}
+                        {step < totalSteps ? (
+                            <button
+                                type="button"
+                                className="primary"
+                                onClick={nextStep}
+                            >
+                                Next
+                                <FaChevronRight className='inline mb-0.5 ml-2' />
+                            </button>
+                        ) : (
+                            <SubmitButton
+                                isLoading={isCreating || isUpdating}
+                                btnClass="ml-auto inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accent/90 disabled:opacity-60 disabled:cursor-not-allowed"
+                                btnName="Save Changes"
+                                isDisabled={!validateStep()}
+                            />
+                        )}
+                    </div>
+                </form>
+            </div>
+
+            <div className="mt-6 p-3 flex items-center justify-between text-sm text-gray-500">
+                <p>&copy; {new Date().getFullYear()} {businessData[0]?.name || 'Business Name'}. All rights reserved.</p>
+                <div className='space-x-5 font-bold'>
+                    <NavLink to="/privacy-policy" className="hover:text-accent">Privacy Policy</NavLink>
+                    <NavLink to="/terms-of-service" className="hover:text-accent">Terms of Service</NavLink>
+                </div>
+            </div>
         </>
     );
 }

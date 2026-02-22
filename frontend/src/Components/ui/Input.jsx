@@ -73,8 +73,8 @@ export default function Input({
 
         <div className="mb-6">
             {label && (
-                <label htmlFor={id} className="mb-2 block text-base font-semibold">
-                    {label} {isRequired && <span className="text-black">*</span>}
+                <label htmlFor={id} className="mb-1 block text-sm font-semibold text-gray-500 uppercase">
+                    {label} {isRequired && <span className="text-accent">*</span>}
                 </label>
             )}
             <input

@@ -2,7 +2,7 @@ export default function Select({ id, label, value, isRequired = false, isDisable
     return (
         <div className="mb-4">
             {label && (
-                <label className="mb-1 block text-sm font-semibold text-gray-700" htmlFor={id}>
+                <label className="mb-1 block text-sm font-semibold text-gray-500 uppercase" htmlFor={id}>
                     {label} {isRequired && <span className="text-accent">*</span>}
                 </label>
             )}
