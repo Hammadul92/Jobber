@@ -21,8 +21,7 @@ import SignIn from './forms/SignIn';
 import Register from './forms/Register';
 import ForgotPassword from './forms/ForgotPassword';
 import ResetPassword from './forms/ResetPassword';
-import UserAccount from './Components/UserAccount';
-import UserDashboard from './Components/UserDashboard';
+import UserDashboard from './User';
 
 function App() {
     return (
@@ -52,7 +51,7 @@ function MainApp() {
         return <div className="text-center py-5">Loading...</div>;
     }
 
-    const isDashboardRoute = window.location.pathname.startsWith('/dashboard');
+    const isDashboardRoute = window.location.pathname.startsWith('/user');
 
     return (
         <>
@@ -79,10 +78,16 @@ function MainApp() {
                     <Route path="/reset-password" element={<ResetPassword />} />
                     
                     {/* User account */}
-                    <Route path="/user-account/:tab" element={<UserAccount token={token} user={user} />} />
+                    <Route path="/user">
+                        <Route index element={<UserDashboard page="profile" token={token} user={user} />} />
+                        <Route path="profile" element={<UserDashboard page="profile" token={token} user={user} />} />
+                        <Route path="business" element={<UserDashboard page="business" token={token} user={user} />} />
+                        <Route path="banking" element={<UserDashboard page="banking" token={token} user={user} />} />
+                        <Route path="credentials" element={<UserDashboard page="credentials" token={token} user={user} />} />
+                    </Route>
 
                     {/* Dashboard routes */}
-                    <Route path="/dashboard">
+                    <Route path="/user/business">
                         <Route path="home" element={<UserDashboard page="home" token={token} user={user} />} />
                         <Route path="clients" element={<UserDashboard page="clients" token={token} user={user} />} />
                         <Route

@@ -42,19 +42,47 @@ export default function Input({
     };
 
     return (
-        <div className="mb-4">
+        // <div className="mb-4">
+        //     {label && (
+        //         <label htmlFor={id} className="mb-1 block text-sm font-semibold text-gray-700">
+        //             {label} {isRequired && <span className="text-accent">*</span>}
+        //         </label>
+        //     )}
+        //     <input
+        //         type={type}
+        //         id={id}
+        //         className={`${
+        //             fieldClass ||
+        //             'w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-800 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500'
+        //         } ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+        //         value={value}
+        //         onChange={handleChange}
+        //         onBlur={() => {
+        //             if (isPhone && value && !validatePhone(value)) {
+        //                 setError('Phone number must be in valid +1 format (e.g. +1555-555-5555)');
+        //             } else {
+        //                 setError('');
+        //             }
+        //         }}
+        //         required={isRequired}
+        //         disabled={isDisabled}
+        //         placeholder={isPhone ? '+1555-555-5555' : ''}
+        //     />
+        //     {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        // </div>
+
+        <div className="mb-6">
             {label && (
-                <label htmlFor={id} className="mb-1 block text-sm font-semibold text-gray-700">
-                    {label} {isRequired && <span className="text-accent">*</span>}
+                <label htmlFor={id} className="mb-2 block text-base font-semibold">
+                    {label} {isRequired && <span className="text-black">*</span>}
                 </label>
             )}
             <input
                 type={type}
                 id={id}
-                className={`${
-                    fieldClass ||
-                    'w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500'
-                } ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                className={`w-full rounded-2xl bg-[#FAFAFA] border px-4 py-3 text-lg text-gray-700 focus:outline-none disabled:cursor-not-allowed disabled:bg-[#F5F5F5] disabled:text-gray-400 placeholder:text-gray-300 
+                    ${fieldClass || ''} 
+                    ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                 value={value}
                 onChange={handleChange}
                 onBlur={() => {
@@ -66,9 +94,10 @@ export default function Input({
                 }}
                 required={isRequired}
                 disabled={isDisabled}
-                placeholder={isPhone ? '+1555-555-5555' : ''}
+                placeholder={isPhone ? '+15875001189' : label}
+                autoComplete="off"
             />
-            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+            {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
         </div>
     );
 }

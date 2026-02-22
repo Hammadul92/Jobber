@@ -123,30 +123,30 @@ export default function Header() {
 
     const managerMenu = (
         <>
-            {renderLink('/dashboard/home', FaChartLine, 'Dashboard')}
-            {renderLink('/dashboard/team-members', FaUserFriends, 'Team Members')}
-            {renderLink('/dashboard/clients', FaUsers, 'Clients')}
-            {renderLink('/dashboard/service-questionnaires', FaListCheck, 'Questionnaires')}
-            {renderLink('/dashboard/quotes', FaFileSignature, 'Quotes')}
-            {renderLink('/dashboard/jobs', FaClipboardCheck, 'Jobs')}
-            {renderLink('/dashboard/payouts', FaCreditCard, 'Payouts')}
-            {renderLink('/dashboard/invoices', FaFileInvoice, 'Invoices')}
+            {renderLink('/user/business/home', FaChartLine, 'Dashboard')}
+            {renderLink('/user/business/team-members', FaUserFriends, 'Team Members')}
+            {renderLink('/user/business/clients', FaUsers, 'Clients')}
+            {renderLink('/user/business/service-questionnaires', FaListCheck, 'Questionnaires')}
+            {renderLink('/user/business/quotes', FaFileSignature, 'Quotes')}
+            {renderLink('/user/business/jobs', FaClipboardCheck, 'Jobs')}
+            {renderLink('/user/business/payouts', FaCreditCard, 'Payouts')}
+            {renderLink('/user/business/invoices', FaFileInvoice, 'Invoices')}
         </>
     );
 
     const clientMenu = (
         <>
-            {renderLink('/dashboard/services', FaCogs, 'Services')}
-            {renderLink('/dashboard/quotes', FaFileSignature, 'Quotes')}
-            {renderLink('/dashboard/jobs', FaClipboardCheck, 'Jobs')}
-            {renderLink('/dashboard/invoices', FaFileInvoice, 'Invoices')}
+            {renderLink('/user/business/services', FaCogs, 'Services')}
+            {renderLink('/user/business/quotes', FaFileSignature, 'Quotes')}
+            {renderLink('/user/business/jobs', FaClipboardCheck, 'Jobs')}
+            {renderLink('/user/business/invoices', FaFileInvoice, 'Invoices')}
         </>
     );
 
     const employeeMenu = (
         <>
-            {renderLink('/dashboard/jobs', FaClipboardCheck, 'Jobs')}
-            {renderLink('/dashboard/team-members', FaUserFriends, 'Team Members')}
+            {renderLink('/user/business/jobs', FaClipboardCheck, 'Jobs')}
+            {renderLink('/user/business/team-members', FaUserFriends, 'Team Members')}
         </>
     );
 
@@ -404,11 +404,11 @@ export default function Header() {
                                 <div className="absolute z-50 top-4 right-4 lg:right-0 p-3 mt-3 min-w-[70vw] lg:min-w-[20vw] rounded-lg bg-white shadow-lg">
                                     <div>
                                         <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
-                                            {renderLink('/user-account/profile', FaRegUserCircle, 'Profile')}
+                                            {renderLink('/user/profile', FaRegUserCircle, 'Profile')}
                                             {(user.role === 'USER' || user.role === 'MANAGER') &&
-                                                renderLink('/user-account/business', FaBriefcase, 'Business')}
-                                            {renderLink('/user-account/banking', FaBuildingColumns, 'Banking')}
-                                            {renderLink('/user-account/credentials', FaKey, 'Credentials')}
+                                                renderLink('/user/business', FaBriefcase, 'Business')}
+                                            {renderLink('/user/banking', FaBuildingColumns, 'Banking')}
+                                            {renderLink('/user/credentials', FaKey, 'Credentials')}
                                         </ul>
                                     </div>
 
