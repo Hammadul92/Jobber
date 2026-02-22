@@ -113,13 +113,13 @@ export default function EditServiceQuestionnairesForm({ token, business }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
+                        <Link to="/user/business/home" className="font-semibold text-secondary hover:text-accent">
                             {business?.name}
                         </Link>
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to="/dashboard/service-questionnaires" className="font-semibold text-secondary hover:text-accent">
+                        <Link to="/user/business/service-questionnaires" className="font-semibold text-secondary hover:text-accent">
                             Service Questionnaires
                         </Link>
                     </li>
@@ -286,7 +286,7 @@ export default function EditServiceQuestionnairesForm({ token, business }) {
                         <button
                             type="button"
                             className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                            onClick={() => navigate('/dashboard/service-questionnaires')}
+                            onClick={() => navigate('/user/business/service-questionnaires')}
                             disabled={saving}
                         >
                             Cancel

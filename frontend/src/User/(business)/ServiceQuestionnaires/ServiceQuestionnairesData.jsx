@@ -88,14 +88,14 @@ export default function ServiceQuestionnairesData({ token, setAlert }) {
 
                             <div className="mt-4 flex flex-wrap justify-end gap-2">
                                 <Link
-                                    to={`/dashboard/service-questionnaire/${q.id}`}
+                                    to={`/user/business/service-questionnaire/${q.id}`}
                                     className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
                                 >
                                     Edit
                                 </Link>
 
                                 <Link
-                                    to={`/dashboard/service-questionnaire/${q.id}/form`}
+                                    to={`/user/business/service-questionnaire/${q.id}/form`}
                                     className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
                                 >
                                     Preview

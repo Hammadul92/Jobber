@@ -113,7 +113,7 @@ export default function Service({ token, business, role }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
+                        <Link to="/user/business/home" className="font-semibold text-secondary hover:text-accent">
                             {business?.name ||
                                 (role === 'CLIENT'
                                     ? 'Client Portal'
@@ -124,14 +124,14 @@ export default function Service({ token, business, role }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to={`/dashboard/clients`} className="font-semibold text-secondary hover:text-accent">
+                        <Link to={`/user/business/clients`} className="font-semibold text-secondary hover:text-accent">
                             Clients
                         </Link>
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
                         <Link
-                            to={`/dashboard/client/${serviceData.client}/services`}
+                            to={`/user/business/client/${serviceData.client}/services`}
                             className="font-semibold text-secondary hover:text-accent"
                         >
                             Services
@@ -366,7 +366,7 @@ export default function Service({ token, business, role }) {
                     <button
                         type="button"
                         className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/20"
-                        onClick={() => navigate(`/dashboard/client/${serviceData.client}/services`)}
+                        onClick={() => navigate(`/user/business/client/${serviceData.client}/services`)}
                     >
                         Cancel
                     </button>

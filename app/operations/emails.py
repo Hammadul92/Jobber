@@ -6,7 +6,7 @@ def send_quote_email(quote):
     """Send quotation email to client."""
 
     sign_link = (
-        f"{settings.FRONTEND_URL}/dashboard/quote/"
+        f"{settings.FRONTEND_URL}/user/business/quote/"
         f"sign/{quote.id}/"
     )
 
@@ -37,7 +37,7 @@ def send_service_questionnaire_email(service, questionnaire):
 
     subject = "Please Fill Out Your Service Questionnaire"
     questionnaire_link = (
-        f"{settings.FRONTEND_URL}/dashboard/service-questionnaire/"
+        f"{settings.FRONTEND_URL}/user/business/service-questionnaire/"
         f"{questionnaire.id}/form/{service.id}/"
     )
 

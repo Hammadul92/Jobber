@@ -37,25 +37,25 @@ export default function DashboardHome({ business, token, user }) {
             title: 'Invoices',
             value: safeCount(invoices.length, loadingInvoices),
             note: `Paid ${safeCount(paidInvoices, loadingInvoices)}`,
-            link: '/dashboard/invoices',
+            link: '/user/business/invoices',
         },
         {
             title: 'Quotes',
             value: safeCount(quotes.length, loadingQuotes),
             note: `Signed ${safeCount(signedQuotes, loadingQuotes)} • Open ${safeCount(openQuotes, loadingQuotes)}`,
-            link: '/dashboard/quotes',
+            link: '/user/business/quotes',
         },
         {
             title: 'Jobs',
             value: safeCount(jobs.length, loadingJobs),
             note: `In progress ${safeCount(jobsInProgress, loadingJobs)} • Pending ${safeCount(jobsPending, loadingJobs)}`,
-            link: '/dashboard/jobs',
+            link: '/user/business/jobs',
         },
         {
             title: 'Payouts',
             value: safeCount(payouts.length, loadingPayouts),
             note: `Paid ${safeCount(paidPayouts, loadingPayouts)} • Pending ${safeCount(pendingPayouts, loadingPayouts)}`,
-            link: '/dashboard/payouts',
+            link: '/user/business/payouts',
         },
     ];
 
@@ -70,7 +70,7 @@ export default function DashboardHome({ business, token, user }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
+                        <Link to="/user/business/home" className="font-semibold text-secondary hover:text-accent">
                             {portalLabel}
                         </Link>
                     </li>

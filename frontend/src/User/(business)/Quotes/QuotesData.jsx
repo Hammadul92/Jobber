@@ -144,7 +144,7 @@ export default function QuotesData({ token, role, setAlert }) {
                                     {role === 'MANAGER' ? (
                                         <Link
                                             className="font-semibold text-accent hover:text-accentLight"
-                                            to={`/dashboard/service/${quote.service_data.id}`}
+                                            to={`/user/business/service/${quote.service_data.id}`}
                                         >
                                             {quote.service_name}
                                         </Link>
@@ -180,7 +180,7 @@ export default function QuotesData({ token, role, setAlert }) {
                                     <div className="flex flex-wrap justify-end gap-2">
                                         {role === 'MANAGER' && (
                                             <Link
-                                                to={`/dashboard/quote/${quote.id}`}
+                                                to={`/user/business/quote/${quote.id}`}
                                                 className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
                                                 title="Edit Quote"
                                             >
@@ -190,7 +190,7 @@ export default function QuotesData({ token, role, setAlert }) {
 
                                         {!isExpired && quote.status === 'SENT' && role === 'CLIENT' && (
                                             <Link
-                                                to={`/dashboard/quote/sign/${quote.id}`}
+                                                to={`/user/business/quote/sign/${quote.id}`}
                                                 className="inline-flex items-center gap-1 rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-accentLight"
                                                 title="Sign Quote"
                                             >

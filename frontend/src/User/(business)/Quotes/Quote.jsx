@@ -126,13 +126,13 @@ export default function Quote({ token }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to={`/dashboard/home`} className="font-semibold text-secondary hover:text-accent">
+                        <Link to={`/user/business/home`} className="font-semibold text-secondary hover:text-accent">
                             Dashboard
                         </Link>
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to={`/dashboard/quotes`} className="font-semibold text-secondary hover:text-accent">
+                        <Link to={`/user/business/quotes`} className="font-semibold text-secondary hover:text-accent">
                             Quotes
                         </Link>
                     </li>
@@ -222,7 +222,7 @@ export default function Quote({ token }) {
                         <p className={`${textMuted} mt-2`}>
                             Name:{' '}
                             <Link
-                                to={`/dashboard/service/${quoteData.service_data.id}`}
+                                to={`/user/business/service/${quoteData.service_data.id}`}
                                 className="font-semibold text-accent hover:text-accentLight"
                             >
                                 {quoteData.service_data.service_name}
@@ -303,7 +303,7 @@ export default function Quote({ token }) {
                             <button
                                 type="button"
                                 className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-                                onClick={() => navigate('/dashboard/quotes')}
+                                onClick={() => navigate('/user/business/quotes')}
                             >
                                 Cancel
                             </button>

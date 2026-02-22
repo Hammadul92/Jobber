@@ -23,45 +23,45 @@ function Topbar({ role, businessName }) {
         () => [
             {
                 name: 'Dashboard',
-                path: '/dashboard/home',
+                path: '/user/business/home',
                 icon: FaChartLine,
                 is_visible: ['CLIENT', 'MANAGER', 'EMPLOYEE'].includes(role),
             },
             {
                 name: 'Team Members',
-                path: '/dashboard/team-members',
+                path: '/user/business/team-members',
                 icon: FaUserFriends,
                 is_visible: role === 'EMPLOYEE' || role === 'MANAGER',
             },
-            { name: 'Clients', path: '/dashboard/clients', icon: FaUsers, is_visible: role === 'MANAGER' },
+            { name: 'Clients', path: '/user/business/clients', icon: FaUsers, is_visible: role === 'MANAGER' },
             {
                 name: 'Services',
-                path: '/dashboard/services',
+                path: '/user/business/services',
                 icon: FaCogs,
                 is_visible: role === 'CLIENT',
             },
             {
                 name: 'Questionnaires',
-                path: '/dashboard/service-questionnaires',
+                path: '/user/business/service-questionnaires',
                 icon: FaClipboardList,
                 is_visible: role === 'MANAGER',
             },
             {
                 name: 'Quotes',
-                path: '/dashboard/quotes',
+                path: '/user/business/quotes',
                 icon: FaFileSignature,
                 is_visible: role === 'CLIENT' || role === 'MANAGER',
             },
             {
                 name: 'Jobs',
-                path: '/dashboard/jobs',
+                path: '/user/business/jobs',
                 icon: FaClipboardCheck,
                 is_visible: ['CLIENT', 'MANAGER', 'EMPLOYEE'].includes(role),
             },
-            { name: 'Payouts', path: '/dashboard/payouts', icon: FaCreditCard, is_visible: role === 'MANAGER' },
+            { name: 'Payouts', path: '/user/business/payouts', icon: FaCreditCard, is_visible: role === 'MANAGER' },
             {
                 name: 'Invoices',
-                path: '/dashboard/invoices',
+                path: '/user/business/invoices',
                 icon: FaFileInvoice,
                 is_visible: role === 'CLIENT' || role === 'MANAGER',
             },
@@ -94,7 +94,7 @@ function Topbar({ role, businessName }) {
         const segments = location.pathname.split('/').filter(Boolean);
         const items = [
             { label: 'Contractorz', to: '/' },
-            { label: businessLabel, to: '/dashboard/home' },
+            { label: businessLabel, to: '/user/business/home' },
         ];
 
         if (segments[0] !== 'dashboard') return items;

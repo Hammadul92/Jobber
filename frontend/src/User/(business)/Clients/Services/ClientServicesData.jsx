@@ -191,7 +191,7 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
                                                 return (
                                                     <Link
                                                         key={quote.id}
-                                                        to={`/dashboard/quote/${quote.id}`}
+                                                        to={`/user/business/quote/${quote.id}`}
                                                         title={`Quotation: ${quote.quote_number}`}
                                                         className="mr-1 inline-flex items-center rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-semibold text-accent"
                                                     >
@@ -203,7 +203,7 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
                                         <div className="mt-3 flex items-center justify-between gap-2">
                                             {service.service_questionnaires?.id ? (
                                                 <Link
-                                                    to={`/dashboard/service-questionnaire/${service.service_questionnaires?.id}/form/${service.id}`}
+                                                    to={`/user/business/service-questionnaire/${service.service_questionnaires?.id}/form/${service.id}`}
                                                     className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold text-white shadow"
                                                 >
                                                     {service.filled_questionnaire && <FaCheckCircle className="h-3.5 w-3.5" />}
@@ -227,7 +227,7 @@ export default function ClientServicesData({ token, role, clientId, setAlert }) 
                                                     </button>
                                                     <Link
                                                         className="inline-flex items-center gap-2 rounded-lg border border-secondary/30 bg-secondary/10 px-3 py-1 text-xs font-semibold text-secondary transition hover:bg-secondary/20"
-                                                        to={`/dashboard/service/${service.id}`}
+                                                        to={`/user/business/service/${service.id}`}
                                                         title="Edit Service"
                                                     >
                                                         <FaPencilAlt className="h-4 w-4" /> Edit

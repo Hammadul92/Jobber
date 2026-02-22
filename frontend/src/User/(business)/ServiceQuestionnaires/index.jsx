@@ -23,7 +23,7 @@ export default function Questionnaires({ token, business, role }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
+                        <Link to="/user/business/home" className="font-semibold text-secondary hover:text-accent">
                             {portalLabel}
                         </Link>
                     </li>

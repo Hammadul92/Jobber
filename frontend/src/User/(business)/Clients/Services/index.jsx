@@ -54,7 +54,7 @@ export default function ClientServices({ token, role }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
+                        <Link to="/user/business/home" className="font-semibold text-secondary hover:text-accent">
                             {isManagerMode ? business?.name : 'Client Portal'}
                         </Link>
                     </li>
@@ -62,7 +62,7 @@ export default function ClientServices({ token, role }) {
                         <>
                             <li className="text-gray-400">/</li>
                             <li>
-                                <Link to="/dashboard/clients" className="font-semibold text-secondary hover:text-accent">
+                                <Link to="/user/business/clients" className="font-semibold text-secondary hover:text-accent">
                                     Clients
                                 </Link>
                             </li>

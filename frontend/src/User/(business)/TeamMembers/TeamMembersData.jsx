@@ -84,7 +84,7 @@ export default function TeamMembersData({ token, setAlert }) {
 
                             <div className="mt-4 flex items-center justify-between gap-2">
                                 <Link
-                                    to={`/dashboard/team-member/${m.id}`}
+                                    to={`/user/business/team-member/${m.id}`}
                                     className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-secondary hover:border-accent hover:text-accent"
                                     title="Edit Team Member"
                                 >

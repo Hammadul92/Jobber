@@ -98,7 +98,7 @@ export default function PayoutDatatable({ token, role }) {
                                                     <td key={col.name} className="px-4 py-3 text-right">
                                                         <div className="flex justify-end gap-2">
                                                             <Link
-                                                                to={`/dashboard/payout/${row.id}`}
+                                                                to={`/user/business/payout/${row.id}`}
                                                                 className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-secondary transition hover:border-secondary hover:text-accent"
                                                                 title="View Payout"
                                                             >

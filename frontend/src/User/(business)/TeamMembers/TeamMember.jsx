@@ -57,7 +57,7 @@ export default function TeamMember({ token, business, role }) {
             }).unwrap();
 
             setAlert({ type: 'success', message: 'Team member updated successfully.' });
-            navigate('/dashboard/team-members');
+            navigate('/user/business/team-members');
         } catch (err) {
             setAlert({
                 type: 'danger',
@@ -91,13 +91,13 @@ export default function TeamMember({ token, business, role }) {
             <nav aria-label="breadcrumb" className="mb-4">
                 <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
                     <li>
-                        <Link to={`/dashboard/home`} className="font-semibold text-secondary hover:text-accent">
+                        <Link to={`/user/business/home`} className="font-semibold text-secondary hover:text-accent">
                             {portalLabel}
                         </Link>
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to={`/dashboard/team-members`} className="font-semibold text-secondary hover:text-accent">
+                        <Link to={`/user/business/team-members`} className="font-semibold text-secondary hover:text-accent">
                             Team Members
                         </Link>
                     </li>

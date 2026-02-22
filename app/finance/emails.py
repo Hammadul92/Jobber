@@ -5,7 +5,7 @@ from django.conf import settings
 def send_invoice_email(invoice):
     """Send invoice notification email to client with portal link."""
 
-    portal_link = f"{settings.FRONTEND_URL}/dashboard/invoice/{invoice.id}"
+    portal_link = f"{settings.FRONTEND_URL}/user/business/invoice/{invoice.id}"
 
     subject = f"Invoice #{invoice.invoice_number} from {invoice.business.name}"
     message = (

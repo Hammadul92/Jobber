@@ -19,7 +19,7 @@ export default function Invoices({ token, role, business }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
+                        <Link to="/user/business/home" className="font-semibold text-secondary hover:text-accent">
                             {business?.name ||
                                 (role === 'CLIENT'
                                     ? 'Client Portal'

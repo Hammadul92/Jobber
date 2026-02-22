@@ -200,7 +200,7 @@ export default function JobData({ token, role, setAlert }) {
                                             </button>
                                             <Link
                                                 className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-secondary transition hover:border-secondary hover:text-accent"
-                                                to={`/dashboard/job/${job.id}`}
+                                                to={`/user/business/job/${job.id}`}
                                                 title="Edit Job"
                                             >
                                                 Edit

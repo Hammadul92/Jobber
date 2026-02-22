@@ -87,7 +87,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
             return (
                 <Table.Cell {...props}>
                     <Link
-                        to={`/dashboard/client/${props.row.id}/services`}
+                        to={`/user/business/client/${props.row.id}/services`}
                         className="inline-flex items-center gap-2 rounded-lg bg-secondary/90 px-3 py-1 text-xs font-semibold text-white shadow transition hover:bg-secondary"
                         title="Client Services"
                     >

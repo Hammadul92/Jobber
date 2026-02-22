@@ -76,7 +76,7 @@ export default function UserDashboard({ page, token, user }) {
         // Redirect to dashboard home if user role does not match page access
         const rule = accessRules.find((r) => r.page === page);
         if (rule && !rule.roles.includes(userRole)) {
-            navigate('/dashboard/home', { replace: true });
+            navigate('/user/business/home', { replace: true });
         }
     }, [user, page, navigate, accessRules, token]);
 

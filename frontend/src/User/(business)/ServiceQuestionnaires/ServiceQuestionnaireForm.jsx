@@ -130,14 +130,14 @@ export default function ServiceQuestionnaireForm({ token, role, business }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
+                        <Link to="/user/business/home" className="font-semibold text-secondary hover:text-accent">
                             {portalLabel}
                         </Link>
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
                         <Link
-                            to={isClient ? '/dashboard/services' : '/dashboard/service-questionnaires'}
+                            to={isClient ? '/user/business/services' : '/user/business/service-questionnaires'}
                             className="font-semibold text-secondary hover:text-accent"
                         >
                             {isClient ? 'Services' : 'Service Questionnaires'}
@@ -221,7 +221,7 @@ export default function ServiceQuestionnaireForm({ token, role, business }) {
                             <button
                                 type="button"
                                 className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                                onClick={() => navigate('/dashboard/services')}
+                                onClick={() => navigate('/user/business/services')}
                             >
                                 Cancel
                             </button>

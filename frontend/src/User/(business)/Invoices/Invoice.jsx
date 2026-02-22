@@ -141,7 +141,7 @@ export default function Invoice({ token, role, business }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to="/dashboard/home" className="font-semibold text-secondary hover:text-accent">
+                        <Link to="/user/business/home" className="font-semibold text-secondary hover:text-accent">
                             {business?.name ||
                                 (role === 'CLIENT'
                                     ? 'Client Portal'
@@ -152,7 +152,7 @@ export default function Invoice({ token, role, business }) {
                     </li>
                     <li className="text-gray-400">/</li>
                     <li>
-                        <Link to={`/dashboard/invoices`} className="font-semibold text-secondary hover:text-accent">
+                        <Link to={`/user/business/invoices`} className="font-semibold text-secondary hover:text-accent">
                             Invoices
                         </Link>
                     </li>
@@ -164,7 +164,7 @@ export default function Invoice({ token, role, business }) {
             {invoiceData?.has_paid_payout && (
                 <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
                     Payout has already been processed for this invoice.{' '}
-                    <Link to={`/dashboard/payout/${invoiceData.payout_id}`} className="underline decoration-emerald-500">
+                    <Link to={`/user/business/payout/${invoiceData.payout_id}`} className="underline decoration-emerald-500">
                         View Payout
                     </Link>
                 </div>
@@ -456,7 +456,7 @@ function CustomerView({
                         <div className="text-sm text-gray-500">
                             <i>
                                 No active payment method found. Please{' '}
-                                <Link to="/user-account/banking" className="font-semibold text-secondary hover:text-accent">
+                                <Link to="/user/banking" className="font-semibold text-secondary hover:text-accent">
                                     add a payment method
                                 </Link>{' '}
                                 to make payment.
