@@ -237,7 +237,7 @@ export default function Business({ token, setAlert }) {
                                     <span className={`hidden md:flex md:h-7 md:w-7 items-center justify-center 
                                     rounded-full text-sm font-bold 
                                     ${isActive ? 'bg-secondary text-white' :
-                                        isCompleted ? 'bg-green-600 text-white' : 'bg-transparent border-2 border-gray-300 text-gray-700'}
+                                            isCompleted ? 'bg-green-600 text-white' : 'bg-transparent border-2 border-gray-300 text-gray-700'}
                                     `}>
                                         {isCompleted ? <LuCheck className='w-4 h-4 font-black' /> : <span className="text-sm">{stepNum}</span>}
                                     </span>
@@ -563,13 +563,53 @@ export default function Business({ token, setAlert }) {
                 </form>
             </div>
 
-            <div className="mt-6 p-3 flex items-center justify-between text-sm text-gray-500">
-                <p>&copy; {new Date().getFullYear()} {businessData[0]?.name || 'Business Name'}. All rights reserved.</p>
-                <div className='space-x-5 font-bold'>
-                    <NavLink to="/privacy-policy" className="hover:text-accent">Privacy Policy</NavLink>
-                    <NavLink to="/terms-of-service" className="hover:text-accent">Terms of Service</NavLink>
+            {/* Form Footer */}
+            {step === 1 && (
+                <div className="mt-6 p-3 flex items-center justify-between text-sm text-gray-400">
+                    <p>&copy; {new Date().getFullYear()} {businessData[0]?.name || 'Business Name'}. All rights reserved.</p>
+                    <div className='space-x-5 font-bold'>
+                        <NavLink to="/privacy-policy" className="hover:text-accent">Privacy Policy</NavLink>
+                        <NavLink to="/terms-of-service" className="hover:text-accent">Terms of Service</NavLink>
+                    </div>
                 </div>
-            </div>
+            )}
+            {step === 2 && (
+                <div className="mt-6 p-3 flex items-center justify-center text-sm">
+                    <div className='w-2 h-2 bg-green-600 rounded-full' />
+                    <p className='text-gray-400 ml-2'>
+                        Your information is securely encrypted and stored
+                    </p>
+                </div>
+            )}
+            {step === 3 && (
+                <div className="mt-6 p-3 flex items-center justify-between text-sm text-gray-400">
+                    <div className='flex items-center'>
+                        <div className='w-2 h-2 bg-green-600 rounded-full' />
+                        <p className='ml-2'>
+                            Details & Address verified.
+                        </p>
+                    </div>
+                    <p>Step 3 of 4</p>
+                </div>
+            )}
+            {step === 4 && (
+                <div className="mt-6 p-3 flex items-center justify-center text-sm">
+                    <div className='flex items-center -space-x-1.5'>
+                        <div className='flex items-center justify-center w-6 h-6 border-2 border-background bg-green-600 rounded-full'>
+                            <div className='w-2 h-2 bg-green-500 rounded-full' />
+                        </div>
+                        <div className='flex items-center justify-center w-6 h-6 border-2 border-background bg-green-600 rounded-full'>
+                            <div className='w-2 h-2 bg-green-500 rounded-full' />
+                        </div>
+                        <div className='flex items-center justify-center w-6 h-6 border-2 border-background bg-green-600 rounded-full'>
+                            <div className='w-2 h-2 bg-green-500 rounded-full' />
+                        </div>
+                    </div>
+                    <p className='text-gray-400 font-semibold text-lg ml-2'>
+                        3 OF 4 STEPS COMPLETED
+                    </p>
+                </div>
+            )}
         </>
     );
 }
