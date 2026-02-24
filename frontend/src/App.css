@@ -80,7 +80,7 @@
 }
 
 .primary {
-  @apply  px-4 py-1.5 lg:px-6 lg:py-2.5 bg-accent rounded-lg text-white font-bold cursor-pointer hover:bg-accentLight hover:scale-[1.02] transition-all duration-300;
+  @apply  px-6 py-2 bg-accent rounded-lg text-white font-semibold cursor-pointer hover:bg-accentLight hover:scale-[1.02] transition-all duration-300;
 }
 
 /* .secondary {

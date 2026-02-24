@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FaChevronLeft, FaChevronRight, FaImage } from 'react-icons/fa';
-import { LuCheck } from "react-icons/lu";
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { LuCheck, LuImage } from "react-icons/lu";
 import { provinces, countries } from '../../constants/locations';
 import { useFetchBusinessesQuery, useCreateBusinessMutation, useUpdateBusinessMutation } from '../../store';
 import SubmitButton from '../../Components/ui/SubmitButton';
@@ -29,7 +29,7 @@ export default function Business({ token, setAlert }) {
     const [timezone, setTimezone] = useState('America/Edmonton');
     const [selectedServices, setSelectedServices] = useState([]);
     const [logo, setLogo] = useState(null);
-    const [dragActive, setDragActive] = useState(false); // @eslint-disable-line no-unused-vars
+    const [_dragActive, setDragActive] = useState(false);
 
     const { data: user } = useFetchUserQuery(undefined, { skip: !token });
     const { data: businessData, isLoading, refetch } = useFetchBusinessesQuery(undefined, { skip: !token });
@@ -197,7 +197,7 @@ export default function Business({ token, setAlert }) {
                 <p className="text-gray-500 mb-6">Manage your profile and account settings.</p>
             </div>
 
-            <div className='min-h-[75vh] p-10 bg-white rounded-xl shadow-md'>
+            <div className='min-h-[75vh] p-10 bg-white rounded-2xl shadow-md'>
                 <div className="mb-6 flex flex-wrap items-center">
                     {steps.map((label, index) => {
                         const stepNum = index + 1;
@@ -488,15 +488,17 @@ export default function Business({ token, setAlert }) {
                                         setLogo(e.dataTransfer.files[0]);
                                     }
                                 }}
-                                className={`flex flex-col items-center justify-center h-80 rounded-xl border-2 border-dashed ${logo ? 'border-green-400' : 'border-gray-300'} bg-gray-50 transition-all duration-200 relative`}
+                                className={`flex flex-col items-center justify-center py-12 rounded-2xl border-2 border-dashed ${logo ? 'border-green-400' : 'border-gray-300'} bg-gray-50 transition-all duration-200 relative`}
                                 style={{ cursor: 'pointer', position: 'relative' }}
                             >
                                 {!logo ? (
                                     <>
-                                        <FaImage className="text-6xl text-gray-300 mb-4" />
+                                        <div className='bg-white p-6 mb-8 shadow rounded-2xl'>
+                                            <LuImage className="text-6xl text-gray-300" />
+                                        </div>
                                         <div className="font-semibold text-lg mb-2">Click to upload or drag & drop</div>
-                                        <div className="text-gray-400 mb-4">Supported formats: PNG, JPG, SVG (Max 5MB)</div>
-                                        <label className="inline-block px-6 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer font-medium text-sm">
+                                        <div className="text-gray-400 mb-8">Supported formats: PNG, JPG, SVG (Max 5MB)</div>
+                                        <label className="inline-block px-6 py-4 bg-white border border-gray-300 rounded-xl cursor-pointer font-medium">
                                             Choose File
                                             <input
                                                 type="file"
@@ -511,7 +513,7 @@ export default function Business({ token, setAlert }) {
                                         </label>
                                     </>
                                 ) : (
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center py-10">
                                         <div className="mb-2 font-medium text-sm">Selected file: {logo.name || 'Logo'}</div>
                                         {logo.type && logo.type.startsWith('image/') && (
                                             <img
@@ -554,7 +556,7 @@ export default function Business({ token, setAlert }) {
                         ) : (
                             <SubmitButton
                                 isLoading={isCreating || isUpdating}
-                                btnClass="ml-auto inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accent/90 disabled:opacity-60 disabled:cursor-not-allowed"
+                                btnClass="ml-auto inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 font-semibold text-white shadow hover:bg-accent/90 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
                                 btnName="Save Changes"
                                 isDisabled={!validateStep()}
                             />

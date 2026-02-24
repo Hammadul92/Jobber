@@ -4,28 +4,17 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import './Components.css';
 import {
-    FaArrowRight,
-    FaBriefcase,
-    FaChartLine,
     FaChevronDown,
     FaChevronRight,
     FaChevronUp,
-    FaCogs,
-    FaCreditCard,
-    FaKey,
-    FaPowerOff,
-    FaRegUserCircle,
-    FaTimes,
-    FaUsers,
-    FaUserFriends,
     FaBars,
 } from 'react-icons/fa';
+import { LuLogOut, LuUser, LuCircleUser, LuBuilding2, LuCreditCard, LuKey } from "react-icons/lu";
 import { FiLogIn } from "react-icons/fi";
-import { FaBuildingColumns, FaClipboardCheck, FaFileInvoice, FaFileSignature, FaListCheck } from 'react-icons/fa6';
 import {
     useFetchUserQuery,
     useLogoutUserMutation,
-    useFetchBusinessesQuery,
+    // useFetchBusinessesQuery,
     userApi,
     businessApi,
     clientApi,
@@ -37,7 +26,6 @@ import {
     bankingInformationApi,
     invoiceApi,
 } from '../store';
-import { SiCodeblocks } from "react-icons/si";
 import AnnouncementBar from './AnnouncementBar';
 
 
@@ -57,7 +45,7 @@ export default function Header() {
     const token = localStorage.getItem('token');
 
     const { data: user, isFetching: isFetchingUser } = useFetchUserQuery(undefined, { skip: !token });
-    const { data: businesses, isFetching: isFetchingBusiness } = useFetchBusinessesQuery(undefined, { skip: !token });
+    // const { data: businesses, isFetching: isFetchingBusiness } = useFetchBusinessesQuery(undefined, { skip: !token });
     const [logoutUser] = useLogoutUserMutation();
 
     const handleLogout = async () => {
@@ -80,8 +68,8 @@ export default function Header() {
         setShowDropdown(false);
     };
 
-    const business = businesses?.[0] ?? null;
-    const loading = isFetchingUser || isFetchingBusiness;
+    // const business = businesses?.[0] ?? null;
+    const loading = isFetchingUser;
 
     const scrollToPricing = () => {
         const pricingSection = document.getElementById('pricingPlans');
@@ -106,55 +94,54 @@ export default function Header() {
     };
 
     const renderLink = (to, Icon, label) => (
-        <li className="flex items-center justify-between py-3 px-4 border-b border-gray-200 last:border-none">
+        <li className="flex items-center justify-between " >
             <Link
                 to={to}
-                className="flex items-center justify-between w-full text-gray-800 hover:text-accent"
+                className="flex items-center justify-between w-full text-gray-800 hover:text-white py-4 px-6 hover:bg-accent hover:shadow shadow-accent/50 rounded-xl"
                 onClick={() => setShowDropdown(false)}
             >
-                <span className="flex items-center gap-2">
-                    <Icon className="text-gray-600" />
+                <span className="flex items-center gap-3">
+                    <Icon className="text-xl" />
                     {label}
                 </span>
-                <FaArrowRight className="text-gray-500" />
             </Link>
         </li>
     );
 
-    const managerMenu = (
-        <>
-            {renderLink('/user/business/home', FaChartLine, 'Dashboard')}
-            {renderLink('/user/business/team-members', FaUserFriends, 'Team Members')}
-            {renderLink('/user/business/clients', FaUsers, 'Clients')}
-            {renderLink('/user/business/service-questionnaires', FaListCheck, 'Questionnaires')}
-            {renderLink('/user/business/quotes', FaFileSignature, 'Quotes')}
-            {renderLink('/user/business/jobs', FaClipboardCheck, 'Jobs')}
-            {renderLink('/user/business/payouts', FaCreditCard, 'Payouts')}
-            {renderLink('/user/business/invoices', FaFileInvoice, 'Invoices')}
-        </>
-    );
+    // const managerMenu = (
+    //     <>
+    //         {renderLink('/user/business/home', FaChartLine, 'Dashboard')}
+    //         {renderLink('/user/business/team-members', FaUserFriends, 'Team Members')}
+    //         {renderLink('/user/business/clients', FaUsers, 'Clients')}
+    //         {renderLink('/user/business/service-questionnaires', FaListCheck, 'Questionnaires')}
+    //         {renderLink('/user/business/quotes', FaFileSignature, 'Quotes')}
+    //         {renderLink('/user/business/jobs', FaClipboardCheck, 'Jobs')}
+    //         {renderLink('/user/business/payouts', FaCreditCard, 'Payouts')}
+    //         {renderLink('/user/business/invoices', FaFileInvoice, 'Invoices')}
+    //     </>
+    // );
 
-    const clientMenu = (
-        <>
-            {renderLink('/user/business/services', FaCogs, 'Services')}
-            {renderLink('/user/business/quotes', FaFileSignature, 'Quotes')}
-            {renderLink('/user/business/jobs', FaClipboardCheck, 'Jobs')}
-            {renderLink('/user/business/invoices', FaFileInvoice, 'Invoices')}
-        </>
-    );
+    // const clientMenu = (
+    //     <>
+    //         {renderLink('/user/business/services', FaCogs, 'Services')}
+    //         {renderLink('/user/business/quotes', FaFileSignature, 'Quotes')}
+    //         {renderLink('/user/business/jobs', FaClipboardCheck, 'Jobs')}
+    //         {renderLink('/user/business/invoices', FaFileInvoice, 'Invoices')}
+    //     </>
+    // );
 
-    const employeeMenu = (
-        <>
-            {renderLink('/user/business/jobs', FaClipboardCheck, 'Jobs')}
-            {renderLink('/user/business/team-members', FaUserFriends, 'Team Members')}
-        </>
-    );
+    // const employeeMenu = (
+    //     <>
+    //         {renderLink('/user/business/jobs', FaClipboardCheck, 'Jobs')}
+    //         {renderLink('/user/business/team-members', FaUserFriends, 'Team Members')}
+    //     </>
+    // );
 
-    const roleMenus = {
-        MANAGER: managerMenu,
-        CLIENT: clientMenu,
-        EMPLOYEE: employeeMenu,
-    };
+    // const roleMenus = {
+    //     MANAGER: managerMenu,
+    //     CLIENT: clientMenu,
+    //     EMPLOYEE: employeeMenu,
+    // };
 
     const linkClass = (path) => {
         const isActive = location.pathname === path;
@@ -391,7 +378,7 @@ export default function Header() {
                                 aria-expanded={showDropdown}
                                 aria-haspopup="true"
                             >
-                                <FaRegUserCircle className="text-2xl md:text-xl" />
+                                <LuCircleUser className="text-2xl md:text-xl" />
                                 <span className="hidden md:block font-bold">{user.name}</span>
                                 {showDropdown ? (
                                     <FaChevronUp className="hidden md:block text-xs" />
@@ -401,18 +388,36 @@ export default function Header() {
                             </button>
 
                             {showDropdown && (
-                                <div className="absolute z-50 top-4 right-4 lg:right-0 p-3 mt-3 min-w-[70vw] lg:min-w-[20vw] rounded-lg bg-white shadow-lg">
+                                <div className="absolute z-50 top-4 right-4 lg:right-0 p-4 mt-3 min-w-[70vw] lg:min-w-[20vw] rounded-2xl bg-white shadow-lg">
+
+                                    {/* Profile Section */}
+                                    <div className="flex items-center gap-3 mb-6">
+                                        {/* Profile avatar */}
+                                        <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                                            {user.profilePic ? (
+                                                <img src={user.profilePic} alt="Profile" className="h-full w-full rounded-full object-cover" />
+                                            ) : (
+                                                <span className="text-xl font-bold text-gray-700">{user.name.charAt(0).toUpperCase()}</span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold text-lg">{user.name}</div>
+                                            <div className="text-xs text-gray-500">{user.email}</div>
+                                        </div>
+                                    </div>
+
                                     <div>
-                                        <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
-                                            {renderLink('/user/profile', FaRegUserCircle, 'Profile')}
+                                        <ul className="overflow-hidden rounded-xl border border-gray-100 bg-gray-50 p-3 font-medium text-gray-800">
+                                            {renderLink('/user/profile', LuUser, 'Profile')}
                                             {(user.role === 'USER' || user.role === 'MANAGER') &&
-                                                renderLink('/user/business', FaBriefcase, 'Business')}
-                                            {renderLink('/user/banking', FaBuildingColumns, 'Banking')}
-                                            {renderLink('/user/credentials', FaKey, 'Credentials')}
+                                                renderLink('/user/business', LuBuilding2, 'Business')}
+                                            {renderLink('/user/banking', LuCreditCard, 'Banking')}
+                                            {renderLink('/user/credentials', LuKey, 'Credentials')}
                                         </ul>
                                     </div>
 
-                                    {user.role && user.role !== 'USER' && (
+                                    {/* Business Menu */}
+                                    {/* {user.role && user.role !== 'USER' && (
                                         <div>
                                             <h5 className="mt-5 mb-2 font-semibold text-accent font-heading">
                                                 {user.role === 'MANAGER'
@@ -425,13 +430,13 @@ export default function Header() {
                                                 {roleMenus[user.role]}
                                             </ul>
                                         </div>
-                                    )}
+                                    )} */}
 
                                     <button
                                         onClick={handleLogout}
-                                        className="cursor-pointer rounded-lg mt-1 flex items-center justify-center gap-2 w-full bg-red-500 px-4 py-2 text-white shadow hover:bg-red-600"
+                                        className="cursor-pointer rounded-xl mt-2 flex items-center justify-center gap-2 w-full px-4 py-2 text-gray-600 hover:text-gray-950 hover:bg-gray-100 transition"
                                     >
-                                        <FaPowerOff /> Logout
+                                        <LuLogOut /> Logout Account
                                     </button>
                                 </div>
                             )}

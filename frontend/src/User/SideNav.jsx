@@ -60,18 +60,22 @@ export default function SideNav({ user, businessRegistered }) {
     const dashboardMenu = roleDashboardMenu[role] || [];
 
     return (
-        <aside className="hidden md:block sidebar min-h-screen px-4 py-6 w-72">
-            <div className='bg-white min-h-full flex flex-col shadow-md rounded-xl p-6'>
+        <aside className="hidden md:block sidebar min-h-screen px-4 py-6 w-92">
+            <div className='bg-white min-h-full flex flex-col shadow-md rounded-2xl p-6'>
 
                 {/* Profile Section */}
                 <div className="flex items-center gap-3 mb-6">
                     {/* Profile avatar */}
                     <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-                        {/* Optionally, user avatar */}
+                        {user.profile_picture ? (
+                            <img src={user.profile_picture} alt="Profile" className="h-full w-full rounded-full object-cover" />
+                        ) : (
+                            <span className="text-gray-500 text-lg font-bold">{displayName.charAt(0).toUpperCase()}</span>
+                        )}
                     </div>
                     <div>
-                        <div className="font-semibold text-lg">{displayName}</div>
-                        <div className="text-xs text-gray-500">{displayEmail}</div>
+                        <div className="font-semibold text-xl">{displayName}</div>
+                        <div className="text-sm text-gray-500">{displayEmail}</div>
                     </div>
                 </div>
 
@@ -82,7 +86,7 @@ export default function SideNav({ user, businessRegistered }) {
                             key={item.key}
                             to={item.path}
                             className={({ isActive }) =>
-                                `flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition ${isActive
+                                `flex items-center gap-3 rounded-xl p-3 font-medium transition ${isActive
                                     ? 'bg-accent text-white font-bold shadow-lg shadow-accent/50'
                                     : 'text-gray-500 hover:bg-secondary hover:text-white font-medium'
                                 }`
@@ -110,8 +114,8 @@ export default function SideNav({ user, businessRegistered }) {
                                 key={item.path}
                                 to={item.path}
                                 className={({ isActive }) =>
-                                    `flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition ${isActive
-                                        ? 'bg-gray-100 text-black font-black'
+                                    `flex items-center gap-3 rounded-xl p-3 font-medium transition ${isActive
+                                        ? 'bg-gray-100 text-black font-bold'
                                         : 'text-gray-500 hover:bg-gray-100 hover:text-black font-medium'
                                     }`
                                 }
