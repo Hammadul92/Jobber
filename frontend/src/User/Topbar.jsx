@@ -2,19 +2,25 @@ import { NavLink, Link, useLocation } from 'react-router-dom';
 import { Fragment, useMemo, useState } from 'react';
 import {
     FaBars,
-    FaChartLine,
-    FaClipboardCheck,
-    FaClipboardList,
-    FaCogs,
-    FaCreditCard,
-    FaFileInvoice,
-    FaFileSignature,
-    FaUsers,
-    FaUserFriends,
 } from 'react-icons/fa';
+import {
+    LuUser,
+    LuLogOut,
+    LuReceipt,
+    LuBriefcase,
+    LuArrowUpRight,
+    LuFileText,
+    LuUsers,
+    LuCircleUser,
+    LuClipboardList,
+    LuBuilding2,
+    LuCreditCard,
+    LuKey,
+} from 'react-icons/lu';
+import { RiDashboardLine } from 'react-icons/ri';
 import { IoClose } from "react-icons/io5";
 
-function Topbar({ role, businessName }) {
+function Topbar({ role, businessName, user }) {
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
@@ -24,50 +30,73 @@ function Topbar({ role, businessName }) {
             {
                 name: 'Dashboard',
                 path: '/user/business/home',
-                icon: FaChartLine,
+                icon: RiDashboardLine,
                 is_visible: ['CLIENT', 'MANAGER', 'EMPLOYEE'].includes(role),
             },
             {
                 name: 'Team Members',
                 path: '/user/business/team-members',
-                icon: FaUserFriends,
+                icon: LuUsers,
                 is_visible: role === 'EMPLOYEE' || role === 'MANAGER',
             },
-            { name: 'Clients', path: '/user/business/clients', icon: FaUsers, is_visible: role === 'MANAGER' },
+            { name: 'Clients', path: '/user/business/clients', icon: LuCircleUser, is_visible: role === 'MANAGER' },
             {
                 name: 'Services',
                 path: '/user/business/services',
-                icon: FaCogs,
+                icon: LuFileText,
                 is_visible: role === 'CLIENT',
             },
             {
                 name: 'Questionnaires',
                 path: '/user/business/service-questionnaires',
-                icon: FaClipboardList,
+                icon: LuClipboardList,
                 is_visible: role === 'MANAGER',
             },
             {
                 name: 'Quotes',
                 path: '/user/business/quotes',
-                icon: FaFileSignature,
+                icon: LuFileText,
                 is_visible: role === 'CLIENT' || role === 'MANAGER',
             },
             {
                 name: 'Jobs',
                 path: '/user/business/jobs',
-                icon: FaClipboardCheck,
+                icon: LuBriefcase,
                 is_visible: ['CLIENT', 'MANAGER', 'EMPLOYEE'].includes(role),
             },
-            { name: 'Payouts', path: '/user/business/payouts', icon: FaCreditCard, is_visible: role === 'MANAGER' },
+            { name: 'Payouts', path: '/user/business/payouts', icon: LuArrowUpRight, is_visible: role === 'MANAGER' },
             {
                 name: 'Invoices',
                 path: '/user/business/invoices',
-                icon: FaFileInvoice,
+                icon: LuReceipt,
                 is_visible: role === 'CLIENT' || role === 'MANAGER',
             },
         ],
         [role]
     );
+
+    const accountMenu = useMemo(
+        () => [
+            { key: 'profile', label: 'Profile', icon: LuUser, path: '/user/profile', visible: true },
+            {
+                key: 'business',
+                label: 'Business',
+                icon: LuBuilding2,
+                path: '/user/business',
+                visible: role === 'USER' || role === 'MANAGER',
+            },
+            { key: 'banking', label: 'Banking', icon: LuCreditCard, path: '/user/banking', visible: true },
+            { key: 'credentials', label: 'Credentials', icon: LuKey, path: '/user/credentials', visible: true },
+        ],
+        [role]
+    );
+
+    const displayName =
+        user?.name ||
+        user?.full_name ||
+        [user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
+        'User';
+    const displayEmail = user?.email || '';
 
     const segmentLabels = {
         dashboard: 'Dashboard',
@@ -126,6 +155,7 @@ function Topbar({ role, businessName }) {
                                 {crumb.to ? (
                                     <Link
                                         to={crumb.to}
+                                        onClick={closeMobileMenu}
                                         className={`font-semibold ${idx === 1 || idx === breadcrumbItems.length - 1 ? 'text-white' : 'text-accent hover:text-accentLight'}`}
                                     >
                                         {crumb.label}
@@ -148,44 +178,93 @@ function Topbar({ role, businessName }) {
 
             <nav
                 id="mobile-nav"
-                className={`absolute top-0 left-0 flex h-screen flex-col gap-5 border-r border-accent/10 bg-secondary px-3 py-4 text-white transition-transform duration-300 ease-out shrink-0 w-3/5 min-w-[16rem] ${isMenuOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'}`}
+                className={`absolute top-0 left-0 h-screen w-4/5 max-w-sm p-2 transition-transform duration-300 ease-out ${isMenuOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'}`}
                 aria-hidden={!isMenuOpen}
             >
-                <button
-                    className="mr-auto flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-white text-black cursor-pointer shadow-sm transition hover:bg-white/60"
-                    onClick={closeMobileMenu}
-                    aria-label="Toggle navigation"
-                    type="button"
-                >
-                    <IoClose />
-                </button>
+                <div className="bg-white h-full flex flex-col shadow-md rounded-2xl p-3 overflow-y-auto overscroll-contain">
+                    <button
+                        className="mr-auto mb-6 flex h-10 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-black cursor-pointer shadow-sm transition hover:bg-gray-100"
+                        onClick={closeMobileMenu}
+                        aria-label="Close navigation"
+                        type="button"
+                    >
+                        <IoClose className="h-8 w-6" />
+                    </button>
 
-                <ul className="flex flex-1 flex-col gap-1">
-                    {navItems.map(
-                        (item) =>
-                            item.is_visible && (
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                            {user?.profile_picture ? (
+                                <img src={user.profile_picture} alt="Profile" className="h-full w-full rounded-full object-cover" />
+                            ) : (
+                                <span className="text-gray-500 text-lg font-bold">{displayName.charAt(0).toUpperCase()}</span>
+                            )}
+                        </div>
+                        <div>
+                            <div className="font-semibold text-black text-lg leading-tight">{displayName}</div>
+                            <div className="text-sm text-gray-500">{displayEmail}</div>
+                        </div>
+                    </div>
+
+                    <nav className="mb-4 space-y-1 bg-gray-50 border border-gray-100 p-1 rounded-xl">
+                        {accountMenu.filter((item) => item.visible).map((item) => (
+                            <NavLink
+                                key={item.key}
+                                to={item.path}
+                                onClick={closeMobileMenu}
+                                className={({ isActive }) =>
+                                    `flex items-center gap-3 rounded-xl px-3 py-2 font-medium transition ${isActive
+                                        ? 'bg-accent text-white font-bold shadow-lg shadow-accent/50'
+                                        : 'text-gray-500 hover:bg-secondary hover:text-white font-medium'
+                                    }`
+                                }
+                            >
+                                <item.icon className="w-5 h-5" />
+                                <span>{item.label}</span>
+                            </NavLink>
+                        ))}
+                    </nav>
+
+                    {role && role !== 'USER' && (
+                        <>
+                            <div className="mt-2 text-[0.7rem] text-gray-400 font-semibold">WORKSPACE</div>
+                            <div className="mb-4 font-bold text-lg text-gray-900">{businessName || 'Dashboard'}</div>
+                        </>
+                    )}
+
+                    <ul className="flex flex-1 flex-col gap-1 rounded-xl">
+                        {navItems.map((item) =>
+                            item.is_visible ? (
                                 <li key={item.path}>
                                     <NavLink
                                         to={item.path}
+                                        onClick={closeMobileMenu}
                                         className={({ isActive }) =>
-                                            `flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition ${isActive
-                                                ? 'bg-accent text-secondary shadow-md'
-                                                : 'text-white/85 hover:bg-white/20 hover:text-white'
+                                            `flex items-center gap-3 rounded-xl px-3 py-2 font-medium transition ${isActive
+                                                ? 'bg-gray-100 text-black font-bold'
+                                                : 'text-gray-500 hover:bg-gray-100 hover:text-black font-medium'
                                             }`
                                         }
                                         title={item.name}
                                     >
-                                        <span
-                                            className={`flex h-8 w-8 items-center justify-center rounded-lg text-base`}
-                                        >
-                                            <item.icon className='h-4 w-4' />
-                                        </span>
-                                        <span className="truncate">{item.name}</span>
+                                        <item.icon className='h-5 w-5' />
+                                        <span>{item.name}</span>
                                     </NavLink>
                                 </li>
-                            )
-                    )}
-                </ul>
+                            ) : null
+                        )}
+                    </ul>
+
+                    <div className="mt-auto  pt-6 px-3">
+                        <button
+                            onClick={closeMobileMenu}
+                            className="p-3 flex items-center gap-2 text-gray-500 bg-gray-100 border border-gray-200 w-full text-sm font-medium rounded-xl"
+                            type="button"
+                        >
+                            <LuLogOut className="w-5 h-5" />
+                            Logout Account
+                        </button>
+                    </div>
+                </div>
             </nav>
 
         </div>
