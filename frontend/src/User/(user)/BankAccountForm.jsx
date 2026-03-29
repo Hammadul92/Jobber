@@ -25,9 +25,9 @@ export default function StripeOnboardingButton({ setAlert }) {
     };
 
     return (
-        <form className="mt-2" onSubmit={handleConnect}>
+        <form className="mt-2 flex items-center justify-center" onSubmit={handleConnect}>
             <SubmitButton
-                btnClass="inline-flex items-center justify-center rounded-lg bg-secondary transition cursor-pointer px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accent/90 disabled:opacity-60 disabled:cursor-not-allowed"
+                btnClass="flex items-center gap-2 rounded-xl bg-secondary px-6 py-3 text-lg font-semibold text-white shadow hover:shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed"
                 btnName="Connect Stripe for Payouts"
                 isLoading={isLoading}
             />
