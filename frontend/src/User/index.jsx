@@ -175,7 +175,7 @@ export default function UserDashboard({ page, token, user }) {
                 <Topbar role={user?.role} businessName={business?.name || 'Dashboard'} user={user} />
             </div>
             <SideNav user={user} businessRegistered={businessRegistered} />
-            <main className="flex-1 p-4 md:p-8 lg:py-12 lg:pl-12 lg:pr-14 max-h-screen overflow-auto">{renderTab()}</main>
+            <main className="flex-1 pt-16 pb-4 px-4 md:p-8 lg:py-12 lg:pl-12 lg:pr-14 max-h-screen overflow-auto">{renderTab()}</main>
         </div>
     )
 }
