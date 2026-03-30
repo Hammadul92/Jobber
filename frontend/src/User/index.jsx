@@ -171,11 +171,11 @@ export default function UserDashboard({ page, token, user }) {
     return (
         <div className="flex min-h-screen bg-gray-50">
             {/* Topbar for mobile view */}
-            <div className='md:hidden'>
+            <div className='lg:hidden'>
                 <Topbar role={user?.role} businessName={business?.name || 'Dashboard'} user={user} />
             </div>
             <SideNav user={user} businessRegistered={businessRegistered} />
-            <main className="flex-1 pt-16 pb-4 px-4 md:p-8 lg:py-12 lg:pl-12 lg:pr-14 max-h-screen overflow-auto">{renderTab()}</main>
+            <main className="flex-1 pt-18 pb-4 px-4 md:px-12 md:pt-22 lg:py-12 lg:pl-12 lg:pr-14 max-h-screen overflow-auto">{renderTab()}</main>
         </div>
     )
 }

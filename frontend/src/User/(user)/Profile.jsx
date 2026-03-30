@@ -54,16 +54,16 @@ export default function Profile({ token, setAlert }) {
     if (isFetching) return <div>Loading profile...</div>;
 
     const inputClass =
-        'w-full rounded-xl border border-gray-300 bg-white px-5! p-4! focus:outline-none';
+        'w-full rounded-xl border border-gray-300 bg-white md:px-5 md:py-3! focus:outline-none';
 
     return (
         <div>
             <div>
-                <h2 className="text-4xl font-bold mb-1">Welcome, {user?.name || 'User'}!</h2>
+                <h2 className="text-2xl md:text-4xl font-bold md:mb-1">Welcome, {user?.name || 'User'}!</h2>
                 <p className="text-gray-500 mb-6">Manage your profile and account settings.</p>
             </div>
-            <form className="space-y-6 bg-white shadow-md rounded-2xl p-10" onSubmit={submitHandler}>
-                <div className="relative w-36 h-36">
+            <form className="space-y-6 bg-white shadow-md rounded-2xl p-4 md:p-10" onSubmit={submitHandler}>
+                <div className="relative mx-auto md:mx-0 w-36 h-36">
                     <img
                         src={photoPreview || user?.photoUrl || '/public/images/user.png'}
                         alt="Profile"
@@ -80,11 +80,11 @@ export default function Profile({ token, setAlert }) {
                         />
                     </label>
                 </div>
-                <div>
+                <div className='text-center md:text-left'>
                     <span className="block text-orange-500 font-semibold text-lg mb-1">Change Photo</span>
                     <span className="block text-gray-400 text-sm mb-2">JPG OR PNG. MAX 5MB</span>
                 </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="grid grid-cols-1 md:gap-6 md:grid-cols-2">
                     <Input
                         id="name"
                         label={'Full Name'}
@@ -120,8 +120,8 @@ export default function Profile({ token, setAlert }) {
                         fieldClass={inputClass}
                     />
                 </div>
-                <div className="flex justify-between items-center mt-8">
-                    <span className="text-gray-400 text-sm">Update your personal information to keep your profile current.</span>
+                <div className="flex flex-col md:flex-row justify-between items-center -mt-8 md:mt-8">
+                    <span className="text-gray-400 text-sm mb-3 md:mb-0">Update your personal information to keep your profile current.</span>
                     <SubmitButton
                         isLoading={isLoading}
                         btnClass="primary"

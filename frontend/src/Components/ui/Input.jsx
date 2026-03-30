@@ -80,7 +80,7 @@ export default function Input({
             <input
                 type={type}
                 id={id}
-                className={`w-full rounded-2xl bg-[#FAFAFA] border px-4 py-3 text-lg text-gray-700 focus:outline-none disabled:cursor-not-allowed disabled:bg-[#F5F5F5] disabled:text-gray-400 placeholder:text-gray-300 
+                className={`w-full rounded-2xl bg-[#FAFAFA] border px-3 py-2 md:px-4 md:py-3 text-lg text-gray-700 focus:outline-none disabled:cursor-not-allowed disabled:bg-[#F5F5F5] disabled:text-gray-400 placeholder:text-gray-300 
                     ${fieldClass || ''} 
                     ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                 value={value}
