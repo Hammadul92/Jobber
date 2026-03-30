@@ -193,11 +193,11 @@ export default function Business({ token, setAlert }) {
     return (
         <>
             <div>
-                <h2 className="text-4xl font-bold mb-1">Welcome, {user?.name || 'User'}!</h2>
-                <p className="text-gray-500 mb-6">Manage your profile and account settings.</p>
+                <h2 className="text-2xl md:text-4xl font-bold mb-1">Welcome, {user?.name || 'User'}!</h2>
+                <p className="text-gray-500 mb-6">Manage your business core settings and preferences.</p>
             </div>
 
-            <div className='min-h-[75vh] p-10 bg-white rounded-2xl shadow-md'>
+            <div className='lg:min-h-[75vh] p-4 md:p-10 bg-white rounded-2xl shadow-md'>
                 <div className="mb-6 flex flex-wrap items-center">
                     {steps.map((label, index) => {
                         const stepNum = index + 1;
@@ -206,10 +206,10 @@ export default function Business({ token, setAlert }) {
 
                         return (
                             <div key={label} className='flex items-center gap-3'>
-                                {stepNum <= steps.length && stepNum > 1 && <div className={`h-0.5 w-20 rounded-full ${isCompleted ? 'bg-green-600' : 'bg-gray-300'}`} />}
+                                {stepNum <= steps.length && stepNum > 1 && <div className={`h-0.5 md:w-10 lg:w-20 rounded-full ${isCompleted ? 'bg-green-600' : 'bg-gray-300'}`} />}
                                 <button
                                     type="button"
-                                    className={`flex items-center gap-3 cursor-pointer rounded-full pr-3 transition 
+                                    className={`flex flex-col md:flex-row items-center md:gap-3 cursor-pointer rounded-full pr-3 transition 
                                     ${isActive ? 'text-black font-bold' : 'text-gray-700 font-normal'}`}
                                     onClick={() => {
                                         if (stepNum < step) {
@@ -234,8 +234,8 @@ export default function Business({ token, setAlert }) {
                                         }
                                     }}
                                 >
-                                    <span className={`hidden md:flex md:h-7 md:w-7 items-center justify-center 
-                                    rounded-full text-sm font-bold 
+                                    <span className={`flex h-5 w-5 md:h-7 md:w-7 items-center justify-center 
+                                    rounded-full text-xs md:text-sm font-bold 
                                     ${isActive ? 'bg-secondary text-white' :
                                             isCompleted ? 'bg-green-600 text-white' : 'bg-transparent border-2 border-gray-300 text-gray-700'}
                                     `}>
@@ -248,14 +248,14 @@ export default function Business({ token, setAlert }) {
                     })}
                 </div>
 
-                <form onSubmit={handleSubmit} className="min-h-[60vh] flex flex-col justify-between h-full space-y-5">
+                <form onSubmit={handleSubmit} className="lg:min-h-[60vh] flex flex-col justify-start lg:justify-between h-full space-y-5">
                     {step === 1 && (
-                        <div className="space-y-4">
-                            <div className='mt-10 mb-6'>
-                                <h2 className="text-3xl font-bold">Core Business Information</h2>
+                        <div className="md:space-y-4">
+                            <div className='md:mt-10 mb-6'>
+                                <h2 className="text-2xl md:text-3xl font-bold">Core Business Information</h2>
                                 <p className="text-gray-400">Please provide your original business details to proceed.</p>
                             </div>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div className="grid grid-cols-1 md:gap-4 md:grid-cols-3">
                                 <Input
                                     id="business_name"
                                     label={'Business Name'}
@@ -283,7 +283,7 @@ export default function Business({ token, setAlert }) {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="grid grid-cols-1 md:gap-4 md:grid-cols-2">
                                 <Input
                                     type="tel"
                                     id="phone"
@@ -304,8 +304,8 @@ export default function Business({ token, setAlert }) {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                <div className="flex flex-col">
+                            <div className="grid grid-cols-1 md:gap-4 md:grid-cols-3">
+                                <div className="flex flex-col mb-6 md:mb-0">
                                     <label className="mb-1 block text-sm font-semibold text-gray-500 uppercase" htmlFor="timezone">
                                         Timezone <sup className="text-accent">*</sup>
                                     </label>
@@ -359,12 +359,12 @@ export default function Business({ token, setAlert }) {
                     )}
 
                     {step === 2 && (
-                        <div className="space-y-4">
-                            <div className='mt-10 mb-6'>
-                                <h2 className="text-3xl font-bold">Business Address</h2>
+                        <div className="md:space-y-4">
+                            <div className='md:mt-10 mb-6'>
+                                <h2 className="text-2xl md:text-3xl font-bold">Business Address</h2>
                                 <p className="text-gray-400">Provide the physical location of your business operations.</p>
                             </div>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-5">
                                 <div className="flex flex-col">
                                     <label className="mb-1 text-sm font-semibold text-gray-500 uppercase" htmlFor="country">
                                         Country <sup className="text-accent">*</sup>
@@ -414,7 +414,7 @@ export default function Business({ token, setAlert }) {
                                 fieldClass={inputClass}
                             />
 
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="grid grid-cols-1 md:gap-4 md:grid-cols-2">
                                 <Input
                                     id="city"
                                     label={'City'}
@@ -438,20 +438,20 @@ export default function Business({ token, setAlert }) {
 
                     {step === 3 && (
                         <div className="space-y-4">
-                            <div className='mt-10 mb-6'>
-                                <h2 className="text-3xl font-bold">Your Services</h2>
+                            <div className='md:mt-10 mb-6'>
+                                <h2 className="text-2xl md:text-3xl font-bold">Your Services</h2>
                                 <p className="text-gray-400">Select the categories that best describe your business capabilities.</p>
                             </div>
                             <h3 className="text-xl leading-tighter font-semibold">Select all services you offer.</h3>
                             <p className='text-gray-400 -mt-4'>This helps us customize your dashboard and client workflows.</p>
-                            <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+                            <div className="grid grid-cols-2 gap-2 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
                                 {services.map((service) => {
                                     const isSelected = selectedServices.includes(service);
                                     return (
                                         <button
                                             key={service}
                                             type="button"
-                                            className={`relative rounded-xl border-2 px-3 py-10 text-sm font-medium transition ${isSelected
+                                            className={`relative rounded-xl border-2 px-3 py-6 md:py-10 text-sm font-medium transition ${isSelected
                                                 ? 'border-accent bg-accent/10 text-accent'
                                                 : 'border-gray-200 bg-white text-gray-700 hover:border-accent/60 hover:text-accent'
                                                 }`}
@@ -472,8 +472,8 @@ export default function Business({ token, setAlert }) {
 
                     {step === 4 && (
                         <div className="space-y-4">
-                            <div className='mt-10 mb-6'>
-                                <h2 className="text-3xl font-bold">Final Step: Brand Identity</h2>
+                            <div className='md:mt-10 mb-6'>
+                                <h2 className="text-2xl md:text-3xl font-bold">Final Step: Brand Identity</h2>
                                 <p className="text-gray-400">Upload your official logo to complete the setup process.</p>
                             </div>
                             <h3 className="text-xl leading-tighter font-semibold">Upload your business logo</h3>
