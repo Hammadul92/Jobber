@@ -145,9 +145,9 @@ function Topbar({ role, businessName, user }) {
     const closeMobileMenu = () => setIsMenuOpen(false);
 
     return (
-        <div className="fixed inset-x-0 top-0 bg-background text-secondary shadow-sm py-4 px-6 flex items-end justify-between md:hidden">
+        <div className="fixed z-20 inset-x-0 top-0 bg-background text-secondary shadow-sm py-4 px-6 md:px-12 flex items-end justify-between lg:hidden">
             <button onClick={toggleMobileMenu} aria-expanded={isMenuOpen} aria-controls="mobile-nav">
-                <FaBars size={20} />
+                <FaBars className="text-[20px] md:text-[28px]" />
             </button>
             {/* <nav aria-label="breadcrumb-mobile" className="ml-6">
                 <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-300">
@@ -174,7 +174,7 @@ function Topbar({ role, businessName, user }) {
             {/* Logo */}
             <div className='mr-6'>
                 <Link to="/">
-                    <img src={logo} alt="Contractorz" className='w-30' />
+                    <img src={logo} alt="Contractorz" className='w-30 md:w-36' />
                 </Link>
             </div>
             {/* Empty placeholder */}
@@ -188,7 +188,7 @@ function Topbar({ role, businessName, user }) {
 
             <nav
                 id="mobile-nav"
-                className={`absolute top-0 left-0 h-screen w-4/5 max-w-sm p-2 transition-transform duration-300 ease-out ${isMenuOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'}`}
+                className={`absolute top-0 left-0 h-screen w-4/5 md:w-2/5 max-w-sm p-2 transition-transform duration-300 ease-out ${isMenuOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'}`}
                 aria-hidden={!isMenuOpen}
             >
                 <div className="bg-white h-full flex flex-col shadow-md rounded-2xl p-3 overflow-y-auto overscroll-contain">

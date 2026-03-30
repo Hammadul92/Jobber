@@ -99,7 +99,7 @@ export default function SideNav({ user, businessRegistered }) {
     };
 
     return (
-        <aside className="hidden md:block sidebar min-h-screen px-4 py-6 w-92">
+        <aside className="hidden lg:block sidebar min-h-screen px-4 py-6 w-92">
             <div className='bg-white min-h-full flex flex-col shadow-md rounded-2xl p-6'>
 
                 {/* Profile Section */}
