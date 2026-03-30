@@ -25,7 +25,7 @@ function Topbar({ role, businessName, user }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     // const location = useLocation();
 
-    const logo = '../../public/images/contractorz-logo-horizontal.svg'; 
+    const logo = '/images/contractorz-logo-horizontal.svg'; 
 
     const navItems = useMemo(
         () => [
