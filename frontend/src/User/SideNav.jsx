@@ -1,11 +1,30 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { LuLogOut, LuUser, LuReceipt, LuBriefcase, LuArrowUpRight, LuFileText, LuUsers, LuCircleUser, LuClipboardList, LuBuilding2, LuCreditCard, LuKey } from "react-icons/lu";
 import { RiDashboardLine } from "react-icons/ri";
-import { useFetchBusinessesQuery, useFetchUserQuery } from '../store';
+import {
+    useFetchBusinessesQuery,
+    useFetchUserQuery,
+    useLogoutUserMutation,
+    userApi,
+    businessApi,
+    clientApi,
+    serviceQuestionnaireApi,
+    teamMemberApi,
+    serviceApi,
+    quoteApi,
+    jobApi,
+    bankingInformationApi,
+    invoiceApi,
+    payoutApi,
+} from '../store';
 
 // Unified Sidebar for both UserAccount and UserDashboard
 export default function SideNav({ user, businessRegistered }) {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
     const token = localStorage.getItem('token');
+    const [logoutUser] = useLogoutUserMutation();
 
     const { data: fetchedUser } = useFetchUserQuery(undefined, {
         skip: Boolean(user) || !token,
@@ -59,6 +78,26 @@ export default function SideNav({ user, businessRegistered }) {
     };
     const dashboardMenu = roleDashboardMenu[role] || [];
 
+    const handleLogout = async () => {
+        await logoutUser();
+        [
+            userApi,
+            businessApi,
+            clientApi,
+            serviceQuestionnaireApi,
+            teamMemberApi,
+            serviceApi,
+            quoteApi,
+            jobApi,
+            bankingInformationApi,
+            invoiceApi,
+            payoutApi,
+        ].forEach((api) => dispatch(api.util.resetApiState()));
+
+        localStorage.removeItem('token');
+        navigate('/sign-in');
+    };
+
     return (
         <aside className="hidden md:block sidebar min-h-screen px-4 py-6 w-92">
             <div className='bg-white min-h-full flex flex-col shadow-md rounded-2xl p-6'>
@@ -67,8 +106,8 @@ export default function SideNav({ user, businessRegistered }) {
                 <div className="flex items-center gap-3 mb-6">
                     {/* Profile avatar */}
                     <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-                        {user.profile_picture ? (
-                            <img src={user.profile_picture} alt="Profile" className="h-full w-full rounded-full object-cover" />
+                        {currentUser?.profile_picture ? (
+                            <img src={currentUser.profile_picture} alt="Profile" className="h-full w-full rounded-full object-cover" />
                         ) : (
                             <span className="text-gray-500 text-lg font-bold">{displayName.charAt(0).toUpperCase()}</span>
                         )}
@@ -128,7 +167,11 @@ export default function SideNav({ user, businessRegistered }) {
 
                 {/* Logout */}
                 <div className="mt-auto pt-6 px-3">
-                    <button className=" p-3 flex items-center gap-2 text-gray-500 hover:text-accent hover:bg-gray-100 w-full text-sm font-medium rounded-xl">
+                    <button
+                        onClick={handleLogout}
+                        type="button"
+                        className=" p-3 flex items-center gap-2 text-gray-500 hover:text-accent hover:bg-gray-100 w-full text-sm font-medium rounded-xl"
+                    >
                         <LuLogOut className="w-5 h-5" />
                         Logout Account
                     </button>
