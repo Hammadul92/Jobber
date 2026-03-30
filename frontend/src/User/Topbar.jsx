@@ -1,5 +1,5 @@
-import { NavLink, Link, useLocation } from 'react-router-dom';
-import { Fragment, useMemo, useState } from 'react';
+import { NavLink, Link } from 'react-router-dom';
+import { useMemo, useState } from 'react';
 import {
     FaBars,
 } from 'react-icons/fa';
@@ -23,7 +23,9 @@ import { IoClose } from "react-icons/io5";
 function Topbar({ role, businessName, user }) {
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const location = useLocation();
+    // const location = useLocation();
+
+    const logo = '../../public/images/contractorz-logo-horizontal.svg'; 
 
     const navItems = useMemo(
         () => [
@@ -98,56 +100,56 @@ function Topbar({ role, businessName, user }) {
         'User';
     const displayEmail = user?.email || '';
 
-    const segmentLabels = {
-        dashboard: 'Dashboard',
-        home: 'Home',
-        'team-members': 'Team Members',
-        clients: 'Clients',
-        services: 'Services',
-        'service-questionnaires': 'Questionnaires',
-        quotes: 'Quotes',
-        jobs: 'Jobs',
-        payouts: 'Payouts',
-        invoices: 'Invoices',
-        settings: 'Settings',
-    };
+    // const segmentLabels = {
+    //     dashboard: 'Dashboard',
+    //     home: 'Home',
+    //     'team-members': 'Team Members',
+    //     clients: 'Clients',
+    //     services: 'Services',
+    //     'service-questionnaires': 'Questionnaires',
+    //     quotes: 'Quotes',
+    //     jobs: 'Jobs',
+    //     payouts: 'Payouts',
+    //     invoices: 'Invoices',
+    //     settings: 'Settings',
+    // };
 
-    const toTitle = (segment) =>
-        segment
-            .split('-')
-            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-            .join(' ');
+    // const toTitle = (segment) =>
+    //     segment
+    //         .split('-')
+    //         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    //         .join(' ');
 
-    const breadcrumbItems = useMemo(() => {
-        const businessLabel = businessName || 'Dashboard';
-        const segments = location.pathname.split('/').filter(Boolean);
-        const items = [
-            { label: 'Contractorz', to: '/' },
-            { label: businessLabel, to: '/user/business/home' },
-        ];
+    // const breadcrumbItems = useMemo(() => {
+    //     const businessLabel = businessName || 'Dashboard';
+    //     const segments = location.pathname.split('/').filter(Boolean);
+    //     const items = [
+    //         { label: 'Contractorz', to: '/' },
+    //         { label: businessLabel, to: '/user/business/home' },
+    //     ];
 
-        if (segments[0] !== 'dashboard') return items;
+    //     if (segments[0] !== 'dashboard') return items;
 
-        let path = '/dashboard';
-        for (let i = 1; i < segments.length; i += 1) {
-            path += `/${segments[i]}`;
-            const rawLabel = segmentLabels[segments[i]] || toTitle(decodeURIComponent(segments[i]));
-            const isLast = i === segments.length - 1;
-            items.push({ label: rawLabel, to: isLast ? undefined : path });
-        }
+    //     let path = '/dashboard';
+    //     for (let i = 1; i < segments.length; i += 1) {
+    //         path += `/${segments[i]}`;
+    //         const rawLabel = segmentLabels[segments[i]] || toTitle(decodeURIComponent(segments[i]));
+    //         const isLast = i === segments.length - 1;
+    //         items.push({ label: rawLabel, to: isLast ? undefined : path });
+    //     }
 
-        return items;
-    }, [location.pathname, businessName]); // eslint-disable-line react-hooks/exhaustive-deps
+    //     return items;
+    // }, [location.pathname, businessName]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const toggleMobileMenu = () => setIsMenuOpen((prev) => !prev);
     const closeMobileMenu = () => setIsMenuOpen(false);
 
     return (
-        <div className="fixed inset-x-0 top-0 bg-secondary text-white shadow-md py-4 px-6 flex items-center justify-start md:hidden">
+        <div className="fixed inset-x-0 top-0 bg-background text-secondary shadow-sm py-4 px-6 flex items-end justify-between md:hidden">
             <button onClick={toggleMobileMenu} aria-expanded={isMenuOpen} aria-controls="mobile-nav">
                 <FaBars size={20} />
             </button>
-            <nav aria-label="breadcrumb-mobile" className="ml-6">
+            {/* <nav aria-label="breadcrumb-mobile" className="ml-6">
                 <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-300">
                     {breadcrumbItems.map((crumb, idx) => (
                         <Fragment key={`${crumb.label}-${idx}`}>
@@ -168,7 +170,15 @@ function Topbar({ role, businessName, user }) {
                         </Fragment>
                     ))}
                 </ol>
-            </nav>
+            </nav> */}
+            {/* Logo */}
+            <div className='mr-6'>
+                <Link to="/">
+                    <img src={logo} alt="Contractorz" className='w-30' />
+                </Link>
+            </div>
+            {/* Empty placeholder */}
+            <div></div>
 
             {/* Backdrop allows tap-to-close on mobile */}
             <div
