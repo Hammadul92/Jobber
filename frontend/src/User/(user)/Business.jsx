@@ -567,7 +567,7 @@ export default function Business({ token, setAlert }) {
 
             {/* Form Footer */}
             {step === 1 && (
-                <div className="mt-6 p-3 flex items-center justify-between text-sm text-gray-400">
+                <div className="mt-6 p-3 flex flex-col-reverse md:flex-row items-left md:items-center justify-between gap-4 md:gap-0 text-sm text-gray-400">
                     <p>&copy; {new Date().getFullYear()} {businessData[0]?.name || 'Business Name'}. All rights reserved.</p>
                     <div className='space-x-5 font-bold'>
                         <NavLink to="/privacy-policy" className="hover:text-accent">Privacy Policy</NavLink>
@@ -607,7 +607,7 @@ export default function Business({ token, setAlert }) {
                             <div className='w-2 h-2 bg-green-500 rounded-full' />
                         </div>
                     </div>
-                    <p className='text-gray-400 font-semibold text-lg ml-2'>
+                    <p className='text-gray-400 font-semibold md:text-lg ml-2'>
                         3 OF 4 STEPS COMPLETED
                     </p>
                 </div>
