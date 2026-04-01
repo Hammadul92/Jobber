@@ -79,14 +79,14 @@ export default function Credentials({ setAlert }) {
     //     'cursor-pointer inline-flex items-center justify-center rounded-r-lg rounded-l-none bg-secondary px-3 py-2 text-white hover:bg-secondary/90';
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-5 md:space-y-10">
             {/* Title and Badge */}
             <div className='flex items-start justify-between'>
                 <div>
-                    <h2 className="text-4xl font-bold mb-1">Security & Credentials</h2>
+                    <h2 className="text-3xl md:text-4xl font-bold mb-1">Security & Credentials</h2>
                     <p className="text-gray-500">Manage your password settings and account security preferences.</p>
                 </div>
-                <div className='bg-white rounded-2xl shadow-md p-4 flex items-center justify-between gap-2'>
+                <div className='bg-white rounded-2xl shadow-md p-4 hidden md:flex items-center justify-between gap-2'>
                     <div className='rounded-md bg-[#EEF2FF] p-1'>
                         <LuShieldCheck className='text-[#4F39F6] text-3xl' />
                     </div>
@@ -97,10 +97,10 @@ export default function Credentials({ setAlert }) {
                 </div>
             </div>
 
-            <div className="space-y-3 rounded-2xl bg-white p-10 shadow">
+            <div className="space-y-3 rounded-2xl bg-white p-4 md:p-10 shadow">
                 <div>
                     <h5 className="text-2xl font-semibold text-gray-900">Password Requirements</h5>
-                    <p className='text-gray-400 mb-10 mt-1.5 text-lg'>Your password must meet the following criteria to ensure maximum security.</p>
+                    <p className='text-gray-400 mb-5 md:mb-10 mt-1.5 md:text-lg'>Your password must meet the following criteria to ensure maximum security.</p>
                 </div>
                 <ul className="space-y-3 text-lg">
                     <li className={`flex items-center gap-2 ${passwordRules.length ? 'text-green-600' : 'text-gray-400'}`}>
@@ -125,15 +125,15 @@ export default function Credentials({ setAlert }) {
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-10 rounded-2xl bg-white p-10 shadow">
+            <form onSubmit={handleSubmit} className="space-y-5 md:space-y-10 rounded-2xl bg-white p-4 md:p-10 shadow">
                 <div>
                     <h5 className="text-2xl font-semibold text-gray-900">Update Password</h5>
-                    <p className='text-gray-400 mb-10 mt-1.5 text-lg'>
+                    <p className='text-gray-400 md:mb-10 mt-1.5 text-lg'>
                         Ensure your account remains secure by using a unique password.
                     </p>
                 </div>
 
-                <div className="mb-6">
+                <div className="mb-3 md:mb-6">
                     <label htmlFor={"newPassword"} className="mb-1 block font-semibold text-gray-400 uppercase">
                         {"New Password"} <span className="text-accent">*</span>
                     </label>
@@ -205,7 +205,7 @@ export default function Credentials({ setAlert }) {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-between items-center">
+                <div className="flex justify-end items-center gap-3">
                     <button
                         type="button"
                         onClick={(e) => {
@@ -220,14 +220,14 @@ export default function Credentials({ setAlert }) {
                                 special: false,
                             });
                         }}
-                        className="rounded-2xl px-6 py-3 text-lg font-semibold text-gray-400 bg-gray-50 hover:bg-gray-100"
+                        className="rounded-2xl px-4 md:px-6 py-3 md:text-lg font-semibold text-white bg-gray-500 hover:bg-gray-100"
                     >
-                        Cancel Changes
+                        Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={isLoading || !isStrongPassword || newPassword !== confirmNewPassword || !newPassword}
-                        className={`rounded-2xl px-6 py-3 text-lg font-semibold transition ${isLoading || !isStrongPassword || newPassword !== confirmNewPassword ? 'bg-gray-100 cursor-not-allowed! text-gray-400 ' : 'bg-accent hover:shadow-md hover:shadow-accent text-white'}`}
+                        className={`rounded-2xl px-4 md:px-6 py-3 md:text-lg font-semibold transition ${isLoading || !isStrongPassword || newPassword !== confirmNewPassword ? 'bg-gray-400 cursor-not-allowed! text-white' : 'bg-accent hover:shadow-md hover:shadow-accent text-white'}`}
                     >
                         {isLoading ? 'Updating...' : 'Update Password'}
                     </button>
@@ -305,14 +305,14 @@ export default function Credentials({ setAlert }) {
             </div> */}
 
             {/* Footer */}
-            <div className="mt-10 p-3 pt-10 flex items-start justify-between border-t border-gray-300 text-gray-400">
-                <div className='space-y-1 font-bold'>
-                    <p className='text-semibold tracking-wider'>LAST PASSWORD CHANGED</p>
-                    <p className='text-lg text-gray-800'>{lastPasswordChangeDate}</p>
+            <div className="mt-10 p-3 pt-10 flex flex-col md:flex-row items-start justify-between gap-2 md:gap-0 border-t border-gray-300 text-gray-400">
+                <div className='md:space-y-1 font-bold'>
+                    <p className='text-semibold tracking-wider text-sm md:text-base'>LAST PASSWORD CHANGED</p>
+                    <p className='md:text-lg text-gray-600'>{lastPasswordChangeDate}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <LuShieldCheck className='text-gray-400 text-lg' />
-                    <p className='text-gray-400 font-semibold'>END-TO-END ENCRYPTION ENABLED</p>
+                <div className="flex items-center gap-1 md:gap-2">
+                    <LuShieldCheck className='text-gray-400 md:text-lg' />
+                    <p className='text-gray-400 font-semibold text-sm md:text-base'>END-TO-END ENCRYPTION ENABLED</p>
                 </div>
             </div>
         </div>
