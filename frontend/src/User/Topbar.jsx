@@ -145,7 +145,7 @@ function Topbar({ role, businessName, user }) {
     const closeMobileMenu = () => setIsMenuOpen(false);
 
     return (
-        <div className="fixed z-20 inset-x-0 top-0 bg-background text-secondary shadow-sm py-4 px-6 md:px-12 flex items-end justify-between lg:hidden">
+        <div className="fixed z-20 inset-x-0 top-0 bg-background text-secondary shadow-sm p-4 md:px-12 flex items-end justify-between lg:hidden">
             <button onClick={toggleMobileMenu} aria-expanded={isMenuOpen} aria-controls="mobile-nav">
                 <FaBars className="text-[20px] md:text-[28px]" />
             </button>
