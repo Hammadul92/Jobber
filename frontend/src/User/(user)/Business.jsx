@@ -634,6 +634,38 @@ export default function Business({ token, setAlert }) {
             </div>
           )}
 
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between gap-3 pt-2">
+                        {step > 1 && (
+                            <button
+                                type="button"
+                                className="secondary"
+                                onClick={prevStep}
+                            >
+                                <FaChevronLeft className='inline mb-0.5 mr-2' />
+                                Back
+                            </button>
+                        )}
+                        {step < totalSteps ? (
+                            <button
+                                type="button"
+                                className="primary"
+                                onClick={nextStep}
+                            >
+                                Next
+                                <FaChevronRight className='inline mb-0.5 ml-2' />
+                            </button>
+                        ) : (
+                            <SubmitButton
+                                isLoading={isCreating || isUpdating}
+                                btnClass="ml-auto inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2 font-semibold text-white shadow hover:bg-accent/90 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
+                                btnName="Save Changes"
+                                isDisabled={!validateStep()}
+                            />
+                        )}
+                    </div>
+                </form>
+            </div>
           <div className="flex items-center justify-between gap-3 pt-2">
             {step > 1 && (
               <button type="button" className="secondary" onClick={prevStep}>
