@@ -533,6 +533,7 @@ export default function Business({ token, setAlert }) {
                         </div>
                     )}
 
+                    {/* Action Buttons */}
                     <div className="flex items-center justify-between gap-3 pt-2">
                         {step > 1 && (
                             <button
