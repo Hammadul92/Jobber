@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: 'MODERNIZ';
-  src: url('../public/fonts/Moderniz.otf') format('opentype');
+  font-family: "MODERNIZ";
+  src: url("../public/fonts/Moderniz.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
 }
@@ -11,22 +11,22 @@
 @theme {
   --color-primary: #171717;
   /* Black text */
-  --color-accent: #FF7A00;
+  --color-accent: #ff7a00;
   /* Orange accent */
   --color-accentLight: #ff8b00;
   /* Lighter orange for hover effect */
-  --color-secondary: #09355D;
+  --color-secondary: #09355d;
   /* Blue accent */
-  --color-background: #F5F7F9;
+  --color-background: #f5f7f9;
   /* Main background */
   --color-card: #131317;
-  --color-cardLight: #22242F;
+  --color-cardLight: #22242f;
   /* Card background (testimonial) */
-  --color-muted: #F2F2F2;
+  --color-muted: #f2f2f2;
   /* Muted background (section) */
-  --font-heading: 'MODERNIZ', sans-serif;
-  --font-sans: 'Inter', Arial, Helvetica, sans-serif;
-  --font-intro: 'Open Sans', sans-serif;
+  --font-heading: "MODERNIZ", sans-serif;
+  --font-sans: "Inter", Arial, Helvetica, sans-serif;
+  --font-intro: "Open Sans", sans-serif;
   /* Tailwind breakpoints */
   --breakpoint-md: 768px; /* for Tablets */
   --breakpoint-lg: 1025px; /* for Laptops */
@@ -80,7 +80,7 @@
 }
 
 .primary {
-  @apply  px-6 py-2 bg-accent rounded-xl text-white font-semibold cursor-pointer hover:bg-accentLight hover:scale-[1.02] transition-all duration-300;
+  @apply px-6 py-2 bg-accent rounded-xl text-white font-semibold cursor-pointer hover:bg-accentLight hover:scale-[1.02] transition-all duration-300;
 }
 
 /* .secondary {

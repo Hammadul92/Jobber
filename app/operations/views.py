@@ -1,6 +1,7 @@
 """
 Views for operations APIs.
 """
+
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -20,10 +21,12 @@ from core.models import (
     Quote,
 )
 from operations import serializers, paginations, emails
+from user.utils import generate_magic_login_token
 
 
 class BusinessViewSet(viewsets.ModelViewSet):
     """View for manage business APIs."""
+
     serializer_class = serializers.BusinessSerializer
     queryset = Business.objects.all()
     authentication_classes = [TokenAuthentication]
@@ -53,6 +56,7 @@ class BusinessViewSet(viewsets.ModelViewSet):
 
 class ClientViewSet(viewsets.ModelViewSet):
     """View for manage clients APIs."""
+
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.ClientSerializer
@@ -88,6 +92,7 @@ class ClientViewSet(viewsets.ModelViewSet):
 
 class TeamMemberViewSet(viewsets.ModelViewSet):
     """View for manage team member APIs."""
+
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = (
@@ -112,6 +117,7 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
 
 class ServiceViewSet(viewsets.ModelViewSet):
     """View for manage services APIs."""
+
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.ServiceSerializer
@@ -147,9 +153,11 @@ class ServiceViewSet(viewsets.ModelViewSet):
         ).first()
 
         if questionnaire:
+            magic_token = generate_magic_login_token(service.client.user)
             emails.send_service_questionnaire_email(
                 service=service,
                 questionnaire=questionnaire,
+                magic_token=magic_token,
             )
 
     def perform_destroy(self, instance):
@@ -158,6 +166,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
 class QuoteViewSet(viewsets.ModelViewSet):
     """View for manage quote APIs."""
+
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.QuoteSerializer
@@ -264,6 +273,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
 class ServiceQuestionnaireViewSet(viewsets.ModelViewSet):
     """View for manage service questionnaires APIs."""
+
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = ServiceQuestionnaire.objects.all().select_related("business")
@@ -286,18 +296,17 @@ class ServiceQuestionnaireViewSet(viewsets.ModelViewSet):
 
 class JobViewSet(viewsets.ModelViewSet):
     """ViewSet for managing jobs related to services."""
+
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.JobSerializer
-    queryset = (
-        Job.objects.select_related(
-            "service",
-            "service__client",
-            "service__business",
-            "assigned_to",
-            "assigned_to__employee",
-        ).order_by("-id")
-    )
+    queryset = Job.objects.select_related(
+        "service",
+        "service__client",
+        "service__business",
+        "assigned_to",
+        "assigned_to__employee",
+    ).order_by("-id")
 
     def get_queryset(self):
         """Filter queryset based on user role and optional query params."""
@@ -324,20 +333,19 @@ class JobViewSet(viewsets.ModelViewSet):
 
 class JobPhotoViewSet(viewsets.ModelViewSet):
     """ViewSet for managing before/after photos attached to jobs."""
+
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.JobPhotoSerializer
     parser_classes = [MultiPartParser, FormParser]
-    queryset = (
-        JobPhoto.objects.select_related(
-            "job",
-            "job__service",
-            "job__service__client",
-            "job__service__business",
-            "job__assigned_to",
-            "job__assigned_to__employee",
-        ).order_by("-uploaded_at")
-    )
+    queryset = JobPhoto.objects.select_related(
+        "job",
+        "job__service",
+        "job__service__client",
+        "job__service__business",
+        "job__assigned_to",
+        "job__assigned_to__employee",
+    ).order_by("-uploaded_at")
 
     def get_queryset(self):
         user = self.request.user

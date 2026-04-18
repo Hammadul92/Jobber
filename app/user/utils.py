@@ -29,3 +29,22 @@ def verify_password_reset_token(token, max_age=3600):
         get_user_model().DoesNotExist
     ):
         return None
+
+
+def generate_magic_login_token(user):
+    """Generate a short-lived token for magic link login (1 hour)."""
+    return signing.dumps({'user_id': user.id}, salt="magic-login")
+
+
+def verify_magic_login_token(token, max_age=3600):
+    """Verify magic login token and return the user, or None."""
+    try:
+        data = signing.loads(token, salt="magic-login", max_age=max_age)
+        user_id = data.get('user_id')
+        return get_user_model().objects.get(id=user_id)
+    except (
+        signing.BadSignature,
+        signing.SignatureExpired,
+        get_user_model().DoesNotExist
+    ):
+        return None

@@ -1,8 +1,8 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
 import { SiCodeblocks } from "react-icons/si";
-import { FaChevronRight } from 'react-icons/fa';
-import './Components.css';
+import { FaChevronRight } from "react-icons/fa";
+import "./Components.css";
 
 const MegaMenu = ({ onClose }) => (
   <div className="absolute left-0 top-full w-full bg-white shadow-lg z-40 py-8 px-10 flex flex-col lg:flex-row gap-8 border-t border-gray-200">

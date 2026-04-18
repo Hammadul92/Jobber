@@ -6,7 +6,6 @@ import PricingPlans from "../Components/HomePage/PricingPlans";
 import FAQSection from "../Components/HomePage/FAQSection";
 import CTASection from "../Components/CTASection";
 
-
 export default function Home() {
   return (
     <main>
