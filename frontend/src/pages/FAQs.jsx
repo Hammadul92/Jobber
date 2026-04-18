@@ -1,7 +1,7 @@
-import React from 'react'
-import FAQHero from '../Components/FAQPage/FAQHero';
-import FAQSection from '../Components/HomePage/FAQSection';
-import CTASection from '../Components/CTASection';
+import React from "react";
+import FAQHero from "../Components/FAQPage/FAQHero";
+import FAQSection from "../Components/HomePage/FAQSection";
+import CTASection from "../Components/CTASection";
 
 function FAQs() {
   return (
@@ -10,7 +10,7 @@ function FAQs() {
       <FAQSection />
       <CTASection />
     </main>
-  )
+  );
 }
 
-export default FAQs
+export default FAQs;

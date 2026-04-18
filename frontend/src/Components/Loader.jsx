@@ -1,11 +1,7 @@
-import React from 'react'
+import React from "react";
 
 function Loader() {
-  return (
-    <div className='w-full h-full'>
-      Loading ...
-    </div>
-  )
+  return <div className="w-full h-full">Loading ...</div>;
 }
 
-export default Loader
+export default Loader;

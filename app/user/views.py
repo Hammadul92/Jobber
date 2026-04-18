@@ -27,6 +27,8 @@ from user.utils import (
     verify_email_token,
     generate_password_reset_token,
     verify_password_reset_token,
+    generate_magic_login_token,
+    verify_magic_login_token,
 )
 from user.emails import send_registration_email, send_password_reset_email
 
@@ -167,3 +169,28 @@ class CheckUserExistsView(generics.GenericAPIView):
 
         user = get_user_model().objects.filter(email=email).first()
         return Response({"id": user.id if user else None}, status=status.HTTP_200_OK)
+
+
+class MagicLoginView(APIView):
+    """Log in a user via a magic link token and return their auth token."""
+
+    def post(self, request):
+        token = request.data.get("token")
+        if not token:
+            return Response(
+                {"detail": "Token is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = verify_magic_login_token(token)
+        if not user:
+            return Response(
+                {"detail": "Invalid or expired magic link."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        auth_token, _ = Token.objects.get_or_create(user=user)
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
+
+        return Response({"token": auth_token.key}, status=status.HTTP_200_OK)

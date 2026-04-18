@@ -1,200 +1,220 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
-    useCreateTeamMemberMutation,
-    useCreateUserMutation,
-    useCheckUserExistsMutation,
-    useFetchBusinessesQuery,
-} from '../../../store';
-import SubmitButton from '../../../Components/ui/SubmitButton';
-import Input from '../../../Components/ui/Input';
-import Select from '../../../Components/ui/Select';
-import { CgClose } from 'react-icons/cg';
+  useCreateTeamMemberMutation,
+  useCreateUserMutation,
+  useCheckUserExistsMutation,
+  useFetchBusinessesQuery,
+} from "../../../store";
+import SubmitButton from "../../../Components/ui/SubmitButton";
+import Textarea from "../../../Components/ui/Textarea";
+import Input from "../../../Components/ui/Input";
+import Select from "../../../Components/ui/Select";
+import { CgClose } from "react-icons/cg";
 
 function generateStrongPassword(length = 12) {
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?';
-    let password = '';
-    const array = new Uint32Array(length);
-    window.crypto.getRandomValues(array);
-    for (let i = 0; i < length; i++) {
-        password += charset[array[i] % charset.length];
-    }
-    return password;
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?";
+  let password = "";
+  const array = new Uint32Array(length);
+  window.crypto.getRandomValues(array);
+  for (let i = 0; i < length; i++) {
+    password += charset[array[i] % charset.length];
+  }
+  return password;
 }
 
-export default function CreateTeamMemberForm({ token, showModal, setShowModal, setAlert }) {
-    const [name, setName] = useState('');
-    const [phone, setPhone] = useState('');
-    const [email, setEmail] = useState('');
-    const [role, setRole] = useState('EMPLOYEE');
-    const [jobDuties, setJobDuties] = useState('');
-    const [expertise, setExpertise] = useState('');
+export default function CreateTeamMemberForm({
+  token,
+  showModal,
+  setShowModal,
+  setAlert,
+}) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("EMPLOYEE");
+  const [jobDuties, setJobDuties] = useState("");
+  const [expertise, setExpertise] = useState("");
 
-    const [createUser, { isLoading: isUserLoading }] = useCreateUserMutation();
-    const [createTeamMember, { isLoading: isTeamMemberLoading }] = useCreateTeamMemberMutation();
-    const [checkUserExists, { isLoading: isCheckingUser }] = useCheckUserExistsMutation();
-    const { data: businesses } = useFetchBusinessesQuery(undefined, { skip: !token });
+  const [createUser, { isLoading: isUserLoading }] = useCreateUserMutation();
+  const [createTeamMember, { isLoading: isTeamMemberLoading }] =
+    useCreateTeamMemberMutation();
+  const [checkUserExists, { isLoading: isCheckingUser }] =
+    useCheckUserExistsMutation();
+  const { data: businesses } = useFetchBusinessesQuery(undefined, {
+    skip: !token,
+  });
 
-    const isSubmitting = isUserLoading || isTeamMemberLoading || isCheckingUser;
+  const isSubmitting = isUserLoading || isTeamMemberLoading || isCheckingUser;
 
-    const resetForm = () => {
-        setName('');
-        setPhone('');
-        setEmail('');
-        setRole('EMPLOYEE');
-        setJobDuties('');
-        setExpertise('');
-    };
+  const resetForm = () => {
+    setName("");
+    setPhone("");
+    setEmail("");
+    setRole("EMPLOYEE");
+    setJobDuties("");
+    setExpertise("");
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        if (!name || !email || !phone) {
-            setAlert({ type: 'danger', message: 'Please fill all required fields.' });
-            return;
-        }
+    if (!name || !email || !phone) {
+      setAlert({ type: "danger", message: "Please fill all required fields." });
+      return;
+    }
 
-        try {
-            const checkResponse = await checkUserExists({ email }).unwrap();
-            let userId = checkResponse?.id;
+    try {
+      const checkResponse = await checkUserExists({ email }).unwrap();
+      let userId = checkResponse?.id;
 
-            if (!userId) {
-                const password = generateStrongPassword();
-                const userPayload = { name, email, phone, password, role };
-                const newUser = await createUser(userPayload).unwrap();
-                userId = newUser.id;
-            }
+      if (!userId) {
+        const password = generateStrongPassword();
+        const userPayload = { name, email, phone, password, role };
+        const newUser = await createUser(userPayload).unwrap();
+        userId = newUser.id;
+      }
 
-            const businessId = businesses?.[0]?.id;
-            if (!businessId) throw new Error('No business found for the current user.');
+      const businessId = businesses?.[0]?.id;
+      if (!businessId)
+        throw new Error("No business found for the current user.");
 
-            await createTeamMember({
-                business: businessId,
-                employee: userId,
-                job_duties: jobDuties,
-                expertise,
-            }).unwrap();
+      await createTeamMember({
+        business: businessId,
+        employee: userId,
+        job_duties: jobDuties,
+        expertise,
+      }).unwrap();
 
-            setAlert({ type: 'success', message: 'Team member added successfully.' });
-            resetForm();
-            setShowModal(false);
-        } catch (err) {
-            console.error('Create team member error:', err);
-            setAlert({
-                type: 'danger',
-                message: 'Something went wrong while adding the team member. Please try again.',
-            });
-        }
-    };
+      setAlert({ type: "success", message: "Team member added successfully." });
+      resetForm();
+      setShowModal(false);
+    } catch (err) {
+      console.error("Create team member error:", err);
+      setAlert({
+        type: "danger",
+        message:
+          "Something went wrong while adding the team member. Please try again.",
+      });
+    }
+  };
 
-    return (
-        <>
-            {showModal && (
-                <div className="fixed min-h-screen inset-0 z-30 flex flex-col items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
-                    <div
-                        className="max-w-2xl z-40 rounded-3xl bg-white shadow-lg"
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <div className="p-6 flex items-start bg-secondary text-white rounded-t-3xl justify-between gap-3">
-                            <div>
-                                <h5 className="text-xl font-semibold font-heading leading-tight">Add New Member</h5>
-                                <p className="text-sm text-white/80">Credentials are generated automatically; a confirmation link will be emailed.</p>
-                            </div>
-                            <button
-                                type="button"
-                                className="text-gray-200 transition hover:text-gray-400"
-                                onClick={() => setShowModal(false)}
-                                aria-label="Close"
-                            >
-                                <CgClose className="h-5 w-5" />
-                            </button>
-                        </div>
-                        <form
-                            onSubmit={handleSubmit}
-                            className='px-6 pb-6 space-y-2'
-                        >
+  return (
+    <>
+      {showModal && (
+        <div
+          className="fixed min-h-screen inset-0 z-30 flex flex-col items-center justify-center bg-black/50 p-4"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="max-w-2xl z-40 rounded-3xl bg-white shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="p-6 flex items-start bg-secondary text-white rounded-t-3xl justify-between gap-3">
+              <div>
+                <h5 className="text-xl font-semibold font-heading leading-tight">
+                  Add New Member
+                </h5>
+                <p className="text-sm text-white/80">
+                  Credentials are generated automatically; a confirmation link
+                  will be emailed.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="text-gray-200 transition hover:text-gray-400"
+                onClick={() => setShowModal(false)}
+                aria-label="Close"
+              >
+                <CgClose className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-2">
+              <div className="mb-4 rounded-xl bg-gray-50 py-3 text-sm text-gray-700">
+                Login credentials will be generated by our system. Team members
+                set their password via the "Forgot Password" flow after
+                receiving the email.
+              </div>
 
-                            <div className="mb-4 rounded-xl bg-gray-50 py-3 text-sm text-gray-700">
-                                Login credentials will be generated by our system. Team members set their password via the
-                                "Forgot Password" flow after receiving the email.
-                            </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <Input
+                  id="name"
+                  label={"Name"}
+                  value={name}
+                  isRequired={true}
+                  onChange={setName}
+                  fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                />
+                <Input
+                  id="email"
+                  label={"Email"}
+                  value={email}
+                  isRequired={true}
+                  onChange={setEmail}
+                  fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                />
+                <Input
+                  type="tel"
+                  id="phone"
+                  label={"Phone"}
+                  value={phone}
+                  isRequired={true}
+                  onChange={setPhone}
+                  fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                />
+                <Select
+                  id="role"
+                  label="Role"
+                  value={role}
+                  isRequired={true}
+                  onChange={setRole}
+                  options={[
+                    { value: "EMPLOYEE", label: "Employee" },
+                    { value: "MANAGER", label: "Manager" },
+                  ]}
+                />
+              </div>
 
-                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                                <Input
-                                    id="name"
-                                    label={'Name'}
-                                    value={name}
-                                    isRequired={true}
-                                    onChange={setName}
-                                    fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                                />
-                                <Input
-                                    id="email"
-                                    label={'Email'}
-                                    value={email}
-                                    isRequired={true}
-                                    onChange={setEmail}
-                                    fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                                />
-                                <Input
-                                    type="tel"
-                                    id="phone"
-                                    label={'Phone'}
-                                    value={phone}
-                                    isRequired={true}
-                                    onChange={setPhone}
-                                    fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                                />
-                                <Select
-                                    id="role"
-                                    label="Role"
-                                    value={role}
-                                    isRequired={true}
-                                    onChange={setRole}
-                                    options={[
-                                        { value: 'EMPLOYEE', label: 'Employee' },
-                                        { value: 'MANAGER', label: 'Manager' },
-                                    ]}
-                                />
-                            </div>
-
-                            <div className="mt-4 space-y-3">
-                                <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-800">Job Duties</label>
-                                    <textarea
-                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                                        rows="3"
-                                        value={jobDuties}
-                                        onChange={(e) => setJobDuties(e.target.value)}
-                                    ></textarea>
-                                </div>
-                                <Input
-                                    id="expertise"
-                                    label={'Expertise'}
-                                    value={expertise}
-                                    onChange={setExpertise}
-                                    fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                                />
-                            </div>
-
-                            <div className="mt-6 flex justify-end gap-3">
-                                <button
-                                    type="button"
-                                    className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
-                                    onClick={() => setShowModal(false)}
-                                    disabled={isSubmitting}
-                                >
-                                    Cancel
-                                </button>
-                                <SubmitButton
-                                    isLoading={isSubmitting}
-                                    btnClass="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:opacity-60"
-                                    btnName="Add Member"
-                                />
-                            </div>
-                        </form>
-                    </div>
+              <div className="mt-4 space-y-3">
+                <div>
+                  <Textarea
+                    id="team-member-job-duties"
+                    label="Job Duties"
+                    value={jobDuties}
+                    onChange={setJobDuties}
+                    isRequired={false}
+                    fieldClass="w-full"
+                    rows={3}
+                  />
                 </div>
-            )}
-        </>
-    );
+                <Input
+                  id="expertise"
+                  label={"Expertise"}
+                  value={expertise}
+                  onChange={setExpertise}
+                  fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                />
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                  onClick={() => setShowModal(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <SubmitButton
+                  isLoading={isSubmitting}
+                  btnClass="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:opacity-60"
+                  btnName="Add Member"
+                />
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }

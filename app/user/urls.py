@@ -32,4 +32,9 @@ urlpatterns = [
         views.CheckUserExistsView.as_view(),
         name="check-user-exists"
     ),
+    path(
+        "magic-login/",
+        views.MagicLoginView.as_view(),
+        name="magic-login"
+    ),
 ]

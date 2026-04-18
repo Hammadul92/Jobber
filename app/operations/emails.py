@@ -32,13 +32,13 @@ def send_quote_email(quote):
     )
 
 
-def send_service_questionnaire_email(service, questionnaire):
-    """Send email to client with questionnaire link."""
+def send_service_questionnaire_email(service, questionnaire, magic_token):
+    """Send email to client with questionnaire magic link (no login required)."""
 
     subject = "Please Fill Out Your Service Questionnaire"
     questionnaire_link = (
-        f"{settings.FRONTEND_URL}/user/business/service-questionnaire/"
-        f"{questionnaire.id}/form/{service.id}/"
+        f"{settings.FRONTEND_URL}/service-questionnaire/"
+        f"{questionnaire.id}/form/{service.id}?token={magic_token}"
     )
 
     message = (
@@ -47,6 +47,7 @@ def send_service_questionnaire_email(service, questionnaire):
         f"Please fill out your service questionnaire by clicking "
         f"the link below:\n\n"
         f"{questionnaire_link}\n\n"
+        f"This link will log you in automatically and expires in 1 hour.\n\n"
         f"Best regards,\n"
         f"The {service.business.name} Team"
     )
