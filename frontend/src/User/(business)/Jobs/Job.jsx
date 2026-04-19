@@ -12,7 +12,7 @@ import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { formatDate } from "../../../utils/formatDate";
 import Select from "../../../Components/ui/Select";
-
+import Textarea from "../../../Components/ui/Textarea";
 import Input from "../../../Components/ui/Input";
 
 export default function Job({ token, role }) {
@@ -85,8 +85,8 @@ export default function Job({ token, role }) {
     }
   };
 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
+  const handlePhotoChange = (input) => {
+    const file = input?.target?.files?.[0] || null;
     if (!file) return;
     setSelectedFile(file);
     setPhotoPreview(URL.createObjectURL(file));

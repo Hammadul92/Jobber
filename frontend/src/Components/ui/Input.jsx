@@ -16,6 +16,7 @@ export default function Input({
 }) {
   const isPhone = type === "tel";
   const isPassword = type === "password";
+  const isFile = type === "file";
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const phoneRegex = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
@@ -45,6 +46,8 @@ export default function Input({
   const handleChange = (e) => {
     if (isPhone) {
       handlePhoneChange(e);
+    } else if (isFile) {
+      onChange(e);
     } else if (isNumber) {
       let val = e.target.value;
       // Allow empty string for controlled input
@@ -110,7 +113,7 @@ export default function Input({
           className={`w-full rounded-xl bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-accent focus:border-accent transition bg-white
                         ${fieldClass || ""}
                         ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""}`}
-          value={value}
+          value={isFile ? undefined : value}
           onChange={handleChange}
           onBlur={() => {
             if (isPhone && value && !validatePhone(value)) {
