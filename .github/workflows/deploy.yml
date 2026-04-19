@@ -24,6 +24,9 @@ jobs:
 
             echo "Using IMAGE_TAG=${IMAGE_TAG}"
 
+            # 0️⃣ Pull latest repo changes (docker-compose.prod.yml, configs, etc.)
+            git pull origin main
+
             # 1️⃣ Pull latest backend/frontend images
             docker compose -f docker-compose.prod.yml pull
 
