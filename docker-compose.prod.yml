@@ -3,6 +3,7 @@ version: "3.9"
 volumes:
   prod-db-data:
   static-files:  # only used by backend
+  media-files:   # shared between backend (writes) and nginx (reads)
 
 services:
   db:
@@ -24,6 +25,7 @@ services:
       - "8000"
     volumes:
       - static-files:/app/static
+      - media-files:/app/media
     depends_on:
       - db
 
@@ -37,5 +39,6 @@ services:
       - "443:443"
     volumes:
       - static-files:/app/static
+      - media-files:/app/media
       - /etc/letsencrypt/live/getcontractorz.com/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
       - /etc/letsencrypt/live/getcontractorz.com/privkey.pem:/etc/ssl/private/privkey.pem:ro
