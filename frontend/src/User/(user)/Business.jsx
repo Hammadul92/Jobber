@@ -222,8 +222,8 @@ export default function Business({ token, setAlert }) {
   const inputClass =
     "w-full rounded-lg border border-gray-300 bg-white p-3 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";
   // const selectClass = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-3.5 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
-  const textareaClass =
-    "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";
+  // const textareaClass =
+  //   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";
 
   if (isLoading) return <div>Loading business data...</div>;
 
