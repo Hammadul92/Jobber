@@ -1,63 +1,42 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import CreateInvoiceForm from "./CreateInvoiceForm";
 import InvoiceDatatable from "./InvoiceDatatable";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
 export default function Invoices({ token, role, business }) {
   const [showModal, setShowModal] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(
+      setTopbar({
+        title: "Invoices",
+        description: "Manage billing, due dates, and payments.",
+        action:
+          role === "MANAGER" ? (
+            <button
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight"
+              onClick={() => setShowModal(true)}
+              type="button"
+            >
+              Add Invoice
+            </button>
+          ) : null,
+      }),
+    );
+
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch, role]);
 
   return (
     <>
-      <nav aria-label="breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <li>
-            <Link
-              to={`/`}
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              Contractorz
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to="/user/business/home"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              {business?.name ||
-                (role === "CLIENT"
-                  ? "Client Portal"
-                  : role === "EMPLOYEE"
-                    ? "Employee Portal"
-                    : "Dashboard")}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="font-semibold text-gray-800">Invoices</li>
-        </ol>
-      </nav>
-
-      <div className="mb-5 mt-16 md:mt-8 flex flex-wrap items-center justify-between gap-y-2">
-        <div>
-          <h3 className="text-xl md:text-2xl font-heading font-semibold text-gray-900">
-            Invoices
-          </h3>
-          <p className="text-sm text-gray-500">
-            Manage billing, due dates, and payments.
-          </p>
-        </div>
-        {role === "MANAGER" && (
-          <button
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight"
-            onClick={() => setShowModal(true)}
-          >
-            Add Invoice
-          </button>
-        )}
-      </div>
-
       {alert.message && (
         <AlertDispatcher
           type={alert.type}

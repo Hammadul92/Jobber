@@ -1,58 +1,42 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import CreateJobForm from "./CreateJobForm";
 import JobData from "./JobData";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
-export default function Jobs({ token, role, business }) {
+export default function Jobs({ token, role }) {
   const [showModal, setShowModal] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(
+      setTopbar({
+        title: "Jobs",
+        description: "Track one-time and recurring work from scheduling to completion.",
+        action:
+          role === "MANAGER" ? (
+            <button
+              className="inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight"
+              onClick={() => setShowModal(true)}
+              type="button"
+            >
+              Add Job
+            </button>
+          ) : null,
+      }),
+    );
+
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch, role]);
 
   return (
     <>
-      <nav aria-label="breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <li>
-            <Link
-              to={`/`}
-              className="font-semibold text-accent hover:text-accentLight"
-            >
-              Contractorz
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to="/user/business/home"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              {business?.name ||
-                (role === "CLIENT"
-                  ? "Client Portal"
-                  : role === "EMPLOYEE"
-                    ? "Employee Portal"
-                    : "Dashboard")}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="font-semibold text-gray-800">Jobs</li>
-        </ol>
-      </nav>
-
-      <div className="mb-5 mt-16 md:mt-8 flex flex-wrap items-start justify-between gap-y-2">
-        <h3 className="text-xl md:text-2xl font-semibold font-heading text-primary">
-          Jobs
-        </h3>
-        {role === "MANAGER" && (
-          <button
-            className="inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight"
-            onClick={() => setShowModal(true)}
-            type="button"
-          >
-            Add Job
-          </button>
-        )}
-      </div>
 
       {alert.message && (
         <AlertDispatcher

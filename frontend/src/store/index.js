@@ -11,6 +11,7 @@ import { jobApi } from "./apis/jobApi";
 import { bankingInformationApi } from "./apis/bankingInformationApi";
 import { invoiceApi } from "./apis/invoiceApi";
 import { payoutApi } from "./apis/payoutApi";
+import { topbarReducer } from "./topbarSlice";
 
 const store = configureStore({
   reducer: {
@@ -25,6 +26,7 @@ const store = configureStore({
     [bankingInformationApi.reducerPath]: bankingInformationApi.reducer,
     [invoiceApi.reducerPath]: invoiceApi.reducer,
     [payoutApi.reducerPath]: payoutApi.reducer,
+    topbar: topbarReducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
@@ -167,3 +169,7 @@ export {
   useDeletePayoutMutation,
   useRefundPayoutMutation,
 } from "./apis/payoutApi";
+
+export {
+  topbarReducer
+} from "./topbarSlice";

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFetchBusinessesQuery } from "../store";
+import MobileTopbar from "./MobileTopbar";
 import Topbar from "./Topbar";
-
 import SideNav from "./SideNav";
 
 import Profile from "./(user)/Profile";
@@ -192,14 +192,14 @@ export default function UserDashboard({ page, token, user }) {
     <div className="flex min-h-screen bg-gray-50">
       {/* Topbar for mobile view */}
       <div className="lg:hidden">
-        <Topbar
+        <MobileTopbar
           role={user?.role}
           businessName={business?.name || "Dashboard"}
           user={user}
         />
       </div>
       <SideNav user={user} businessRegistered={businessRegistered} />
-      <main className="flex-1 pt-18 pb-4 px-4 md:px-12 md:pt-22 lg:py-12 lg:pl-12 lg:pr-14 max-h-screen overflow-auto">
+      <main className="flex-1 max-h-screen overflow-auto">
         {alert.message && (
           <AlertDispatcher
             type={alert.type}
@@ -207,7 +207,16 @@ export default function UserDashboard({ page, token, user }) {
             onClose={() => setAlert({ type: "", message: "" })}
           />
         )}
+
+        {/* Topbar for desktop view */}
+        <div>
+          <Topbar businessName={business?.name || "Dashboard"} />
+        </div>
+
+        <div className="pt-8 pb-4 px-4 md:px-12 md:pt-12 lg:pb-12 lg:p-12 lg:pr-14">
         {renderTab()}
+        </div>
+
       </main>
     </div>
   );

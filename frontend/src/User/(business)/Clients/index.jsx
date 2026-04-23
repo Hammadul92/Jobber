@@ -1,25 +1,41 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa";
+import { useDispatch } from "react-redux";
 
 import CreateClientForm from "./CreateClientForm";
 import DataTable from "./ClientsDatatable";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
-export default function Clients({ token, business, role }) {
+export default function Clients({ token }) {
   const [showModal, setShowModal] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const dispatch = useDispatch();
 
-  const portalLabel = useMemo(
-    () =>
-      business?.name ||
-      (role === "CLIENT"
-        ? "Client Portal"
-        : role === "EMPLOYEE"
-          ? "Employee Portal"
-          : "Dashboard"),
-    [business?.name, role],
-  );
+
+  useEffect(() => {
+    dispatch(
+      setTopbar({
+        title: "Clients",
+        description: "Manage client profiles and their active services.",
+        action: (
+          <button
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight"
+            onClick={() => setShowModal(true)}
+            type="button"
+          >
+            Add Client
+          </button>
+        ),
+      }),
+    );
+
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch]);
 
   return (
     <>
@@ -30,48 +46,6 @@ export default function Clients({ token, business, role }) {
           onClose={() => setAlert({ type: "", message: "" })}
         />
       )}
-
-      <nav aria-label="breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <li>
-            <Link
-              to={`/`}
-              className="font-semibold text-accent hover:text-accentLight"
-            >
-              Contractorz
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to="/user/business/home"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              {portalLabel}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="text-gray-700 font-semibold">Clients</li>
-        </ol>
-      </nav>
-
-      <div className="mt-16 md:mt-8 mb-7 flex flex-wrap items-start justify-between gap-y-2">
-        <div>
-          <h3 className="text-xl md:text-2xl font-heading font-semibold text-primary">
-            Clients
-          </h3>
-          <p className="text-sm text-gray-600">
-            Manage client profiles and their active services.
-          </p>
-        </div>
-        <button
-          className="primary px-4! py-2! text-sm!"
-          onClick={() => setShowModal(true)}
-          type="button"
-        >
-          Add Client
-        </button>
-      </div>
 
       <CreateClientForm
         showModal={showModal}

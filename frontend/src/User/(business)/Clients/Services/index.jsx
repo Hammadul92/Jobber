@@ -1,15 +1,19 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa";
+import { useDispatch } from "react-redux";
 import CreateClientServiceForm from "./CreateClientServiceForm";
 import { useFetchClientQuery, useFetchBusinessQuery } from "../../../../store";
 import ClientServicesData from "./ClientServicesData";
 import AlertDispatcher from "../../../../Components/ui/AlertDispatcher";
+import { setTopbar, resetTopbar } from "../../../../store/topbarSlice";
 
 export default function ClientServices({ token, role }) {
   const { id: clientId } = useParams();
   const [showModal, setShowModal] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const dispatch = useDispatch();
 
   const isManagerMode = !!clientId;
 
@@ -31,16 +35,41 @@ export default function ClientServices({ token, role }) {
     ? `Services for ${client?.client_name || "Client"}`
     : "Services";
 
+  useEffect(() => {
+    dispatch(
+      setTopbar({
+        title,
+        description:
+          "Organize subscriptions and one-time jobs with clear statuses, billing cadence, and on-site details.",
+        action:
+          isManagerMode && role === "MANAGER" ? (
+            <button
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:opacity-60"
+              onClick={() => setShowModal(true)}
+              disabled={loadingClient || !!clientError}
+              type="button"
+            >
+              <FaPlus className="h-4 w-4" /> Add Service
+            </button>
+          ) : null,
+      }),
+    );
+
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch, title, isManagerMode, role, loadingClient, clientError]);
+
   const displayError = (error) => {
     const msg = Array.isArray(error?.data)
       ? error.data.join(", ")
       : typeof error?.data === "object"
         ? Object.entries(error.data)
-            .map(
-              ([field, messages]) =>
-                `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`,
-            )
-            .join(" | ")
+          .map(
+            ([field, messages]) =>
+              `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`,
+          )
+          .join(" | ")
         : error?.data?.detail || "Something went wrong";
     setAlert({ type: "danger", message: msg });
   };
@@ -50,57 +79,11 @@ export default function ClientServices({ token, role }) {
 
   return (
     <>
-      <nav aria-label="breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <li>
-            <Link
-              to={`/`}
-              className="font-semibold text-accent hover:text-accentLight"
-            >
-              Contractorz
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to="/user/business/home"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              {isManagerMode ? business?.name : "Client Portal"}
-            </Link>
-          </li>
-          {isManagerMode && (
-            <>
-              <li className="text-gray-400">/</li>
-              <li>
-                <Link
-                  to="/user/business/clients"
-                  className="font-semibold text-secondary hover:text-accent"
-                >
-                  Clients
-                </Link>
-              </li>
-            </>
-          )}
-          <li className="text-gray-400">/</li>
-          <li className="text-gray-700 font-semibold">{title}</li>
-        </ol>
-      </nav>
 
-      <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-accent to-secondary p-[1px] shadow-lg">
-        <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl bg-white/95 px-6 py-5">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-secondary">
-              Service Desk
-            </p>
-            <h2 className="text-2xl font-semibold text-primary">{title}</h2>
-            <p className="text-sm text-gray-600">
-              Organize subscriptions and one-time jobs with clear statuses,
-              billing cadence, and on-site details.
-            </p>
-          </div>
-          {isManagerMode && (
-            <div className="flex flex-col items-start gap-2 rounded-xl bg-gradient-to-br from-secondary to-primary px-4 py-3 text-white shadow-md">
+      {isManagerMode && (
+        <div className="mb-6 overflow-hidden rounded-2xl bg-linear-to-r from-accent to-secondary p-px shadow-lg">
+          <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl bg-white/95 px-6 py-5">
+            <div className="flex flex-col items-start gap-2 rounded-xl bg-linear-to-br from-secondary to-primary px-4 py-3 text-white shadow-md">
               <span className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
                 Client
               </span>
@@ -110,14 +93,14 @@ export default function ClientServices({ token, role }) {
               <p className="text-xs text-white/80">
                 {client?.city || client?.province_state || client?.country
                   ? [client?.city, client?.province_state, client?.country]
-                      .filter(Boolean)
-                      .join(", ")
+                    .filter(Boolean)
+                    .join(", ")
                   : "Location not provided"}
               </p>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {alert.message && (
         <AlertDispatcher

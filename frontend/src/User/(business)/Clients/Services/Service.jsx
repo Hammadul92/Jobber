@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { FaInfoCircle } from "react-icons/fa";
+import { useDispatch } from "react-redux";
 import {
   useFetchServiceQuery,
   useUpdateServiceMutation,
@@ -11,10 +12,12 @@ import Select from "../../../../Components/ui/Select";
 import Input from "../../../../Components/ui/Input";
 import Textarea from "../../../../Components/ui/Textarea";
 import { countries, provinces } from "../../../../constants/locations";
+import { setTopbar, resetTopbar } from "../../../../store/topbarSlice";
 
-export default function Service({ token, business, role }) {
+export default function Service({ token }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const { data: serviceData, isLoading } = useFetchServiceQuery(id, {
     skip: !token,
@@ -50,6 +53,20 @@ export default function Service({ token, business, role }) {
     COMPLETED: "bg-blue-100 text-blue-800",
     CANCELLED: "bg-red-100 text-red-800",
   };
+
+  useEffect(() => {
+    dispatch(
+      setTopbar({
+        title: serviceName ? `${serviceName} for ${serviceData?.client_name || "Client"}` : "Edit Service",
+        description: "Review pricing, schedule, status, and service address.",
+        action: null,
+      }),
+    );
+
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch, serviceName, serviceData?.client_name]);
 
   useEffect(() => {
     if (serviceData) {
@@ -116,52 +133,6 @@ export default function Service({ token, business, role }) {
 
   return (
     <>
-      <nav aria-label="breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <li>
-            <Link
-              to={`/`}
-              className="font-semibold text-accent hover:text-accentLight"
-            >
-              Contractorz
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to="/user/business/home"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              {business?.name ||
-                (role === "CLIENT"
-                  ? "Client Portal"
-                  : role === "EMPLOYEE"
-                    ? "Employee Portal"
-                    : "Dashboard")}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to={`/user/business/clients`}
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              Clients
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to={`/user/business/client/${serviceData.client}/services`}
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              Services
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="text-gray-700 font-semibold">Edit Service</li>
-        </ol>
-      </nav>
 
       {alert.message && (
         <AlertDispatcher

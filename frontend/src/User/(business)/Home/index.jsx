@@ -1,19 +1,31 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import {
   useFetchInvoicesQuery,
   useFetchQuotesQuery,
   useFetchJobsQuery,
   useFetchPayoutsQuery,
 } from "../../../store";
+import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
-export default function DashboardHome({ business, token, user }) {
-  const portalLabel =
-    business?.name ||
-    (user.role === "CLIENT"
-      ? "Client Portal"
-      : user.role === "EMPLOYEE"
-        ? "Employee Portal"
-        : "Dashboard");
+export default function DashboardHome({ token, user }) {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(
+      setTopbar({
+        title: "Dashboard",
+        description:
+          "Quick overview of your workspace. Use shortcuts for invoices, quotes, jobs, and payouts.",
+        action: null,
+      }),
+    );
+
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch]);
 
   const { data: invoiceData, isLoading: loadingInvoices } =
     useFetchInvoicesQuery(undefined, { skip: !token });
@@ -74,29 +86,6 @@ export default function DashboardHome({ business, token, user }) {
 
   return (
     <>
-      <nav aria-label="breadcrumb" className="mb-6">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <li>
-            <Link
-              to={`/`}
-              className="font-semibold text-accent hover:text-accentLight"
-            >
-              Contractorz
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to="/user/business/home"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              {portalLabel}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="text-gray-700 font-semibold">Dashboard</li>
-        </ol>
-      </nav>
 
       <div className="mb-6 mt-16 md:mt-8 ">
         <div>

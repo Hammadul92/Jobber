@@ -97,17 +97,17 @@ export default function SideNav({ user, businessRegistered }) {
     MANAGER: [
       { name: "Dashboard", path: "/user/business/home", icon: RiDashboardLine },
       {
-        name: "Team Members",
-        path: "/user/business/team-members",
-        icon: LuUsers,
-      },
-      { name: "Clients", path: "/user/business/clients", icon: LuCircleUser },
-      {
         name: "Questionnaires",
         path: "/user/business/service-questionnaires",
         icon: LuClipboardList,
       },
+      { name: "Clients", path: "/user/business/clients", icon: LuCircleUser },
       { name: "Quotes", path: "/user/business/quotes", icon: LuFileText },
+      {
+        name: "Team Members",
+        path: "/user/business/team-members",
+        icon: LuUsers,
+      },
       { name: "Jobs", path: "/user/business/jobs", icon: LuBriefcase },
       { name: "Payouts", path: "/user/business/payouts", icon: LuArrowUpRight },
       { name: "Invoices", path: "/user/business/invoices", icon: LuReceipt },
@@ -150,7 +150,7 @@ export default function SideNav({ user, businessRegistered }) {
   };
 
   return (
-    <aside className="hidden lg:block sidebar min-h-screen shadow-md w-76">
+    <aside className="hidden lg:block sidebar min-h-screen border-r border-gray-200 w-76">
       <div className="bg-white min-h-full flex flex-col p-6">
         {/* Profile Section */}
         <div className="flex items-center gap-3 mb-6">

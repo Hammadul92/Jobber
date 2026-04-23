@@ -1,47 +1,31 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import PayoutDatatable from "./PayoutDatatable";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
-export default function Payouts({ token, role, business }) {
+export default function Payouts({ token, role }) {
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(
+      setTopbar({
+        title: "Payouts",
+        description: "Track processed payouts and manage refunds.",
+        action: null,
+      }),
+    );
+
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch]);
 
   return (
     <>
-      <nav aria-label="breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <li>
-            <Link to={`/`} className="font-semibold text-accent">
-              Contractorz
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to="/user/business/home"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              {business?.name ||
-                (role === "CLIENT"
-                  ? "Client Portal"
-                  : role === "EMPLOYEE"
-                    ? "Employee Portal"
-                    : "Dashboard")}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="font-semibold text-gray-800">Payouts</li>
-        </ol>
-      </nav>
-
-      <div className="mb-5 mt-16 md:mt-8">
-        <h3 className="text-xl md:text-2xl font-semibold font-heading text-gray-900">
-          Payouts
-        </h3>
-        <p className="text-sm text-gray-500">
-          Track processed payouts and manage refunds.
-        </p>
-      </div>
 
       {alert.message && (
         <AlertDispatcher
