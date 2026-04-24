@@ -182,7 +182,7 @@ export default function TeamMembersData({ token, setAlert }) {
   const hasExpertiseFilter = selectedExpertise !== "ALL";
 
   const buttonClass =
-    "relative inline-flex h-12 items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 text-lg font-medium text-slate-700 transition hover:border-gray-400";
+    "relative inline-flex h-8 md:h-10 lg:h-12 items-center gap-2 rounded-lg md:rounded-xl border border-gray-300 bg-white px-3 md:px-5 text-lg font-medium text-slate-700 transition hover:border-gray-400";
 
   const dropdownClass =
     "absolute right-0 top-[calc(100%+6px)] z-20 space-y-1.5 min-w-48 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg";
@@ -190,7 +190,7 @@ export default function TeamMembersData({ token, setAlert }) {
   return (
     <>
       <div className="space-y-5">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <div className="rounded-xl border border-gray-200 bg-white px-5 py-5">
             <p className="mb-1 text-base font-light text-slate-600">Total Members</p>
             <p className="text-3xl font-semibold text-slate-900">{stats.total}</p>
@@ -222,7 +222,7 @@ export default function TeamMembersData({ token, setAlert }) {
               />
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex justify-between md:justify-start md:flex-wrap items-center gap-2.5 md:gap-3">
               <div className="relative" onClick={(event) => event.stopPropagation()}>
                 <button
                   type="button"
@@ -233,11 +233,11 @@ export default function TeamMembersData({ token, setAlert }) {
                     )
                   }
                 >
-                  <LuFilter className="h-5 w-5" />
+                  <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
                   Role
                   {hasRoleFilter ? (
                     <span
-                      className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-accent"
+                      className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-accent"
                       aria-hidden="true"
                     />
                   ) : null}
@@ -278,11 +278,11 @@ export default function TeamMembersData({ token, setAlert }) {
                     )
                   }
                 >
-                  <LuFilter className="h-5 w-5" />
+                  <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
                   Status
                   {hasStatusFilter ? (
                     <span
-                      className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-orange-500"
+                      className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-orange-500"
                       aria-hidden="true"
                     />
                   ) : null}
@@ -323,11 +323,11 @@ export default function TeamMembersData({ token, setAlert }) {
                     )
                   }
                 >
-                  <LuFilter className="h-5 w-5" />
+                  <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
                   Expertise
                   {hasExpertiseFilter ? (
                     <span
-                      className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-orange-500"
+                      className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-orange-500"
                       aria-hidden="true"
                     />
                   ) : null}

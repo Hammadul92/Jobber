@@ -9,7 +9,7 @@ import {
 } from "../../store";
 import SubmitButton from "../../Components/ui/SubmitButton";
 import Input from "../../Components/ui/Input";
-import Select from "../../Components/ui/Select";
+import Dropdown from "../../Components/ui/Dropdown";
 import Textarea from "../../Components/ui/Textarea";
 import { useFetchUserQuery } from "../../store";
 import { NavLink } from "react-router-dom";
@@ -371,17 +371,20 @@ export default function Business({ token, setAlert }) {
 
               <div className="grid grid-cols-1 md:gap-4 md:grid-cols-3">
                 <div className="flex flex-col mb-6 md:mb-0">
-                  <Select
+                  <label
+                    htmlFor="timezone"
+                    className="mb-1 block text-sm font-semibold text-gray-500 uppercase"
+                  >
+                    Timezone <span className="text-accent">*</span>
+                  </label>
+                  <Dropdown
                     id="timezone"
-                    label="Timezone"
                     value={timezone}
-                    isRequired={true}
-                    options={timezones.map((opt) => ({
-                      value: opt.value,
-                      label: opt.label,
-                    }))}
+                    placeholder="Select timezone"
+                    options={timezones}
                     onChange={setTimezone}
-                    fieldClass="w-full"
+                    buttonClassName="w-full rounded-xl border-gray-200 bg-white h-[50px]"
+                    menuClassName="max-h-72 overflow-auto"
                   />
                 </div>
 
@@ -433,31 +436,37 @@ export default function Business({ token, setAlert }) {
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-5">
                 <div className="flex flex-col">
-                  <Select
+                  <label
+                    htmlFor="country"
+                    className="mb-1 block text-sm font-semibold text-gray-500 uppercase"
+                  >
+                    Country <span className="text-accent">*</span>
+                  </label>
+                  <Dropdown
                     id="country"
-                    label="Country"
                     value={country}
-                    isRequired={true}
-                    options={countries.map((option) => ({
-                      value: option.value,
-                      label: option.label,
-                    }))}
+                    placeholder="Select country"
+                    options={countries}
                     onChange={setCountry}
-                    fieldClass="w-full"
+                    buttonClassName="w-full rounded-xl border-gray-200 bg-white h-[50px]"
+                    menuClassName="max-h-72 overflow-auto"
                   />
                 </div>
                 <div className="flex flex-col">
-                  <Select
+                  <label
+                    htmlFor="province"
+                    className="mb-1 block text-sm font-semibold text-gray-500 uppercase"
+                  >
+                    Province / State <span className="text-accent">*</span>
+                  </label>
+                  <Dropdown
                     id="province"
-                    label="Province / State"
                     value={provinceState}
-                    isRequired={true}
-                    options={(provinces[country] || []).map((option) => ({
-                      value: option.value,
-                      label: option.label,
-                    }))}
+                    placeholder="Select province / state"
+                    options={provinces[country] || []}
                     onChange={setProvinceState}
-                    fieldClass="w-full"
+                    buttonClassName="w-full rounded-xl border-gray-200 bg-white h-[50px]"
+                    menuClassName="max-h-72 overflow-auto"
                   />
                 </div>
               </div>

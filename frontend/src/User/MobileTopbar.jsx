@@ -33,27 +33,15 @@ function MobileTopbar({ role, businessName, user }) {
         is_visible: ["CLIENT", "MANAGER", "EMPLOYEE"].includes(role),
       },
       {
-        name: "Team Members",
-        path: "/user/business/team-members",
-        icon: LuUsers,
-        is_visible: role === "EMPLOYEE" || role === "MANAGER",
+        name: "Questionnaires",
+        path: "/user/business/service-questionnaires",
+        icon: LuClipboardList,
+        is_visible: role === "MANAGER",
       },
       {
         name: "Clients",
         path: "/user/business/clients",
         icon: LuCircleUser,
-        is_visible: role === "MANAGER",
-      },
-      {
-        name: "Services",
-        path: "/user/business/services",
-        icon: LuFileText,
-        is_visible: role === "CLIENT",
-      },
-      {
-        name: "Questionnaires",
-        path: "/user/business/service-questionnaires",
-        icon: LuClipboardList,
         is_visible: role === "MANAGER",
       },
       {
@@ -63,10 +51,22 @@ function MobileTopbar({ role, businessName, user }) {
         is_visible: role === "CLIENT" || role === "MANAGER",
       },
       {
+        name: "Team Members",
+        path: "/user/business/team-members",
+        icon: LuUsers,
+        is_visible: role === "EMPLOYEE" || role === "MANAGER",
+      },
+      {
         name: "Jobs",
         path: "/user/business/jobs",
         icon: LuBriefcase,
         is_visible: ["CLIENT", "MANAGER", "EMPLOYEE"].includes(role),
+      },
+      {
+        name: "Services",
+        path: "/user/business/services",
+        icon: LuFileText,
+        is_visible: role === "CLIENT",
       },
       {
         name: "Payouts",
@@ -178,28 +178,7 @@ function MobileTopbar({ role, businessName, user }) {
       >
         <FaBars className="text-[20px] md:text-[28px]" />
       </button>
-      {/* <nav aria-label="breadcrumb-mobile" className="ml-6">
-                <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-300">
-                    {breadcrumbItems.map((crumb, idx) => (
-                        <Fragment key={`${crumb.label}-${idx}`}>
-                            <li>
-                                {crumb.to ? (
-                                    <Link
-                                        to={crumb.to}
-                                        onClick={closeMobileMenu}
-                                        className={`font-semibold ${idx === 1 || idx === breadcrumbItems.length - 1 ? 'text-white' : 'text-accent hover:text-accentLight'}`}
-                                    >
-                                        {crumb.label}
-                                    </Link>
-                                ) : (
-                                    <span className="font-semibold text-gray-300">{crumb.label}</span>
-                                )}
-                            </li>
-                            {idx < breadcrumbItems.length - 1 && <li className="text-gray-300">/</li>}
-                        </Fragment>
-                    ))}
-                </ol>
-            </nav> */}
+
       {/* Logo */}
       <div className="mr-6">
         <Link to="/">

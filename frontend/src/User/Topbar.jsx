@@ -97,9 +97,9 @@ function Topbar({ businessName }) {
     }, [location.pathname, businessName]);
 
     return (
-        <div className="bg-white space-y-3 px-8 py-10 border-b border-gray-300 w-full">
+        <div className="bg-white space-y-3 md:p-8 md:pr-12 lg:p-8 lg:pr-14 px-4 py-10 border-b border-gray-300 w-full">
             
-            <nav aria-label="breadcrumb-mobile" className="ml-6">
+            <nav aria-label="breadcrumb-mobile" className="md:ml-6">
                 <ol className="flex flex-wrap items-center gap-2 text-sm">
                     {breadcrumbItems.map((crumb, idx) => (
                         <Fragment key={`${crumb.label}-${idx}`}>
@@ -121,9 +121,9 @@ function Topbar({ businessName }) {
                 </ol>
             </nav>
 
-            <div className="flex flex-wrap items-start justify-between gap-y-2">
-                <div className="ml-6">
-                    <h3 className="text-xl md:text-4xl font-medium text-primary">{title}</h3>
+            <div className="flex items-start justify-between gap-y-2">
+                <div className="md:ml-6">
+                    <h3 className="text-2xl md:text-4xl font-medium text-primary">{title}</h3>
                     <p className="text-sm md:text-base text-gray-500">{description}</p>
                 </div>
 
