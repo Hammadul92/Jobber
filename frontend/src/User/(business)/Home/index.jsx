@@ -87,7 +87,7 @@ export default function DashboardHome({ token, user }) {
   return (
     <>
 
-      <div className="mb-6 mt-16 md:mt-8 ">
+      <div className="mb-6">
         <div>
           <h3 className="text-sm md:text-base lg:text-lg font-semibold font-heading text-accent">
             Welcome back! <br />
@@ -96,10 +96,6 @@ export default function DashboardHome({ token, user }) {
               {user?.name}
             </span>
           </h3>
-          <p className="mt-2 max-w-2xl text-sm text-gray-600">
-            Quick overview of your workspace. Use the shortcuts to jump into
-            billing, quotes, jobs, and payouts.
-          </p>
         </div>
       </div>
 

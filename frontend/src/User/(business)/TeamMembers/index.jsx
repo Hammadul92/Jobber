@@ -5,6 +5,7 @@ import CreateTeamMemberForm from "./CreateTeamMemberForm";
 import TeamMembersData from "./TeamMembersData";
 import { useDispatch } from "react-redux";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
+import { LuUserPlus } from "react-icons/lu";
 
 export default function TeamMembers({ token }) {
   const [showModal, setShowModal] = useState(false);
@@ -18,11 +19,12 @@ export default function TeamMembers({ token }) {
         description: "Manage your staff access, duties, and expertise.",
         action: (
           <button
-            className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight"
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight"
             onClick={() => setShowModal(true)}
             type="button"
           >
-            Add Member
+            <LuUserPlus className="h-5 w-5" />
+            <span className="hidden md:block">Add Member</span>
           </button>
         ),
       })

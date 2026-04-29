@@ -34,6 +34,33 @@ export default function UserDashboard({ page, token, user }) {
   const [alert, setAlert] = useState({ type: "", message: "" });
   const navigate = useNavigate();
 
+  const businessTabPages = useMemo(
+    () =>
+      new Set([
+        "home",
+        "clients",
+        "client-services",
+        "service",
+        "service-questionnaires",
+        "service-questionnaire",
+        "service-questionnaire-form",
+        "team-members",
+        "team-member",
+        "quotes",
+        "quote",
+        "sign-quote",
+        "jobs",
+        "job",
+        "invoices",
+        "invoice",
+        "payouts",
+        "payout",
+      ]),
+    [],
+  );
+
+  const showBusinessTopbar = businessTabPages.has(page);
+
   // Define access rules for each dashboard page and allowed roles
   const accessRules = useMemo(
     () => [
@@ -190,16 +217,17 @@ export default function UserDashboard({ page, token, user }) {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+
       {/* Topbar for mobile view */}
-      <div className="lg:hidden">
-        <MobileTopbar
-          role={user?.role}
-          businessName={business?.name || "Dashboard"}
-          user={user}
-        />
-      </div>
+      <MobileTopbar
+        role={user?.role}
+        businessName={business?.name || "Dashboard"}
+        user={user}
+      />
+
       <SideNav user={user} businessRegistered={businessRegistered} />
-      <main className="flex-1 max-h-screen overflow-auto">
+
+      <main className="flex-1 max-h-screen overflow-auto pt-10 md:pt-14 lg:pt-0">
         {alert.message && (
           <AlertDispatcher
             type={alert.type}
@@ -209,12 +237,14 @@ export default function UserDashboard({ page, token, user }) {
         )}
 
         {/* Topbar for desktop view */}
-        <div>
-          <Topbar businessName={business?.name || "Dashboard"} />
-        </div>
+        {showBusinessTopbar && (
+          <div>
+            <Topbar businessName={business?.name || "Dashboard"} />
+          </div>
+        )}
 
         <div className="pt-8 pb-4 px-4 md:px-12 md:pt-12 lg:pb-12 lg:p-12 lg:pr-14">
-        {renderTab()}
+          {renderTab()}
         </div>
 
       </main>

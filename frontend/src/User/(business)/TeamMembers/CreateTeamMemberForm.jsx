@@ -12,11 +12,11 @@ import {
   LuMail,
   LuPhone,
   LuBriefcase,
-  LuChevronRight,
   LuBookOpen,
   LuSparkles,
   LuPlus,
 } from "react-icons/lu";
+import Dropdown from "../../../Components/ui/Dropdown";
 
 function generateStrongPassword(length = 12) {
   const charset =
@@ -211,7 +211,7 @@ export default function CreateTeamMemberForm({
             aria-label="Close add member modal"
           />
 
-          <div className="absolute right-0 top-0 z-10 h-screen w-2/6 overflow-hidden border-l border-gray-200 bg-white shadow-2xl">
+          <div className="absolute right-0 top-0 z-10 h-screen w-full md:w-4/6 lg:w-2/6 overflow-hidden border-l border-gray-200 bg-white shadow-2xl">
             <form onSubmit={handleSubmit} className="flex h-full flex-col">
               <div className="border-b border-gray-100 px-6 py-5">
                 <div className="flex items-start justify-between gap-3">
@@ -264,7 +264,7 @@ export default function CreateTeamMemberForm({
                           value={name}
                           onChange={(event) => setName(event.target.value)}
                           placeholder="Enter full name"
-                          className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
+                          className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
                           required
                         />
                       </div>
@@ -292,7 +292,7 @@ export default function CreateTeamMemberForm({
                           }}
                           onBlur={() => setEmailError(validateEmail(email))}
                           placeholder="member@formexa.com"
-                          className={`h-11 w-full rounded-lg bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none ${
+                          className={`h-11 w-full rounded-xl bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none ${
                             emailError
                               ? "border border-red-300 focus:border-red-400"
                               : "border border-gray-200 focus:border-accent"
@@ -342,7 +342,7 @@ export default function CreateTeamMemberForm({
                           }}
                           onBlur={() => setPhoneError(validatePhone(phone))}
                           placeholder="+1 (555) 000-0000"
-                          className={`h-11 w-full rounded-lg bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none ${
+                          className={`h-11 w-full rounded-xl bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none ${
                             phoneError
                               ? "border border-red-300 focus:border-red-400"
                               : "border border-gray-200 focus:border-accent"
@@ -371,19 +371,18 @@ export default function CreateTeamMemberForm({
                       >
                         Role <span className="text-red-500">*</span>
                       </label>
-                      <div className="relative">
-                        <LuBriefcase className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                        <select
-                          id="member-role"
-                          value={role}
-                          onChange={(event) => setRole(event.target.value)}
-                          className="h-11 w-full appearance-none rounded-lg border border-gray-200 bg-white pl-10 pr-10 text-sm text-slate-700 focus:border-accent focus:outline-none"
-                        >
-                          <option value="EMPLOYEE">Employee</option>
-                          <option value="MANAGER">Manager</option>
-                        </select>
-                        <LuChevronRight className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-400" />
-                      </div>
+                      <Dropdown
+                        id="member-role"
+                        value={role}
+                        onChange={setRole}
+                        leftIcon={LuBriefcase}
+                        options={[
+                          { label: "Employee", value: "EMPLOYEE" },
+                          { label: "Manager", value: "MANAGER" },
+                        ]}
+                        buttonClassName="rounded-xl"
+                        menuClassName="max-h-72 overflow-auto"
+                      />
                       <p className="mt-1 text-xs text-slate-400">
                         Determines access permissions and responsibilities
                       </p>
@@ -405,7 +404,7 @@ export default function CreateTeamMemberForm({
                           value={jobDuties}
                           onChange={(event) => setJobDuties(event.target.value)}
                           placeholder="Describe primary responsibilities and tasks..."
-                          className="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
+                          className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
                         />
                       </div>
                       <div className="mt-1 flex items-center justify-between text-xs text-slate-400">
@@ -437,7 +436,7 @@ export default function CreateTeamMemberForm({
                         onChange={(event) => setSkillInput(event.target.value)}
                         onKeyDown={handleSkillKeyDown}
                         placeholder="Type a skill and press Enter"
-                        className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
+                        className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
                       />
                     </div>
                     <p className="mt-1 text-xs text-slate-400">
