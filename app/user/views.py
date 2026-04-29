@@ -27,7 +27,6 @@ from user.utils import (
     verify_email_token,
     generate_password_reset_token,
     verify_password_reset_token,
-    generate_magic_login_token,
     verify_magic_login_token,
 )
 from user.emails import send_registration_email, send_password_reset_email
