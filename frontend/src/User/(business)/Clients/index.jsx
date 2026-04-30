@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
-import { FaPlus } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-
+import { LuUserPlus } from "react-icons/lu";
 import CreateClientForm from "./CreateClientForm";
 import DataTable from "./ClientsDatatable";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
@@ -14,7 +12,6 @@ export default function Clients({ token }) {
   const [alert, setAlert] = useState({ type: "", message: "" });
   const dispatch = useDispatch();
 
-
   useEffect(() => {
     dispatch(
       setTopbar({
@@ -22,11 +19,12 @@ export default function Clients({ token }) {
         description: "Manage client profiles and their active services.",
         action: (
           <button
-            className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight"
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight"
             onClick={() => setShowModal(true)}
             type="button"
           >
-            Add Client
+            <LuUserPlus className="h-5 w-5" />
+            <span className="hidden md:block">Add Client</span>
           </button>
         ),
       }),
@@ -52,13 +50,8 @@ export default function Clients({ token }) {
         setShowModal={setShowModal}
         setAlert={setAlert}
       />
-      <div className="rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-sm">
-        <DataTable
-          token={token}
-          setAlert={setAlert}
-          showAddClient={setShowModal}
-        />
-      </div>
+
+      <DataTable token={token} setAlert={setAlert} showAddClient={setShowModal} />
     </>
   );
 }

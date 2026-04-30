@@ -1,11 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-  FaCheckCircle,
-  FaTrashAlt,
-  FaPencilAlt,
-  FaSlidersH,
-} from "react-icons/fa";
+import { LuCheck, LuTrash2, LuPencil, LuSlidersHorizontal } from "react-icons/lu";
 import {
   useFetchServicesQuery,
   useDeleteServiceMutation,
@@ -13,7 +8,7 @@ import {
 import SubmitButton from "../../../../Components/ui/SubmitButton";
 import { countries, provinces } from "../../../../constants/locations";
 import { formatDate } from "../../../../utils/formatDate";
-import Select from "../../../../Components/ui/Select";
+import Dropdown from "../../../../Components/ui/Dropdown";
 
 export default function ClientServicesData({
   token,
@@ -36,6 +31,7 @@ export default function ClientServicesData({
   const [typeFilter, setTypeFilter] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
   const [provinceFilter, setProvinceFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("PENDING");
 
   useEffect(() => {
     if (isError) {
@@ -48,22 +44,13 @@ export default function ClientServicesData({
   const filteredServices = useMemo(() => {
     return services.filter((service) => {
       return (
+        (!statusFilter || service.status === statusFilter) &&
         (!typeFilter || service.service_type === typeFilter) &&
         (!countryFilter || service.country === countryFilter) &&
         (!provinceFilter || service.province_state === provinceFilter)
       );
     });
-  }, [services, typeFilter, countryFilter, provinceFilter]);
-
-  // Group services by status
-  const groupedServices = useMemo(() => {
-    const groups = { ACTIVE: [], PENDING: [], COMPLETED: [], CANCELLED: [] };
-    filteredServices.forEach((svc) => {
-      if (groups[svc.status]) groups[svc.status].push(svc);
-      else groups.PENDING.push(svc);
-    });
-    return groups;
-  }, [filteredServices]);
+  }, [services, statusFilter, typeFilter, countryFilter, provinceFilter]);
 
   const handleDeleteClick = (id) => {
     setSelectedServiceId(id);
@@ -86,45 +73,51 @@ export default function ClientServicesData({
     }
   };
 
-  const statusColumns = [
+  const statusTabs = [
     {
       key: "PENDING",
       label: "Pending",
-      gradient: "from-amber-100 to-orange-50",
-      text: "text-amber-900",
     },
     {
       key: "ACTIVE",
       label: "Active",
-      gradient: "from-green-100 to-emerald-50",
-      text: "text-emerald-900",
     },
     {
       key: "COMPLETED",
       label: "Completed",
-      gradient: "from-blue-100 to-secondary/10",
-      text: "text-secondary",
     },
     {
       key: "CANCELLED",
       label: "Cancelled",
-      gradient: "from-red-100 to-rose-50",
-      text: "text-red-900",
     },
   ];
 
-  const hasFilters = typeFilter || countryFilter || provinceFilter;
+  const hasFilters =
+    statusFilter !== "PENDING" || typeFilter || countryFilter || provinceFilter;
+
+  const provinceOptions = useMemo(() => {
+    const allProvs = Object.values(provinces).flat();
+    const list = countryFilter ? provinces[countryFilter] || [] : allProvs;
+    // prepend All option
+    const merged = [{ value: "", label: "All" }, ...list];
+    // dedupe by value
+    const seen = new Set();
+    return merged.filter((p) => {
+      if (seen.has(p.value)) return false;
+      seen.add(p.value);
+      return true;
+    });
+  }, [countryFilter]);
 
   if (isLoading)
     return <div className="text-center py-4">Loading services...</div>;
 
   return (
     <>
-      {/* FILTERS */}
-      <div className="mb-4 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-sm">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-            <FaSlidersH className="h-4 w-4 text-secondary" />
+      <div className="mb-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <LuSlidersHorizontal className="h-4 w-4 text-secondary" />
             Filters
           </div>
           {hasFilters && (
@@ -141,185 +134,177 @@ export default function ClientServicesData({
             </button>
           )}
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <div>
-            <Select
+            <label
+              htmlFor="type_filter"
+              className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-500"
+            >
+              Subscription type
+            </label>
+            <Dropdown
               id="type_filter"
-              label={"Subscription type"}
               value={typeFilter}
               onChange={setTypeFilter}
+              placeholder="Subscription Type"
               options={[
+                { value: "", label: "All" },
                 { value: "ONE_TIME", label: "One Time" },
                 { value: "SUBSCRIPTION", label: "Subscription" },
               ]}
+              buttonClassName="h-10 border-gray-200 bg-white"
+              menuClassName="max-h-64 overflow-auto"
             />
           </div>
           <div>
-            <Select
+            <label
+              htmlFor="country_filter"
+              className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-500"
+            >
+              Country
+            </label>
+            <Dropdown
               id="country_filter"
-              label={"Country"}
               value={countryFilter}
               onChange={(value) => {
                 setCountryFilter(value);
                 setProvinceFilter("");
               }}
-              options={countries}
+              placeholder="Country"
+              options={[{ value: "", label: "All" }, ...countries]}
+              buttonClassName="h-10 border-gray-200 bg-white"
+              menuClassName="max-h-64 overflow-auto"
             />
           </div>
           <div>
-            <Select
+            <label
+              htmlFor="province_state"
+              className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-500"
+            >
+              Province/State
+            </label>
+            <Dropdown
               id="province_state"
-              label={"Provice/State"}
               value={provinceFilter}
               onChange={setProvinceFilter}
-              options={provinces[countryFilter]}
+              placeholder="Province/State"
+              options={provinceOptions}
+              buttonClassName="h-10 border-gray-200 bg-white"
+              menuClassName="max-h-64 overflow-auto"
+              disabled={false}
             />
           </div>
         </div>
       </div>
 
-      {/* GRID VIEW */}
-      <div
-        className="flex flex-nowrap gap-3 overflow-auto pb-2"
-        style={{ scrollSnapType: "x mandatory" }}
-      >
-        {statusColumns.map(({ key, label, gradient, text }) => (
-          <div
-            key={key}
-            className="flex-shrink-0"
-            style={{
-              minWidth: "320px",
-              maxWidth: "320px",
-              scrollSnapAlign: "start",
-            }}
-          >
-            <div className="h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+        {statusTabs.map((tab) => {
+          const isActive = statusFilter === tab.key;
+
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setStatusFilter(tab.key)}
+              className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                isActive
+                  ? "border-amber-300 bg-amber-50 text-amber-800"
+                  : "border-gray-200 bg-white text-slate-600 hover:border-gray-300"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {filteredServices.length ? (
+          filteredServices.map((service) => {
+            const serviceTypeLabel =
+              service.service_type === "SUBSCRIPTION" ? "SUBSCRIPTION" : "ONE-TIME";
+
+            return (
               <div
-                className={`bg-gradient-to-r ${gradient} ${text} rounded-t-2xl px-4 py-3 text-center text-sm font-semibold`}
+                key={service.id}
+                className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
               >
-                {label}
-              </div>
-
-              {groupedServices[key].length ? (
-                groupedServices[key].map((service) => (
-                  <div
-                    key={service.id}
-                    className="m-3 rounded-xl border border-gray-100 bg-white/90 p-3 shadow-sm"
-                  >
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <h6 className="mb-0 text-sm font-semibold text-primary">
-                        {service.service_name}
-                      </h6>
-                      <span className="rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase text-secondary">
-                        {service.service_type === "SUBSCRIPTION"
-                          ? "Subscription"
-                          : "One-Time"}
-                      </span>
-                    </div>
-
-                    {["ACTIVE", "COMPLETED"].includes(service.status) && (
-                      <p className="mb-1 text-xs text-gray-700">
-                        <span className="font-semibold text-primary">
-                          Price:
-                        </span>{" "}
-                        ${service.price} {service.currency}
-                        {service.billing_cycle
-                          ? ` • ${service.billing_cycle}`
-                          : ""}
-                      </p>
-                    )}
-
-                    <p className="mb-1 flex items-center justify-between text-xs text-gray-700">
-                      <span>
-                        <span className="font-semibold text-primary">
-                          Start:
-                        </span>{" "}
-                        {formatDate(service.start_date, false)}
-                      </span>
-                      {service.end_date && (
-                        <span>
-                          <span className="font-semibold text-primary">
-                            End:
-                          </span>{" "}
-                          {formatDate(service.end_date, false)}
-                        </span>
-                      )}
-                    </p>
-
-                    <p className="mb-2 text-xs text-gray-700">
-                      <span className="font-semibold text-primary">
-                        Service Address:
-                      </span>{" "}
-                      {service.street_address}, {service.city},{" "}
-                      {service.province_state}, {service.country}
-                    </p>
-
-                    {role === "MANAGER" &&
-                      service.quotations?.length > 0 &&
-                      service.quotations.map((quote) => {
-                        return (
-                          <Link
-                            key={quote.id}
-                            to={`/user/business/quote/${quote.id}`}
-                            title={`Quotation: ${quote.quote_number}`}
-                            className="mr-1 inline-flex items-center rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-semibold text-accent"
-                          >
-                            {quote.quote_number}
-                          </Link>
-                        );
-                      })}
-
-                    <div className="mt-3 flex items-center justify-between gap-2">
-                      {service.service_questionnaires?.id ? (
-                        <Link
-                          to={`/user/business/service-questionnaire/${service.service_questionnaires?.id}/form/${service.id}`}
-                          className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold text-white shadow"
-                        >
-                          {service.filled_questionnaire && (
-                            <FaCheckCircle className="h-3.5 w-3.5" />
-                          )}
-                          Service Qs:{" "}
-                          {
-                            service.service_questionnaires?.questionnaire
-                              ?.length
-                          }
-                        </Link>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-[11px] font-semibold text-amber-800">
-                          No Questionnaire
-                        </span>
-                      )}
-
-                      {role === "MANAGER" && (
-                        <div className="flex gap-2">
-                          <button
-                            className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100"
-                            onClick={() => handleDeleteClick(service.id)}
-                            title="Delete Service"
-                            type="button"
-                          >
-                            <FaTrashAlt className="h-4 w-4" /> Delete
-                          </button>
-                          <Link
-                            className="inline-flex items-center gap-2 rounded-lg border border-secondary/30 bg-secondary/10 px-3 py-1 text-xs font-semibold text-secondary transition hover:bg-secondary/20"
-                            to={`/user/business/service/${service.id}`}
-                            title="Edit Service"
-                          >
-                            <FaPencilAlt className="h-4 w-4" /> Edit
-                          </Link>
-                        </div>
-                      )}
-                    </div>
+                <div className="space-y-3 px-4 py-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <h6 className="text-2xl font-semibold text-slate-900">
+                      {service.service_name}
+                    </h6>
+                    <span className="rounded-full bg-secondary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.05em] text-white">
+                      {serviceTypeLabel}
+                    </span>
                   </div>
-                ))
-              ) : (
-                <p className="p-4 text-center text-xs text-gray-500">
-                  No {label.toLowerCase()} services
-                </p>
-              )}
-            </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <p className="text-slate-600">
+                      <span className="block text-xs text-slate-400">Start</span>
+                      {formatDate(service.start_date, false)}
+                    </p>
+                    <p className="text-slate-600">
+                      <span className="block text-xs text-slate-400">End</span>
+                      {service.end_date
+                        ? formatDate(service.end_date, false)
+                        : "-"}
+                    </p>
+                  </div>
+
+                  <p className="text-sm text-slate-600">
+                    <span className="block text-xs text-slate-400">Service Address</span>
+                    {[service.street_address, service.city, service.province_state, service.country]
+                      .filter(Boolean)
+                      .join(", ") || "Address not provided"}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-4 py-3">
+                  {service.service_questionnaires?.id ? (
+                    <Link
+                      to={`/user/business/service-questionnaire/${service.service_questionnaires?.id}/form/${service.id}`}
+                      className="inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-1.5 text-xs font-semibold text-white"
+                    >
+                      {service.filled_questionnaire && (
+                        <LuCheck className="h-3.5 w-3.5" />
+                      )}
+                      Service Questionnaires
+                    </Link>
+                  ) : (
+                    <span className="inline-flex items-center rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800">
+                      No Questionnaire
+                    </span>
+                  )}
+
+                  {role === "MANAGER" && (
+                    <div className="flex gap-2">
+                      <button
+                        className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                        onClick={() => handleDeleteClick(service.id)}
+                        title="Delete Service"
+                        type="button"
+                      >
+                        <LuTrash2 className="h-3.5 w-3.5" /> Delete
+                      </button>
+                      <Link
+                        className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-gray-100"
+                        to={`/user/business/service/${service.id}`}
+                        title="Edit Service"
+                      >
+                        <LuPencil className="h-3.5 w-3.5" /> Edit
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="col-span-full rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center text-sm text-slate-500">
+            No {statusTabs.find((tab) => tab.key === statusFilter)?.label.toLowerCase()} services found.
           </div>
-        ))}
+        )}
       </div>
 
       {/* DELETE MODAL */}

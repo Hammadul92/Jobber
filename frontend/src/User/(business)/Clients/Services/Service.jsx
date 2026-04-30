@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { FaInfoCircle } from "react-icons/fa";
+import { LuInfo } from "react-icons/lu";
 import { useDispatch } from "react-redux";
 import {
   useFetchServiceQuery,
@@ -277,7 +277,7 @@ export default function Service({ token }) {
           </label>
           {autoGenerateQuote && (
             <p className="flex items-start gap-2 text-sm text-gray-600">
-              <FaInfoCircle className="mt-0.5 h-4 w-4 text-secondary" />A quote
+              <LuInfo className="mt-0.5 h-4 w-4 text-secondary" />A quote
               will be generated automatically after the questionnaire is
               completed. The client will review and sign; notifications go to
               both parties.
@@ -296,7 +296,7 @@ export default function Service({ token }) {
           </label>
           {autoGenerateInvoices && (
             <p className="flex items-start gap-2 text-sm text-gray-600">
-              <FaInfoCircle className="mt-0.5 h-4 w-4 text-secondary" />
+              <LuInfo className="mt-0.5 h-4 w-4 text-secondary" />
               Invoices will be created automatically once the questionnaire is
               completed and the quote is signed.
             </p>

@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { FaPlus } from "react-icons/fa";
+import { LuPlus, LuMapPin, LuX } from "react-icons/lu";
 import { useDispatch } from "react-redux";
 import CreateClientServiceForm from "./CreateClientServiceForm";
 import { useFetchClientQuery, useFetchBusinessQuery } from "../../../../store";
@@ -40,7 +39,7 @@ export default function ClientServices({ token, role }) {
       setTopbar({
         title,
         description:
-          "Organize subscriptions and one-time jobs with clear statuses, billing cadence, and on-site details.",
+          "Track services by status, location, and subscription type.",
         action:
           isManagerMode && role === "MANAGER" ? (
             <button
@@ -49,7 +48,7 @@ export default function ClientServices({ token, role }) {
               disabled={loadingClient || !!clientError}
               type="button"
             >
-              <FaPlus className="h-4 w-4" /> Add Service
+              <LuPlus className="h-4 w-4" /> Add Service
             </button>
           ) : null,
       }),
@@ -81,16 +80,17 @@ export default function ClientServices({ token, role }) {
     <>
 
       {isManagerMode && (
-        <div className="mb-6 overflow-hidden rounded-2xl bg-linear-to-r from-accent to-secondary p-px shadow-lg">
-          <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl bg-white/95 px-6 py-5">
-            <div className="flex flex-col items-start gap-2 rounded-xl bg-linear-to-br from-secondary to-primary px-4 py-3 text-white shadow-md">
+        <div className="mb-6 overflow-hidden rounded-2xl bg-secondary px-6 py-5 text-white shadow-lg">
+          <div className="flex items-start justify-between gap-4">
+            <div>
               <span className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
                 Client
               </span>
-              <p className="text-sm font-semibold leading-tight">
+              <p className="text-3xl font-semibold leading-tight">
                 {client?.client_name || "Pending client"}
               </p>
-              <p className="text-xs text-white/80">
+              <p className="mt-1 inline-flex items-center gap-2 text-sm text-white/80">
+                <LuMapPin className="h-4 w-4" />
                 {client?.city || client?.province_state || client?.country
                   ? [client?.city, client?.province_state, client?.country]
                     .filter(Boolean)
@@ -98,6 +98,14 @@ export default function ClientServices({ token, role }) {
                   : "Location not provided"}
               </p>
             </div>
+
+            <Link
+              to="/user/business/clients"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"
+              aria-label="Close"
+            >
+              <LuX className="h-5 w-5" />
+            </Link>
           </div>
         </div>
       )}
@@ -110,31 +118,13 @@ export default function ClientServices({ token, role }) {
         />
       )}
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white/90 px-4 py-3 shadow-sm">
-        <div>
-          <h3 className="text-lg font-semibold text-primary">{title}</h3>
-          <p className="text-sm text-gray-600">
-            Track services by status, location, and subscription type.
-          </p>
-        </div>
-        {isManagerMode && (
-          <button
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-accent to-secondary px-4 py-2 text-sm font-semibold text-white shadow hover:shadow-lg disabled:opacity-60"
-            onClick={() => setShowModal(true)}
-            disabled={loadingClient || !!clientError}
-            type="button"
-          >
-            <FaPlus className="h-4 w-4" /> Add Service
-          </button>
-        )}
-      </div>
-
       {isManagerMode && (
         <CreateClientServiceForm
           showModal={showModal}
           setShowModal={setShowModal}
           clientId={client?.id}
           businessId={client?.business}
+          clientName={client?.client_name}
           serviceOptions={business?.services_offered || []}
           loadingOptions={loadingBusiness}
           errorOptions={businessError}
