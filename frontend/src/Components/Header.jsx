@@ -104,7 +104,7 @@ export default function Header() {
     <li className="flex items-center justify-between ">
       <Link
         to={to}
-        className="flex items-center justify-between w-full text-gray-800 hover:text-white py-4 px-6 hover:bg-accent hover:shadow shadow-accent/50 rounded-xl"
+        className="flex items-center justify-between w-full text-gray-800 hover:text-white py-3 px-6 hover:bg-accent hover:shadow shadow-accent/50 rounded-xl"
         onClick={() => setShowDropdown(false)}
       >
         <span className="flex items-center gap-3">

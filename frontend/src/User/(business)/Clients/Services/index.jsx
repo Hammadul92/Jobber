@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { LuPlus, LuMapPin, LuX } from "react-icons/lu";
+import { LuMapPin, LuPlus, LuX } from "react-icons/lu";
 import { useDispatch } from "react-redux";
 import CreateClientServiceForm from "./CreateClientServiceForm";
 import { useFetchClientQuery, useFetchBusinessQuery } from "../../../../store";
@@ -43,12 +43,12 @@ export default function ClientServices({ token, role }) {
         action:
           isManagerMode && role === "MANAGER" ? (
             <button
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-2 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:opacity-60"
               onClick={() => setShowModal(true)}
               disabled={loadingClient || !!clientError}
               type="button"
             >
-              <LuPlus className="h-4 w-4" /> Add Service
+              <LuPlus className="h-6 w-6 md:h-4 md:w-4" /> <span className="hidden md:inline-flex">Add Service</span>
             </button>
           ) : null,
       }),

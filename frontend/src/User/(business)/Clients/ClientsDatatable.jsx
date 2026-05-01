@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { Fragment, useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
-import { LuSettings, LuTrash2, LuPlus } from "react-icons/lu";
+import { LuTrash2, LuPlus } from "react-icons/lu";
+import { MdOutlineMiscellaneousServices } from "react-icons/md";
 import {
   LuSearch,
   LuSlidersHorizontal,
@@ -33,7 +34,9 @@ export default function ClientsDatatable({ token, showAddClient }) {
   const [pageSize, setPageSize] = useState(20);
   const [pageSizes] = useState([20, 30, 50]);
   const [isPageSizeOpen, setIsPageSizeOpen] = useState(false);
+  const [isPageNavOpen, setIsPageNavOpen] = useState(false);
   const pageSizeRef = useRef(null);
+  const pageNavRef = useRef(null);
 
   useEffect(() => {
     if (clientData) {
@@ -112,6 +115,10 @@ export default function ClientsDatatable({ token, showAddClient }) {
       if (!pageSizeRef.current?.contains(event.target)) {
         setIsPageSizeOpen(false);
       }
+
+      if (!pageNavRef.current?.contains(event.target)) {
+        setIsPageNavOpen(false);
+      }
     };
 
     const handleEscape = (event) => {
@@ -161,7 +168,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
             className="inline-flex items-center gap-2 rounded-lg bg-secondary/90 px-3 py-1 text-xs font-semibold text-white shadow transition hover:bg-secondary"
             title="Client Services"
           >
-            <LuSettings className="h-4 w-4" /> Services
+            <MdOutlineMiscellaneousServices className="h-4 w-4" /> Services
           </Link>
           <button
             className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100"
@@ -182,8 +189,8 @@ export default function ClientsDatatable({ token, showAddClient }) {
             </span>
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${props.row.is_active === "True"
-                  ? "bg-accent/15 text-accent"
-                  : "bg-amber-100 text-amber-800"
+                ? "bg-accent/15 text-accent"
+                : "bg-amber-100 text-amber-800"
                 }`}
             >
               {props.row.is_active === "True" ? "ACTIVE" : "INACTIVE"}
@@ -233,38 +240,40 @@ export default function ClientsDatatable({ token, showAddClient }) {
       </div>
 
       <div className="flex min-h-[65vh] flex-col overflow-visible rounded-2xl border border-gray-200 bg-[#fbfbfc] shadow-sm">
-        <div className="border-b border-gray-200 bg-white px-4 py-4 md:px-5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="relative flex-1">
+        <div className="border-b border-gray-200 bg-white px-4 py-4 md:px-5 rounded-t-2xl">
+          {/* Header: search and filter controls */}
+          <div className="flex flex-row items-center justify-between gap-1 md:gap-3 ">
+            <div className="relative min-w-0 flex-1">
               <LuSearch className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Search clients by name, email, or phone..."
-                className="h-14 w-full rounded-2xl border border-gray-200 bg-white pl-12 pr-4 text-sm text-slate-700 placeholder:text-slate-400 shadow-sm focus:border-accent focus:outline-none"
+                className="h-12 md:h-14 w-full rounded-2xl border border-gray-200 bg-white pl-12 pr-4 text-sm text-slate-700 placeholder:text-slate-400 shadow-sm focus:border-accent focus:outline-none"
               />
             </div>
 
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
-                className="inline-flex h-14 items-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-gray-50"
+                className="relative inline-flex h-12 md:h-14 items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 md:px-6 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-gray-50"
               >
                 <LuSlidersHorizontal className="h-4 w-4" />
-                Filters
+                <span className="hidden md:inline-flex">Filters</span>
                 {hasActiveFilters && (
-                  <span className="ml-1 inline-flex h-2.5 w-2.5 rounded-full bg-orange-500" />
+                  <span className="absolute top-2.5 md:top-3 left-1.5 md:left-3 ml-1 inline-flex h-2.5 w-2.5 rounded-full bg-orange-500" />
                 )}
               </button>
 
               {isFilterOpen && (
+                /* Filter dropdown panel */
                 <div
-                  className="absolute right-0 top-[calc(100%+10px)] z-30 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.18)]"
-                  style={{ width: "22rem", maxWidth: "calc(100vw - 1rem)" }}
+                  className="absolute right-0 top-[calc(100%+10px)] z-30 w-64! max-w-[calc(100vw-1rem)]! overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] md:w-88"
                 >
-                  <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+                  {/* Filter dropdown header */}
+                  <div className="flex items-center justify-between border-b border-gray-200 px-5 py-2 md:py-4">
                     <h4 className="text-lg font-medium text-slate-900">Filters</h4>
                     <button
                       type="button"
@@ -276,6 +285,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                     </button>
                   </div>
 
+                  {/* Filter dropdown options */}
                   <div className="px-5 py-4">
                     <div className="space-y-4">
                       <div>
@@ -308,6 +318,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                     </div>
                   </div>
 
+                  {/* Filter dropdown actions */}
                   <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row">
                     <button
                       type="button"
@@ -365,53 +376,148 @@ export default function ClientsDatatable({ token, showAddClient }) {
             </p>
           </div>
         ) : (
-          <div className="flex-1 space-y-4 px-4 py-4 md:px-5">
+          <div className="flex-1 space-y-4 px-4 py-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 md:px-5 lg:flex lg:flex-col lg:space-y-4 lg:gap-0">
             {paginatedRows.map((row) => {
               const isActive = row.is_active === "True" || row.is_active === true;
               const clientLabel = row.client_name || row.name || "Client";
               const email = row.email || row.client_email || "No email provided";
               const phone = row.client_phone || row.phone || "No phone provided";
               const paymentMethod =
-                row.payment_method || row.paymentMethod || row.payment || "-";
+                row.payment_method || row.paymentMethod || row.payment || "No payment method";
 
               return (
-                <div
-                  key={row.id}
-                  className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm md:px-5"
-                >
-                    <div className="flex min-w-0 flex-1 items-center gap-5">
-                    <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-purple-500 text-lg font-semibold text-white shadow">
-                      {(clientLabel || "C").slice(0, 2).toUpperCase()}
-                      <span className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white ${isActive ? "bg-emerald-500" : "bg-slate-400"}`} />
-                    </div>
-
-                      <div className="flex-1" style={{ minWidth: "11rem" }}>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                          Client Name
-                        </p>
-                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
-                          {isActive ? "Active" : "Inactive"}
-                        </span>
+                <Fragment key={row.id}>
+                  {/* Mobile and tablet card layout (default and md, hidden on lg+) */}
+                  <div className="rounded-2xl border border-gray-200 bg-white shadow-sm lg:hidden h-fit">
+                    <div className="flex flex-col items-center gap-3 text-center px-4 py-4 md:px-5">
+                      {/* Avatar and client name section */}
+                      <div className="flex items-center justify-start gap-3 w-full">
+                        {/* Client avatar */}
+                        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-purple-500 text-lg font-semibold text-white shadow">
+                          {(clientLabel || "C").slice(0, 2).toUpperCase()}
+                          <span
+                            className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white ${isActive ? "bg-emerald-500" : "bg-slate-400"}`}
+                          />
+                        </div>
+                        {/* Client name and status */}
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex flex-wrap items-center justify-center gap-2">
+                            <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
+                              Client Name
+                            </p>
+                            <span
+                              className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+                            >
+                              {isActive ? "Active" : "Inactive"}
+                            </span>
+                          </div>
+                          <p className="truncate text-lg text-left font-medium text-slate-900">
+                            {clientLabel}
+                          </p>
+                        </div>
                       </div>
-                      <p className="truncate text-lg font-medium text-slate-900">{clientLabel}</p>
-                    </div>
 
-                      <div className="hidden flex-1 flex-col md:flex" style={{ minWidth: "12.5rem" }}>
-                      <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                        Email Address
-                      </p>
-                      <p className="truncate text-sm text-slate-700">{email}</p>
-                    </div>
+                      {/* Client details grid */}
+                      <div className="grid w-full grid-cols-1 gap-3 text-left text-sm text-slate-700 px-2">
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
+                            Email Address
+                          </p>
+                          <p className="truncate">{email}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
+                            Phone Number
+                          </p>
+                          <p className="truncate">{phone}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
+                            Payment Method
+                          </p>
+                          <p className="truncate">{paymentMethod}</p>
+                        </div>
+                      </div>
 
-                      <div className="hidden flex-1 flex-col lg:flex" style={{ minWidth: "10.5rem" }}>
-                      <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                        Phone Number
-                      </p>
-                      <p className="truncate text-sm text-slate-700">{phone}</p>
-                    </div>
+                      {/* Divider line */}
+                      <div className="h-px w-full bg-secondary/40" />
 
-                      <div className="hidden flex-1 flex-col xl:flex" style={{ minWidth: "11rem" }}>
+                      {/* Card actions */}
+                      <div className="flex flex-wrap justify-end w-full gap-2">
+                        <Link
+                          to={`/user/business/client/${row.id}/services`}
+                          className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-accentLight"
+                        >
+                          <MdOutlineMiscellaneousServices className="h-4 w-4" /> Services
+                        </Link>
+                        <button
+                          className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                          onClick={() => handleDeleteClick(row.id)}
+                          title="Delete Client"
+                          type="button"
+                        >
+                          <LuTrash2 className="h-4 w-4" /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop row layout (lg and up only) */}
+                  <div className="hidden items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm md:px-5 lg:flex">
+                    {/* Left section: avatar, name, and info columns */}
+                    <div className="flex min-w-0 flex-1 items-center gap-5">
+                      {/* Client avatar */}
+                      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-purple-500 text-lg font-semibold text-white shadow">
+                        {(clientLabel || "C").slice(0, 2).toUpperCase()}
+                        <span
+                          className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white ${isActive ? "bg-emerald-500" : "bg-slate-400"}`}
+                        />
+                      </div>
+
+                      {/* Client name column */}
+                      <div className="flex-1" style={{ minWidth: "11rem" }}>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
+                            Client Name
+                          </p>
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+                          >
+                            {isActive ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                        <p className="truncate text-lg font-medium text-slate-900">
+                          {clientLabel}
+                        </p>
+                      </div>
+
+                      {/* Email column */}
+                      <div
+                        className="hidden flex-1 flex-col md:flex"
+                        style={{ minWidth: "12.5rem" }}
+                      >
+                        <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
+                          Email Address
+                        </p>
+                        <p className="truncate text-sm text-slate-700">{email}</p>
+                      </div>
+
+                      {/* Phone column */}
+                      <div
+                        className="hidden flex-1 flex-col lg:flex"
+                        style={{ minWidth: "10.5rem" }}
+                      >
+                        <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
+                          Phone Number
+                        </p>
+                        <p className="truncate text-sm text-slate-700">{phone}</p>
+                      </div>
+
+                      {/* Payment method column */}
+                      <div
+                        className="hidden flex-1 flex-col xl:flex"
+                        style={{ minWidth: "11rem" }}
+                      >
                         <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
                           Payment Method
                         </p>
@@ -419,48 +525,52 @@ export default function ClientsDatatable({ token, showAddClient }) {
                           {paymentMethod}
                         </p>
                       </div>
-                  </div>
+                    </div>
 
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Link
-                      to={`/user/business/client/${row.id}/services`}
-                      className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-accentLight"
-                    >
-                      <LuSettings className="h-4 w-4" /> Services
-                    </Link>
-                    <button
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 hover:text-red-500"
-                      onClick={() => handleDeleteClick(row.id)}
-                      title="Delete Client"
-                      type="button"
-                    >
-                      <LuTrash2 className="h-4 w-4" />
-                    </button>
+                    {/* Right section: action buttons */}
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Link
+                        to={`/user/business/client/${row.id}/services`}
+                        className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-accentLight"
+                      >
+                        <MdOutlineMiscellaneousServices className="h-4 w-4" /> Services
+                      </Link>
+                      <button
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 hover:text-red-500"
+                        onClick={() => handleDeleteClick(row.id)}
+                        title="Delete Client"
+                        type="button"
+                      >
+                        <LuTrash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                </Fragment>
               );
             })}
           </div>
         )}
 
-        <div className="sticky bottom-0 mt-auto border-t border-gray-200 bg-white px-4 py-3">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <span>Show</span>
-              <div ref={pageSizeRef} className="relative w-24">
+        {/* Footer: page size selector and pagination */}
+        <div className="mt-auto border-t border-gray-200 bg-white px-4 py-2 md:px-4 md:py-3 rounded-b-2xl">
+          <div className="flex items-end gap-2 md:gap-3 md:items-center justify-between">
+            {/* Page size selector */}
+            <div className="flex items-end md:items-center gap-2 text-sm text-slate-600">
+              <span className="hidden md:inline-flex">Show</span>
+              <div ref={pageSizeRef} className="relative w-24 md:w-24 lg:w-32">
                 <button
                   type="button"
                   onClick={() => setIsPageSizeOpen((prev) => !prev)}
-                  className="flex h-10 w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-3 text-base font-medium text-slate-700 shadow-sm transition hover:border-accent hover:text-slate-900"
+                  className="flex h-9 w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-2 md:px-3 text-sm md:text-base font-medium text-slate-700 shadow-sm transition hover:border-accent hover:text-slate-900"
                 >
-                  <span>{pageSize}</span>
+                  <span>{pageSize} / page</span>
                   <LuChevronDown
                     className={`h-4 w-4 text-slate-500 transition-transform ${isPageSizeOpen ? "rotate-180" : ""}`}
                   />
                 </button>
 
                 {isPageSizeOpen && (
-                  <div className="absolute bottom-[calc(100%+8px)] left-0 z-40 space-y-1 py-2 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_20px_35px_rgba(15,23,42,0.18)]">
+                  <div className="absolute bottom-[calc(100%+8px)] left-0 z-40 space-y-1 py-2 w-full overflow-hidden rounded-xl md:rounded-2xl border border-gray-200 bg-white shadow-[0_20px_35px_rgba(15,23,42,0.18)]">
                     {pageSizes.map((size) => {
                       const isSelected = pageSize === size;
 
@@ -476,8 +586,8 @@ export default function ClientsDatatable({ token, showAddClient }) {
                           className={`w-full px-2  text-left text-base transition `}
                         >
                           <div className={`flex items-center gap-2 w-full ${isSelected
-                              ? "bg-accent/10 font-semibold text-slate-900"
-                              : "text-slate-700 hover:bg-gray-50"
+                            ? "bg-accent/10 font-semibold text-slate-900"
+                            : "text-slate-700 hover:bg-gray-50"
                             } rounded-lg px-2 py-1`}>
                             <span>{size}</span>
                             {isSelected && <LuCircle className="h-3 w-3 fill-current text-accent" />}
@@ -488,19 +598,57 @@ export default function ClientsDatatable({ token, showAddClient }) {
                   </div>
                 )}
               </div>
-              <span>clients per page</span>
             </div>
 
-            <div className="flex items-center justify-end gap-2 text-sm text-slate-600">
-              <span>
+              {/* Pagination controls */}
+              <div className="flex items-center justify-end gap-2 text-xs md:text-sm text-slate-600">
+                <div ref={pageNavRef} className="relative md:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setIsPageNavOpen((prev) => !prev)}
+                    className="flex h-9 w-28 items-center justify-between rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-accent hover:text-slate-900"
+                  >
+                    <span>
+                      Page {safeCurrentPage + 1} / {totalPages}
+                    </span>
+                    <LuChevronDown
+                      className={`h-4 w-4 text-slate-500 transition-transform ${isPageNavOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  {isPageNavOpen && (
+                    <div className="absolute bottom-[calc(100%+8px)] right-0 z-40 max-h-64 w-36 px-2 overflow-auto rounded-2xl border border-gray-200 bg-white py-2 shadow-[0_20px_35px_rgba(15,23,42,0.18)]">
+                      {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => {
+                        const isSelected = pageNumber === safeCurrentPage + 1;
+
+                        return (
+                          <button
+                            key={pageNumber}
+                            type="button"
+                            onClick={() => {
+                              setCurrentPage(pageNumber - 1);
+                              setIsPageNavOpen(false);
+                            }}
+                            className={`flex w-full items-center justify-between px-3 py-2 rounded-lg text-left text-sm transition ${isSelected ? "bg-accent/10 font-semibold text-slate-900" : "text-slate-700 hover:bg-gray-50"}`}
+                          >
+                            <span>Page {pageNumber}</span>
+                            {isSelected && <LuCircle className="h-3 w-3 fill-current text-accent" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+              <span className="hidden md:inline-flex">
                 Page {safeCurrentPage + 1} of {totalPages}
               </span>
-              <div className="flex items-center gap-1">
+              <div className="hidden items-center gap-1 md:flex">
                 <button
                   type="button"
                   onClick={() => setCurrentPage(0)}
                   disabled={safeCurrentPage === 0}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-9 md:h-10 w-9 md:w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 text-xs md:text-sm font-medium"
                   aria-label="First page"
                 >
                   «
@@ -509,7 +657,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                   type="button"
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
                   disabled={safeCurrentPage === 0}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-9 md:h-10 w-9 md:w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 text-xs md:text-sm font-medium"
                   aria-label="Previous page"
                 >
                   ‹
@@ -517,7 +665,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                 <button
                   type="button"
                   disabled
-                  className="flex h-10 min-w-10 items-center justify-center rounded-xl bg-accent px-3 font-semibold text-white"
+                  className="flex h-9 md:h-10 min-w-9 md:min-w-10 items-center justify-center rounded-xl bg-accent px-2 md:px-3 text-xs md:text-sm font-semibold text-white"
                   aria-label="Current page"
                 >
                   {safeCurrentPage + 1}
@@ -526,7 +674,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                   type="button"
                   onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
                   disabled={safeCurrentPage >= totalPages - 1}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-9 md:h-10 w-9 md:w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 text-xs md:text-sm font-medium"
                   aria-label="Next page"
                 >
                   ›
@@ -535,7 +683,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                   type="button"
                   onClick={() => setCurrentPage(totalPages - 1)}
                   disabled={safeCurrentPage >= totalPages - 1}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-9 md:h-10 w-9 md:w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 text-xs md:text-sm font-medium"
                   aria-label="Last page"
                 >
                   »
