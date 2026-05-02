@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { LuPlus } from "react-icons/lu";
 import { CgClose } from "react-icons/cg";
-import { LuBadgeInfo, LuMail, LuPhone, LuUser } from "react-icons/lu";
+import { LuBadgeInfo } from "react-icons/lu";
 import {
   useCreateUserMutation,
   useCreateClientMutation,
   useCheckUserExistsMutation,
 } from "../../../store";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import Input from "../../../Components/ui/Input";
+import SubmitButton from "../../../Components/ui/SubmitButton";
+import PhoneInputField from "../../../Components/ui/PhoneInput";
 
 function generateStrongPassword(length = 12) {
   const charset =
@@ -77,11 +79,11 @@ export default function CreateClientForm({
         err?.data?.detail ||
         (err?.data && typeof err.data === "object"
           ? Object.entries(err.data)
-              .map(
-                ([key, value]) =>
-                  `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
-              )
-              .join(" | ")
+            .map(
+              ([key, value]) =>
+                `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
+            )
+            .join(" | ")
           : err?.message) ||
         "Failed to create client. Please try again.";
       const danger = { type: "danger", message };
@@ -147,71 +149,37 @@ export default function CreateClientForm({
                   </h6>
 
                   <div className="mt-4 space-y-4">
-                    <div>
-                      <label
-                        htmlFor="client-full-name"
-                        className="mb-1 block text-sm font-medium text-slate-700"
-                      >
-                        Full Name <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <LuUser className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                        <input
-                          id="client-full-name"
-                          type="text"
-                          value={name}
-                          onChange={(event) => setName(event.target.value)}
-                          placeholder="Enter full name"
-                          className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
-                          required
-                        />
-                      </div>
-                    </div>
+                    <Input
+                      id="client-full-name"
+                      type="text"
+                      label="Full Name"
+                      value={name}
+                      onChange={setName}
+                      isRequired
+                      fieldClass="h-11 text-sm"
+                    />
 
                     <div>
-                      <label
-                        htmlFor="client-email"
-                        className="mb-1 block text-sm font-medium text-slate-700"
-                      >
-                        Email Address <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <LuMail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                        <input
-                          id="client-email"
-                          type="email"
-                          value={email}
-                          onChange={(event) => setEmail(event.target.value)}
-                          placeholder="member@formexa.com"
-                          className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
-                          required
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <Input
+                        id="client-email"
+                        type="email"
+                        label="Email Address"
+                        value={email}
+                        onChange={setEmail}
+                        isRequired
+                        fieldClass="h-11 text-sm"
+                      />
+                      <p className="-mt-4 text-xs text-slate-400">
                         Invitation will be sent to this email
                       </p>
                     </div>
 
-                    <div>
-                      <label
-                        htmlFor="client-phone"
-                        className="mb-1 block text-sm font-medium text-slate-700"
-                      >
-                        Phone Number <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <LuPhone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                        <input
-                          id="client-phone"
-                          type="tel"
-                          value={phone}
-                          onChange={(event) => setPhone(event.target.value)}
-                          placeholder="+1 (555) 000-0000"
-                          className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
-                          required
-                        />
-                      </div>
-                    </div>
+                    <PhoneInputField
+                      value={phone}
+                      setValue={setPhone}
+                      optional={false}
+                      // fieldClass="h-11 text-sm"
+                    />
                   </div>
                 </section>
               </div>
@@ -226,14 +194,11 @@ export default function CreateClientForm({
                   >
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={isSubmitting}
-                  >
-                    <LuPlus className="h-3.5 w-3.5" />
-                    {isSubmitting ? "Adding..." : "Add Client"}
-                  </button>
+                  <SubmitButton
+                    isLoading={isSubmitting}
+                    btnName="Add Client"
+                    btnClass="bg-accent px-4 py-2 text-sm text-white shadow hover:bg-accentLight"
+                  />
                 </div>
               </div>
             </form>

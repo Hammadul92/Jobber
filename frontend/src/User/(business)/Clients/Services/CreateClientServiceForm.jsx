@@ -4,6 +4,8 @@ import { useCreateServiceMutation } from "../../../../store";
 import SubmitButton from "../../../../Components/ui/SubmitButton";
 import { countries, provinces } from "../../../../constants/locations";
 import Dropdown from "../../../../Components/ui/Dropdown";
+import Input from "../../../../Components/ui/Input";
+import Textarea from "../../../../Components/ui/Textarea";
 
 export default function CreateClientServiceForm({
   showModal,
@@ -165,44 +167,37 @@ export default function CreateClientServiceForm({
                       </div>
 
                       <div>
-                        <label htmlFor="start_date" className="mb-1 block text-xs font-semibold text-slate-600">
-                          Start Date <span className="text-accent">*</span>
-                        </label>
-                        <input
+                        <Input
                           type="date"
                           id="start_date"
-                          className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-slate-700 focus:border-accent focus:outline-none"
+                          label="Start Date"
                           value={startDate}
-                          onChange={(e) => setStartDate(e.target.value)}
-                          required
+                          onChange={setStartDate}
+                          isRequired
+                          fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="end_date" className="mb-1 block text-xs font-semibold text-slate-600">
-                          End Date <span className="text-accent">*</span>
-                        </label>
-                        <input
+                        <Input
                           type="date"
                           id="end_date"
-                          className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-slate-700 focus:border-accent focus:outline-none"
+                          label="End Date"
                           value={endDate}
-                          onChange={(e) => setEndDate(e.target.value)}
+                          onChange={setEndDate}
+                          fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="price" className="mb-1 block text-xs font-semibold text-slate-600">
-                          Price <span className="text-accent">*</span>
-                        </label>
-                        <input
+                        <Input
                           type="number"
                           id="price"
-                          className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-slate-700 focus:border-accent focus:outline-none"
+                          label="Price"
                           value={price}
-                          onChange={(e) => setPrice(e.target.value)}
-                          placeholder="Price"
-                          required
+                          onChange={setPrice}
+                          isRequired
+                          fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
                         />
                       </div>
 
@@ -294,31 +289,25 @@ export default function CreateClientServiceForm({
                     </p>
                     <div className="space-y-3">
                       <div>
-                        <label htmlFor="street_address" className="mb-1 block text-xs font-semibold text-slate-600">
-                          Street Address
-                        </label>
-                        <input
+                        <Input
                           id="street_address"
-                          className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-slate-700 focus:border-accent focus:outline-none"
+                          label="Street Address"
                           value={streetAddress}
-                          onChange={(e) => setStreetAddress(e.target.value)}
-                          placeholder="STREET ADDRESS"
-                          required
+                          onChange={setStreetAddress}
+                          isRequired
+                          fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
                         />
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label htmlFor="city" className="mb-1 block text-xs font-semibold text-slate-600">
-                            City
-                          </label>
-                          <input
+                          <Input
                             id="city"
-                            className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-slate-700 focus:border-accent focus:outline-none"
+                            label="City"
                             value={city}
-                            onChange={(e) => setCity(e.target.value)}
-                            placeholder="City"
-                            required
+                            onChange={setCity}
+                            isRequired
+                            fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
                           />
                         </div>
 
@@ -355,16 +344,13 @@ export default function CreateClientServiceForm({
                       </div>
 
                       <div>
-                        <label htmlFor="postal_code" className="mb-1 block text-xs font-semibold text-slate-600">
-                          Postal/Zip Code
-                        </label>
-                        <input
+                        <Input
                           id="postal_code"
-                          className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-slate-700 focus:border-accent focus:outline-none"
+                          label="Postal/Zip Code"
                           value={postalCode}
-                          onChange={(e) => setPostalCode(e.target.value)}
-                          placeholder="Postal/Zip Code"
-                          required
+                          onChange={setPostalCode}
+                          isRequired
+                          fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
                         />
                       </div>
                     </div>
@@ -374,14 +360,14 @@ export default function CreateClientServiceForm({
                     <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
                       Service Description
                     </p>
-                    <textarea
+                    <Textarea
                       id="client-service-description"
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-slate-700 focus:border-accent focus:outline-none"
-                      style={{ minHeight: "90px" }}
+                      label="Description"
                       value={description}
-                      onChange={(e) => setDescription(e.target.value)}
+                      onChange={setDescription}
                       placeholder="Service Description"
                       rows={4}
+                      fieldClass="mb-0 rounded-lg px-3 py-2 text-sm"
                     />
                   </div>
                 </div>
@@ -390,14 +376,14 @@ export default function CreateClientServiceForm({
                   <div className="flex items-center justify-end gap-3">
                     <button
                       type="button"
-                      className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-gray-100"
+                      className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-gray-100"
                       onClick={() => setShowModal(false)}
                     >
                       Cancel
                     </button>
                     <SubmitButton
                       isLoading={isLoading}
-                      btnClass="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-white transition hover:bg-accentLight disabled:opacity-60"
+                      btnClass="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accentLight disabled:opacity-60"
                       btnName="Add Service"
                     />
                   </div>

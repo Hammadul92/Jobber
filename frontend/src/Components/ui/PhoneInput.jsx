@@ -33,16 +33,19 @@ export default function PhoneInputField({
   }, [value]);
 
   return (
-    <div className="mb-3">
-      <label htmlFor="phone" className="form-label fw-bold">
-        Phone {!optional && <small className="text-danger">(Required)</small>}
+    <div className="mb-6">
+      <label
+        htmlFor="phone"
+        className="mb-1 block text-sm font-semibold text-gray-500 uppercase"
+      >
+        Phone {!optional && <span className="text-accent">*</span>}
       </label>
       <input
         type="tel"
-        className={`form-control ${formLarge ? "form-control-lg" : ""} ${error ? "is-invalid" : ""}`}
+        className={`w-full rounded-xl bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition bg-white ${formLarge ? "text-lg" : ""} ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""}`}
         name="phone"
         required={!optional}
-        placeholder="+1555-555-5555"
+        placeholder="+15875001189"
         value={value}
         onChange={handleChange}
         onBlur={() => {
@@ -53,7 +56,7 @@ export default function PhoneInputField({
           else setError("");
         }}
       />
-      {error && <div className="invalid-feedback">{error}</div>}
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
     </div>
   );
 }

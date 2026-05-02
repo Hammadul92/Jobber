@@ -8,15 +8,14 @@ import {
 import { CgClose } from "react-icons/cg";
 import {
   LuBadgeInfo,
-  LuUser,
-  LuMail,
-  LuPhone,
   LuBriefcase,
-  LuBookOpen,
-  LuSparkles,
   LuPlus,
 } from "react-icons/lu";
+import Input from "../../../Components/ui/Input";
 import Dropdown from "../../../Components/ui/Dropdown";
+import Textarea from "../../../Components/ui/Textarea";
+import SubmitButton from "../../../Components/ui/SubmitButton";
+import PhoneInputField from "../../../Components/ui/PhoneInput";
 
 function generateStrongPassword(length = 12) {
   const charset =
@@ -44,7 +43,6 @@ export default function CreateTeamMemberForm({
   const [skillInput, setSkillInput] = useState("");
   const [skills, setSkills] = useState([]);
   const [emailError, setEmailError] = useState("");
-  const [phoneError, setPhoneError] = useState("");
 
   const [createUser, { isLoading: isUserLoading }] = useCreateUserMutation();
   const [createTeamMember, { isLoading: isTeamMemberLoading }] =
@@ -66,7 +64,6 @@ export default function CreateTeamMemberForm({
     setSkillInput("");
     setSkills([]);
     setEmailError("");
-    setPhoneError("");
   };
 
   const validateEmail = (value) => {
@@ -80,25 +77,6 @@ export default function CreateTeamMemberForm({
     }
 
     return "";
-  };
-
-  const validatePhone = (value) => {
-    const phoneValue = value.trim();
-    if (!phoneValue) return "Phone number is required.";
-
-    // Allow +, spaces, dashes, brackets but require enough digits.
-    const digitsOnly = phoneValue.replace(/\D/g, "");
-    if (digitsOnly.length < 10 || digitsOnly.length > 15) {
-      return "Enter a valid phone number.";
-    }
-
-    return "";
-  };
-
-  const sanitizePhoneInput = (value) => {
-    const hasLeadingPlus = value.startsWith("+");
-    const cleaned = value.replace(/[^\d()\-\s]/g, "");
-    return hasLeadingPlus ? `+${cleaned}` : cleaned;
   };
 
   const addSkill = (skillText) => {
@@ -133,14 +111,12 @@ export default function CreateTeamMemberForm({
     }
 
     const nextEmailError = validateEmail(email);
-    const nextPhoneError = validatePhone(phone);
     setEmailError(nextEmailError);
-    setPhoneError(nextPhoneError);
 
-    if (nextEmailError || nextPhoneError) {
+    if (nextEmailError) {
       setAlert({
         type: "danger",
-        message: "Please correct email and phone number before continuing.",
+        message: "Please correct email before continuing.",
       });
       return;
     }
@@ -249,58 +225,33 @@ export default function CreateTeamMemberForm({
                   </h6>
 
                   <div className="mt-4 space-y-4">
-                    <div>
-                      <label
-                        htmlFor="member-full-name"
-                        className="mb-1 block text-sm font-medium text-slate-700"
-                      >
-                        Full Name <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <LuUser className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                        <input
-                          id="member-full-name"
-                          type="text"
-                          value={name}
-                          onChange={(event) => setName(event.target.value)}
-                          placeholder="Enter full name"
-                          className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
-                          required
-                        />
-                      </div>
-                    </div>
+                    <Input
+                      id="member-full-name"
+                      label="Full Name"
+                      value={name}
+                      onChange={setName}
+                      isRequired
+                      placeholder="Enter full name"
+                      fieldClass="h-11 text-sm"
+                    />
 
                     <div>
-                      <label
-                        htmlFor="member-email"
-                        className="mb-1 block text-sm font-medium text-slate-700"
-                      >
-                        Email Address <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <LuMail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                        <input
-                          id="member-email"
-                          type="email"
-                          value={email}
-                          onChange={(event) => {
-                            const nextValue = event.target.value;
-                            setEmail(nextValue);
-                            if (emailError) {
-                              setEmailError(validateEmail(nextValue));
-                            }
-                          }}
-                          onBlur={() => setEmailError(validateEmail(email))}
-                          placeholder="member@formexa.com"
-                          className={`h-11 w-full rounded-xl bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none ${
-                            emailError
-                              ? "border border-red-300 focus:border-red-400"
-                              : "border border-gray-200 focus:border-accent"
-                          }`}
-                          aria-invalid={Boolean(emailError)}
-                          required
-                        />
-                      </div>
+                      <Input
+                        id="member-email"
+                        type="email"
+                        label="Email Address"
+                        value={email}
+                        onChange={(nextValue) => {
+                          setEmail(nextValue);
+                          if (emailError) {
+                            setEmailError(validateEmail(nextValue));
+                          }
+                        }}
+                        onBlur={() => setEmailError(validateEmail(email))}
+                        isRequired
+                        placeholder="member@formexa.com"
+                        fieldClass={`h-11 text-sm ${emailError ? "border-red-300 focus:border-red-400" : ""}`}
+                      />
                       {emailError && (
                         <p className="mt-1 text-xs text-red-600">{emailError}</p>
                       )}
@@ -309,52 +260,11 @@ export default function CreateTeamMemberForm({
                       </p>
                     </div>
 
-                    <div>
-                      <label
-                        htmlFor="member-phone"
-                        className="mb-1 block text-sm font-medium text-slate-700"
-                      >
-                        Phone Number <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <LuPhone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                        <input
-                          id="member-phone"
-                          type="tel"
-                          inputMode="tel"
-                          value={phone}
-                          onChange={(event) => {
-                            const nextValue = sanitizePhoneInput(
-                              event.target.value,
-                            );
-                            setPhone(nextValue);
-                            if (phoneError) {
-                              setPhoneError(validatePhone(nextValue));
-                            }
-                          }}
-                          onKeyDown={(event) => {
-                            if (
-                              event.key.length === 1 &&
-                              /[a-z]/i.test(event.key)
-                            ) {
-                              event.preventDefault();
-                            }
-                          }}
-                          onBlur={() => setPhoneError(validatePhone(phone))}
-                          placeholder="+1 (555) 000-0000"
-                          className={`h-11 w-full rounded-xl bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none ${
-                            phoneError
-                              ? "border border-red-300 focus:border-red-400"
-                              : "border border-gray-200 focus:border-accent"
-                          }`}
-                          aria-invalid={Boolean(phoneError)}
-                          required
-                        />
-                      </div>
-                      {phoneError && (
-                        <p className="mt-1 text-xs text-red-600">{phoneError}</p>
-                      )}
-                    </div>
+                    <PhoneInputField
+                      value={phone}
+                      setValue={setPhone}
+                      optional={false}
+                    />
                   </div>
                 </section>
 
@@ -367,9 +277,9 @@ export default function CreateTeamMemberForm({
                     <div>
                       <label
                         htmlFor="member-role"
-                        className="mb-1 block text-sm font-medium text-slate-700"
+                        className="mb-1 block text-sm font-semibold uppercase text-gray-500"
                       >
-                        Role <span className="text-red-500">*</span>
+                        Role <span className="text-accent">*</span>
                       </label>
                       <Dropdown
                         id="member-role"
@@ -380,8 +290,7 @@ export default function CreateTeamMemberForm({
                           { label: "Employee", value: "EMPLOYEE" },
                           { label: "Manager", value: "MANAGER" },
                         ]}
-                        buttonClassName="rounded-xl"
-                        menuClassName="max-h-72 overflow-auto"
+                        buttonClassName="h-11 text-sm"
                       />
                       <p className="mt-1 text-xs text-slate-400">
                         Determines access permissions and responsibilities
@@ -389,24 +298,16 @@ export default function CreateTeamMemberForm({
                     </div>
 
                     <div>
-                      <label
-                        htmlFor="member-job-duties"
-                        className="mb-1 block text-sm font-medium text-slate-700"
-                      >
-                        Job Duties
-                      </label>
-                      <div className="relative">
-                        <LuBookOpen className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <textarea
-                          id="member-job-duties"
-                          rows={4}
-                          maxLength={500}
-                          value={jobDuties}
-                          onChange={(event) => setJobDuties(event.target.value)}
-                          placeholder="Describe primary responsibilities and tasks..."
-                          className="w-full rounded-xl border border-gray-200 bg-white pl-10 pr-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
-                        />
-                      </div>
+                      <Textarea
+                        id="member-job-duties"
+                        label="Job Duties"
+                        value={jobDuties}
+                        onChange={setJobDuties}
+                        rows={4}
+                        maxLength={500}
+                        placeholder="Describe primary responsibilities and tasks..."
+                        fieldClass="text-sm"
+                      />
                       <div className="mt-1 flex items-center justify-between text-xs text-slate-400">
                         <span>Optional but recommended</span>
                         <span>{jobDuties.length}/500</span>
@@ -421,24 +322,15 @@ export default function CreateTeamMemberForm({
                   </h6>
 
                   <div className="mt-4">
-                    <label
-                      htmlFor="member-skill"
-                      className="mb-1 block text-sm font-medium text-slate-700"
-                    >
-                      Areas of Expertise
-                    </label>
-                    <div className="relative">
-                      <LuSparkles className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                      <input
-                        id="member-skill"
-                        type="text"
-                        value={skillInput}
-                        onChange={(event) => setSkillInput(event.target.value)}
-                        onKeyDown={handleSkillKeyDown}
-                        placeholder="Type a skill and press Enter"
-                        className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
-                      />
-                    </div>
+                    <Input
+                      id="member-skill"
+                      label="Areas of Expertise"
+                      value={skillInput}
+                      onChange={setSkillInput}
+                      onKeyDown={handleSkillKeyDown}
+                      placeholder="Type a skill and press Enter"
+                      fieldClass="h-11 text-sm"
+                    />
                     <p className="mt-1 text-xs text-slate-400">
                       Press Enter to add each skill
                     </p>
@@ -473,13 +365,11 @@ export default function CreateTeamMemberForm({
                   >
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Adding..." : "Add Member"}
-                  </button>
+                  <SubmitButton
+                    isLoading={isSubmitting}
+                    btnName="Add Member"
+                    btnClass="bg-accent px-4 py-2 text-sm text-white shadow hover:bg-accentLight"
+                  />
                 </div>
               </div>
             </form>
