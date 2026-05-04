@@ -114,46 +114,45 @@ export default function CreateClientServiceForm({
           />
 
           <div
-            className="absolute right-0 top-0 h-full w-full bg-white shadow-2xl"
+            className="absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl"
             style={{ maxWidth: "520px" }}
           >
-            <div className="flex h-full flex-col">
-              <div className="border-b border-gray-200 px-6 py-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h5 className="text-3xl font-semibold text-slate-900">
-                      Add a New Service
-                    </h5>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Create a service for {clientName || "client"}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="mt-0.5 text-slate-400 transition hover:text-slate-700"
-                    onClick={() => setShowModal(false)}
-                    aria-label="Close"
-                  >
-                    <LuX className="h-4 w-4" />
-                  </button>
+            <div className="shrink-0 border-b border-gray-200 px-6 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h5 className="text-3xl font-semibold text-slate-900">
+                    Add a New Service
+                  </h5>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Create a service for {clientName || "client"}
+                  </p>
                 </div>
+                <button
+                  type="button"
+                  className="mt-0.5 text-slate-400 transition hover:text-slate-700"
+                  onClick={() => setShowModal(false)}
+                  aria-label="Close"
+                >
+                  <LuX className="h-4 w-4" />
+                </button>
               </div>
+            </div>
 
-              <form onSubmit={handleSubmit} className="flex h-full flex-col">
-                <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5 pb-24">
+            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+              <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5 pb-6">
                   <div className="flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-3 text-xs font-semibold text-orange-600">
                     <LuInfo className="mt-px h-4 w-4 shrink-0" />
                     Service details and location will be saved to the client's profile.
                   </div>
 
-                  <div>
-                    <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                  <div className="space-y-4">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
                       Service Details
                     </p>
 
-                    <div className="space-y-3">
+                    <div className="space-y-6">
                       <div>
-                        <label htmlFor="service_name" className="mb-1 block text-xs font-semibold text-slate-600">
+                        <label htmlFor="service_name" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
                           Service Name <span className="text-accent">*</span>
                         </label>
                         <Dropdown
@@ -202,7 +201,7 @@ export default function CreateClientServiceForm({
                       </div>
 
                       <div>
-                        <label htmlFor="currency" className="mb-1 block text-xs font-semibold text-slate-600">
+                        <label htmlFor="currency" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
                           Currency <span className="text-accent">*</span>
                         </label>
                         <Dropdown
@@ -215,7 +214,7 @@ export default function CreateClientServiceForm({
                       </div>
 
                       <div>
-                        <label htmlFor="service_type" className="mb-1 block text-xs font-semibold text-slate-600">
+                        <label htmlFor="service_type" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
                           Service Type <span className="text-accent">*</span>
                         </label>
                         <Dropdown
@@ -232,7 +231,7 @@ export default function CreateClientServiceForm({
 
                       {serviceType !== "ONE_TIME" && (
                         <div>
-                          <label htmlFor="billing_cycle" className="mb-1 block text-xs font-semibold text-slate-600">
+                          <label htmlFor="billing_cycle" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
                             Billing Cycle <span className="text-accent">*</span>
                           </label>
                           <Dropdown
@@ -246,7 +245,7 @@ export default function CreateClientServiceForm({
                         </div>
                       )}
 
-                      <div className="space-y-2 pt-1">
+                      <div className="space-y-6 pt-1">
                         <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                           <input
                             id="generate_quote"
@@ -283,11 +282,11 @@ export default function CreateClientServiceForm({
                     </div>
                   </div>
 
-                  <div>
-                    <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                  <div className="space-y-6">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
                       Service Address
                     </p>
-                    <div className="space-y-3">
+                    <div className="space-y-6">
                       <div>
                         <Input
                           id="street_address"
@@ -312,7 +311,7 @@ export default function CreateClientServiceForm({
                         </div>
 
                         <div>
-                          <label htmlFor="province" className="mb-1 block text-xs font-semibold text-slate-600">
+                          <label htmlFor="province" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
                             Province/State
                           </label>
                           <Dropdown
@@ -327,8 +326,8 @@ export default function CreateClientServiceForm({
                         </div>
                       </div>
 
-                      <div>
-                        <label htmlFor="country" className="mb-1 block text-xs font-semibold text-slate-600">
+                      <div className="-mt-6">
+                        <label htmlFor="country" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
                           Country
                         </label>
                         <Dropdown
@@ -356,8 +355,8 @@ export default function CreateClientServiceForm({
                     </div>
                   </div>
 
-                  <div>
-                    <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                  <div className="space-y-6 pb-1">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
                       Service Description
                     </p>
                     <Textarea
@@ -372,24 +371,23 @@ export default function CreateClientServiceForm({
                   </div>
                 </div>
 
-                <div className="sticky bottom-0 z-40 bg-white border-t border-gray-200 px-6 py-4">
-                  <div className="flex items-center justify-end gap-3">
-                    <button
-                      type="button"
-                      className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-gray-100"
-                      onClick={() => setShowModal(false)}
-                    >
-                      Cancel
-                    </button>
-                    <SubmitButton
-                      isLoading={isLoading}
-                      btnClass="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accentLight disabled:opacity-60"
-                      btnName="Add Service"
-                    />
-                  </div>
+              <div className="shrink-0 border-t border-gray-200 bg-white px-6 py-3">
+                <div className="flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-gray-100"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <SubmitButton
+                    isLoading={isLoading}
+                    btnClass="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accentLight disabled:opacity-60"
+                    btnName="Add Service"
+                  />
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
