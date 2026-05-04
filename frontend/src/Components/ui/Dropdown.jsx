@@ -71,7 +71,7 @@ export default function Dropdown({
         id={id}
         type="button"
         disabled={disabled}
-        className={`flex h-11 w-full items-center justify-between rounded-xl border border-accent px-4 text-left transition hover:border-accentLight disabled:cursor-not-allowed disabled:opacity-60 ${buttonClassName}`}
+        className={`flex h-10 w-full items-center justify-between rounded-xl border border-accent px-4 text-left transition hover:border-accentLight disabled:cursor-not-allowed disabled:opacity-60 ${buttonClassName}`}
         onClick={() => setIsOpen((prev) => !prev)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
