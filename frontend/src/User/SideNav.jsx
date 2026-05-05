@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
   LuLogOut,
@@ -35,6 +35,7 @@ import {
 // Unified Sidebar for both UserAccount and UserDashboard
 export default function SideNav({ user, businessRegistered }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
   const [logoutUser] = useLogoutUserMutation();
@@ -129,6 +130,33 @@ export default function SideNav({ user, businessRegistered }) {
   };
   const dashboardMenu = roleDashboardMenu[role] || [];
 
+  // Helper function to check if a menu item should be highlighted
+  const isMenuItemActive = (menuPath) => {
+    const currentPath = location.pathname;
+    
+    // Exact match
+    if (currentPath.startsWith(menuPath)) return true;
+    
+    // Map of plural menu paths to their singular detail page patterns
+    const singularPatternsMap = {
+      "/user/business/clients": "/user/business/client/",
+      "/user/business/team-members": "/user/business/team-member/",
+      "/user/business/quotes": "/user/business/quote/",
+      "/user/business/jobs": "/user/business/job/",
+      "/user/business/invoices": "/user/business/invoice/",
+      "/user/business/payouts": "/user/business/payout/",
+      "/user/business/service-questionnaires": "/user/business/service-questionnaire/",
+    };
+    
+    // Check if current path matches a singular detail page pattern
+    const singularPattern = singularPatternsMap[menuPath];
+    if (singularPattern && currentPath.startsWith(singularPattern)) {
+      return true;
+    }
+    
+    return false;
+  };
+
   const handleLogout = async () => {
     await logoutUser();
     [
@@ -215,22 +243,23 @@ export default function SideNav({ user, businessRegistered }) {
           {isBusinessRegistered &&
             role &&
             role !== "USER" &&
-            dashboardMenu.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl p-3 font-medium transition ${
+            dashboardMenu.map((item) => {
+              const isActive = isMenuItemActive(item.path);
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-3 rounded-xl p-3 font-medium transition ${
                     isActive
                       ? "bg-gray-100 text-black font-bold"
                       : "text-gray-500 hover:bg-gray-100 hover:text-black font-medium"
-                  }`
-                }
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.name}</span>
-              </NavLink>
-            ))}
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span>{item.name}</span>
+                </NavLink>
+              );
+            })}
         </nav>
 
         {/* Logout */}
