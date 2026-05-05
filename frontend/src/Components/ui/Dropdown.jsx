@@ -96,7 +96,12 @@ export default function Dropdown({
           style={{ maxHeight: menuMaxHeight, overflow: "auto" }}
         >
           <ul role="listbox" aria-labelledby={id} className="space-y-2">
-            {normalizedOptions.map((option) => {
+            {normalizedOptions.length === 0 ? (
+              <li className="rounded-lg px-4 py-2 text-sm text-slate-400">
+                No Option to Show
+              </li>
+            ) : (
+              normalizedOptions.map((option) => {
               const isSelected = option.value === value;
 
               return (
@@ -115,7 +120,8 @@ export default function Dropdown({
                   </button>
                 </li>
               );
-            })}
+              })
+            )}
           </ul>
         </div>
       )}

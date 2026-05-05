@@ -16,7 +16,6 @@ import Clients from "./(business)/Clients";
 import ClientServices from "./(business)/Clients/Services";
 import Service from "./(business)/Clients/Services/Service";
 import ServiceQuestionnaires from "./(business)/ServiceQuestionnaires";
-import ServiceQuestionnaire from "./(business)/ServiceQuestionnaires/ServiceQuestionnaire";
 import ServiceQuestionnaireForm from "./(business)/ServiceQuestionnaires/ServiceQuestionnaireForm";
 import TeamMembers from "./(business)/TeamMembers";
 import TeamMember from "./(business)/TeamMembers/TeamMember";
@@ -42,7 +41,6 @@ export default function UserDashboard({ page, token, user }) {
         "client-services",
         "service",
         "service-questionnaires",
-        "service-questionnaire",
         "service-questionnaire-form",
         "team-members",
         "team-member",
@@ -72,7 +70,6 @@ export default function UserDashboard({ page, token, user }) {
       { page: "service", roles: ["MANAGER"] },
       { page: "client-services", roles: ["MANAGER", "CLIENT"] },
       { page: "service-questionnaires", roles: ["MANAGER"] },
-      { page: "service-questionnaire", roles: ["MANAGER"] },
       { page: "service-questionnaire-form", roles: ["MANAGER", "CLIENT"] },
       { page: "quotes", roles: ["CLIENT", "MANAGER"] },
       { page: "quote", roles: ["CLIENT", "MANAGER"] },
@@ -162,9 +159,6 @@ export default function UserDashboard({ page, token, user }) {
             role={user?.role}
           />
         );
-      case "service-questionnaire":
-        // Single service questionnaire tab
-        return <ServiceQuestionnaire token={token} business={business} />;
       case "service-questionnaire-form":
         // Service questionnaire form tab
         return (
@@ -174,9 +168,6 @@ export default function UserDashboard({ page, token, user }) {
             business={business}
           />
         );
-      case "team-members":
-        // Team members tab
-        return <TeamMembers token={token} business={business} />;
       case "team-member":
         // Single team member tab
         return (

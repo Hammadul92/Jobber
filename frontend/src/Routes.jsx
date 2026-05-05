@@ -162,16 +162,6 @@ function MainApp() {
             }
           />
           <Route
-            path="service-questionnaire/:id"
-            element={
-              <UserDashboard
-                page="service-questionnaire"
-                token={token}
-                user={user}
-              />
-            }
-          />
-          <Route
             path="service-questionnaire/:id/form"
             element={
               <UserDashboard

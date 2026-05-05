@@ -7,14 +7,16 @@ import {
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
+import { useDispatch } from "react-redux";
 
 export default function ServiceQuestionnaireForm(props) {
   const { id, serviceId, token: urlToken } = useParams();
   // Prefer token from URL if present (public access), else from props (authenticated)
   const token = urlToken || props.token;
   const role = props.role;
-  const business = props.business;
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const {
     data: questionnaire,
@@ -43,8 +45,8 @@ export default function ServiceQuestionnaireForm(props) {
         ? Object.fromEntries(raw.map((q, i) => [i, { ...q, answer: "" }]))
         : Array.isArray(raw?.questions)
           ? Object.fromEntries(
-              raw.questions.map((q, i) => [i, { ...q, answer: "" }]),
-            )
+            raw.questions.map((q, i) => [i, { ...q, answer: "" }]),
+          )
           : {};
 
       if (service?.filled_questionnaire) {
@@ -64,6 +66,20 @@ export default function ServiceQuestionnaireForm(props) {
       setQuestions(baseQuestions);
     }
   }, [questionnaire, service]);
+
+  useEffect(() => {
+    dispatch(
+      setTopbar({
+        title: `${serviceName} Questionnaire`,
+        description: "",
+        action: (null),
+      }),
+    );
+
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch, serviceName]);
 
   const handleChange = (key, value) => {
     setQuestions((prev) => ({
@@ -87,8 +103,8 @@ export default function ServiceQuestionnaireForm(props) {
     for (const [, q] of Object.entries(questions)) {
       payload[q.text] =
         q.answer &&
-        ((Array.isArray(q.answer) && q.answer.length) ||
-          !Array.isArray(q.answer))
+          ((Array.isArray(q.answer) && q.answer.length) ||
+            !Array.isArray(q.answer))
           ? q.answer
           : q.required
             ? null
@@ -136,14 +152,6 @@ export default function ServiceQuestionnaireForm(props) {
 
   const isClient = role === "CLIENT";
 
-  const portalLabel =
-    business?.name ||
-    (role === "CLIENT"
-      ? "Client Portal"
-      : role === "EMPLOYEE"
-        ? "Employee Portal"
-        : "Dashboard");
-
   return (
     <div className="space-y-4">
       {alert.message && (
@@ -153,45 +161,6 @@ export default function ServiceQuestionnaireForm(props) {
           onClose={() => setAlert({ type: "", message: "" })}
         />
       )}
-
-      <nav aria-label="breadcrumb" className="text-sm text-gray-600">
-        <ol className="flex flex-wrap items-center gap-2">
-          <li>
-            <Link
-              to={`/`}
-              className="font-semibold text-accent hover:text-secondary"
-            >
-              Contractorz
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to="/user/business/home"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              {portalLabel}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to={
-                isClient
-                  ? "/user/business/services"
-                  : "/user/business/service-questionnaires"
-              }
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              {isClient ? "Services" : "Service Questionnaires"}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="font-semibold text-gray-800">
-            {serviceName} Questionnaire
-          </li>
-        </ol>
-      </nav>
 
       <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
         <form
