@@ -39,7 +39,7 @@ export default function Textarea({
       )}
       <textarea
         id={id}
-        className={`w-full rounded-xl bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-accent focus:border-accent transition bg-white ${fieldClass || ""} ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""}`}
+        className={`w-full rounded-xl bg-white disabled:bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-accent focus:border-accent transition disabled:cursor-not-allowed ${fieldClass || ""} ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""}`}
         value={value}
         onChange={handleChange}
         required={isRequired}

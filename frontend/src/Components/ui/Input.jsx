@@ -7,6 +7,7 @@ export default function Input({
   label,
   value,
   onChange,
+  onKeyDown,
   isRequired = false,
   isDisabled = false,
   type = "text",
@@ -87,11 +88,12 @@ export default function Input({
           <input
             type={showPassword ? "text" : "password"}
             id={id}
-            className={`w-full rounded-l-xl rounded-r-none bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-accent focus:border-accent transition bg-white
+            className={`w-full rounded-l-xl rounded-r-none bg-white disabled:bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-accent focus:border-accent transition
                             ${fieldClass || ""}
                             ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""}`}
             value={value}
             onChange={handleChange}
+            onKeyDown={onKeyDown}
             required={isRequired}
             disabled={isDisabled}
             placeholder={label}
@@ -110,11 +112,12 @@ export default function Input({
         <input
           type={type}
           id={id}
-          className={`w-full rounded-xl bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-accent focus:border-accent transition bg-white
+          className={`w-full rounded-xl bg-white disabled:bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-accent focus:border-accent transition disabled:cursor-not-allowed
                         ${fieldClass || ""}
                         ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""}`}
           value={isFile ? undefined : value}
           onChange={handleChange}
+          onKeyDown={onKeyDown}
           onBlur={() => {
             if (isPhone && value && !validatePhone(value)) {
               setError(

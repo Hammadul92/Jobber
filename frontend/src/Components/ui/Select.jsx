@@ -21,7 +21,7 @@ export default function Select({
       <select
         id={id}
         value={value}
-        className={`w-full rounded-xl bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-accent focus:border-accent transition bg-white
+        className={`w-full rounded-xl bg-white disabled:bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-accent focus:border-accent transition
                     ${fieldClass || ""}
                     disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500`}
         required={isRequired}

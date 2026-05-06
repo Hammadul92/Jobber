@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useCreateTeamMemberMutation,
+  useUpdateTeamMemberMutation,
   useCreateUserMutation,
   useCheckUserExistsMutation,
   useFetchBusinessesQuery,
@@ -34,7 +35,10 @@ export default function CreateTeamMemberForm({
   showModal,
   setShowModal,
   setAlert,
+  mode = "create",
+  initialData = null,
 }) {
+  const isEditMode = mode === "edit" && Boolean(initialData);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -47,13 +51,22 @@ export default function CreateTeamMemberForm({
   const [createUser, { isLoading: isUserLoading }] = useCreateUserMutation();
   const [createTeamMember, { isLoading: isTeamMemberLoading }] =
     useCreateTeamMemberMutation();
+  const [updateTeamMember, { isLoading: isUpdatingTeamMember }] =
+    useUpdateTeamMemberMutation();
   const [checkUserExists, { isLoading: isCheckingUser }] =
     useCheckUserExistsMutation();
   const { data: businesses } = useFetchBusinessesQuery(undefined, {
     skip: !token,
   });
 
-  const isSubmitting = isUserLoading || isTeamMemberLoading || isCheckingUser;
+  const isSubmitting =
+    isUserLoading || isTeamMemberLoading || isUpdatingTeamMember || isCheckingUser;
+
+  const parseExpertise = (value) =>
+    String(value || "")
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
 
   const resetForm = () => {
     setName("");
@@ -65,6 +78,26 @@ export default function CreateTeamMemberForm({
     setSkills([]);
     setEmailError("");
   };
+
+  useEffect(() => {
+    if (!showModal) return;
+
+    if (isEditMode && initialData) {
+      setName(initialData.employee_name || "");
+      setPhone(initialData.employee_phone || "");
+      setEmail(initialData.employee_email || "");
+      setRole(initialData.role || "EMPLOYEE");
+      setJobDuties(initialData.job_duties || "");
+      setSkillInput("");
+      setSkills(parseExpertise(initialData.expertise));
+      setEmailError("");
+      return;
+    }
+
+    if (!isEditMode) {
+      resetForm();
+    }
+  }, [showModal, isEditMode, initialData]);
 
   const validateEmail = (value) => {
     const emailValue = value.trim();
@@ -105,6 +138,44 @@ export default function CreateTeamMemberForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const composedSkills = [...skills];
+    if (skillInput.trim()) {
+      const pendingSkill = skillInput.trim();
+      const exists = composedSkills.some(
+        (skill) => skill.toLowerCase() === pendingSkill.toLowerCase(),
+      );
+      if (!exists) composedSkills.push(pendingSkill);
+    }
+
+    const expertise = composedSkills.join(", ");
+
+    if (isEditMode) {
+      try {
+        await updateTeamMember({
+          id: initialData.id,
+          job_duties: jobDuties,
+          expertise,
+        }).unwrap();
+
+        setAlert({
+          type: "success",
+          message: "Team member updated successfully.",
+        });
+        resetForm();
+        setShowModal(false);
+      } catch (err) {
+        console.error("Update team member error:", err);
+        setAlert({
+          type: "danger",
+          message:
+            err?.data?.detail ||
+            "Something went wrong while updating the team member. Please try again.",
+        });
+      }
+
+      return;
+    }
+
     if (!name || !email || !phone) {
       setAlert({ type: "danger", message: "Please fill all required fields." });
       return;
@@ -120,17 +191,6 @@ export default function CreateTeamMemberForm({
       });
       return;
     }
-
-    const composedSkills = [...skills];
-    if (skillInput.trim()) {
-      const pendingSkill = skillInput.trim();
-      const exists = composedSkills.some(
-        (skill) => skill.toLowerCase() === pendingSkill.toLowerCase(),
-      );
-      if (!exists) composedSkills.push(pendingSkill);
-    }
-
-    const expertise = composedSkills.join(", ");
 
     try {
       const normalizedEmail = email.trim().toLowerCase();
@@ -193,10 +253,12 @@ export default function CreateTeamMemberForm({
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h5 className="text-3xl font-semibold text-slate-800">
-                      Add Team Member
+                      {isEditMode ? "Edit Team Member" : "Add Team Member"}
                     </h5>
                     <p className="mt-1 text-sm text-slate-500">
-                      Invite a new member to join your team
+                      {isEditMode
+                        ? "Update duties and expertise for this team member"
+                        : "Invite a new member to join your team"}
                     </p>
                   </div>
                   <button
@@ -212,8 +274,9 @@ export default function CreateTeamMemberForm({
                 <div className="mt-4 flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-700">
                   <LuBadgeInfo className="h-4 w-4" />
                   <span>
-                    Login credentials will be auto-generated and sent to the
-                    member&apos;s email
+                    {isEditMode
+                      ? "Only job duties and expertise can be updated here."
+                      : "Login credentials will be auto-generated and sent to the member's email"}
                   </span>
                 </div>
               </div>
@@ -232,6 +295,7 @@ export default function CreateTeamMemberForm({
                       onChange={setName}
                       isRequired
                       placeholder="Enter full name"
+                      isDisabled={isEditMode}
                       fieldClass="h-11 text-sm"
                     />
 
@@ -250,12 +314,13 @@ export default function CreateTeamMemberForm({
                         onBlur={() => setEmailError(validateEmail(email))}
                         isRequired
                         placeholder="member@formexa.com"
+                        isDisabled={isEditMode}
                         fieldClass={`h-11 text-sm ${emailError ? "border-red-300 focus:border-red-400" : ""}`}
                       />
                       {emailError && (
                         <p className="mt-1 text-xs text-red-600">{emailError}</p>
                       )}
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="-mt-5 mb-4 text-xs text-slate-400">
                         Invitation will be sent to this email
                       </p>
                     </div>
@@ -264,6 +329,7 @@ export default function CreateTeamMemberForm({
                       value={phone}
                       setValue={setPhone}
                       optional={false}
+                      disabled={isEditMode}
                     />
                   </div>
                 </section>
@@ -291,9 +357,12 @@ export default function CreateTeamMemberForm({
                           { label: "Manager", value: "MANAGER" },
                         ]}
                         buttonClassName="h-11 text-sm"
+                        disabled={isEditMode}
                       />
-                      <p className="mt-1 text-xs text-slate-400">
-                        Determines access permissions and responsibilities
+                      <p className="mt-1 mb-2 text-xs text-slate-400">
+                        {isEditMode
+                          ? "Role is managed separately from this drawer"
+                          : "Determines access permissions and responsibilities"}
                       </p>
                     </div>
 
@@ -308,7 +377,7 @@ export default function CreateTeamMemberForm({
                         placeholder="Describe primary responsibilities and tasks..."
                         fieldClass="text-sm"
                       />
-                      <div className="mt-1 flex items-center justify-between text-xs text-slate-400">
+                      <div className="-mt-6 flex items-center justify-between text-xs text-slate-400">
                         <span>Optional but recommended</span>
                         <span>{jobDuties.length}/500</span>
                       </div>
@@ -331,7 +400,7 @@ export default function CreateTeamMemberForm({
                       placeholder="Type a skill and press Enter"
                       fieldClass="h-11 text-sm"
                     />
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="-mt-5 text-xs text-slate-400">
                       Press Enter to add each skill
                     </p>
 
@@ -367,7 +436,7 @@ export default function CreateTeamMemberForm({
                   </button>
                   <SubmitButton
                     isLoading={isSubmitting}
-                    btnName="Add Member"
+                    btnName={isEditMode ? "Save Changes" : "Add Member"}
                     btnClass="bg-accent px-4 py-2 text-sm text-white shadow hover:bg-accentLight"
                   />
                 </div>

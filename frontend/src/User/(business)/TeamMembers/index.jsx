@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import CreateTeamMemberForm from "./CreateTeamMemberForm";
 import TeamMembersData from "./TeamMembersData";
@@ -11,11 +11,22 @@ import {
 
 export default function TeamMembers({ token }) {
   const [showModal, setShowModal] = useState(false);
+  const [editTeamMember, setEditTeamMember] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
   const dispatch = useDispatch();
 
+  const handleOpenCreate = useCallback(() => {
+    setEditTeamMember(null);
+    setShowModal(true);
+  }, []);
+
+  const handleEditTeamMember = useCallback((teamMember) => {
+    setEditTeamMember(teamMember);
+    setShowModal(true);
+  }, []);
+
   useEffect(() => {
-    registerTopbarActionHandler("add-member", () => setShowModal(true));
+    registerTopbarActionHandler("add-member", handleOpenCreate);
 
     dispatch(
       setTopbar({
@@ -38,7 +49,13 @@ export default function TeamMembers({ token }) {
       unregisterTopbarActionHandler("add-member");
       dispatch(resetTopbar());
     };
-  }, [dispatch]);
+  }, [dispatch, handleOpenCreate]);
+
+  useEffect(() => {
+    if (!showModal) {
+      setEditTeamMember(null);
+    }
+  }, [showModal]);
 
   return (
     <div className="space-y-6">
@@ -55,9 +72,11 @@ export default function TeamMembers({ token }) {
         showModal={showModal}
         setShowModal={setShowModal}
         setAlert={setAlert}
+        mode={editTeamMember ? "edit" : "create"}
+        initialData={editTeamMember}
       />
 
-      <TeamMembersData token={token} setAlert={setAlert} />
+      <TeamMembersData token={token} setAlert={setAlert} onEdit={handleEditTeamMember} />
     </div>
   );
 }

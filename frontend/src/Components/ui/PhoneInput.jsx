@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+
+const phoneRegex = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
 
 export default function PhoneInputField({
   value,
   setValue,
   optional,
   formLarge,
+  disabled = false,
 }) {
   const [error, setError] = useState("");
-
-  const phoneRegex = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
 
   const handleChange = (e) => {
     let inputVal = e.target.value;
@@ -20,7 +21,10 @@ export default function PhoneInputField({
     setValue(inputVal);
   };
 
-  const validatePhone = (number) => phoneRegex.test(number.trim());
+  const validatePhone = useCallback(
+    (number) => phoneRegex.test(number.trim()),
+    [],
+  );
 
   useEffect(() => {
     if (value && !validatePhone(value)) {
@@ -30,7 +34,7 @@ export default function PhoneInputField({
     } else {
       setError("");
     }
-  }, [value]);
+  }, [value, validatePhone]);
 
   return (
     <div className="mb-6">
@@ -42,12 +46,13 @@ export default function PhoneInputField({
       </label>
       <input
         type="tel"
-        className={`w-full rounded-xl bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition bg-white ${formLarge ? "text-lg" : ""} ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""}`}
+        className={`w-full rounded-xl bg-white disabled:bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition disabled:cursor-not-allowed ${formLarge ? "text-lg" : ""} ${error ? "border-red-500 focus:border-red-500 focus:ring-red-200" : ""}`}
         name="phone"
         required={!optional}
         placeholder="+15875001189"
         value={value}
         onChange={handleChange}
+        disabled={disabled}
         onBlur={() => {
           if (value && !validatePhone(value))
             setError(

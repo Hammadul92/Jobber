@@ -168,14 +168,14 @@ export default function UserDashboard({ page, token, user }) {
             business={business}
           />
         );
+      case "team-members":
+        // Team members tab
+        return <TeamMembers token={token} business={business} role={user?.role} />;
       case "team-member":
-        // Single team member tab
+        // Single team member preview tab
         return (
           <TeamMember token={token} business={business} role={user?.role} />
         );
-      case "team-members":
-        // Team members list tab
-        return <TeamMembers token={token} business={business} role={user?.role} />;
       case "quotes":
         // Quotes tab
         return <Quotes token={token} role={user?.role} business={business} />;

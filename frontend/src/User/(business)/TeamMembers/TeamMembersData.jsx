@@ -8,7 +8,7 @@ import {
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 
-export default function TeamMembersData({ token, setAlert }) {
+export default function TeamMembersData({ token, setAlert, onEdit }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedTeamMemberId, setSelectedTeamMemberId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -456,13 +456,14 @@ export default function TeamMembersData({ token, setAlert }) {
 
               <div className="mt-auto border-t border-gray-200 pt-4">
                 <div className="flex items-center gap-2">
-                  <Link
-                    to={`/user/business/team-member/${m.id}`}
+                  <button
+                    type="button"
+                    onClick={() => onEdit?.(m)}
                     className="inline-flex flex-1 items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-base font-medium text-white hover:bg-slate-800"
                     title="Edit Team Member"
                   >
                     Edit
-                  </Link>
+                  </button>
 
                   <Link
                     to={`/user/business/team-member/${m.id}`}
