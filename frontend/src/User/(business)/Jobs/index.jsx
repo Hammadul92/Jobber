@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import CreateJobForm from "./CreateJobForm";
 import JobData from "./JobData";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
+import {
+  registerTopbarActionHandler,
+  unregisterTopbarActionHandler,
+} from "../../topbarActionRegistry";
 
 export default function Jobs({ token, role }) {
   const [showModal, setShowModal] = useState(false);
@@ -13,24 +16,33 @@ export default function Jobs({ token, role }) {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if (role === "MANAGER") {
+      registerTopbarActionHandler("add-job", () => setShowModal(true));
+    }
+
     dispatch(
       setTopbar({
         title: "Jobs",
         description: "Track one-time and recurring work from scheduling to completion.",
         action:
-          role === "MANAGER" ? (
-            <button
-              className="inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight"
-              onClick={() => setShowModal(true)}
-              type="button"
-            >
-              Add Job
-            </button>
-          ) : null,
+          role === "MANAGER"
+            ? {
+                type: "button",
+                key: "add-job",
+                label: "Add Job",
+                title: "Add Job",
+                icon: "plus",
+                iconClassName: "h-5 w-5",
+                labelClassName: "block",
+                className:
+                  "inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight",
+              }
+            : null,
       }),
     );
 
     return () => {
+      unregisterTopbarActionHandler("add-job");
       dispatch(resetTopbar());
     };
   }, [dispatch, role]);

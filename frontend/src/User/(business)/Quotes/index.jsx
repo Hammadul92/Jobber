@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
 import CreateQuoteForm from "./CreateQuoteForm";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import QuotesData from "./QuotesData";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
+import {
+  registerTopbarActionHandler,
+  unregisterTopbarActionHandler,
+} from "../../topbarActionRegistry";
 
 export default function Quotes({ token, role }) {
   const [showModal, setShowModal] = useState(false);
@@ -15,24 +18,33 @@ export default function Quotes({ token, role }) {
 
 
   useEffect(() => {
+    if (role === "MANAGER") {
+      registerTopbarActionHandler("add-quote", () => setShowModal(true));
+    }
+
     dispatch(
       setTopbar({
         title: "Quotes",
         description: "Manage your staff access, duties, and expertise.",
         action:
-          role === "MANAGER" ? (
-            <button
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight"
-              onClick={() => setShowModal(true)}
-              type="button"
-            >
-              Add Quote
-            </button>
-          ) : null,
+          role === "MANAGER"
+            ? {
+                type: "button",
+                key: "add-quote",
+                label: "Add Quote",
+                title: "Add Quote",
+                icon: "plus",
+                iconClassName: "h-5 w-5",
+                labelClassName: "block",
+                className:
+                  "inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
+              }
+            : null,
       }),
     );
 
     return () => {
+      unregisterTopbarActionHandler("add-quote");
       dispatch(resetTopbar());
     };
   }, [dispatch, role]);

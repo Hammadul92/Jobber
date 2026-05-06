@@ -1,11 +1,14 @@
 import { useState, useCallback } from "react";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { LuPlus } from "react-icons/lu";
 import CreateServiceQuestionnairesForm from "./CreateServiceQuestionnairesForm";
 import ServiceQuestionnairesData from "./ServiceQuestionnairesData";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
+import {
+  registerTopbarActionHandler,
+  unregisterTopbarActionHandler,
+} from "../../topbarActionRegistry";
 
 export default function Questionnaires({ token }) {
   const [showModal, setShowModal] = useState(false);
@@ -19,26 +22,29 @@ export default function Questionnaires({ token }) {
   }, []);
 
   useEffect(() => {
+    registerTopbarActionHandler("add-questionnaire", handleAddQuestionnaire);
+
     dispatch(
       setTopbar({
         title: "Service Questionnaires",
         description:
           "Create question sets for each service so clients can provide details when booking.",
-        action: (
-          <button
-            className="inline-flex items-center justify-center gap-2 h-10 w-10 md:h-auto md:w-auto rounded-xl lg:rounded-lg bg-accent px-0 md:px-4 py-0 md:py-2 text-sm font-semibold text-white shadow hover:bg-accentLight"
-            onClick={handleAddQuestionnaire}
-            type="button"
-            title="Add Questionnaire"
-          >
-            <LuPlus className="h-6 w-6 lg:h-5 lg:w-5" />
-            <span className="hidden md:block">Add Questionnaire</span>
-          </button>
-        ),
+        action: {
+          type: "button",
+          key: "add-questionnaire",
+          label: "Add Questionnaire",
+          title: "Add Questionnaire",
+          icon: "plus",
+          iconClassName: "h-6 w-6 lg:h-5 lg:w-5",
+          labelClassName: "hidden md:block",
+          className:
+            "inline-flex items-center justify-center gap-2 h-10 w-10 md:h-auto md:w-auto rounded-xl lg:rounded-lg bg-accent px-0 md:px-4 py-0 md:py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
+        },
       }),
     );
 
     return () => {
+      unregisterTopbarActionHandler("add-questionnaire");
       dispatch(resetTopbar());
     };
   }, [dispatch, handleAddQuestionnaire]);

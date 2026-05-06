@@ -1,7 +1,12 @@
 import { useMemo, Fragment } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { LuChevronRight } from "react-icons/lu";
+import {
+    LuChevronRight,
+    LuPlus,
+    LuUserPlus,
+} from "react-icons/lu";
+import { getTopbarActionHandler } from "./topbarActionRegistry";
 
 const SEGMENT_LABELS = {
     user: "User",
@@ -32,6 +37,12 @@ const SEGMENT_LABELS = {
 function Topbar({ businessName }) {
     const { title, description, action } = useSelector((state) => state.topbar);
     const location = useLocation();
+    const actionHandler = action?.key ? getTopbarActionHandler(action.key) : null;
+
+    const TOPBAR_ACTION_ICONS = {
+        plus: LuPlus,
+        "user-plus": LuUserPlus,
+    };
 
     const toTitle = (segment) =>
         segment
@@ -128,7 +139,31 @@ function Topbar({ businessName }) {
                 </div>
 
                 <div className="ml-auto">
-                    {action}
+                    {action && action.type === "button" && (
+                        <button
+                            className={action.className}
+                            onClick={actionHandler || undefined}
+                            type="button"
+                            title={action.title || action.label}
+                        >
+                            {action.icon && TOPBAR_ACTION_ICONS[action.icon] ? (
+                                (() => {
+                                    const Icon = TOPBAR_ACTION_ICONS[action.icon];
+                                    return <Icon className={action.iconClassName || "h-5 w-5"} />;
+                                })()
+                            ) : null}
+                            {action.label ? (
+                                <span
+                                    className={
+                                        action.labelClassName ??
+                                        (action.icon ? "hidden md:block" : "block")
+                                    }
+                                >
+                                    {action.label}
+                                </span>
+                            ) : null}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

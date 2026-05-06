@@ -7,6 +7,10 @@ import { useFetchClientQuery, useFetchBusinessQuery } from "../../../../store";
 import ClientServicesData from "./ClientServicesData";
 import AlertDispatcher from "../../../../Components/ui/AlertDispatcher";
 import { setTopbar, resetTopbar } from "../../../../store/topbarSlice";
+import {
+  registerTopbarActionHandler,
+  unregisterTopbarActionHandler,
+} from "../../../topbarActionRegistry";
 
 export default function ClientServices({ token, role }) {
   const { id: clientId } = useParams();
@@ -35,26 +39,34 @@ export default function ClientServices({ token, role }) {
     : "Services";
 
   useEffect(() => {
+    if (isManagerMode && role === "MANAGER") {
+      registerTopbarActionHandler("add-service", () => setShowModal(true));
+    }
+
     dispatch(
       setTopbar({
         title,
         description:
           "Track services by status, location, and subscription type.",
         action:
-          isManagerMode && role === "MANAGER" ? (
-            <button
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-2 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:opacity-60"
-              onClick={() => setShowModal(true)}
-              disabled={loadingClient || !!clientError}
-              type="button"
-            >
-              <LuPlus className="h-6 w-6 md:h-4 md:w-4" /> <span className="hidden md:inline-flex">Add Service</span>
-            </button>
-          ) : null,
+          isManagerMode && role === "MANAGER"
+            ? {
+                type: "button",
+                key: "add-service",
+                label: "Add Service",
+                title: "Add Service",
+                icon: "plus",
+                iconClassName: "h-6 w-6 md:h-4 md:w-4",
+                labelClassName: "hidden md:inline-flex",
+                className:
+                  "inline-flex items-center gap-2 rounded-lg bg-accent px-2 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:opacity-60",
+              }
+            : null,
       }),
     );
 
     return () => {
+      unregisterTopbarActionHandler("add-service");
       dispatch(resetTopbar());
     };
   }, [dispatch, title, isManagerMode, role, loadingClient, clientError]);

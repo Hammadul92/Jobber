@@ -29,7 +29,14 @@ const store = configureStore({
     topbar: topbarReducer,
   },
   middleware: (getDefaultMiddleware) => {
-    return getDefaultMiddleware()
+    return getDefaultMiddleware({
+      serializableCheck: {
+        warnAfter: 128,
+      },
+      immutableCheck: {
+        warnAfter: 128,
+      },
+    })
       .concat(userApi.middleware)
       .concat(businessApi.middleware)
       .concat(clientApi.middleware)

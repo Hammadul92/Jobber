@@ -175,7 +175,12 @@ export default function TeamMembersData({ token, setAlert }) {
         Loading team members...
       </div>
     );
-  if (error) return null;
+  if (error)
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+        Failed to load team members. Please refresh the page or try again later.
+      </div>
+    );
 
   const hasRoleFilter = selectedRole !== "ALL";
   const hasStatusFilter = selectedStatus !== "ALL";
