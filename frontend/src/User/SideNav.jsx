@@ -103,6 +103,7 @@ export default function SideNav({ user, businessRegistered }) {
         icon: LuClipboardList,
       },
       { name: "Clients", path: "/user/business/clients", icon: LuCircleUser },
+      { name: "Services", path: "/user/business/services", icon: LuFileText },
       { name: "Quotes", path: "/user/business/quotes", icon: LuFileText },
       {
         name: "Team Members",
