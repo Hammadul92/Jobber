@@ -103,6 +103,17 @@ body {
   overflow-x: hidden;
 }
 
+.date-input-no-icon {
+}
+
+.date-input-no-icon::-webkit-calendar-picker-indicator {
+  visibility: hidden;
+}
+
+.date-input-no-icon::-webkit-inner-spin-button {
+  display: none;
+}
+
 @layer components {
   .table {
     @apply w-full border-separate border-spacing-0 text-sm;
