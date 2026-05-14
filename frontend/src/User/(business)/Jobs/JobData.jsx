@@ -237,7 +237,7 @@ export default function JobData({ token, role, setAlert }) {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex w-full items-center gap-2">
+      <div className="mb-6 grid grid-cols-2 md:grid-cols-4 w-full gap-2">
         {statusColumns.map(({ key, label, color }) => {
           const isActive = activeTab === key;
           return (
@@ -285,9 +285,9 @@ export default function JobData({ token, role, setAlert }) {
                 <div className="mb-4 border-t border-gray-100"></div>
 
                 {/* Body */}
-                <div className="flex items-end-safe justify-between gap-6">
+                <div className="flex flex-col md:flex-row md:items-end-safe md:justify-between gap-6">
                   {/* Info Rows */}
-                  <div className="space-y-3 w-3/5">
+                  <div className="space-y-3 md:w-3/5">
                     {/* Service Row */}
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100">
@@ -313,7 +313,7 @@ export default function JobData({ token, role, setAlert }) {
 
                   {/* Action Buttons */}
                   {role === "MANAGER" && (
-                    <div className="flex items-end justify-end gap-3 w-2/5">
+                    <div className="flex items-end justify-end gap-3 md:w-2/5">
                       <button
                         type="button"
                         className="rounded-lg border border-gray-300 bg-white px-6 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"

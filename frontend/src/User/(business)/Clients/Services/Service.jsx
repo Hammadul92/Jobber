@@ -142,7 +142,7 @@ export default function Service({ token }) {
         />
       )}
 
-      <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-accent to-secondary p-[1px] shadow-lg">
+      <div className="mb-6 overflow-hidden rounded-2xl bg-linear-to-r from-accent to-secondary p-px shadow-lg">
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white/95 px-6 py-5">
           <div className="space-y-1">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-secondary">
@@ -162,7 +162,7 @@ export default function Service({ token }) {
               </span>
             </div>
           </div>
-          <div className="flex flex-col gap-2 rounded-xl bg-gradient-to-br from-secondary to-primary px-4 py-3 text-white shadow-md">
+          <div className="flex flex-col gap-2 rounded-xl bg-linear-to-br from-secondary to-primary px-4 py-3 text-white shadow-md">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
               Billing
             </p>
@@ -263,7 +263,7 @@ export default function Service({ token }) {
           />
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-gray-200 bg-gradient-to-r from-secondary/5 to-gray-50 p-4">
+        <div className="space-y-3 rounded-2xl border border-gray-200 bg-linear-to-r from-secondary/5 to-gray-50 p-4">
           <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
             <input
               id="generate_quote"

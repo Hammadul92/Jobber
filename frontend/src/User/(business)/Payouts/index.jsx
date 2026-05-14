@@ -14,7 +14,7 @@ export default function Payouts({ token, role }) {
     dispatch(
       setTopbar({
         title: "Payouts",
-        description: "Track processed payouts and manage refunds.",
+        description: "Track processed payouts, payment status, and refund activity.",
         action: null,
       }),
     );

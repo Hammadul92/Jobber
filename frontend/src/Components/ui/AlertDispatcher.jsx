@@ -89,14 +89,14 @@ export default function AlertDispatcher({
 
   return (
     <div
-      className="fixed top-4 right-4 z-50 flex justify-end px-4"
+      className="fixed top-4 right-4 z-9999 flex justify-end px-4"
       role="presentation"
     >
       <div
         className={`relative flex w-full max-w-sm gap-3 rounded-lg border ${border} ${bg} p-4 text-sm shadow-lg transition`}
         role="alert"
       >
-        <Icon className={`flex-shrink-0 ${text}`} size={18} />
+        <Icon className={`shrink-0 ${text}`} size={18} />
         <div className={`flex-1 space-y-1 ${text}`}>{renderMessage()}</div>
         <button
           type="button"
