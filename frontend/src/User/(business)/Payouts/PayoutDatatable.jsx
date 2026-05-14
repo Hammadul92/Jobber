@@ -32,7 +32,7 @@ export default function PayoutDatatable({ token, role }) {
   } = useFetchPayoutsQuery({ page, page_size: pageSize }, { skip: !token });
   const [deletePayout, { isLoading: deleting }] = useDeletePayoutMutation();
 
-  const rows = payoutData?.results || [];
+  const rows = useMemo(() => payoutData?.results || [], [payoutData]);
   const totalCount = payoutData?.count ?? rows.length;
   const currentPage = payoutData?.current_page ?? page;
   const totalPages = payoutData?.total_pages ?? 1;
@@ -248,7 +248,63 @@ export default function PayoutDatatable({ token, role }) {
               View processed payouts, related invoices, and available refund actions.
             </p>
 
-            <div className="mt-6 flex flex-col gap-3 xl:flex-row xl:items-end">
+            <div className="mt-6 flex flex-col gap-3 lg:hidden">
+              <div className="relative">
+                <LuSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Search invoice, client, or service"
+                  className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-accent focus:ring-2 focus:ring-accent/20"
+                />
+              </div>
+
+              <div className="gap-2 grid grid-cols-1 md:grid-cols-4">
+                <button
+                  type="button"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:border-gray-300 hover:bg-gray-50"
+                >
+                  <LuCalendarDays className="h-4 w-4 text-slate-400" />
+                  <span className="truncate">Date Range</span>
+                </button>
+
+                <Select
+                  id="payout-status-filter-mobile"
+                  label=""
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  fieldClass="h-10 text-sm -mb-6"
+                  options={[
+                    { value: "ALL", label: "All Status" },
+                    { value: "PENDING", label: "Pending" },
+                    { value: "PAID", label: "Paid" },
+                    { value: "FAILED", label: "Failed" },
+                    { value: "REFUNDED", label: "Refunded" },
+                  ]}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50"
+                >
+                  <LuDownload className="h-4 w-4" />
+                  <span className="truncate">Export</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => refetch()}
+                  className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-600 transition hover:border-gray-300 hover:bg-gray-50"
+                  aria-label="Refresh payouts"
+                >
+                  <LuRefreshCcw className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-6 hidden lg:flex lg:flex-row lg:items-end gap-3">
               <div className="relative flex-1">
                 <LuSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
