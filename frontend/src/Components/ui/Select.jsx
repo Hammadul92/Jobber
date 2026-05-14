@@ -1,3 +1,5 @@
+import Dropdown from "./Dropdown";
+
 export default function Select({
   id,
   label,
@@ -8,39 +10,28 @@ export default function Select({
   onChange,
   fieldClass,
 }) {
+  const placeholder = label ? `-- Select ${label} --` : "Select option";
+
   return (
     <div className="mb-6">
       {label && (
         <label
           htmlFor={id}
-          className="mb-1 block text-sm font-semibold text-gray-500 uppercase"
+          className="mb-1 block text-sm font-semibold uppercase text-gray-500"
         >
           {label} {isRequired && <span className="text-accent">*</span>}
         </label>
       )}
-      <select
+      <Dropdown
         id={id}
         value={value}
-        className={`w-full rounded-xl bg-white disabled:bg-[#FAFAFA] border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-accent focus:border-accent transition
-                    ${fieldClass || ""}
-                    disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500`}
-        required={isRequired}
+        options={options}
+        onChange={onChange}
+        placeholder={placeholder}
         disabled={isDisabled}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="" disabled={isRequired} className="text-gray-400">
-          -- Select {label} --
-        </option>
-        {options.map((option, index) => (
-          <option
-            key={index}
-            value={option.value}
-            className="bg-white text-gray-800 hover:bg-accent/10"
-          >
-            {option.label}
-          </option>
-        ))}
-      </select>
+        buttonClassName={`h-10 border-gray-200 bg-white text-slate-700 ${fieldClass || ""}`}
+        menuClassName="z-40"
+      />
     </div>
   );
 }
