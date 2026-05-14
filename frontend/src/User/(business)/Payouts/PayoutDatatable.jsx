@@ -21,8 +21,11 @@ export default function PayoutDatatable({ token, role }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [showModal, setShowModal] = useState(false);
+  const [showDateRangeModal, setShowDateRangeModal] = useState(false);
   const [selectedPayoutId, setSelectedPayoutId] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const [dateRangeStart, setDateRangeStart] = useState("");
+  const [dateRangeEnd, setDateRangeEnd] = useState("");
 
   const {
     data: payoutData,
@@ -67,9 +70,28 @@ export default function PayoutDatatable({ token, role }) {
           .filter(Boolean)
           .some((value) => value.toLowerCase().includes(normalizedSearch));
 
-      return matchesStatus && matchesSearch;
+      let matchesDateRange = true;
+      if (dateRangeStart || dateRangeEnd) {
+        if (!row.processed_at) {
+          matchesDateRange = false;
+        } else {
+          const processedDate = new Date(row.processed_at);
+          if (dateRangeStart) {
+            const startDate = new Date(dateRangeStart);
+            startDate.setHours(0, 0, 0, 0);
+            if (processedDate < startDate) matchesDateRange = false;
+          }
+          if (dateRangeEnd) {
+            const endDate = new Date(dateRangeEnd);
+            endDate.setHours(23, 59, 59, 999);
+            if (processedDate > endDate) matchesDateRange = false;
+          }
+        }
+      }
+
+      return matchesStatus && matchesSearch && matchesDateRange;
     });
-  }, [rows, searchTerm, statusFilter]);
+  }, [rows, searchTerm, statusFilter, dateRangeStart, dateRangeEnd]);
 
   const summary = useMemo(() => {
     const toNumber = (value) => Number.parseFloat(value || 0);
@@ -126,6 +148,27 @@ export default function PayoutDatatable({ token, role }) {
         message: err?.data?.detail || "Failed to delete payout.",
       });
     }
+  };
+
+  const handleDateRangeApply = () => {
+    if (dateRangeStart && dateRangeEnd) {
+      const startDate = new Date(dateRangeStart);
+      const endDate = new Date(dateRangeEnd);
+      if (startDate > endDate) {
+        setAlert({
+          type: "warning",
+          message: "Start date must be before end date.",
+        });
+        return;
+      }
+    }
+    setShowDateRangeModal(false);
+  };
+
+  const handleDateRangeClear = () => {
+    setDateRangeStart("");
+    setDateRangeEnd("");
+    setShowDateRangeModal(false);
   };
 
   const statusBadge = (status) => {
@@ -233,7 +276,7 @@ export default function PayoutDatatable({ token, role }) {
               className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
             >
               <p className="text-sm text-slate-500">{card.title}</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">
+              <p className="mt-2 text-3xl font-medium text-slate-900">
                 {card.value}
               </p>
               <p className="mt-1 text-xs text-slate-500">{card.description}</p>
@@ -243,7 +286,7 @@ export default function PayoutDatatable({ token, role }) {
 
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-100 px-6 py-5">
-            <h4 className="text-xl font-semibold text-slate-900">Payout History</h4>
+            <h4 className="text-xl font-medium text-slate-900">Payout History</h4>
             <p className="mt-1 text-sm text-slate-500">
               View processed payouts, related invoices, and available refund actions.
             </p>
@@ -263,6 +306,7 @@ export default function PayoutDatatable({ token, role }) {
               <div className="gap-2 grid grid-cols-1 md:grid-cols-4">
                 <button
                   type="button"
+                  onClick={() => setShowDateRangeModal(true)}
                   className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:border-gray-300 hover:bg-gray-50"
                 >
                   <LuCalendarDays className="h-4 w-4 text-slate-400" />
@@ -318,6 +362,7 @@ export default function PayoutDatatable({ token, role }) {
 
               <button
                 type="button"
+                onClick={() => setShowDateRangeModal(true)}
                 className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:border-gray-300 hover:bg-gray-50"
               >
                 <LuCalendarDays className="h-4 w-4 text-slate-400" />
@@ -428,7 +473,7 @@ export default function PayoutDatatable({ token, role }) {
                           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-slate-400">
                             <LuFileText className="h-8 w-8" />
                           </div>
-                          <h5 className="mt-5 text-xl font-semibold text-slate-900">
+                          <h5 className="mt-5 text-xl font-medium text-slate-900">
                             No payouts yet
                           </h5>
                           <p className="mt-2 text-sm leading-6 text-slate-500">
@@ -487,6 +532,72 @@ export default function PayoutDatatable({ token, role }) {
             </div>
           </div>
         </div>
+
+        {showDateRangeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className="fixed inset-0 bg-gray-900/40"
+              onClick={() => setShowDateRangeModal(false)}
+            ></div>
+
+            <div className="relative z-50 w-1/3 max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+              <h3 className="text-lg font-semibold text-slate-900">Filter by Date Range</h3>
+              <p className="mt-1 text-sm text-slate-500">
+                Select start and end dates to filter payouts
+              </p>
+
+              <div className="mt-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={dateRangeStart}
+                    onChange={(e) => setDateRangeStart(e.target.value)}
+                    className="mt-2 h-10 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={dateRangeEnd}
+                    onChange={(e) => setDateRangeEnd(e.target.value)}
+                    className="mt-2 h-10 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleDateRangeClear}
+                  className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50"
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDateRangeModal(false)}
+                  className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDateRangeApply}
+                  className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
