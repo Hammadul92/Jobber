@@ -13,7 +13,7 @@ export default function Select({
   const placeholder = label ? `-- Select ${label} --` : "Select option";
 
   return (
-    <div className="mb-6">
+    <div className={label ? "mb-6" : ""}>
       {label && (
         <label
           htmlFor={id}
@@ -30,7 +30,7 @@ export default function Select({
         placeholder={placeholder}
         disabled={isDisabled}
         buttonClassName={`h-10 border-gray-200 bg-white text-slate-700 ${fieldClass || ""}`}
-        menuClassName="z-40"
+        menuClassName="z-50"
       />
     </div>
   );

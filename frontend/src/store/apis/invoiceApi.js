@@ -28,11 +28,28 @@ const invoiceApi = createApi({
   tagTypes: ["Invoice"],
   endpoints: (builder) => ({
     fetchInvoices: builder.query({
-      query: (serviceId) => {
+      query: (params) => {
         let url = "/invoice/";
-        if (serviceId) {
-          url += `?service=${serviceId}`;
+
+        if (params) {
+          const searchParams = new URLSearchParams();
+
+          if (typeof params === "string" || typeof params === "number") {
+            searchParams.set("service", params);
+          } else {
+            Object.entries(params).forEach(([key, value]) => {
+              if (value !== undefined && value !== null && value !== "") {
+                searchParams.set(key, value);
+              }
+            });
+          }
+
+          const queryString = searchParams.toString();
+          if (queryString) {
+            url += `?${queryString}`;
+          }
         }
+
         return url;
       },
       providesTags: ["Invoice"],
