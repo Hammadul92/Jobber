@@ -15,7 +15,6 @@ import {
   LuDownload,
   LuFileText,
   LuPlus,
-  LuRefreshCcw,
   LuSearch,
   LuX,
 } from "react-icons/lu";
@@ -348,15 +347,6 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                   <LuDownload className="h-4 w-4" />
                   <span className="truncate">Export</span>
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() => refetch()}
-                  className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-600 transition hover:border-gray-300 hover:bg-gray-50"
-                  aria-label="Refresh invoices"
-                >
-                  <LuRefreshCcw className="h-4 w-4" />
-                </button>
               </div>
             </div>
 
@@ -406,15 +396,6 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
               >
                 <LuDownload className="h-4 w-4" />
                 Export
-              </button>
-
-              <button
-                type="button"
-                onClick={() => refetch()}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-600 transition hover:border-gray-300 hover:bg-gray-50"
-                aria-label="Refresh invoices"
-              >
-                <LuRefreshCcw className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -569,7 +550,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                 </button>
                 <button
                   type="button"
-                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-orange-600 px-3 text-sm font-semibold text-white"
+                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-accent px-3 text-sm font-semibold text-white"
                 >
                   {currentPage}
                 </button>
@@ -594,7 +575,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
               onClick={() => setShowDateRangeModal(false)}
             ></div>
 
-            <div className="relative z-50 w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="relative z-50 w-full md:w-4/7 lg:w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-2xl">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900">Filter by Date Range</h3>
@@ -652,7 +633,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                 <button
                   type="button"
                   onClick={handleDateRangeApply}
-                  className="flex-1 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700"
+                  className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90"
                 >
                   Apply
                 </button>

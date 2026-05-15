@@ -11,7 +11,6 @@ import {
   LuChevronRight,
   LuDownload,
   LuFileText,
-  LuRefreshCcw,
   LuSearch,
 } from "react-icons/lu";
 
@@ -318,7 +317,7 @@ export default function PayoutDatatable({ token, role }) {
                   label=""
                   value={statusFilter}
                   onChange={setStatusFilter}
-                  fieldClass="h-10 text-sm -mb-6"
+                  fieldClass="h-10 text-sm"
                   options={[
                     { value: "ALL", label: "All Status" },
                     { value: "PENDING", label: "Pending" },
@@ -335,15 +334,6 @@ export default function PayoutDatatable({ token, role }) {
                 >
                   <LuDownload className="h-4 w-4" />
                   <span className="truncate">Export</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => refetch()}
-                  className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-600 transition hover:border-gray-300 hover:bg-gray-50"
-                  aria-label="Refresh payouts"
-                >
-                  <LuRefreshCcw className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -375,7 +365,7 @@ export default function PayoutDatatable({ token, role }) {
                   label=""
                   value={statusFilter}
                   onChange={setStatusFilter}
-                  fieldClass="h-10 text-sm -mb-6"
+                  fieldClass="h-10 text-sm"
                   options={[
                     { value: "ALL", label: "All Status" },
                     { value: "PENDING", label: "Pending" },
@@ -393,15 +383,6 @@ export default function PayoutDatatable({ token, role }) {
               >
                 <LuDownload className="h-4 w-4" />
                 Export
-              </button>
-
-              <button
-                type="button"
-                onClick={() => refetch()}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-600 transition hover:border-gray-300 hover:bg-gray-50"
-                aria-label="Refresh payouts"
-              >
-                <LuRefreshCcw className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -540,7 +521,7 @@ export default function PayoutDatatable({ token, role }) {
               onClick={() => setShowDateRangeModal(false)}
             ></div>
 
-            <div className="relative z-50 w-1/3 max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="relative z-50 w-full md:w-4/7 lg:w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-2xl">
               <h3 className="text-lg font-semibold text-slate-900">Filter by Date Range</h3>
               <p className="mt-1 text-sm text-slate-500">
                 Select start and end dates to filter payouts
