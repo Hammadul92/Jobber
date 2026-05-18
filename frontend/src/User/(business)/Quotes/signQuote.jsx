@@ -1,12 +1,42 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { useFetchQuoteQuery, useSignQuoteMutation } from "../../../store";
+import {
+  useParams,
+  Link,
+  useSearchParams,
+  useNavigate,
+} from "react-router-dom";
+import {
+  useFetchQuoteQuery,
+  useSignQuoteMutation,
+  useMagicLoginMutation,
+} from "../../../store";
 import AcceptAndSignQuote from "./AcceptAndSignQuote";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { formatDate } from "../../../utils/formatDate";
 
 export default function SignQuote({ token }) {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const magicToken = searchParams.get("token");
+  const [magicLogin] = useMagicLoginMutation();
+
+  // Magic login logic (runs before anything else)
+  useEffect(() => {
+    if (!magicToken) return;
+    const login = async () => {
+      try {
+        await magicLogin({ token: magicToken }).unwrap();
+        // Remove token from URL after login
+        navigate(`/user/business/quote/sign/${id}`, { replace: true });
+        window.location.reload();
+      } catch {
+        // Optionally show an error message
+      }
+    };
+    login();
+  }, [magicToken, magicLogin, navigate, id]);
+
   const {
     data: quote,
     isLoading,

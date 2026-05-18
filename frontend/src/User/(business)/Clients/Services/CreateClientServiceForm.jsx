@@ -138,238 +138,275 @@ export default function CreateClientServiceForm({
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <form
+              onSubmit={handleSubmit}
+              className="flex min-h-0 flex-1 flex-col"
+            >
               <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5 pb-6">
-                  <div className="flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-3 text-xs font-semibold text-orange-600">
-                    <LuInfo className="mt-px h-4 w-4 shrink-0" />
-                    Service details and location will be saved to the client's profile.
-                  </div>
+                <div className="flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-3 text-xs font-semibold text-orange-600">
+                  <LuInfo className="mt-px h-4 w-4 shrink-0" />
+                  Service details and location will be saved to the client's
+                  profile.
+                </div>
 
-                  <div className="space-y-4">
-                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-                      Service Details
-                    </p>
-
-                    <div className="space-y-6">
-                      <div>
-                        <label htmlFor="service_name" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
-                          Service Name <span className="text-accent">*</span>
-                        </label>
-                        <Dropdown
-                          id="service_name"
-                          value={serviceName}
-                          onChange={setServiceName}
-                          placeholder="Digital Service Name"
-                          options={serviceOptions}
-                          buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                        />
-                      </div>
-
-                      <div>
-                        <Input
-                          type="date"
-                          id="start_date"
-                          label="Start Date"
-                          value={startDate}
-                          onChange={setStartDate}
-                          isRequired
-                          fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
-                        />
-                      </div>
-
-                      <div>
-                        <Input
-                          type="date"
-                          id="end_date"
-                          label="End Date"
-                          value={endDate}
-                          onChange={setEndDate}
-                          fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
-                        />
-                      </div>
-
-                      <div>
-                        <Input
-                          type="number"
-                          id="price"
-                          label="Price"
-                          value={price}
-                          onChange={setPrice}
-                          isRequired
-                          fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="currency" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
-                          Currency <span className="text-accent">*</span>
-                        </label>
-                        <Dropdown
-                          id="currency"
-                          value={currency}
-                          onChange={setCurrency}
-                          options={[{ value: "CAD", label: "CAD" }, { value: "USD", label: "USD" }]}
-                          buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="service_type" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
-                          Service Type <span className="text-accent">*</span>
-                        </label>
-                        <Dropdown
-                          id="service_type"
-                          value={serviceType}
-                          onChange={(v) => {
-                            setServiceType(v);
-                            setBillingCycle("");
-                          }}
-                          options={[{ value: "ONE_TIME", label: "One Time" }, { value: "SUBSCRIPTION", label: "Subscription" }]}
-                          buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                        />
-                      </div>
-
-                      {serviceType !== "ONE_TIME" && (
-                        <div>
-                          <label htmlFor="billing_cycle" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
-                            Billing Cycle <span className="text-accent">*</span>
-                          </label>
-                          <Dropdown
-                            id="billing_cycle"
-                            value={billingCycle}
-                            onChange={setBillingCycle}
-                            options={[{ value: "MONTHLY", label: "Monthly" }, { value: "YEARLY", label: "Yearly" }]}
-                            placeholder="Select Billing Cycle"
-                            buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                          />
-                        </div>
-                      )}
-
-                      <div className="space-y-6 pt-1">
-                        <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                          <input
-                            id="generate_quote"
-                            type="checkbox"
-                            className="h-3.5 w-3.5 rounded-full border border-gray-300 text-accent focus:ring-accent"
-                            checked={autoGenerateQuote}
-                            onChange={() => setAutoGenerateQuote(!autoGenerateQuote)}
-                          />
-                          Auto Generate Quote
-                        </label>
-                        {autoGenerateQuote && (
-                          <div className="mt-2 flex items-start gap-2 rounded-md border border-secondary bg-secondary/10 px-3 py-2 text-xs font-semibold text-secondary">
-                            <LuInfo className="mt-px h-4 w-4 shrink-0" />
-                            Quotes will be automatically generated for this service when enabled.
-                          </div>
-                        )}
-                        <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                          <input
-                            id="generate_invoices"
-                            type="checkbox"
-                            className="h-3.5 w-3.5 rounded-full border border-gray-300 text-accent focus:ring-accent"
-                            checked={autoGenerateInvoices}
-                            onChange={() => setAutoGenerateInvoices(!autoGenerateInvoices)}
-                          />
-                          Auto Generate Invoice(s)
-                        </label>
-                        {autoGenerateInvoices && (
-                          <div className="mt-2 flex items-start gap-2 rounded-md border border-secondary bg-secondary/10 px-3 py-2 text-xs font-semibold text-secondary">
-                            <LuInfo className="mt-px h-4 w-4 shrink-0" />
-                            Invoices will be automatically created for this service on the selected billing cycle.
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                <div className="space-y-4">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                    Service Details
+                  </p>
 
                   <div className="space-y-6">
-                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-                      Service Address
-                    </p>
-                    <div className="space-y-6">
+                    <div>
+                      <label
+                        htmlFor="service_name"
+                        className="mb-1 block text-sm uppercase font-semibold text-gray-500"
+                      >
+                        Service Name <span className="text-accent">*</span>
+                      </label>
+                      <Dropdown
+                        id="service_name"
+                        value={serviceName}
+                        onChange={setServiceName}
+                        placeholder="Digital Service Name"
+                        options={serviceOptions}
+                        buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                      />
+                    </div>
+
+                    <div>
+                      <Input
+                        type="date"
+                        id="start_date"
+                        label="Start Date"
+                        value={startDate}
+                        onChange={setStartDate}
+                        isRequired
+                        fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <Input
+                        type="date"
+                        id="end_date"
+                        label="End Date"
+                        value={endDate}
+                        onChange={setEndDate}
+                        fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <Input
+                        type="number"
+                        id="price"
+                        label="Price"
+                        value={price}
+                        onChange={setPrice}
+                        isRequired
+                        fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="currency"
+                        className="mb-1 block text-sm uppercase font-semibold text-gray-500"
+                      >
+                        Currency <span className="text-accent">*</span>
+                      </label>
+                      <Dropdown
+                        id="currency"
+                        value={currency}
+                        onChange={setCurrency}
+                        options={[
+                          { value: "CAD", label: "CAD" },
+                          { value: "USD", label: "USD" },
+                        ]}
+                        buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="service_type"
+                        className="mb-1 block text-sm uppercase font-semibold text-gray-500"
+                      >
+                        Service Type <span className="text-accent">*</span>
+                      </label>
+                      <Dropdown
+                        id="service_type"
+                        value={serviceType}
+                        onChange={(v) => {
+                          setServiceType(v);
+                          setBillingCycle("");
+                        }}
+                        options={[
+                          { value: "ONE_TIME", label: "One Time" },
+                          { value: "SUBSCRIPTION", label: "Subscription" },
+                        ]}
+                        buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                      />
+                    </div>
+
+                    {serviceType !== "ONE_TIME" && (
                       <div>
-                        <Input
-                          id="street_address"
-                          label="Street Address"
-                          value={streetAddress}
-                          onChange={setStreetAddress}
-                          isRequired
-                          fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Input
-                            id="city"
-                            label="City"
-                            value={city}
-                            onChange={setCity}
-                            isRequired
-                            fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
-                          />
-                        </div>
-
-                        <div>
-                          <label htmlFor="province" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
-                            Province/State
-                          </label>
-                          <Dropdown
-                            id="province"
-                            value={provinceState}
-                            onChange={setProvinceState}
-                            options={provinces[country] || []}
-                            placeholder="Select State/Province"
-                            buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                            disabled={!country}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="-mt-6">
-                        <label htmlFor="country" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
-                          Country
+                        <label
+                          htmlFor="billing_cycle"
+                          className="mb-1 block text-sm uppercase font-semibold text-gray-500"
+                        >
+                          Billing Cycle <span className="text-accent">*</span>
                         </label>
                         <Dropdown
-                          id="country"
-                          value={country}
-                          onChange={(v) => {
-                            setCountry(v);
-                            setProvinceState("");
-                          }}
-                          options={countries}
+                          id="billing_cycle"
+                          value={billingCycle}
+                          onChange={setBillingCycle}
+                          options={[
+                            { value: "MONTHLY", label: "Monthly" },
+                            { value: "YEARLY", label: "Yearly" },
+                          ]}
+                          placeholder="Select Billing Cycle"
                           buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
                         />
                       </div>
+                    )}
 
+                    <div className="space-y-6 pt-1">
+                      <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                        <input
+                          id="generate_quote"
+                          type="checkbox"
+                          className="h-3.5 w-3.5 rounded-full border border-gray-300 text-accent focus:ring-accent"
+                          checked={autoGenerateQuote}
+                          onChange={() =>
+                            setAutoGenerateQuote(!autoGenerateQuote)
+                          }
+                        />
+                        Auto Generate Quote
+                      </label>
+                      {autoGenerateQuote && (
+                        <div className="mt-2 flex items-start gap-2 rounded-md border border-secondary bg-secondary/10 px-3 py-2 text-xs font-semibold text-secondary">
+                          <LuInfo className="mt-px h-4 w-4 shrink-0" />
+                          Quotes will be automatically generated for this
+                          service when enabled.
+                        </div>
+                      )}
+                      <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                        <input
+                          id="generate_invoices"
+                          type="checkbox"
+                          className="h-3.5 w-3.5 rounded-full border border-gray-300 text-accent focus:ring-accent"
+                          checked={autoGenerateInvoices}
+                          onChange={() =>
+                            setAutoGenerateInvoices(!autoGenerateInvoices)
+                          }
+                        />
+                        Auto Generate Invoice(s)
+                      </label>
+                      {autoGenerateInvoices && (
+                        <div className="mt-2 flex items-start gap-2 rounded-md border border-secondary bg-secondary/10 px-3 py-2 text-xs font-semibold text-secondary">
+                          <LuInfo className="mt-px h-4 w-4 shrink-0" />
+                          Invoices will be automatically created for this
+                          service on the selected billing cycle.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                    Service Address
+                  </p>
+                  <div className="space-y-6">
+                    <div>
+                      <Input
+                        id="street_address"
+                        label="Street Address"
+                        value={streetAddress}
+                        onChange={setStreetAddress}
+                        isRequired
+                        fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Input
-                          id="postal_code"
-                          label="Postal/Zip Code"
-                          value={postalCode}
-                          onChange={setPostalCode}
+                          id="city"
+                          label="City"
+                          value={city}
+                          onChange={setCity}
                           isRequired
                           fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
                         />
                       </div>
+
+                      <div>
+                        <label
+                          htmlFor="province"
+                          className="mb-1 block text-sm uppercase font-semibold text-gray-500"
+                        >
+                          Province/State
+                        </label>
+                        <Dropdown
+                          id="province"
+                          value={provinceState}
+                          onChange={setProvinceState}
+                          options={provinces[country] || []}
+                          placeholder="Select State/Province"
+                          buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                          disabled={!country}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="-mt-6">
+                      <label
+                        htmlFor="country"
+                        className="mb-1 block text-sm uppercase font-semibold text-gray-500"
+                      >
+                        Country
+                      </label>
+                      <Dropdown
+                        id="country"
+                        value={country}
+                        onChange={(v) => {
+                          setCountry(v);
+                          setProvinceState("");
+                        }}
+                        options={countries}
+                        buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                      />
+                    </div>
+
+                    <div>
+                      <Input
+                        id="postal_code"
+                        label="Postal/Zip Code"
+                        value={postalCode}
+                        onChange={setPostalCode}
+                        isRequired
+                        fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
+                      />
                     </div>
                   </div>
-
-                  <div className="space-y-6 pb-1">
-                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-                      Service Description
-                    </p>
-                    <Textarea
-                      id="client-service-description"
-                      label="Description"
-                      value={description}
-                      onChange={setDescription}
-                      placeholder="Service Description"
-                      rows={4}
-                      fieldClass="mb-0 rounded-lg px-3 py-2 text-sm"
-                    />
-                  </div>
                 </div>
+
+                <div className="space-y-6 pb-1">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                    Service Description
+                  </p>
+                  <Textarea
+                    id="client-service-description"
+                    label="Description"
+                    value={description}
+                    onChange={setDescription}
+                    placeholder="Service Description"
+                    rows={4}
+                    fieldClass="mb-0 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
 
               <div className="shrink-0 border-t border-gray-200 bg-white px-6 py-3">
                 <div className="flex items-center justify-end gap-3">

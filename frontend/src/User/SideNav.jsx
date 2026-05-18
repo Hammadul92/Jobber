@@ -134,10 +134,10 @@ export default function SideNav({ user, businessRegistered }) {
   // Helper function to check if a menu item should be highlighted
   const isMenuItemActive = (menuPath) => {
     const currentPath = location.pathname;
-    
+
     // Exact match
     if (currentPath.startsWith(menuPath)) return true;
-    
+
     // Map of plural menu paths to their singular detail page patterns
     const singularPatternsMap = {
       "/user/business/clients": "/user/business/client/",
@@ -146,15 +146,16 @@ export default function SideNav({ user, businessRegistered }) {
       "/user/business/jobs": "/user/business/job/",
       "/user/business/invoices": "/user/business/invoice/",
       "/user/business/payouts": "/user/business/payout/",
-      "/user/business/service-questionnaires": "/user/business/service-questionnaire/",
+      "/user/business/service-questionnaires":
+        "/user/business/service-questionnaire/",
     };
-    
+
     // Check if current path matches a singular detail page pattern
     const singularPattern = singularPatternsMap[menuPath];
     if (singularPattern && currentPath.startsWith(singularPattern)) {
       return true;
     }
-    
+
     return false;
   };
 

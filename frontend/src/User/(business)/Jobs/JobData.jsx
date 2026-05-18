@@ -190,7 +190,9 @@ export default function JobData({ token, role, setAlert }) {
             />
             <svg
               className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer text-gray-400 transition hover:text-gray-600"
-              onClick={() => document.getElementById("jobdata-start-date")?.showPicker()}
+              onClick={() =>
+                document.getElementById("jobdata-start-date")?.showPicker()
+              }
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -220,7 +222,9 @@ export default function JobData({ token, role, setAlert }) {
             />
             <svg
               className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer text-gray-400 transition hover:text-gray-600"
-              onClick={() => document.getElementById("jobdata-end-date")?.showPicker()}
+              onClick={() =>
+                document.getElementById("jobdata-end-date")?.showPicker()
+              }
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -245,10 +249,11 @@ export default function JobData({ token, role, setAlert }) {
               key={key}
               type="button"
               onClick={() => setActiveTab(key)}
-              className={`flex-1 rounded-xl px-4 py-3 text-center text-sm font-semibold transition ${isActive
-                ? `${color} border border-current/35 shadow-sm`
-                : "border border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-                }`}
+              className={`flex-1 rounded-xl px-4 py-3 text-center text-sm font-semibold transition ${
+                isActive
+                  ? `${color} border border-current/35 shadow-sm`
+                  : "border border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+              }`}
             >
               {label}
             </button>
@@ -269,15 +274,23 @@ export default function JobData({ token, role, setAlert }) {
                 <div className="mb-4 flex items-start gap-4">
                   {/* Left Icon */}
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-orange-100">
-                    <svg className="h-10 w-10 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="h-10 w-10 text-orange-600"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
                   </div>
 
                   {/* Title and Subtitle */}
                   <div className="flex-1">
-                    <h3 className="text-2xl font-semibold text-gray-900">{job.assigned_to_name || "Unassigned"}</h3>
-                    <p className="text-lg -mt-1 -mb-2 text-gray-500">{job.title}</p>
+                    <h3 className="text-2xl font-semibold text-gray-900">
+                      {job.assigned_to_name || "Unassigned"}
+                    </h3>
+                    <p className="text-lg -mt-1 -mb-2 text-gray-500">
+                      {job.title}
+                    </p>
                   </div>
                 </div>
 
@@ -295,7 +308,9 @@ export default function JobData({ token, role, setAlert }) {
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Service</p>
-                        <p className="font-medium text-gray-900">{job.service_name}</p>
+                        <p className="font-medium text-gray-900">
+                          {job.service_name}
+                        </p>
                       </div>
                     </div>
 
@@ -306,7 +321,12 @@ export default function JobData({ token, role, setAlert }) {
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Scheduled</p>
-                        <p className="font-medium text-gray-900">{new Date(job.scheduled_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        <p className="font-medium text-gray-900">
+                          {new Date(job.scheduled_date).toLocaleDateString(
+                            "en-US",
+                            { year: "numeric", month: "long", day: "numeric" },
+                          )}
+                        </p>
                       </div>
                     </div>
                   </div>

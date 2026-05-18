@@ -10,9 +10,11 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+
 from core.models import (
     Business,
     Client,
+    Invoice,
     Job,
     JobPhoto,
     ServiceQuestionnaire,
@@ -21,7 +23,6 @@ from core.models import (
     Quote,
 )
 from operations import serializers, paginations, emails
-from user.utils import generate_magic_login_token
 
 
 class BusinessViewSet(viewsets.ModelViewSet):
@@ -128,6 +129,100 @@ class ServiceViewSet(viewsets.ModelViewSet):
         .order_by("-id")
     )
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        prev_filled_questionnaire = instance.filled_questionnaire
+        prev_status = instance.status
+
+        response = super().update(request, *args, **kwargs)
+        instance.refresh_from_db()
+
+        # Auto-generate quote as soon as questionnaire is filled and auto_generate_quote is true
+        if (
+            not prev_filled_questionnaire
+            and instance.filled_questionnaire
+            and instance.auto_generate_quote
+        ):
+            if (
+                not instance.service_quotes.filter(is_active=True)
+                .exclude(status="DECLINED")
+                .exists()
+            ):
+                quote = Quote.objects.create(
+                    service=instance,
+                    valid_until=timezone.now().date(),
+                    terms_conditions="Auto-generated quote.",
+                    notes="Auto-generated.",
+                    status="DRAFT",
+                )
+            else:
+                quote = (
+                    instance.service_quotes.filter(is_active=True)
+                    .exclude(status="DECLINED")
+                    .first()
+                )
+
+        # If status changed to ACTIVE, and auto_generate_invoices is true,
+        # and a quote exists and is signed, create invoice
+        if (
+            prev_status != "ACTIVE"
+            and instance.status == "ACTIVE"
+            and instance.auto_generate_invoices
+        ):
+            quote = (
+                instance.service_quotes.filter(is_active=True)
+                .exclude(status="DECLINED")
+                .first()
+            )
+            if quote and quote.status == "SIGNED":
+                if not instance.invoices.filter(is_active=True).exists():
+                    Invoice.objects.create(
+                        business=instance.business,
+                        client=instance.client,
+                        service=instance,
+                        due_date=timezone.now().date(),
+                        currency=instance.currency,
+                        subtotal=instance.price,
+                        tax_rate=instance.business.tax_rate,
+                        tax_amount=instance.price * instance.business.tax_rate / 100,
+                        total_amount=instance.price
+                        + (instance.price * instance.business.tax_rate / 100),
+                        notes="Auto-generated invoice.",
+                    )
+
+        return response
+
+    @action(detail=True, methods=["post"], url_path="resend-questionnaire")
+    def resend_questionnaire(self, request, pk=None):
+        """Resend the questionnaire email to the client if not filled."""
+        service = self.get_object()
+        # Check if questionnaire is already filled
+        if service.filled_questionnaire:
+            return Response(
+                {"detail": "Questionnaire already filled by client."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        questionnaire = service.business.service_questionnaires.filter(
+            service_name=service.service_name,
+            is_active=True,
+        ).first()
+
+        if not questionnaire:
+            return Response(
+                {"detail": "No active questionnaire found for this service."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        emails.send_service_questionnaire_email(
+            service=service,
+            questionnaire=questionnaire,
+        )
+        return Response(
+            {"detail": "Questionnaire email resent to client."},
+            status=status.HTTP_200_OK,
+        )
+
     def get_queryset(self):
         user = self.request.user
         qs = super().get_queryset()
@@ -153,11 +248,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
         ).first()
 
         if questionnaire:
-            magic_token = generate_magic_login_token(service.client.user)
             emails.send_service_questionnaire_email(
                 service=service,
                 questionnaire=questionnaire,
-                magic_token=magic_token,
             )
 
     def perform_destroy(self, instance):

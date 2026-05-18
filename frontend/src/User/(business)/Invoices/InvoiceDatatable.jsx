@@ -83,9 +83,16 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
 
       const matchesSearch =
         !normalizedSearch ||
-        [row.invoice_number, row.business_name, row.client_name, row.service_name]
+        [
+          row.invoice_number,
+          row.business_name,
+          row.client_name,
+          row.service_name,
+        ]
           .filter(Boolean)
-          .some((value) => String(value).toLowerCase().includes(normalizedSearch));
+          .some((value) =>
+            String(value).toLowerCase().includes(normalizedSearch),
+          );
 
       let matchesDateRange = true;
       if (dateRangeStart || dateRangeEnd) {
@@ -114,7 +121,10 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
     const toNumber = (value) => Number.parseFloat(value || 0);
 
     return {
-      totalInvoiced: rows.reduce((sum, row) => sum + toNumber(row.total_amount), 0),
+      totalInvoiced: rows.reduce(
+        (sum, row) => sum + toNumber(row.total_amount),
+        0,
+      ),
       paidInvoices: rows.filter((row) => row.status === "PAID").length,
       outstandingBalance: rows
         .filter((row) => row.status !== "PAID" && row.status !== "CANCELLED")
@@ -203,7 +213,9 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
 
     const csv = [headers, ...csvRows]
       .map((row) =>
-        row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(","),
+        row
+          .map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`)
+          .join(","),
       )
       .join("\n");
 
@@ -296,7 +308,9 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
 
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-100 px-6 py-5">
-            <h4 className="text-xl font-medium text-slate-900">Invoice History</h4>
+            <h4 className="text-xl font-medium text-slate-900">
+              Invoice History
+            </h4>
             <p className="mt-1 text-sm text-slate-500">
               Review billing, due dates, payment status, and invoice actions.
             </p>
@@ -430,8 +444,12 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                           <td className="px-4 py-3 text-slate-700">
                             {row.business_name}
                           </td>
-                          <td className="px-4 py-3 text-slate-700">{row.client_name}</td>
-                          <td className="px-4 py-3 text-slate-700">{row.service_name}</td>
+                          <td className="px-4 py-3 text-slate-700">
+                            {row.client_name}
+                          </td>
+                          <td className="px-4 py-3 text-slate-700">
+                            {row.service_name}
+                          </td>
                           <td className="px-4 py-3 text-slate-700">
                             {formatMoney(row.total_amount)}
                           </td>
@@ -485,7 +503,9 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                             <LuFileText className="h-8 w-8" />
                           </div>
                           <h5 className="mt-5 text-xl font-medium text-slate-900">
-                            {rows.length ? "No invoices match your filters." : "No invoices yet"}
+                            {rows.length
+                              ? "No invoices match your filters."
+                              : "No invoices yet"}
                           </h5>
                           <p className="mt-2 text-sm leading-6 text-slate-500">
                             {rows.length
@@ -497,16 +517,18 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                               ? "Filtered invoices will appear here once they match your criteria."
                               : "Once invoices are created, they will appear here with payment status and due dates."}
                           </p>
-                          {role === "MANAGER" && onAddInvoice && !rows.length && (
-                            <button
-                              type="button"
-                              onClick={onAddInvoice}
-                              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accentLight"
-                            >
-                              <LuPlus className="h-4 w-4" />
-                              Add Invoice
-                            </button>
-                          )}
+                          {role === "MANAGER" &&
+                            onAddInvoice &&
+                            !rows.length && (
+                              <button
+                                type="button"
+                                onClick={onAddInvoice}
+                                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accentLight"
+                              >
+                                <LuPlus className="h-4 w-4" />
+                                Add Invoice
+                              </button>
+                            )}
                           {rows.length > 0 && (
                             <button
                               type="button"
@@ -542,7 +564,9 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                 <button
                   type="button"
                   className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() => setPage((nextPage) => Math.max(1, nextPage - 1))}
+                  onClick={() =>
+                    setPage((nextPage) => Math.max(1, nextPage - 1))
+                  }
                   disabled={currentPage <= 1}
                   aria-label="Previous page"
                 >
@@ -557,7 +581,9 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                 <button
                   type="button"
                   className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() => setPage((nextPage) => Math.min(totalPages, nextPage + 1))}
+                  onClick={() =>
+                    setPage((nextPage) => Math.min(totalPages, nextPage + 1))
+                  }
                   disabled={currentPage >= totalPages}
                   aria-label="Next page"
                 >
@@ -578,7 +604,9 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
             <div className="relative z-50 w-full md:w-4/7 lg:w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-2xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900">Filter by Date Range</h3>
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    Filter by Date Range
+                  </h3>
                   <p className="mt-1 text-sm text-slate-500">
                     Select start and end dates to filter invoices.
                   </p>
@@ -595,7 +623,9 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
 
               <div className="mt-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700">Start Date</label>
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Start Date
+                  </label>
                   <input
                     type="date"
                     value={dateRangeStart}
@@ -605,7 +635,9 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700">End Date</label>
+                  <label className="block text-sm font-semibold text-slate-700">
+                    End Date
+                  </label>
                   <input
                     type="date"
                     value={dateRangeEnd}

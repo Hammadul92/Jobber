@@ -23,7 +23,8 @@ export default function Jobs({ token, role }) {
     dispatch(
       setTopbar({
         title: "Jobs",
-        description: "Track one-time and recurring work from scheduling to completion.",
+        description:
+          "Track one-time and recurring work from scheduling to completion.",
         action:
           role === "MANAGER"
             ? {
@@ -49,7 +50,6 @@ export default function Jobs({ token, role }) {
 
   return (
     <>
-
       {alert.message && (
         <AlertDispatcher
           type={alert.type}

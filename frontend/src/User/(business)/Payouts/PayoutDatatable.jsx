@@ -99,7 +99,10 @@ export default function PayoutDatatable({ token, role }) {
     const paidRows = rows.filter((row) => row.status === "PAID");
 
     return {
-      totalPaidOut: paidRows.reduce((sum, row) => sum + toNumber(row.amount), 0),
+      totalPaidOut: paidRows.reduce(
+        (sum, row) => sum + toNumber(row.amount),
+        0,
+      ),
       pendingRefunds: rows.filter(
         (row) => row.status === "PENDING" || row.status === "FAILED",
       ).length,
@@ -285,9 +288,12 @@ export default function PayoutDatatable({ token, role }) {
 
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-100 px-6 py-5">
-            <h4 className="text-xl font-medium text-slate-900">Payout History</h4>
+            <h4 className="text-xl font-medium text-slate-900">
+              Payout History
+            </h4>
             <p className="mt-1 text-sm text-slate-500">
-              View processed payouts, related invoices, and available refund actions.
+              View processed payouts, related invoices, and available refund
+              actions.
             </p>
 
             <div className="mt-6 flex flex-col gap-3 lg:hidden">
@@ -410,9 +416,15 @@ export default function PayoutDatatable({ token, role }) {
                         <td className="px-4 py-3 font-semibold text-slate-900">
                           {row.invoice_number}
                         </td>
-                        <td className="px-4 py-3 text-slate-700">{row.client_name}</td>
-                        <td className="px-4 py-3 text-slate-700">{row.service_name}</td>
-                        <td className="px-4 py-3 text-slate-700">{row.payout_total}</td>
+                        <td className="px-4 py-3 text-slate-700">
+                          {row.client_name}
+                        </td>
+                        <td className="px-4 py-3 text-slate-700">
+                          {row.service_name}
+                        </td>
+                        <td className="px-4 py-3 text-slate-700">
+                          {row.payout_total}
+                        </td>
                         <td className="px-4 py-3 text-slate-700">
                           <span
                             className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${statusBadge(row.status)}`}
@@ -421,7 +433,9 @@ export default function PayoutDatatable({ token, role }) {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-slate-700">
-                          {row.processed_at ? formatDate(row.processed_at) : "—"}
+                          {row.processed_at
+                            ? formatDate(row.processed_at)
+                            : "—"}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex justify-end gap-2">
@@ -458,10 +472,12 @@ export default function PayoutDatatable({ token, role }) {
                             No payouts yet
                           </h5>
                           <p className="mt-2 text-sm leading-6 text-slate-500">
-                            Processed payouts will appear here once client payments are completed.
+                            Processed payouts will appear here once client
+                            payments are completed.
                           </p>
                           <p className="mt-2 text-sm leading-6 text-slate-500">
-                            You can use filters or search once payout records are available.
+                            You can use filters or search once payout records
+                            are available.
                           </p>
                           <Link
                             to="/user/business/invoices"
@@ -484,11 +500,15 @@ export default function PayoutDatatable({ token, role }) {
               </p>
 
               <div className="flex items-center justify-between gap-2 sm:justify-end">
-                <p className="text-slate-500">Page {currentPage} of {totalPages}</p>
+                <p className="text-slate-500">
+                  Page {currentPage} of {totalPages}
+                </p>
                 <button
                   type="button"
                   className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() => setPage((nextPage) => Math.max(1, nextPage - 1))}
+                  onClick={() =>
+                    setPage((nextPage) => Math.max(1, nextPage - 1))
+                  }
                   disabled={currentPage <= 1}
                   aria-label="Previous page"
                 >
@@ -503,7 +523,9 @@ export default function PayoutDatatable({ token, role }) {
                 <button
                   type="button"
                   className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() => setPage((nextPage) => Math.min(totalPages, nextPage + 1))}
+                  onClick={() =>
+                    setPage((nextPage) => Math.min(totalPages, nextPage + 1))
+                  }
                   disabled={currentPage >= totalPages}
                   aria-label="Next page"
                 >
@@ -522,7 +544,9 @@ export default function PayoutDatatable({ token, role }) {
             ></div>
 
             <div className="relative z-50 w-full md:w-4/7 lg:w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-              <h3 className="text-lg font-semibold text-slate-900">Filter by Date Range</h3>
+              <h3 className="text-lg font-semibold text-slate-900">
+                Filter by Date Range
+              </h3>
               <p className="mt-1 text-sm text-slate-500">
                 Select start and end dates to filter payouts
               </p>

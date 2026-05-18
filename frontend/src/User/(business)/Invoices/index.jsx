@@ -23,7 +23,8 @@ export default function Invoices({ token, role, business }) {
     dispatch(
       setTopbar({
         title: "Invoices",
-        description: "Manage billing, due dates, payments, and invoice activity.",
+        description:
+          "Manage billing, due dates, payments, and invoice activity.",
         action:
           role === "MANAGER"
             ? {

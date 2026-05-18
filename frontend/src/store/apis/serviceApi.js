@@ -67,6 +67,12 @@ const serviceApi = createApi({
       }),
       invalidatesTags: ["Service"],
     }),
+    resendQuestionnaire: builder.mutation({
+      query: (id) => ({
+        url: `/service/${id}/resend-questionnaire/`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -76,6 +82,7 @@ export const {
   useCreateServiceMutation,
   useUpdateServiceMutation,
   useDeleteServiceMutation,
+  useResendQuestionnaireMutation,
 } = serviceApi;
 
 export { serviceApi };

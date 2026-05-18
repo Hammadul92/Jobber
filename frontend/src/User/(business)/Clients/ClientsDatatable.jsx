@@ -79,7 +79,10 @@ export default function ClientsDatatable({ token, showAddClient }) {
     const query = searchTerm.trim().toLowerCase();
 
     return rows.filter((row) => {
-      const status = row.is_active === "True" || row.is_active === true ? "ACTIVE" : "INACTIVE";
+      const status =
+        row.is_active === "True" || row.is_active === true
+          ? "ACTIVE"
+          : "INACTIVE";
       const searchable = [
         row.client_name,
         row.name,
@@ -93,7 +96,8 @@ export default function ClientsDatatable({ token, showAddClient }) {
         .toLowerCase();
 
       const matchesSearch = !query || searchable.includes(query);
-      const matchesStatus = selectedStatus === "ALL" || status === selectedStatus;
+      const matchesStatus =
+        selectedStatus === "ALL" || status === selectedStatus;
 
       return matchesSearch && matchesStatus;
     });
@@ -188,10 +192,11 @@ export default function ClientsDatatable({ token, showAddClient }) {
               {props.row.client_name}
             </span>
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${props.row.is_active === "True"
-                ? "bg-accent/15 text-accent"
-                : "bg-amber-100 text-amber-800"
-                }`}
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                props.row.is_active === "True"
+                  ? "bg-accent/15 text-accent"
+                  : "bg-amber-100 text-amber-800"
+              }`}
             >
               {props.row.is_active === "True" ? "ACTIVE" : "INACTIVE"}
             </span>
@@ -269,12 +274,12 @@ export default function ClientsDatatable({ token, showAddClient }) {
 
               {isFilterOpen && (
                 /* Filter dropdown panel */
-                <div
-                  className="absolute right-0 top-[calc(100%+10px)] z-30 w-64! max-w-[calc(100vw-1rem)]! overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] md:w-88"
-                >
+                <div className="absolute right-0 top-[calc(100%+10px)] z-30 w-64! max-w-[calc(100vw-1rem)]! overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] md:w-88">
                   {/* Filter dropdown header */}
                   <div className="flex items-center justify-between border-b border-gray-200 px-5 py-2 md:py-4">
-                    <h4 className="text-lg font-medium text-slate-900">Filters</h4>
+                    <h4 className="text-lg font-medium text-slate-900">
+                      Filters
+                    </h4>
                     <button
                       type="button"
                       onClick={() => setIsFilterOpen(false)}
@@ -304,12 +309,20 @@ export default function ClientsDatatable({ token, showAddClient }) {
                                 className="flex w-full items-center justify-between rounded-2xl px-1 py-2 text-left"
                               >
                                 <span className="flex items-center gap-3 text-slate-700">
-                                  <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full border ${isSelected ? "border-slate-500" : "border-slate-300"}`}>
-                                    {isSelected ? <span className="h-3 w-3 rounded-full border-4 border-white bg-slate-500" /> : null}
+                                  <span
+                                    className={`inline-flex h-5 w-5 items-center justify-center rounded-full border ${isSelected ? "border-slate-500" : "border-slate-300"}`}
+                                  >
+                                    {isSelected ? (
+                                      <span className="h-3 w-3 rounded-full border-4 border-white bg-slate-500" />
+                                    ) : null}
                                   </span>
-                                  <span className="text-base font-medium">{option.label}</span>
+                                  <span className="text-base font-medium">
+                                    {option.label}
+                                  </span>
                                 </span>
-                                <span className={`h-2.5 w-2.5 rounded-full ${option.value === "ACTIVE" ? "bg-emerald-500" : option.value === "INACTIVE" ? "bg-slate-400" : "bg-transparent"}`} />
+                                <span
+                                  className={`h-2.5 w-2.5 rounded-full ${option.value === "ACTIVE" ? "bg-emerald-500" : option.value === "INACTIVE" ? "bg-slate-400" : "bg-transparent"}`}
+                                />
                               </button>
                             );
                           })}
@@ -372,18 +385,25 @@ export default function ClientsDatatable({ token, showAddClient }) {
             </button>
 
             <p className="mt-2 text-sm text-slate-400">
-              Once you add a client, their services and access can be managed here.
+              Once you add a client, their services and access can be managed
+              here.
             </p>
           </div>
         ) : (
           <div className="flex-1 space-y-4 px-4 py-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 md:px-5 lg:flex lg:flex-col lg:space-y-4 lg:gap-0">
             {paginatedRows.map((row) => {
-              const isActive = row.is_active === "True" || row.is_active === true;
+              const isActive =
+                row.is_active === "True" || row.is_active === true;
               const clientLabel = row.client_name || row.name || "Client";
-              const email = row.email || row.client_email || "No email provided";
-              const phone = row.client_phone || row.phone || "No phone provided";
+              const email =
+                row.email || row.client_email || "No email provided";
+              const phone =
+                row.client_phone || row.phone || "No phone provided";
               const paymentMethod =
-                row.payment_method || row.paymentMethod || row.payment || "No payment method";
+                row.payment_method ||
+                row.paymentMethod ||
+                row.payment ||
+                "No payment method";
 
               return (
                 <Fragment key={row.id}>
@@ -448,7 +468,8 @@ export default function ClientsDatatable({ token, showAddClient }) {
                           to={`/user/business/client/${row.id}/services`}
                           className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-accentLight"
                         >
-                          <MdOutlineMiscellaneousServices className="h-4 w-4" /> Services
+                          <MdOutlineMiscellaneousServices className="h-4 w-4" />{" "}
+                          Services
                         </Link>
                         <button
                           className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
@@ -499,7 +520,9 @@ export default function ClientsDatatable({ token, showAddClient }) {
                         <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
                           Email Address
                         </p>
-                        <p className="truncate text-sm text-slate-700">{email}</p>
+                        <p className="truncate text-sm text-slate-700">
+                          {email}
+                        </p>
                       </div>
 
                       {/* Phone column */}
@@ -510,7 +533,9 @@ export default function ClientsDatatable({ token, showAddClient }) {
                         <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
                           Phone Number
                         </p>
-                        <p className="truncate text-sm text-slate-700">{phone}</p>
+                        <p className="truncate text-sm text-slate-700">
+                          {phone}
+                        </p>
                       </div>
 
                       {/* Payment method column */}
@@ -533,7 +558,8 @@ export default function ClientsDatatable({ token, showAddClient }) {
                         to={`/user/business/client/${row.id}/services`}
                         className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-accentLight"
                       >
-                        <MdOutlineMiscellaneousServices className="h-4 w-4" /> Services
+                        <MdOutlineMiscellaneousServices className="h-4 w-4" />{" "}
+                        Services
                       </Link>
                       <button
                         className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 hover:text-red-500"
@@ -585,12 +611,17 @@ export default function ClientsDatatable({ token, showAddClient }) {
                           }}
                           className={`w-full px-2  text-left text-base transition `}
                         >
-                          <div className={`flex items-center gap-2 w-full ${isSelected
-                            ? "bg-accent/10 font-semibold text-slate-900"
-                            : "text-slate-700 hover:bg-gray-50"
-                            } rounded-lg px-2 py-1`}>
+                          <div
+                            className={`flex items-center gap-2 w-full ${
+                              isSelected
+                                ? "bg-accent/10 font-semibold text-slate-900"
+                                : "text-slate-700 hover:bg-gray-50"
+                            } rounded-lg px-2 py-1`}
+                          >
                             <span>{size}</span>
-                            {isSelected && <LuCircle className="h-3 w-3 fill-current text-accent" />}
+                            {isSelected && (
+                              <LuCircle className="h-3 w-3 fill-current text-accent" />
+                            )}
                           </div>
                         </button>
                       );
@@ -600,45 +631,50 @@ export default function ClientsDatatable({ token, showAddClient }) {
               </div>
             </div>
 
-              {/* Pagination controls */}
-              <div className="flex items-center justify-end gap-2 text-xs md:text-sm text-slate-600">
-                <div ref={pageNavRef} className="relative md:hidden">
-                  <button
-                    type="button"
-                    onClick={() => setIsPageNavOpen((prev) => !prev)}
-                    className="flex h-9 w-28 items-center justify-between rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-accent hover:text-slate-900"
-                  >
-                    <span>
-                      Page {safeCurrentPage + 1} / {totalPages}
-                    </span>
-                    <LuChevronDown
-                      className={`h-4 w-4 text-slate-500 transition-transform ${isPageNavOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
+            {/* Pagination controls */}
+            <div className="flex items-center justify-end gap-2 text-xs md:text-sm text-slate-600">
+              <div ref={pageNavRef} className="relative md:hidden">
+                <button
+                  type="button"
+                  onClick={() => setIsPageNavOpen((prev) => !prev)}
+                  className="flex h-9 w-28 items-center justify-between rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-accent hover:text-slate-900"
+                >
+                  <span>
+                    Page {safeCurrentPage + 1} / {totalPages}
+                  </span>
+                  <LuChevronDown
+                    className={`h-4 w-4 text-slate-500 transition-transform ${isPageNavOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
 
-                  {isPageNavOpen && (
-                    <div className="absolute bottom-[calc(100%+8px)] right-0 z-40 max-h-64 w-36 px-2 overflow-auto rounded-2xl border border-gray-200 bg-white py-2 shadow-[0_20px_35px_rgba(15,23,42,0.18)]">
-                      {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => {
-                        const isSelected = pageNumber === safeCurrentPage + 1;
+                {isPageNavOpen && (
+                  <div className="absolute bottom-[calc(100%+8px)] right-0 z-40 max-h-64 w-36 px-2 overflow-auto rounded-2xl border border-gray-200 bg-white py-2 shadow-[0_20px_35px_rgba(15,23,42,0.18)]">
+                    {Array.from(
+                      { length: totalPages },
+                      (_, index) => index + 1,
+                    ).map((pageNumber) => {
+                      const isSelected = pageNumber === safeCurrentPage + 1;
 
-                        return (
-                          <button
-                            key={pageNumber}
-                            type="button"
-                            onClick={() => {
-                              setCurrentPage(pageNumber - 1);
-                              setIsPageNavOpen(false);
-                            }}
-                            className={`flex w-full items-center justify-between px-3 py-2 rounded-lg text-left text-sm transition ${isSelected ? "bg-accent/10 font-semibold text-slate-900" : "text-slate-700 hover:bg-gray-50"}`}
-                          >
-                            <span>Page {pageNumber}</span>
-                            {isSelected && <LuCircle className="h-3 w-3 fill-current text-accent" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                      return (
+                        <button
+                          key={pageNumber}
+                          type="button"
+                          onClick={() => {
+                            setCurrentPage(pageNumber - 1);
+                            setIsPageNavOpen(false);
+                          }}
+                          className={`flex w-full items-center justify-between px-3 py-2 rounded-lg text-left text-sm transition ${isSelected ? "bg-accent/10 font-semibold text-slate-900" : "text-slate-700 hover:bg-gray-50"}`}
+                        >
+                          <span>Page {pageNumber}</span>
+                          {isSelected && (
+                            <LuCircle className="h-3 w-3 fill-current text-accent" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               <span className="hidden md:inline-flex">
                 Page {safeCurrentPage + 1} of {totalPages}
@@ -655,7 +691,9 @@ export default function ClientsDatatable({ token, showAddClient }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 0))
+                  }
                   disabled={safeCurrentPage === 0}
                   className="flex h-9 md:h-10 w-9 md:w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 text-xs md:text-sm font-medium"
                   aria-label="Previous page"
@@ -672,7 +710,9 @@ export default function ClientsDatatable({ token, showAddClient }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))
+                  }
                   disabled={safeCurrentPage >= totalPages - 1}
                   className="flex h-9 md:h-10 w-9 md:w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 text-xs md:text-sm font-medium"
                   aria-label="Next page"

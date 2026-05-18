@@ -16,7 +16,6 @@ export default function Quotes({ token, role }) {
   const [alert, setAlert] = useState({ type: "", message: "" });
   const dispatch = useDispatch();
 
-
   useEffect(() => {
     if (role === "MANAGER") {
       registerTopbarActionHandler("add-quote", () => setShowModal(true));
@@ -51,7 +50,6 @@ export default function Quotes({ token, role }) {
 
   return (
     <>
-
       {alert.message && (
         <AlertDispatcher
           type={alert.type}

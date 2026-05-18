@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: "MODERNIZ";
-  src: url("../public/fonts/Moderniz.otf") format("opentype");
+  src: url("../fonts/Moderniz.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
 }
@@ -28,10 +28,14 @@
   --font-sans: "Inter", Arial, Helvetica, sans-serif;
   --font-intro: "Open Sans", sans-serif;
   /* Tailwind breakpoints */
-  --breakpoint-md: 768px; /* for Tablets */
-  --breakpoint-lg: 1025px; /* for Laptops */
-  --breakpoint-xl: 1280px; /* for Desktops */
-  --breakpoint-2xl: 1536px; /* for Large Desktops */
+  --breakpoint-md: 768px;
+  /* for Tablets */
+  --breakpoint-lg: 1025px;
+  /* for Laptops */
+  --breakpoint-xl: 1280px;
+  /* for Desktops */
+  --breakpoint-2xl: 1536px;
+  /* for Large Desktops */
 }
 
 :root {

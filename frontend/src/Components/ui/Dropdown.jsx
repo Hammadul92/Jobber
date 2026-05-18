@@ -29,7 +29,10 @@ export default function Dropdown({
   const wrapperRef = useRef(null);
 
   const normalizedOptions = useMemo(
-    () => options.map(normalizeOption).filter((option) => option.value !== undefined),
+    () =>
+      options
+        .map(normalizeOption)
+        .filter((option) => option.value !== undefined),
     [options],
   );
 
@@ -75,7 +78,7 @@ export default function Dropdown({
         onClick={() => setIsOpen((prev) => !prev)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        >
+      >
         <span className="flex min-w-0 items-center gap-3">
           {LeftIcon && <LeftIcon className="h-5 w-5 text-slate-400" />}
           <span
@@ -102,24 +105,30 @@ export default function Dropdown({
               </li>
             ) : (
               normalizedOptions.map((option) => {
-              const isSelected = option.value === value;
+                const isSelected = option.value === value;
 
-              return (
-                <li key={String(option.value)} role="option" aria-selected={isSelected}>
-                  <button
-                    type="button"
-                    className={`flex w-full items-center justify-between rounded-lg px-4 py-2 text-left font-medium transition ${
-                      isSelected
-                        ? "bg-accent/15 text-slate-800"
-                        : "text-slate-700 hover:bg-accent/10"
-                    }`}
-                    onClick={() => handleSelect(option.value)}
+                return (
+                  <li
+                    key={String(option.value)}
+                    role="option"
+                    aria-selected={isSelected}
                   >
-                    <span>{option.label}</span>
-                    {isSelected && <LuCheck className="h-5 w-5 text-slate-500" />}
-                  </button>
-                </li>
-              );
+                    <button
+                      type="button"
+                      className={`flex w-full items-center justify-between rounded-lg px-4 py-2 text-left font-medium transition ${
+                        isSelected
+                          ? "bg-accent/15 text-slate-800"
+                          : "text-slate-700 hover:bg-accent/10"
+                      }`}
+                      onClick={() => handleSelect(option.value)}
+                    >
+                      <span>{option.label}</span>
+                      {isSelected && (
+                        <LuCheck className="h-5 w-5 text-slate-500" />
+                      )}
+                    </button>
+                  </li>
+                );
               })
             )}
           </ul>

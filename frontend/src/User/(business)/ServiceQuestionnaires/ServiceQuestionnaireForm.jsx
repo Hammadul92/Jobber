@@ -45,8 +45,8 @@ export default function ServiceQuestionnaireForm(props) {
         ? Object.fromEntries(raw.map((q, i) => [i, { ...q, answer: "" }]))
         : Array.isArray(raw?.questions)
           ? Object.fromEntries(
-            raw.questions.map((q, i) => [i, { ...q, answer: "" }]),
-          )
+              raw.questions.map((q, i) => [i, { ...q, answer: "" }]),
+            )
           : {};
 
       if (service?.filled_questionnaire) {
@@ -72,7 +72,7 @@ export default function ServiceQuestionnaireForm(props) {
       setTopbar({
         title: `${serviceName} Questionnaire`,
         description: "",
-        action: (null),
+        action: null,
       }),
     );
 
@@ -103,8 +103,8 @@ export default function ServiceQuestionnaireForm(props) {
     for (const [, q] of Object.entries(questions)) {
       payload[q.text] =
         q.answer &&
-          ((Array.isArray(q.answer) && q.answer.length) ||
-            !Array.isArray(q.answer))
+        ((Array.isArray(q.answer) && q.answer.length) ||
+          !Array.isArray(q.answer))
           ? q.answer
           : q.required
             ? null

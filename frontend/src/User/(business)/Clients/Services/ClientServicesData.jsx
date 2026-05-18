@@ -1,6 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { LuCheck, LuTrash2, LuPencil, LuSlidersHorizontal } from "react-icons/lu";
+import {
+  LuCheck,
+  LuTrash2,
+  LuPencil,
+  LuSlidersHorizontal,
+} from "react-icons/lu";
 import {
   useFetchServicesQuery,
   useDeleteServiceMutation,
@@ -222,7 +227,9 @@ export default function ClientServicesData({
         {filteredServices.length ? (
           filteredServices.map((service) => {
             const serviceTypeLabel =
-              service.service_type === "SUBSCRIPTION" ? "SUBSCRIPTION" : "ONE-TIME";
+              service.service_type === "SUBSCRIPTION"
+                ? "SUBSCRIPTION"
+                : "ONE-TIME";
 
             return (
               <div
@@ -241,7 +248,9 @@ export default function ClientServicesData({
 
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <p className="text-slate-600">
-                      <span className="block text-xs text-slate-400">Start</span>
+                      <span className="block text-xs text-slate-400">
+                        Start
+                      </span>
                       {formatDate(service.start_date, false)}
                     </p>
                     <p className="text-slate-600">
@@ -253,8 +262,15 @@ export default function ClientServicesData({
                   </div>
 
                   <p className="text-sm text-slate-600">
-                    <span className="block text-xs text-slate-400">Service Address</span>
-                    {[service.street_address, service.city, service.province_state, service.country]
+                    <span className="block text-xs text-slate-400">
+                      Service Address
+                    </span>
+                    {[
+                      service.street_address,
+                      service.city,
+                      service.province_state,
+                      service.country,
+                    ]
                       .filter(Boolean)
                       .join(", ") || "Address not provided"}
                   </p>
@@ -302,7 +318,11 @@ export default function ClientServicesData({
           })
         ) : (
           <div className="col-span-full rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center text-sm text-slate-500">
-            No {statusTabs.find((tab) => tab.key === statusFilter)?.label.toLowerCase()} services found.
+            No{" "}
+            {statusTabs
+              .find((tab) => tab.key === statusFilter)
+              ?.label.toLowerCase()}{" "}
+            services found.
           </div>
         )}
       </div>

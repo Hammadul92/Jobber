@@ -91,9 +91,9 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
               <LuInfo className="h-4 w-4" />
             </span>
             <p className="pt-0.5 leading-6">
-              Create questionnaires for each service. Clients complete these when
-              a service is added, so you get the details needed. Services cannot
-              be assigned without a questionnaire.
+              Create questionnaires for each service. Clients complete these
+              when a service is added, so you get the details needed. Services
+              cannot be assigned without a questionnaire.
             </p>
           </div>
         </div>
@@ -103,7 +103,9 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm text-gray-500">Total Questionnaires</p>
-                <p className="mt-1 text-3xl font-semibold text-slate-900">{totalCount}</p>
+                <p className="mt-1 text-3xl font-semibold text-slate-900">
+                  {totalCount}
+                </p>
               </div>
               <span className="text-gray-400">
                 <LuCircleAlert className="h-4 w-4" />
@@ -115,7 +117,9 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm text-gray-500">Active</p>
-                <p className="mt-1 text-3xl font-semibold text-slate-900">{activeCount}</p>
+                <p className="mt-1 text-3xl font-semibold text-slate-900">
+                  {activeCount}
+                </p>
               </div>
               <span className="mt-1 inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
             </div>
@@ -125,7 +129,9 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm text-gray-500">Inactive</p>
-                <p className="mt-1 text-3xl font-semibold text-slate-900">{inactiveCount}</p>
+                <p className="mt-1 text-3xl font-semibold text-slate-900">
+                  {inactiveCount}
+                </p>
               </div>
               <span className="mt-1 inline-flex h-2.5 w-2.5 rounded-full bg-gray-400" />
             </div>
@@ -133,7 +139,9 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
         </div>
 
         <div>
-          <h4 className="text-2xl md:text-3xl font-semibold text-primary">Service Questionnaires</h4>
+          <h4 className="text-2xl md:text-3xl font-semibold text-primary">
+            Service Questionnaires
+          </h4>
         </div>
 
         {questionnaires.length === 0 ? (
@@ -195,7 +203,6 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
             ))}
           </div>
         )}
-
       </div>
 
       {previewQuestionnaire && (
@@ -207,7 +214,8 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
                   Questionnaire Preview
                 </h5>
                 <p className="mt-1 text-sm text-slate-500">
-                  This is the questionnaire preview that shows the saved question set.
+                  This is the questionnaire preview that shows the saved
+                  question set.
                 </p>
               </div>
               <button
@@ -226,59 +234,76 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
               </div>
 
               <div className="space-y-4">
-                {(previewQuestionnaire.additional_questions_form || []).map((q, index) => (
-                  <div key={`${previewQuestionnaire.id}-${index}`} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-                    <div className="mb-3 flex items-start justify-between gap-3">
-                      <label className="text-sm font-semibold text-slate-900">
-                        {index + 1}. {q.text}
-                        {q.required && <span className="text-red-500"> *</span>}
-                      </label>
+                {(previewQuestionnaire.additional_questions_form || []).map(
+                  (q, index) => (
+                    <div
+                      key={`${previewQuestionnaire.id}-${index}`}
+                      className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+                    >
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <label className="text-sm font-semibold text-slate-900">
+                          {index + 1}. {q.text}
+                          {q.required && (
+                            <span className="text-red-500"> *</span>
+                          )}
+                        </label>
+                      </div>
+
+                      <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3">
+                        {q.type === "input" && (
+                          <input
+                            type={q.inputType || "text"}
+                            disabled
+                            placeholder="Answer preview"
+                            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600"
+                          />
+                        )}
+
+                        {q.type === "checkbox-single" && (
+                          <div className="flex flex-wrap gap-3">
+                            {(q.options || []).map((opt, optIndex) => (
+                              <label
+                                key={optIndex}
+                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+                              >
+                                <input
+                                  type="radio"
+                                  disabled
+                                  className="h-4 w-4 border-gray-300 text-accent"
+                                />
+                                {opt}
+                              </label>
+                            ))}
+                          </div>
+                        )}
+
+                        {q.type === "checkbox-multiple" && (
+                          <div className="flex flex-wrap gap-3">
+                            {(q.options || []).map((opt, optIndex) => (
+                              <label
+                                key={optIndex}
+                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+                              >
+                                <input
+                                  type="checkbox"
+                                  disabled
+                                  className="h-4 w-4 rounded border-gray-300 text-accent"
+                                />
+                                {opt}
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {q.description && (
+                        <p className="mt-2 text-xs text-gray-500">
+                          {q.description}
+                        </p>
+                      )}
                     </div>
-
-                    <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3">
-                      {q.type === "input" && (
-                        <input
-                          type={q.inputType || "text"}
-                          disabled
-                          placeholder="Answer preview"
-                          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600"
-                        />
-                      )}
-
-                      {q.type === "checkbox-single" && (
-                        <div className="flex flex-wrap gap-3">
-                          {(q.options || []).map((opt, optIndex) => (
-                            <label
-                              key={optIndex}
-                              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
-                            >
-                              <input type="radio" disabled className="h-4 w-4 border-gray-300 text-accent" />
-                              {opt}
-                            </label>
-                          ))}
-                        </div>
-                      )}
-
-                      {q.type === "checkbox-multiple" && (
-                        <div className="flex flex-wrap gap-3">
-                          {(q.options || []).map((opt, optIndex) => (
-                            <label
-                              key={optIndex}
-                              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
-                            >
-                              <input type="checkbox" disabled className="h-4 w-4 rounded border-gray-300 text-accent" />
-                              {opt}
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {q.description && (
-                      <p className="mt-2 text-xs text-gray-500">{q.description}</p>
-                    )}
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
             </div>
 
@@ -299,7 +324,10 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-3">
-          <form onSubmit={confirmDelete} className="max-w-md rounded-2xl bg-white p-6 shadow-lg">
+          <form
+            onSubmit={confirmDelete}
+            className="max-w-md rounded-2xl bg-white p-6 shadow-lg"
+          >
             <div className="flex items-start justify-between">
               <h5 className="text-lg font-semibold text-primary">
                 Delete Service Questionnaire

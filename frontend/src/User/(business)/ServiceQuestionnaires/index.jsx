@@ -51,7 +51,6 @@ export default function Questionnaires({ token }) {
 
   return (
     <div className="space-y-4">
-
       {alert.message && (
         <AlertDispatcher
           type={alert.type}
@@ -70,7 +69,14 @@ export default function Questionnaires({ token }) {
         setInitialData={setEditQuestionnaire}
       />
 
-      <ServiceQuestionnairesData token={token} setAlert={setAlert} onEdit={(q) => { setEditQuestionnaire(q); setShowModal(true); }} />
+      <ServiceQuestionnairesData
+        token={token}
+        setAlert={setAlert}
+        onEdit={(q) => {
+          setEditQuestionnaire(q);
+          setShowModal(true);
+        }}
+      />
     </div>
   );
 }

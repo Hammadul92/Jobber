@@ -1,14 +1,13 @@
 from django.core.mail import send_mail
 from django.conf import settings
 
+from user.utils import generate_magic_login_token
+
 
 def send_quote_email(quote):
     """Send quotation email to client."""
-
-    sign_link = (
-        f"{settings.FRONTEND_URL}/user/business/quote/"
-        f"sign/{quote.id}/"
-    )
+    magic_token = generate_magic_login_token(quote.service.client.user)
+    sign_link = f"{settings.FRONTEND_URL}/user/business/quote/sign/{quote.id}/?token={magic_token}"
 
     subject = f"Quote {quote.quote_number} - {quote.service.service_name}"
     message = (

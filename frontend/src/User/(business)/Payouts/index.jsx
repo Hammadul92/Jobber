@@ -14,7 +14,8 @@ export default function Payouts({ token, role }) {
     dispatch(
       setTopbar({
         title: "Payouts",
-        description: "Track processed payouts, payment status, and refund activity.",
+        description:
+          "Track processed payouts, payment status, and refund activity.",
         action: null,
       }),
     );
@@ -26,7 +27,6 @@ export default function Payouts({ token, role }) {
 
   return (
     <>
-
       {alert.message && (
         <AlertDispatcher
           type={alert.type}

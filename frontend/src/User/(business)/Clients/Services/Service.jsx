@@ -5,7 +5,9 @@ import { useDispatch } from "react-redux";
 import {
   useFetchServiceQuery,
   useUpdateServiceMutation,
+  useResendQuestionnaireMutation,
 } from "../../../../store";
+
 import SubmitButton from "../../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../../Components/ui/AlertDispatcher";
 import Select from "../../../../Components/ui/Select";
@@ -18,6 +20,24 @@ export default function Service({ token }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const [
+    resendQuestionnaire,
+    { isLoading: resending, isSuccess: resendSuccess, error: resendError },
+  ] = useResendQuestionnaireMutation();
+  // Show resend success/error alerts
+  useEffect(() => {
+    if (resendSuccess) {
+      setAlert({
+        type: "success",
+        message: "Questionnaire email resent to client.",
+      });
+    } else if (resendError) {
+      const msg =
+        resendError?.data?.detail || "Failed to resend questionnaire.";
+      setAlert({ type: "danger", message: msg });
+    }
+  }, [resendSuccess, resendError]);
 
   const { data: serviceData, isLoading } = useFetchServiceQuery(id, {
     skip: !token,
@@ -57,7 +77,9 @@ export default function Service({ token }) {
   useEffect(() => {
     dispatch(
       setTopbar({
-        title: serviceName ? `${serviceName} for ${serviceData?.client_name || "Client"}` : "Edit Service",
+        title: serviceName
+          ? `${serviceName} for ${serviceData?.client_name || "Client"}`
+          : "Edit Service",
         description: "Review pricing, schedule, status, and service address.",
         action: null,
       }),
@@ -133,7 +155,6 @@ export default function Service({ token }) {
 
   return (
     <>
-
       {alert.message && (
         <AlertDispatcher
           type={alert.type}
@@ -177,6 +198,20 @@ export default function Service({ token }) {
           </div>
         </div>
       </div>
+
+      {/* Resend Questionnaire Button (if not filled) */}
+      {serviceData && !serviceData.filled_questionnaire && (
+        <div className="mb-4 flex justify-end">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-xl border border-accent bg-white px-4 py-2 text-sm font-semibold text-accent shadow hover:bg-accent hover:text-white disabled:opacity-60"
+            disabled={resending}
+            onClick={() => resendQuestionnaire(serviceData.id)}
+          >
+            {resending ? "Resending..." : "Resend Questionnaire"}
+          </button>
+        </div>
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -277,10 +312,9 @@ export default function Service({ token }) {
           </label>
           {autoGenerateQuote && (
             <p className="flex items-start gap-2 text-sm text-gray-600">
-              <LuInfo className="mt-0.5 h-4 w-4 text-secondary" />A quote
-              will be generated automatically after the questionnaire is
-              completed. The client will review and sign; notifications go to
-              both parties.
+              <LuInfo className="mt-0.5 h-4 w-4 text-secondary" />A quote will
+              be generated automatically after the questionnaire is completed.
+              The client will review and sign; notifications go to both parties.
             </p>
           )}
 

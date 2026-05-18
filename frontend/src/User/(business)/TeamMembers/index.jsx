@@ -43,7 +43,7 @@ export default function TeamMembers({ token }) {
           className:
             "inline-flex items-center gap-2 rounded-lg bg-accent px-3 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
         },
-      })
+      }),
     );
     return () => {
       unregisterTopbarActionHandler("add-member");
@@ -76,7 +76,11 @@ export default function TeamMembers({ token }) {
         initialData={editTeamMember}
       />
 
-      <TeamMembersData token={token} setAlert={setAlert} onEdit={handleEditTeamMember} />
+      <TeamMembersData
+        token={token}
+        setAlert={setAlert}
+        onEdit={handleEditTeamMember}
+      />
     </div>
   );
 }

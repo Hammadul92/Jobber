@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import {
-  useFetchTeamMemberQuery,
-} from "../../../store";
+import { useFetchTeamMemberQuery } from "../../../store";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { useDispatch } from "react-redux";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
@@ -34,7 +32,7 @@ export default function TeamMember({ token }) {
         title: name || "Team Member",
         description: "View team member details and information.",
         action: null,
-      })
+      }),
     );
     return () => {
       dispatch(resetTopbar());
@@ -117,12 +115,7 @@ export default function TeamMember({ token }) {
             <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
               Full Name
             </label>
-            <input
-              type="text"
-              value={name}
-              disabled
-              className={inputClass}
-            />
+            <input type="text" value={name} disabled className={inputClass} />
           </div>
 
           {/* Email Address */}
@@ -130,12 +123,7 @@ export default function TeamMember({ token }) {
             <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
               Email Address
             </label>
-            <input
-              type="email"
-              value={email}
-              disabled
-              className={inputClass}
-            />
+            <input type="email" value={email} disabled className={inputClass} />
           </div>
 
           {/* Phone Number */}
@@ -143,12 +131,7 @@ export default function TeamMember({ token }) {
             <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
               Phone Number
             </label>
-            <input
-              type="tel"
-              value={phone}
-              disabled
-              className={inputClass}
-            />
+            <input type="tel" value={phone} disabled className={inputClass} />
           </div>
 
           {/* Joined Date */}
@@ -184,8 +167,8 @@ export default function TeamMember({ token }) {
             Expertise
           </label>
           <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-gray-300 bg-gray-50 min-h-12 items-center">
-            {expertise
-              ? expertise
+            {expertise ? (
+              expertise
                 .split(",")
                 .map((skill) => skill.trim())
                 .filter(Boolean)
@@ -197,7 +180,9 @@ export default function TeamMember({ token }) {
                     {skill}
                   </span>
                 ))
-              : <span className="text-sm text-gray-500">—</span>}
+            ) : (
+              <span className="text-sm text-gray-500">—</span>
+            )}
           </div>
         </div>
 

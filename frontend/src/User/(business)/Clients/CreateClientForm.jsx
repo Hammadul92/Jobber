@@ -79,11 +79,11 @@ export default function CreateClientForm({
         err?.data?.detail ||
         (err?.data && typeof err.data === "object"
           ? Object.entries(err.data)
-            .map(
-              ([key, value]) =>
-                `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
-            )
-            .join(" | ")
+              .map(
+                ([key, value]) =>
+                  `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
+              )
+              .join(" | ")
           : err?.message) ||
         "Failed to create client. Please try again.";
       const danger = { type: "danger", message };
@@ -108,10 +108,12 @@ export default function CreateClientForm({
             <div className="border-b border-gray-100 px-6 py-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h5 className="text-4xl font-semibold text-slate-800">Add Client Account</h5>
+                  <h5 className="text-4xl font-semibold text-slate-800">
+                    Add Client Account
+                  </h5>
                   <p className="mt-1 text-sm text-slate-500">
-                    Secure login credentials are generated automatically and emailed to
-                    the client.
+                    Secure login credentials are generated automatically and
+                    emailed to the client.
                   </p>
                 </div>
                 <button

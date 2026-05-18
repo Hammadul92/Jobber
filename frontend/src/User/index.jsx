@@ -170,7 +170,9 @@ export default function UserDashboard({ page, token, user }) {
         );
       case "team-members":
         // Team members tab
-        return <TeamMembers token={token} business={business} role={user?.role} />;
+        return (
+          <TeamMembers token={token} business={business} role={user?.role} />
+        );
       case "team-member":
         // Single team member preview tab
         return (
@@ -211,7 +213,6 @@ export default function UserDashboard({ page, token, user }) {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-
       {/* Topbar for mobile view */}
       <MobileTopbar
         role={user?.role}
@@ -240,7 +241,6 @@ export default function UserDashboard({ page, token, user }) {
         <div className="pt-8 pb-4 px-4 md:px-12 md:pt-12 lg:pb-12 lg:p-12 lg:pr-14">
           {renderTab()}
         </div>
-
       </main>
     </div>
   );

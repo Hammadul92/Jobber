@@ -76,11 +76,11 @@ export default function ClientServices({ token, role }) {
       ? error.data.join(", ")
       : typeof error?.data === "object"
         ? Object.entries(error.data)
-          .map(
-            ([field, messages]) =>
-              `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`,
-          )
-          .join(" | ")
+            .map(
+              ([field, messages]) =>
+                `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`,
+            )
+            .join(" | ")
         : error?.data?.detail || "Something went wrong";
     setAlert({ type: "danger", message: msg });
   };
@@ -90,7 +90,6 @@ export default function ClientServices({ token, role }) {
 
   return (
     <>
-
       {isManagerMode && (
         <div className="mb-6 overflow-hidden rounded-2xl bg-secondary px-6 py-5 text-white shadow-lg">
           <div className="flex items-start justify-between gap-4">
@@ -105,8 +104,8 @@ export default function ClientServices({ token, role }) {
                 <LuMapPin className="h-4 w-4" />
                 {client?.city || client?.province_state || client?.country
                   ? [client?.city, client?.province_state, client?.country]
-                    .filter(Boolean)
-                    .join(", ")
+                      .filter(Boolean)
+                      .join(", ")
                   : "Location not provided"}
               </p>
             </div>

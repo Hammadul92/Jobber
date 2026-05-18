@@ -197,20 +197,30 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
       <div className="space-y-5">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <div className="rounded-xl border border-gray-200 bg-white px-5 py-5">
-            <p className="mb-1 text-base font-light text-slate-600">Total Members</p>
-            <p className="text-3xl font-semibold text-slate-900">{stats.total}</p>
+            <p className="mb-1 text-base font-light text-slate-600">
+              Total Members
+            </p>
+            <p className="text-3xl font-semibold text-slate-900">
+              {stats.total}
+            </p>
           </div>
           <div className="rounded-xl border border-gray-200 bg-white px-5 py-5">
             <p className="mb-1 text-base font-light text-slate-600">Active</p>
-            <p className="text-3xl font-semibold text-slate-900">{stats.active}</p>
+            <p className="text-3xl font-semibold text-slate-900">
+              {stats.active}
+            </p>
           </div>
           <div className="rounded-xl border border-gray-200 bg-white px-5 py-5">
             <p className="mb-1 text-base font-light text-slate-600">Pending</p>
-            <p className="text-3xl font-semibold text-slate-900">{stats.pending}</p>
+            <p className="text-3xl font-semibold text-slate-900">
+              {stats.pending}
+            </p>
           </div>
           <div className="rounded-xl border border-gray-200 bg-white px-5 py-5">
             <p className="mb-1 text-base font-light text-slate-600">Roles</p>
-            <p className="text-3xl font-semibold text-slate-900">{stats.roles}</p>
+            <p className="text-3xl font-semibold text-slate-900">
+              {stats.roles}
+            </p>
           </div>
         </div>
 
@@ -228,7 +238,10 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
             </div>
 
             <div className="flex justify-between md:justify-start md:flex-wrap items-center gap-2.5 md:gap-3">
-              <div className="relative" onClick={(event) => event.stopPropagation()}>
+              <div
+                className="relative"
+                onClick={(event) => event.stopPropagation()}
+              >
                 <button
                   type="button"
                   className={buttonClass}
@@ -273,7 +286,10 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                 )}
               </div>
 
-              <div className="relative" onClick={(event) => event.stopPropagation()}>
+              <div
+                className="relative"
+                onClick={(event) => event.stopPropagation()}
+              >
                 <button
                   type="button"
                   className={buttonClass}
@@ -318,7 +334,10 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                 )}
               </div>
 
-              <div className="relative" onClick={(event) => event.stopPropagation()}>
+              <div
+                className="relative"
+                onClick={(event) => event.stopPropagation()}
+              >
                 <button
                   type="button"
                   className={buttonClass}
@@ -474,7 +493,6 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                   </Link>
                 </div>
               </div>
-
             </div>
           ))
         ) : (

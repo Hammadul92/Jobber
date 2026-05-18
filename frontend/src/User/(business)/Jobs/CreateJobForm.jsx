@@ -108,11 +108,15 @@ export default function CreateJobForm({
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <form
+              onSubmit={handleSubmit}
+              className="flex min-h-0 flex-1 flex-col"
+            >
               <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 pb-6">
                 <div className="mb-6 flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-3 text-xs font-semibold text-blue-700">
                   <LuInfo className="mt-px h-4 w-4 shrink-0" />
-                  To create a job, the service must already be assigned to a client. Only client-linked services appear in the list.
+                  To create a job, the service must already be assigned to a
+                  client. Only client-linked services appear in the list.
                 </div>
 
                 <div className="space-y-4">

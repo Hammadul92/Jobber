@@ -70,7 +70,9 @@ export default function CreateInvoiceForm({
 
   useEffect(() => {
     if (serviceId && services.length) {
-      const selectedService = services.find((service) => service.id === Number(serviceId));
+      const selectedService = services.find(
+        (service) => service.id === Number(serviceId),
+      );
       if (selectedService) {
         const taxRatePercent = (selectedService.tax_rate || 0) * 100;
         const price = parseFloat(selectedService.price) || 0;
@@ -88,7 +90,9 @@ export default function CreateInvoiceForm({
 
   useEffect(() => {
     if (subtotal !== "" && taxRate !== "") {
-      const tax = ((parseFloat(subtotal) * parseFloat(taxRate)) / 100).toFixed(2);
+      const tax = ((parseFloat(subtotal) * parseFloat(taxRate)) / 100).toFixed(
+        2,
+      );
       const total = (parseFloat(subtotal) + parseFloat(tax)).toFixed(2);
       setTaxAmount(tax);
       setTotalAmount(total);
@@ -142,25 +146,27 @@ export default function CreateInvoiceForm({
     }
   };
 
-  const serviceOptions = !loadingServices && services
-    ? services
-        .filter(
-          (service) =>
-            service.status === "ACTIVE" &&
-            service?.quotations.find((quote) => quote.status === "SIGNED"),
-        )
-        .map((service) => ({
-          value: service.id,
-          label: `${service.service_name} (${service.client_name} - ${service.street_address})`,
-        }))
-    : [];
+  const serviceOptions =
+    !loadingServices && services
+      ? services
+          .filter(
+            (service) =>
+              service.status === "ACTIVE" &&
+              service?.quotations.find((quote) => quote.status === "SIGNED"),
+          )
+          .map((service) => ({
+            value: service.id,
+            label: `${service.service_name} (${service.client_name} - ${service.street_address})`,
+          }))
+      : [];
 
-  const clientOptions = !loadingClients && clients?.results
-    ? clients.results.map((client) => ({
-        value: client.id,
-        label: client.client_name,
-      }))
-    : [];
+  const clientOptions =
+    !loadingClients && clients?.results
+      ? clients.results.map((client) => ({
+          value: client.id,
+          label: client.client_name,
+        }))
+      : [];
 
   return (
     <>
@@ -203,10 +209,10 @@ export default function CreateInvoiceForm({
             >
               <div className="flex-1 overflow-y-auto px-6 py-5">
                 <div className="rounded-2xl border border-blue-100 bg-[#f5f8ff] px-4 py-3 text-[12px] leading-5 text-blue-700">
-                  <strong>Note:</strong> To create an invoice, you must have a client
-                  associated with the service. Only services assigned to a client will
-                  appear in the list below. If you don&apos;t see a service, make sure it
-                  has been set up for a client first.
+                  <strong>Note:</strong> To create an invoice, you must have a
+                  client associated with the service. Only services assigned to
+                  a client will appear in the list below. If you don&apos;t see
+                  a service, make sure it has been set up for a client first.
                 </div>
 
                 <section className="mt-6">
@@ -215,117 +221,121 @@ export default function CreateInvoiceForm({
                   </h6>
 
                   <div className="mt-4 space-y-4">
-                  <div>
-                    <FieldLabel htmlFor="invoice-service">Service</FieldLabel>
-                    <Dropdown
-                      id="invoice-service"
-                      value={serviceId}
-                      onChange={setServiceId}
-                      disabled={!clientId}
-                      placeholder={clientId ? "Select Service" : "Select Client first"}
-                      options={serviceOptions}
-                      buttonClassName="border-gray-200 bg-white text-sm text-slate-700"
-                      menuClassName="z-50"
-                    />
-                  </div>
-
-                  <div>
-                    <FieldLabel htmlFor="invoice-client">Client</FieldLabel>
-                    <Dropdown
-                      id="invoice-client"
-                      value={clientId}
-                      onChange={(value) => {
-                        setClientId(value);
-                        setServiceId("");
-                      }}
-                      placeholder="Select Client"
-                      options={clientOptions}
-                      buttonClassName="border-gray-200 bg-white text-sm text-slate-700"
-                      menuClassName="z-50"
-                    />
-                  </div>
-
-                  <Input
-                    type="date"
-                    value={dueDate}
-                    onChange={setDueDate}
-                    isRequired={true}
-                    label="Due Date"
-                    id="invoice-due-date"
-                    fieldClass="h-11 text-sm"
-                  />
-
-                  <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <FieldLabel htmlFor="invoice-currency">Currency</FieldLabel>
+                      <FieldLabel htmlFor="invoice-service">Service</FieldLabel>
                       <Dropdown
-                        id="invoice-currency"
-                        value={currency}
-                        onChange={setCurrency}
-                        options={[
-                          { value: "CAD", label: "CAD" },
-                          { value: "USD", label: "USD" },
-                        ]}
+                        id="invoice-service"
+                        value={serviceId}
+                        onChange={setServiceId}
+                        disabled={!clientId}
+                        placeholder={
+                          clientId ? "Select Service" : "Select Client first"
+                        }
+                        options={serviceOptions}
+                        buttonClassName="border-gray-200 bg-white text-sm text-slate-700"
+                        menuClassName="z-50"
+                      />
+                    </div>
+
+                    <div>
+                      <FieldLabel htmlFor="invoice-client">Client</FieldLabel>
+                      <Dropdown
+                        id="invoice-client"
+                        value={clientId}
+                        onChange={(value) => {
+                          setClientId(value);
+                          setServiceId("");
+                        }}
+                        placeholder="Select Client"
+                        options={clientOptions}
                         buttonClassName="border-gray-200 bg-white text-sm text-slate-700"
                         menuClassName="z-50"
                       />
                     </div>
 
                     <Input
-                      type="number"
-                      value={subtotal}
-                      onChange={setSubtotal}
+                      type="date"
+                      value={dueDate}
+                      onChange={setDueDate}
                       isRequired={true}
-                      label="Subtotal"
-                      id="invoice-subtotal"
+                      label="Due Date"
+                      id="invoice-due-date"
                       fieldClass="h-11 text-sm"
                     />
-                  </div>
 
-                  <Input
-                    type="number"
-                    value={taxRate}
-                    onChange={setTaxRate}
-                    isRequired={true}
-                    label="Tax Rate (%)"
-                    id="invoice-tax-rate"
-                    fieldClass="h-11 text-sm"
-                  />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <FieldLabel htmlFor="invoice-currency">
+                          Currency
+                        </FieldLabel>
+                        <Dropdown
+                          id="invoice-currency"
+                          value={currency}
+                          onChange={setCurrency}
+                          options={[
+                            { value: "CAD", label: "CAD" },
+                            { value: "USD", label: "USD" },
+                          ]}
+                          buttonClassName="border-gray-200 bg-white text-sm text-slate-700"
+                          menuClassName="z-50"
+                        />
+                      </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
+                      <Input
+                        type="number"
+                        value={subtotal}
+                        onChange={setSubtotal}
+                        isRequired={true}
+                        label="Subtotal"
+                        id="invoice-subtotal"
+                        fieldClass="h-11 text-sm"
+                      />
+                    </div>
+
                     <Input
                       type="number"
-                      value={taxAmount}
-                      onChange={() => {}}
-                      isDisabled={true}
+                      value={taxRate}
+                      onChange={setTaxRate}
                       isRequired={true}
-                      label="Tax Amount"
-                      id="invoice-tax-amount"
+                      label="Tax Rate (%)"
+                      id="invoice-tax-rate"
                       fieldClass="h-11 text-sm"
                     />
 
-                    <Input
-                      type="number"
-                      value={totalAmount}
-                      onChange={() => {}}
-                      isDisabled={true}
-                      isRequired={true}
-                      label="Total Amount"
-                      id="invoice-total-amount"
-                      fieldClass="h-11 text-sm"
-                    />
-                  </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Input
+                        type="number"
+                        value={taxAmount}
+                        onChange={() => {}}
+                        isDisabled={true}
+                        isRequired={true}
+                        label="Tax Amount"
+                        id="invoice-tax-amount"
+                        fieldClass="h-11 text-sm"
+                      />
 
-                  <Textarea
-                    id="invoice-notes"
-                    label="Description"
-                    value={notes}
-                    onChange={setNotes}
-                    isRequired={false}
-                    fieldClass="w-full"
-                    rows={5}
-                    placeholder="Optional notes or invoice description......"
-                  />
+                      <Input
+                        type="number"
+                        value={totalAmount}
+                        onChange={() => {}}
+                        isDisabled={true}
+                        isRequired={true}
+                        label="Total Amount"
+                        id="invoice-total-amount"
+                        fieldClass="h-11 text-sm"
+                      />
+                    </div>
+
+                    <Textarea
+                      id="invoice-notes"
+                      label="Description"
+                      value={notes}
+                      onChange={setNotes}
+                      isRequired={false}
+                      fieldClass="w-full"
+                      rows={5}
+                      placeholder="Optional notes or invoice description......"
+                    />
                   </div>
                 </section>
               </div>

@@ -7,11 +7,7 @@ import {
   useFetchBusinessesQuery,
 } from "../../../store";
 import { CgClose } from "react-icons/cg";
-import {
-  LuBadgeInfo,
-  LuBriefcase,
-  LuPlus,
-} from "react-icons/lu";
+import { LuBadgeInfo, LuBriefcase, LuPlus } from "react-icons/lu";
 import Input from "../../../Components/ui/Input";
 import Dropdown from "../../../Components/ui/Dropdown";
 import Textarea from "../../../Components/ui/Textarea";
@@ -60,7 +56,10 @@ export default function CreateTeamMemberForm({
   });
 
   const isSubmitting =
-    isUserLoading || isTeamMemberLoading || isUpdatingTeamMember || isCheckingUser;
+    isUserLoading ||
+    isTeamMemberLoading ||
+    isUpdatingTeamMember ||
+    isCheckingUser;
 
   const parseExpertise = (value) =>
     String(value || "")
@@ -196,7 +195,9 @@ export default function CreateTeamMemberForm({
       const normalizedEmail = email.trim().toLowerCase();
       const normalizedPhone = phone.trim();
 
-      const checkResponse = await checkUserExists({ email: normalizedEmail }).unwrap();
+      const checkResponse = await checkUserExists({
+        email: normalizedEmail,
+      }).unwrap();
       let userId = checkResponse?.id;
 
       if (!userId) {
@@ -239,7 +240,11 @@ export default function CreateTeamMemberForm({
   return (
     <>
       {showModal && (
-        <div className="fixed inset-0 z-40 h-screen" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-40 h-screen"
+          role="dialog"
+          aria-modal="true"
+        >
           <button
             type="button"
             className="absolute inset-0 bg-black/55"
@@ -318,7 +323,9 @@ export default function CreateTeamMemberForm({
                         fieldClass={`h-11 text-sm ${emailError ? "border-red-300 focus:border-red-400" : ""}`}
                       />
                       {emailError && (
-                        <p className="mt-1 text-xs text-red-600">{emailError}</p>
+                        <p className="mt-1 text-xs text-red-600">
+                          {emailError}
+                        </p>
                       )}
                       <p className="-mt-5 mb-4 text-xs text-slate-400">
                         Invitation will be sent to this email

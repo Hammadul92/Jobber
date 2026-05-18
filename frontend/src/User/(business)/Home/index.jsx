@@ -86,7 +86,6 @@ export default function DashboardHome({ token, user }) {
 
   return (
     <>
-
       <div className="mb-6">
         <div>
           <h3 className="text-sm md:text-base lg:text-lg font-semibold font-heading text-accent">

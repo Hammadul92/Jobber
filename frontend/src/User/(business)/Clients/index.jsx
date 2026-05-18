@@ -58,7 +58,11 @@ export default function Clients({ token }) {
         setAlert={setAlert}
       />
 
-      <DataTable token={token} setAlert={setAlert} showAddClient={setShowModal} />
+      <DataTable
+        token={token}
+        setAlert={setAlert}
+        showAddClient={setShowModal}
+      />
     </>
   );
 }
