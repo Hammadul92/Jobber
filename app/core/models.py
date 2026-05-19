@@ -8,7 +8,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
-from django.db import models
+from django.db import IntegrityError, models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
@@ -614,27 +614,44 @@ class Quote(SoftDeletableModel):
     def save(self, *args, **kwargs):
         self.full_clean()
 
-        if not self.quote_number:
-            self.quote_number = self.generate_quote_number()
+        if self.quote_number:
+            super().save(*args, **kwargs)
+            return
 
-        super().save(*args, **kwargs)
+        # Retry quote number generation if a concurrent insert uses the same value.
+        for _ in range(5):
+            self.quote_number = self.generate_quote_number()
+            try:
+                super().save(*args, **kwargs)
+                return
+            except IntegrityError as exc:
+                if "core_quote_quote_number_key" not in str(exc):
+                    raise
+                self.quote_number = None
+
+        raise IntegrityError(
+            "Unable to generate a unique quote number after multiple attempts."
+        )
 
     def generate_quote_number(self):
         """Generates a unique quote number in the format: Q-YYYY-XXX."""
         year = timezone.now().year
         prefix = f"Q-{year}-"
 
-        last_quote = (
-            Quote.objects.filter(quote_number__startswith=prefix)
-            .order_by("quote_number")
-            .last()
-        )
+        existing_quote_numbers = Quote.all_objects.filter(
+            quote_number__startswith=prefix
+        ).values_list("quote_number", flat=True)
 
-        if last_quote:
-            last_number = int(last_quote.quote_number.split("-")[-1])
-            new_number = last_number + 1
-        else:
-            new_number = 1
+        max_number = 0
+        for quote_number in existing_quote_numbers:
+            try:
+                current_number = int(str(quote_number).split("-")[-1])
+            except (ValueError, IndexError, TypeError):
+                continue
+            if current_number > max_number:
+                max_number = current_number
+
+        new_number = max_number + 1
 
         return f"{prefix}{new_number:03d}"
 

@@ -351,6 +351,30 @@ class QuoteSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate(self, attrs):
+        """Ensure a service cannot have more than one active non-declined quote."""
+        service = attrs.get("service") or getattr(self.instance, "service", None)
+
+        if service:
+            existing_quotes = (
+                Quote.objects.filter(service=service, is_active=True)
+                .exclude(id=getattr(self.instance, "id", None))
+                .exclude(status="DECLINED")
+            )
+
+            if existing_quotes.exists():
+                raise serializers.ValidationError(
+                    {
+                        "service": (
+                            "A quote already exists for this service. "
+                            "You cannot create another unless the existing "
+                            "one is declined or expired."
+                        )
+                    }
+                )
+
+        return attrs
+
 
 class ServiceQuestionnaireSerializer(serializers.ModelSerializer):
     business_name = serializers.CharField(
