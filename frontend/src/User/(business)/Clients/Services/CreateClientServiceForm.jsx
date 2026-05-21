@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LuInfo, LuX } from "react-icons/lu";
-import { useCreateServiceMutation } from "../../../../store";
+import { useCreateServiceMutation, useUpdateServiceMutation } from "../../../../store";
 import SubmitButton from "../../../../Components/ui/SubmitButton";
 import { countries, provinces } from "../../../../constants/locations";
 import Dropdown from "../../../../Components/ui/Dropdown";
@@ -15,7 +15,10 @@ export default function CreateClientServiceForm({
   clientName,
   serviceOptions = [],
   setAlert,
+  mode = "create",
+  initialData = null,
 }) {
+  const isEditMode = mode === "edit" && Boolean(initialData);
   const [serviceName, setServiceName] = useState("");
   const [serviceType, setServiceType] = useState("ONE_TIME");
   const [price, setPrice] = useState("");
@@ -33,15 +36,64 @@ export default function CreateClientServiceForm({
 
   const [autoGenerateQuote, setAutoGenerateQuote] = useState(false);
   const [autoGenerateInvoices, setAutoGenerateInvoices] = useState(false);
+  const [status, setStatus] = useState("PENDING");
 
-  const [createService, { isLoading }] = useCreateServiceMutation();
+  const [createService, { isLoading: isCreating }] = useCreateServiceMutation();
+  const [updateService, { isLoading: isUpdating }] = useUpdateServiceMutation();
+  const isLoading = isCreating || isUpdating;
+
+  const resetForm = () => {
+    setServiceName("");
+    setServiceType("ONE_TIME");
+    setPrice("");
+    setCurrency("CAD");
+    setStartDate("");
+    setEndDate("");
+    setBillingCycle("");
+    setDescription("");
+    setStreetAddress("");
+    setCity("");
+    setCountry("CA");
+    setProvinceState("");
+    setPostalCode("");
+    setAutoGenerateQuote(false);
+    setAutoGenerateInvoices(false);
+    setStatus("PENDING");
+  };
+
+  // Populate form when editing
+  useEffect(() => {
+    if (!showModal) return;
+
+    if (isEditMode && initialData) {
+      setServiceName(initialData.service_name || "");
+      setServiceType(initialData.service_type || "ONE_TIME");
+      setPrice(initialData.price || "");
+      setCurrency(initialData.currency || "CAD");
+      setStartDate(initialData.start_date || "");
+      setEndDate(initialData.end_date || "");
+      setBillingCycle(initialData.billing_cycle || "");
+      setDescription(initialData.description || "");
+      setStreetAddress(initialData.street_address || "");
+      setCity(initialData.city || "");
+      setCountry(initialData.country || "CA");
+      setProvinceState(initialData.province_state || "");
+      setPostalCode(initialData.postal_code || "");
+      setAutoGenerateQuote(initialData.auto_generate_quote || false);
+      setAutoGenerateInvoices(initialData.auto_generate_invoices || false);
+      setStatus(initialData.status || "PENDING");
+      return;
+    }
+
+    if (!isEditMode) {
+      resetForm();
+    }
+  }, [showModal, isEditMode, initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createService({
-        client: clientId,
-        business: businessId,
+      const payload = {
         service_name: serviceName,
         service_type: serviceType,
         price,
@@ -55,33 +107,33 @@ export default function CreateClientServiceForm({
         country,
         province_state: provinceState,
         postal_code: postalCode,
-
+        status,
         auto_generate_quote: autoGenerateQuote,
         auto_generate_invoices: autoGenerateInvoices,
-      }).unwrap();
+      };
 
-      setAlert({
-        type: "success",
-        message: "Service created successfully!",
-      });
+      if (isEditMode) {
+        await updateService({
+          id: initialData.id,
+          ...payload,
+        }).unwrap();
+        setAlert({
+          type: "success",
+          message: "Service updated successfully!",
+        });
+      } else {
+        await createService({
+          client: clientId,
+          business: businessId,
+          ...payload,
+        }).unwrap();
+        setAlert({
+          type: "success",
+          message: "Service created successfully!",
+        });
+      }
 
-      // Reset form
-      setServiceName("");
-      setServiceType("ONE_TIME");
-      setPrice("");
-      setCurrency("CAD");
-      setStartDate("");
-      setEndDate("");
-      setBillingCycle("");
-      setDescription("");
-      setStreetAddress("");
-      setCity("");
-      setCountry("CA");
-      setProvinceState("");
-      setPostalCode("");
-      setAutoGenerateQuote(false);
-      setAutoGenerateInvoices(false);
-
+      resetForm();
       setShowModal(false);
     } catch (err) {
       const msg = Array.isArray(err?.data)
@@ -93,7 +145,7 @@ export default function CreateClientServiceForm({
                   `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`,
               )
               .join(" | ")
-          : err?.data?.detail || "Failed to create service.";
+          : err?.data?.detail || `Failed to ${isEditMode ? "update" : "create"} service.`;
       setAlert({
         type: "danger",
         message: msg,
@@ -121,10 +173,10 @@ export default function CreateClientServiceForm({
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h5 className="text-3xl font-semibold text-slate-900">
-                    Add a New Service
+                    {isEditMode ? "Edit Service" : "Add a New Service"}
                   </h5>
                   <p className="mt-1 text-sm text-slate-500">
-                    Create a service for {clientName || "client"}
+                    {isEditMode ? "Update service details" : `Create a service for ${clientName || "client"}`}
                   </p>
                 </div>
                 <button
@@ -168,44 +220,44 @@ export default function CreateClientServiceForm({
                         onChange={setServiceName}
                         placeholder="Digital Service Name"
                         options={serviceOptions}
-                        buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                        buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
                       />
                     </div>
 
-                    <div>
-                      <Input
-                        type="date"
-                        id="start_date"
-                        label="Start Date"
-                        value={startDate}
-                        onChange={setStartDate}
-                        isRequired
-                        fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
-                      />
-                    </div>
+                      <div>
+                        <Input
+                          type="date"
+                          id="start_date"
+                          label="Start Date"
+                          value={startDate}
+                          onChange={setStartDate}
+                          isRequired
+                          fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                        />
+                      </div>
 
-                    <div>
-                      <Input
-                        type="date"
-                        id="end_date"
-                        label="End Date"
-                        value={endDate}
-                        onChange={setEndDate}
-                        fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
-                      />
-                    </div>
+                      <div>
+                        <Input
+                          type="date"
+                          id="end_date"
+                          label="End Date"
+                          value={endDate}
+                          onChange={setEndDate}
+                          fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                        />
+                      </div>
 
-                    <div>
-                      <Input
-                        type="number"
-                        id="price"
-                        label="Price"
-                        value={price}
-                        onChange={setPrice}
-                        isRequired
-                        fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
-                      />
-                    </div>
+                      <div>
+                        <Input
+                          type="number"
+                          id="price"
+                          label="Price"
+                          value={price}
+                          onChange={setPrice}
+                          isRequired
+                          fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                        />
+                      </div>
 
                     <div>
                       <label
@@ -222,7 +274,7 @@ export default function CreateClientServiceForm({
                           { value: "CAD", label: "CAD" },
                           { value: "USD", label: "USD" },
                         ]}
-                        buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                        buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
                       />
                     </div>
 
@@ -244,7 +296,7 @@ export default function CreateClientServiceForm({
                           { value: "ONE_TIME", label: "One Time" },
                           { value: "SUBSCRIPTION", label: "Subscription" },
                         ]}
-                        buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                        buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
                       />
                     </div>
 
@@ -265,7 +317,27 @@ export default function CreateClientServiceForm({
                             { value: "YEARLY", label: "Yearly" },
                           ]}
                           placeholder="Select Billing Cycle"
-                          buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                          buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                          />
+                        </div>
+                      )}
+
+                      {isEditMode && (
+                        <div>
+                          <label htmlFor="status" className="mb-1 block text-sm uppercase font-semibold text-gray-500">
+                            Status <span className="text-accent">*</span>
+                          </label>
+                          <Dropdown
+                            id="status"
+                            value={status}
+                            onChange={setStatus}
+                            options={[
+                              { value: "PENDING", label: "Pending" },
+                              { value: "ACTIVE", label: "Active" },
+                              { value: "COMPLETED", label: "Completed" },
+                              { value: "CANCELLED", label: "Cancelled" },
+                            ]}
+                            buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
                         />
                       </div>
                     )}
@@ -313,33 +385,33 @@ export default function CreateClientServiceForm({
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-                    Service Address
-                  </p>
                   <div className="space-y-6">
-                    <div>
-                      <Input
-                        id="street_address"
-                        label="Street Address"
-                        value={streetAddress}
-                        onChange={setStreetAddress}
-                        isRequired
-                        fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                      Service Address
+                    </p>
+                    <div className="space-y-6">
                       <div>
                         <Input
-                          id="city"
-                          label="City"
-                          value={city}
-                          onChange={setCity}
+                          id="street_address"
+                          label="Street Address"
+                          value={streetAddress}
+                          onChange={setStreetAddress}
                           isRequired
-                          fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
+                          fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
                         />
                       </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Input
+                            id="city"
+                            label="City"
+                            value={city}
+                            onChange={setCity}
+                            isRequired
+                            fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                          />
+                        </div>
 
                       <div>
                         <label
@@ -354,7 +426,7 @@ export default function CreateClientServiceForm({
                           onChange={setProvinceState}
                           options={provinces[country] || []}
                           placeholder="Select State/Province"
-                          buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                          buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
                           disabled={!country}
                         />
                       </div>
@@ -375,22 +447,22 @@ export default function CreateClientServiceForm({
                           setProvinceState("");
                         }}
                         options={countries}
-                        buttonClassName="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                        buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
                       />
                     </div>
 
-                    <div>
-                      <Input
-                        id="postal_code"
-                        label="Postal/Zip Code"
-                        value={postalCode}
-                        onChange={setPostalCode}
-                        isRequired
-                        fieldClass="mb-0 h-10 rounded-lg px-3 py-2 text-sm"
-                      />
+                      <div>
+                        <Input
+                          id="postal_code"
+                          label="Postal/Zip Code"
+                          value={postalCode}
+                          onChange={setPostalCode}
+                          isRequired
+                          fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
                 <div className="space-y-6 pb-1">
                   <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
@@ -420,7 +492,7 @@ export default function CreateClientServiceForm({
                   <SubmitButton
                     isLoading={isLoading}
                     btnClass="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accentLight disabled:opacity-60"
-                    btnName="Add Service"
+                    btnName={isEditMode ? "Update Service" : "Add Service"}
                   />
                 </div>
               </div>
