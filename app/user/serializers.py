@@ -5,6 +5,7 @@ from django.contrib.auth import (
     get_user_model,
     authenticate,
 )
+from django.core.exceptions import DisallowedHost
 from django.utils.translation import gettext as _
 
 from rest_framework import serializers
@@ -13,16 +14,32 @@ from rest_framework import serializers
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the user object."""
 
+    photoUrl = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = get_user_model()
         fields = [
             'id', 'email', 'role', 'password', 'name',
-            'phone', 'last_login'
+            'phone', 'photo', 'photoUrl', 'last_login'
         ]
         extra_kwargs = {
             'password': {'write_only': True, 'min_length': 6},
             'last_login': {'read_only': True},
+            'photo': {'required': False, 'allow_null': True},
         }
+
+    def get_photoUrl(self, obj):
+        request = self.context.get('request')
+        if not obj.photo:
+            return None
+
+        photo_url = obj.photo.url
+        if request is not None:
+            try:
+                return request.build_absolute_uri(photo_url)
+            except DisallowedHost:
+                return photo_url
+        return photo_url
 
     def create(self, validated_data):
         """Create and return a user with encrypted password."""

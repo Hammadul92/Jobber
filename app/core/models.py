@@ -114,6 +114,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)
     phone = models.CharField(max_length=20)
+    photo = models.ImageField(upload_to="uploads/profile_photos/", null=True, blank=True)
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,

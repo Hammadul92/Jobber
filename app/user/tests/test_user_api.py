@@ -4,9 +4,12 @@ Tests for the user API.
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
+from io import BytesIO
 
 from rest_framework.test import APIClient
 from rest_framework import status
+from PIL import Image
 
 
 CREATE_USER_URL = reverse('user:create')
@@ -164,3 +167,23 @@ class PrivateUserApiTests(TestCase):
         self.assertEqual(self.user.name, payload['name'])
         self.assertTrue(self.user.check_password(payload['password']))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_update_user_profile_photo(self):
+        """Test uploading and saving a profile image for the authenticated user."""
+        buffer = BytesIO()
+        Image.new('RGB', (1, 1), color='white').save(buffer, format='PNG')
+        buffer.seek(0)
+
+        image = SimpleUploadedFile(
+            'profile-photo.png',
+            buffer.getvalue(),
+            content_type='image/png',
+        )
+
+        res = self.client.patch(ME_URL, {'photo': image}, format='multipart')
+
+        self.user.refresh_from_db()
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertTrue(self.user.photo)
+        self.assertIn('uploads/profile_photos/', res.data['photoUrl'])

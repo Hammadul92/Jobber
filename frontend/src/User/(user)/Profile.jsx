@@ -49,8 +49,17 @@ export default function Profile({ token, setAlert }) {
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
-      await updateUser({ name, email, phone }).unwrap();
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("phone", phone);
+      if (photo) {
+        formData.append("photo", photo);
+      }
+
+      await updateUser(formData).unwrap();
       refetch();
+      setPhoto(null);
 
       setAlert({ type: "success", message: "Profile updated successfully." });
     } catch (err) {
@@ -84,7 +93,7 @@ export default function Profile({ token, setAlert }) {
       >
         <div className="relative mx-auto md:mx-0 w-36 h-36">
           <img
-            src={photoPreview || user?.photoUrl || "/images/user.png"}
+            src={photoPreview || user?.photoUrl || user?.photo || "/images/user.png"}
             alt="Profile"
             className="w-36 h-36 rounded-full object-cover border border-gray-200 shadow-md bg-white"
           />
