@@ -4,7 +4,7 @@ import { useFetchJobsQuery, useDeleteJobMutation } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Dropdown from "../../../Components/ui/Dropdown";
 import { MdOutlineHomeRepairService } from "react-icons/md";
-import { LuCalendarDays } from "react-icons/lu";
+import { LuCalendarDays, LuPencilLine } from "react-icons/lu";
 
 export default function JobData({ token, role, setAlert }) {
   const [deleteJob, { isLoading: deleting }] = useDeleteJobMutation();
@@ -249,11 +249,10 @@ export default function JobData({ token, role, setAlert }) {
               key={key}
               type="button"
               onClick={() => setActiveTab(key)}
-              className={`flex-1 rounded-xl px-4 py-3 text-center text-sm font-semibold transition ${
-                isActive
+              className={`flex-1 rounded-xl px-4 py-3 text-center text-sm font-semibold transition ${isActive
                   ? `${color} border border-current/35 shadow-sm`
                   : "border border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-              }`}
+                }`}
             >
               {label}
             </button>
@@ -336,17 +335,18 @@ export default function JobData({ token, role, setAlert }) {
                     <div className="flex items-end justify-end gap-3 md:w-2/5">
                       <button
                         type="button"
-                        className="rounded-lg border border-gray-300 bg-white px-6 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
+                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-gray-300 bg-white px-6 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
                         onClick={() => handleDeleteClick(job.id)}
                         title="Delete Job"
                       >
                         Delete
                       </button>
                       <Link
-                        className="rounded-lg bg-accent px-6 py-2 text-sm font-semibold text-white transition hover:bg-accentLight"
+                        className="inline-flex items-center justify-center gap-1 rounded-lg bg-accent px-6 py-2 text-sm font-semibold text-white transition hover:bg-accentLight"
                         to={`/user/business/job/${job.id}`}
                         title="Edit Job"
                       >
+                        <LuPencilLine className="h-4 w-4" />
                         Edit
                       </Link>
                     </div>

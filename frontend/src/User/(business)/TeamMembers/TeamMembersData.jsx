@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { LuSearch, LuFilter } from "react-icons/lu";
-import { LuMail, LuPhone, LuTrash2 } from "react-icons/lu";
+import { LuMail, LuPhone, LuTrash2, LuPencilLine } from "react-icons/lu";
 import {
   useFetchTeamMembersQuery,
   useDeleteTeamMemberMutation,
@@ -266,11 +266,10 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                       <button
                         key={option}
                         type="button"
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
-                          selectedRole === option
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${selectedRole === option
                             ? "bg-slate-100 text-slate-900"
                             : "text-slate-700 hover:bg-slate-100"
-                        }`}
+                          }`}
                         onClick={() => {
                           setSelectedRole(option);
                           setOpenFilter(null);
@@ -314,11 +313,10 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                       <button
                         key={option}
                         type="button"
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
-                          selectedStatus === option
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${selectedStatus === option
                             ? "bg-slate-100 text-slate-900"
                             : "text-slate-700 hover:bg-slate-100"
-                        }`}
+                          }`}
                         onClick={() => {
                           setSelectedStatus(option);
                           setOpenFilter(null);
@@ -362,11 +360,10 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                       <button
                         key={option}
                         type="button"
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
-                          selectedExpertise === option
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${selectedExpertise === option
                             ? "bg-slate-100 text-slate-900"
                             : "text-slate-700 hover:bg-slate-100"
-                        }`}
+                          }`}
                         onClick={() => {
                           setSelectedExpertise(option);
                           setOpenFilter(null);
@@ -421,11 +418,10 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
 
               <div className="mb-4">
                 <span
-                  className={`inline-flex rounded-lg border px-3 py-0.5 text-sm font-semibold ${
-                    m._active
+                  className={`inline-flex rounded-lg border px-3 py-0.5 text-sm font-semibold ${m._active
                       ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                       : "border-amber-200 bg-amber-50 text-amber-700"
-                  }`}
+                    }`}
                 >
                   {m._active ? "Active" : "Pending"}
                 </span>
@@ -478,19 +474,20 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                   <button
                     type="button"
                     onClick={() => onEdit?.(m)}
-                    className="inline-flex flex-1 items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-base font-medium text-white hover:bg-slate-800"
+                    className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-slate-900 px-4 py-2.5 text-base font-medium text-white hover:bg-slate-800"
                     title="Edit Team Member"
                   >
+                    <LuPencilLine className="h-4 w-4" />
                     Edit
                   </button>
 
-                  <Link
+                  {/* <Link
                     to={`/user/business/team-member/${m.id}`}
                     className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-base font-medium text-slate-700 hover:bg-gray-50"
                     title="View Profile"
                   >
                     View Profile
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
             </div>
