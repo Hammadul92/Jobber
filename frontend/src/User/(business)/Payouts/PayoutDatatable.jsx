@@ -38,23 +38,23 @@ export default function PayoutDatatable({ token, role }) {
   const totalCount = payoutData?.count ?? rows.length;
   const currentPage = payoutData?.current_page ?? page;
   const totalPages = payoutData?.total_pages ?? 1;
-  const currency = rows.find((row) => row.currency)?.currency || "USD";
+  // const currency = rows.find((row) => row.currency)?.currency || "USD";
 
-  const formatMoney = (amount) => {
-    const symbol =
-      currency === "CAD" || currency === "USD"
-        ? "$"
-        : currency === "EUR"
-          ? "€"
-          : currency === "GBP"
-            ? "£"
-            : `${currency} `;
+  // const formatMoney = (amount) => {
+  //   const symbol =
+  //     currency === "CAD" || currency === "USD"
+  //       ? "$"
+  //       : currency === "EUR"
+  //         ? "€"
+  //         : currency === "GBP"
+  //           ? "£"
+  //           : `${currency} `;
 
-    return `${symbol}${new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(Number(amount || 0))}`;
-  };
+  //   return `${symbol}${new Intl.NumberFormat("en-US", {
+  //     minimumFractionDigits: 2,
+  //     maximumFractionDigits: 2,
+  //   }).format(Number(amount || 0))}`;
+  // };
 
   const filteredRows = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -92,33 +92,33 @@ export default function PayoutDatatable({ token, role }) {
     });
   }, [rows, searchTerm, statusFilter, dateRangeStart, dateRangeEnd]);
 
-  const summary = useMemo(() => {
-    const toNumber = (value) => Number.parseFloat(value || 0);
-    const month = new Date().getMonth();
-    const year = new Date().getFullYear();
-    const paidRows = rows.filter((row) => row.status === "PAID");
+  // const summary = useMemo(() => {
+  //   const toNumber = (value) => Number.parseFloat(value || 0);
+  //   const month = new Date().getMonth();
+  //   const year = new Date().getFullYear();
+  //   const paidRows = rows.filter((row) => row.status === "PAID");
 
-    return {
-      totalPaidOut: paidRows.reduce(
-        (sum, row) => sum + toNumber(row.amount),
-        0,
-      ),
-      pendingRefunds: rows.filter(
-        (row) => row.status === "PENDING" || row.status === "FAILED",
-      ).length,
-      processedThisMonth: paidRows
-        .filter((row) => {
-          if (!row.processed_at) return false;
-          const processedAt = new Date(row.processed_at);
-          return (
-            processedAt.getMonth() === month &&
-            processedAt.getFullYear() === year
-          );
-        })
-        .reduce((sum, row) => sum + toNumber(row.amount), 0),
-      totalPayouts: totalCount,
-    };
-  }, [rows, totalCount]);
+  //   return {
+  //     totalPaidOut: paidRows.reduce(
+  //       (sum, row) => sum + toNumber(row.amount),
+  //       0,
+  //     ),
+  //     pendingRefunds: rows.filter(
+  //       (row) => row.status === "PENDING" || row.status === "FAILED",
+  //     ).length,
+  //     processedThisMonth: paidRows
+  //       .filter((row) => {
+  //         if (!row.processed_at) return false;
+  //         const processedAt = new Date(row.processed_at);
+  //         return (
+  //           processedAt.getMonth() === month &&
+  //           processedAt.getFullYear() === year
+  //         );
+  //       })
+  //       .reduce((sum, row) => sum + toNumber(row.amount), 0),
+  //     totalPayouts: totalCount,
+  //   };
+  // }, [rows, totalCount]);
 
   useEffect(() => {
     if (error) {
@@ -227,28 +227,28 @@ export default function PayoutDatatable({ token, role }) {
       </div>
     );
 
-  const summaryCards = [
-    {
-      title: "Total Paid Out",
-      value: formatMoney(summary.totalPaidOut),
-      description: "Across all processed payouts",
-    },
-    {
-      title: "Pending Refunds",
-      value: summary.pendingRefunds,
-      description: "Refund requests requiring review",
-    },
-    {
-      title: "Processed This Month",
-      value: formatMoney(summary.processedThisMonth),
-      description: "Based on payout date",
-    },
-    {
-      title: "Total Payouts",
-      value: summary.totalPayouts,
-      description: "Completed payout records",
-    },
-  ];
+  // const summaryCards = [
+  //   {
+  //     title: "Total Paid Out",
+  //     value: formatMoney(summary.totalPaidOut),
+  //     description: "Across all processed payouts",
+  //   },
+  //   {
+  //     title: "Pending Refunds",
+  //     value: summary.pendingRefunds,
+  //     description: "Refund requests requiring review",
+  //   },
+  //   {
+  //     title: "Processed This Month",
+  //     value: formatMoney(summary.processedThisMonth),
+  //     description: "Based on payout date",
+  //   },
+  //   {
+  //     title: "Total Payouts",
+  //     value: summary.totalPayouts,
+  //     description: "Completed payout records",
+  //   },
+  // ];
 
   const columns = [
     { name: "invoice_number", title: "Invoice" },
@@ -271,7 +271,7 @@ export default function PayoutDatatable({ token, role }) {
       )}
 
       <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {/* <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {summaryCards.map((card) => (
             <div
               key={card.title}
@@ -284,7 +284,7 @@ export default function PayoutDatatable({ token, role }) {
               <p className="mt-1 text-xs text-slate-500">{card.description}</p>
             </div>
           ))}
-        </div>
+        </div> */}
 
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-100 px-6 py-5">

@@ -19,6 +19,7 @@ export default function CreateClientServiceForm({
   initialData = null,
 }) {
   const isEditMode = mode === "edit" && Boolean(initialData);
+  const lockToStatusOnly = isEditMode && initialData?.status !== "PENDING";
   const [serviceName, setServiceName] = useState("");
   const [serviceType, setServiceType] = useState("ONE_TIME");
   const [price, setPrice] = useState("");
@@ -221,6 +222,7 @@ export default function CreateClientServiceForm({
                         placeholder="Digital Service Name"
                         options={serviceOptions}
                         buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                        disabled={lockToStatusOnly}
                       />
                     </div>
 
@@ -233,6 +235,7 @@ export default function CreateClientServiceForm({
                           onChange={setStartDate}
                           isRequired
                           fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                          isDisabled={lockToStatusOnly}
                         />
                       </div>
 
@@ -244,6 +247,7 @@ export default function CreateClientServiceForm({
                           value={endDate}
                           onChange={setEndDate}
                           fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                          isDisabled={lockToStatusOnly}
                         />
                       </div>
 
@@ -256,6 +260,7 @@ export default function CreateClientServiceForm({
                           onChange={setPrice}
                           isRequired
                           fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                          isDisabled={lockToStatusOnly}
                         />
                       </div>
 
@@ -275,6 +280,7 @@ export default function CreateClientServiceForm({
                           { value: "USD", label: "USD" },
                         ]}
                         buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                        disabled={lockToStatusOnly}
                       />
                     </div>
 
@@ -297,6 +303,7 @@ export default function CreateClientServiceForm({
                           { value: "SUBSCRIPTION", label: "Subscription" },
                         ]}
                         buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                        disabled={lockToStatusOnly}
                       />
                     </div>
 
@@ -318,7 +325,8 @@ export default function CreateClientServiceForm({
                           ]}
                           placeholder="Select Billing Cycle"
                           buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                          />
+                          disabled={lockToStatusOnly}
+                        />
                         </div>
                       )}
 
@@ -338,6 +346,7 @@ export default function CreateClientServiceForm({
                               { value: "CANCELLED", label: "Cancelled" },
                             ]}
                             buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                            disabled={false}
                         />
                       </div>
                     )}
@@ -352,6 +361,7 @@ export default function CreateClientServiceForm({
                           onChange={() =>
                             setAutoGenerateQuote(!autoGenerateQuote)
                           }
+                          disabled={lockToStatusOnly}
                         />
                         Auto Generate Quote
                       </label>
@@ -371,6 +381,7 @@ export default function CreateClientServiceForm({
                           onChange={() =>
                             setAutoGenerateInvoices(!autoGenerateInvoices)
                           }
+                          disabled={lockToStatusOnly}
                         />
                         Auto Generate Invoice(s)
                       </label>
@@ -398,6 +409,7 @@ export default function CreateClientServiceForm({
                           onChange={setStreetAddress}
                           isRequired
                           fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                          isDisabled={lockToStatusOnly}
                         />
                       </div>
 
@@ -410,6 +422,7 @@ export default function CreateClientServiceForm({
                             onChange={setCity}
                             isRequired
                             fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                            isDisabled={lockToStatusOnly}
                           />
                         </div>
 
@@ -428,6 +441,7 @@ export default function CreateClientServiceForm({
                           placeholder="Select State/Province"
                           buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
                           disabled={!country}
+                          disabled={lockToStatusOnly || !country}
                         />
                       </div>
                     </div>
@@ -448,6 +462,7 @@ export default function CreateClientServiceForm({
                         }}
                         options={countries}
                         buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                        disabled={lockToStatusOnly}
                       />
                     </div>
 
@@ -459,6 +474,7 @@ export default function CreateClientServiceForm({
                           onChange={setPostalCode}
                           isRequired
                           fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
+                          isDisabled={lockToStatusOnly}
                         />
                       </div>
                     </div>
@@ -476,6 +492,7 @@ export default function CreateClientServiceForm({
                     placeholder="Service Description"
                     rows={4}
                     fieldClass="mb-0 rounded-lg px-3 py-2 text-sm"
+                    isDisabled={lockToStatusOnly}
                   />
                 </div>
               </div>

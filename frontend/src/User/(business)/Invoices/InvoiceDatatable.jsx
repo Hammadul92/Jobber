@@ -117,21 +117,21 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
     });
   }, [rows, searchTerm, statusFilter, dateRangeStart, dateRangeEnd]);
 
-  const summary = useMemo(() => {
-    const toNumber = (value) => Number.parseFloat(value || 0);
+  // const summary = useMemo(() => {
+  //   const toNumber = (value) => Number.parseFloat(value || 0);
 
-    return {
-      totalInvoiced: rows.reduce(
-        (sum, row) => sum + toNumber(row.total_amount),
-        0,
-      ),
-      paidInvoices: rows.filter((row) => row.status === "PAID").length,
-      outstandingBalance: rows
-        .filter((row) => row.status !== "PAID" && row.status !== "CANCELLED")
-        .reduce((sum, row) => sum + toNumber(row.total_amount), 0),
-      overdueInvoices: rows.filter((row) => isInvoiceOverdue(row)).length,
-    };
-  }, [rows]);
+  //   return {
+  //     totalInvoiced: rows.reduce(
+  //       (sum, row) => sum + toNumber(row.total_amount),
+  //       0,
+  //     ),
+  //     paidInvoices: rows.filter((row) => row.status === "PAID").length,
+  //     outstandingBalance: rows
+  //       .filter((row) => row.status !== "PAID" && row.status !== "CANCELLED")
+  //       .reduce((sum, row) => sum + toNumber(row.total_amount), 0),
+  //     overdueInvoices: rows.filter((row) => isInvoiceOverdue(row)).length,
+  //   };
+  // }, [rows]);
 
   useEffect(() => {
     if (error) {
@@ -257,28 +257,28 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
     );
   }
 
-  const summaryCards = [
-    {
-      title: "Total Invoiced",
-      value: formatMoney(summary.totalInvoiced),
-      description: "Across all invoices",
-    },
-    {
-      title: "Paid Invoices",
-      value: summary.paidInvoices,
-      description: "Fully paid invoices",
-    },
-    {
-      title: "Outstanding Balance",
-      value: formatMoney(summary.outstandingBalance),
-      description: "Awaiting payment",
-    },
-    {
-      title: "Overdue Invoices",
-      value: summary.overdueInvoices,
-      description: "Past due date",
-    },
-  ];
+  // const summaryCards = [
+  //   {
+  //     title: "Total Invoiced",
+  //     value: formatMoney(summary.totalInvoiced),
+  //     description: "Across all invoices",
+  //   },
+  //   {
+  //     title: "Paid Invoices",
+  //     value: summary.paidInvoices,
+  //     description: "Fully paid invoices",
+  //   },
+  //   {
+  //     title: "Outstanding Balance",
+  //     value: formatMoney(summary.outstandingBalance),
+  //     description: "Awaiting payment",
+  //   },
+  //   {
+  //     title: "Overdue Invoices",
+  //     value: summary.overdueInvoices,
+  //     description: "Past due date",
+  //   },
+  // ];
 
   return (
     <>
@@ -291,7 +291,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
       )}
 
       <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {/* <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {summaryCards.map((card) => (
             <div
               key={card.title}
@@ -304,7 +304,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
               <p className="mt-1 text-xs text-slate-500">{card.description}</p>
             </div>
           ))}
-        </div>
+        </div> */}
 
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-100 px-6 py-5">
