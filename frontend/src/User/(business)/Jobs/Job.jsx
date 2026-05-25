@@ -50,6 +50,7 @@ export default function Job({ token, role }) {
   const [photoType, setPhotoType] = useState("BEFORE");
   const [selectedFile, setSelectedFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState("");
+  const [photoInputKey, setPhotoInputKey] = useState(0);
 
   createdAt;
   useEffect(() => {
@@ -88,8 +89,20 @@ export default function Job({ token, role }) {
   const handlePhotoChange = (input) => {
     const file = input?.target?.files?.[0] || null;
     if (!file) return;
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+    }
     setSelectedFile(file);
     setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const handleRemovePhotoPreview = () => {
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+    }
+    setSelectedFile(null);
+    setPhotoPreview("");
+    setPhotoInputKey((currentKey) => currentKey + 1);
   };
 
   const handlePhotoUpload = async (e) => {
@@ -206,6 +219,7 @@ export default function Job({ token, role }) {
               />
 
               <Input
+                key={photoInputKey}
                 type="file"
                 fieldClass="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                 onChange={handlePhotoChange}
@@ -215,11 +229,19 @@ export default function Job({ token, role }) {
               />
 
               {photoPreview && (
-                <div className="text-center">
+                <div className="relative overflow-hidden rounded-lg shadow-sm">
+                  <button
+                    type="button"
+                    onClick={handleRemovePhotoPreview}
+                    className="absolute right-1 top-1 z-10 inline-flex h-6 w-6 items-center justify-center rounded-full bg-red-500/70 text-white transition hover:bg-red"
+                    aria-label="Remove selected photo"
+                  >
+                    ×
+                  </button>
                   <img
                     src={photoPreview}
                     alt="Preview"
-                    className="mx-auto h-48 w-full max-w-xs rounded-lg object-cover shadow-sm"
+                    className="mx-auto h-48 w-full max-w-xs object-cover"
                   />
                 </div>
               )}
