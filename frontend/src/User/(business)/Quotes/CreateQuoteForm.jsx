@@ -8,7 +8,7 @@ import {
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Select from "../../../Components/ui/Select";
 import Input from "../../../Components/ui/Input";
-import { CgClose } from "react-icons/cg";
+import { LuX } from "react-icons/lu";
 
 export default function CreateQuoteForm({
   token,
@@ -27,9 +27,8 @@ export default function CreateQuoteForm({
 
   const quoteRows = Array.isArray(quoteData)
     ? quoteData
-    : (quoteData?.results ?? []);
+    : quoteData?.results ?? [];
 
-  // Mirror backend rule: block new quote only when an active non-declined quote exists.
   const quotedServiceIds = quoteRows
     .filter((quote) => quote?.is_active !== false && quote?.status !== "DECLINED")
     .map((quote) => Number(quote.service))
@@ -50,11 +49,7 @@ export default function CreateQuoteForm({
         notes,
       }).unwrap();
 
-      setAlert({
-        type: "success",
-        message: "Quote created successfully!",
-      });
-
+      setAlert({ type: "success", message: "Quote created successfully!" });
       setServiceId("");
       setValidUntil("");
       setTermsConditions("");
@@ -75,10 +70,7 @@ export default function CreateQuoteForm({
         (typeof err?.data === "string" ? err.data : "") ||
         "Something went wrong while creating the quote. Please try again.";
 
-      setAlert({
-        type: "danger",
-        message,
-      });
+      setAlert({ type: "danger", message });
     }
   };
 
@@ -86,99 +78,102 @@ export default function CreateQuoteForm({
     <>
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+          className="fixed inset-0 z-50 h-screen"
           role="dialog"
           aria-modal="true"
           onClick={() => setShowModal(false)}
         >
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/45"
+            onClick={() => setShowModal(false)}
+            aria-label="Close add quote modal"
+          />
+
           <div
-            className="max-w-3xl rounded-2xl bg-white shadow-2xl"
+            className="absolute right-0 top-0 z-10 flex h-screen w-full md:w-4/6 lg:w-2/6 max-w-105 flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl sm:max-w-120"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between rounded-t-2xl border-b border-gray-100 bg-secondary text-white px-6 py-4">
-              <div>
-                <h5 className="text-lg font-semibold font-heading">
-                  Create New Quote
-                </h5>
-                <p className="text-sm text-gray-200">
-                  Insert the following information to add a quote.
-                </p>
+            <form onSubmit={handleSubmit} className="flex h-full flex-col">
+              <div className="shrink-0 border-b border-gray-200 px-6 py-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h5 className="text-3xl font-semibold tracking-tight text-slate-900">
+                      Create New Quote
+                    </h5>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Insert following information to add quote
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-slate-400 transition hover:text-slate-700"
+                    onClick={() => setShowModal(false)}
+                    aria-label="Close"
+                  >
+                    <LuX className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                className="text-gray-200 transition hover:text-gray-400"
-                onClick={() => setShowModal(false)}
-                aria-label="Close"
-              >
-                <CgClose className="h-5 w-5" />
-              </button>
-            </div>
 
-            <div className="px-6 py-5">
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="md:col-span-2">
-                    <Select
-                      id="quote-service"
-                      label="Service"
-                      value={serviceId}
-                      onChange={setServiceId}
-                      isRequired={true}
-                      options={[
-                        { value: "", label: "Select Service" },
-                        ...(availableServices
-                          ? availableServices
-                              .filter((service) => service.status === "ACTIVE")
-                              .map((service) => ({
-                                value: service.id,
-                                label: `${service.service_name} (${service.client_name} - ${service.street_address})`,
-                              }))
-                          : []),
-                      ]}
-                    />
-                  </div>
+              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+                <div className="space-y-5">
+                  <Select
+                    id="quote-service"
+                    label="Service"
+                    value={serviceId}
+                    onChange={setServiceId}
+                    isRequired={true}
+                    options={[
+                      { value: "", label: "Select Service" },
+                      ...(availableServices
+                        ? availableServices
+                            .filter((service) => service.status === "ACTIVE")
+                            .map((service) => ({
+                              value: service.id,
+                              label: `${service.service_name} (${service.client_name} - ${service.street_address})`,
+                            }))
+                        : []),
+                    ]}
+                    fieldClass="rounded-lg border-gray-200 bg-white px-3 text-sm text-slate-700"
+                  />
 
-                  <div>
-                    <Input
-                      type="date"
-                      value={validUntil}
-                      onChange={setValidUntil}
-                      isRequired={true}
-                      label="Valid Until"
-                      id="quote-valid-until"
-                    />
-                  </div>
+                  <Input
+                    type="date"
+                    value={validUntil}
+                    onChange={setValidUntil}
+                    isRequired={true}
+                    label="Valid Until"
+                    id="quote-valid-until"
+                    fieldClass="h-10 rounded-lg border border-gray-200 px-3 text-base text-slate-700"
+                  />
+
+                  <Textarea
+                    id="create-quote-terms-conditions"
+                    label="Terms & Condition"
+                    value={termsConditions}
+                    onChange={setTermsConditions}
+                    isRequired={true}
+                    fieldClass="h-28 rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
+                    rows={5}
+                    placeholder="Optional notes or invoice description......."
+                  />
+
+                  <Textarea
+                    id="create-quote-notes"
+                    label="Notes"
+                    value={notes}
+                    onChange={setNotes}
+                    isRequired={true}
+                    fieldClass="h-28 rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
+                    rows={5}
+                    placeholder="Optional notes or invoice description......."
+                  />
                 </div>
+              </div>
 
-                <div className="grid gap-4">
-                  <div>
-                    <Textarea
-                      id="create-quote-terms-conditions"
-                      label="Terms & Conditions (*)"
-                      value={termsConditions}
-                      onChange={setTermsConditions}
-                      isRequired={true}
-                      fieldClass="w-full"
-                      rows={3}
-                      placeholder="Enter any special terms or agreement details"
-                    />
-                  </div>
-
-                  <div>
-                    <Textarea
-                      id="create-quote-notes"
-                      label="Notes"
-                      value={notes}
-                      onChange={setNotes}
-                      isRequired={false}
-                      fieldClass="w-full"
-                      rows={2}
-                      placeholder="Internal notes or remarks"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
+              <div className="shrink-0 border-t border-gray-200 bg-white px-6 py-4">
+                <div className="flex justify-end gap-3">
                   <button
                     type="button"
                     className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
@@ -189,12 +184,12 @@ export default function CreateQuoteForm({
                   </button>
                   <SubmitButton
                     isLoading={isCreating}
-                    btnClass="bg-accent px-4 py-2 text-sm text-white shadow-sm hover:bg-accentLight"
-                    btnName="Create Quote"
+                    btnClass="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accentLight"
+                    btnName="Create Quotes"
                   />
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

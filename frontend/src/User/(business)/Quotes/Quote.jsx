@@ -10,6 +10,12 @@ import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { formatDate } from "../../../utils/formatDate";
 import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
+import {
+  LuMail,
+  LuMapPin,
+  LuPhone,
+  LuUser,
+} from "react-icons/lu";
 
 export default function Quote({ token }) {
   const { id } = useParams();
@@ -26,7 +32,6 @@ export default function Quote({ token }) {
   const [validUntil, setValidUntil] = useState("");
   const [termsConditions, setTermsConditions] = useState("");
   const [notes, setNotes] = useState("");
-
   const [alert, setAlert] = useState({ type: "", message: "" });
 
   useEffect(() => {
@@ -47,16 +52,11 @@ export default function Quote({ token }) {
         notes,
       }).unwrap();
 
-      setAlert({
-        type: "success",
-        message: "Quote updated successfully!",
-      });
+      setAlert({ type: "success", message: "Quote updated successfully!" });
     } catch (err) {
-      console.error("Failed to update quote:", err);
       setAlert({
         type: "danger",
-        message:
-          err?.data?.detail || "Failed to update quote. Please try again.",
+        message: err?.data?.detail || "Failed to update quote. Please try again.",
       });
     }
   };
@@ -64,15 +64,11 @@ export default function Quote({ token }) {
   const handleSendQuote = async () => {
     try {
       await sendQuote(id).unwrap();
-      setAlert({
-        type: "success",
-        message: "Quote email sent successfully!",
-      });
+      setAlert({ type: "success", message: "Quote email sent successfully!" });
     } catch (err) {
       setAlert({
         type: "danger",
-        message:
-          err?.data?.detail || "Failed to send quote email. Please try again.",
+        message: err?.data?.detail || "Failed to send quote email. Please try again.",
       });
     }
   };
@@ -90,42 +86,27 @@ export default function Quote({ token }) {
     );
   }
 
+  const client = quoteData.client || {};
+  const serviceData = quoteData.service_data || {};
+
   const isSigned = quoteData.status === "SIGNED";
   const isInactiveClient =
-    quoteData.client?.is_active === false ||
-    quoteData.client?.is_active === "False";
-  const isServiceInactive = quoteData.service_data?.status !== "ACTIVE";
+    client.is_active === false || client.is_active === "False";
+  const isServiceInactive = serviceData.status !== "ACTIVE";
   const isRequiredFieldsMissing = !validUntil || !termsConditions;
   const isExpired = new Date(validUntil) < new Date();
 
   const disableSendBtn =
-    isSigned ||
-    isExpired ||
-    isInactiveClient ||
-    isServiceInactive ||
-    isRequiredFieldsMissing;
+    isSigned || isExpired || isInactiveClient || isServiceInactive || isRequiredFieldsMissing;
 
   const disableReasons = [];
-  if (isSigned)
-    disableReasons.push(
-      "This quote has already been signed and cannot be resent.",
-    );
+  if (isSigned) disableReasons.push("This quote has already been signed and cannot be resent.");
   if (isExpired && !isSigned)
-    disableReasons.push(
-      'This quote has expired. Please update the "Valid Until" date before sending.',
-    );
-  if (isInactiveClient)
-    disableReasons.push(
-      "The client is inactive. Reactivate the client before sending.",
-    );
-  if (isServiceInactive)
-    disableReasons.push(
-      "The linked service is inactive. Please ensure it is active.",
-    );
+    disableReasons.push('This quote has expired. Please update the "Valid Until" date before sending.');
+  if (isInactiveClient) disableReasons.push("The client is inactive. Reactivate the client before sending.");
+  if (isServiceInactive) disableReasons.push("The linked service is inactive. Please ensure it is active.");
   if (isRequiredFieldsMissing)
-    disableReasons.push(
-      "Please fill in all required fields (Valid Until and Terms & Conditions).",
-    );
+    disableReasons.push("Please fill in all required fields (Valid Until and Terms & Conditions).");
 
   const statusColor =
     quoteData.status === "SIGNED"
@@ -136,58 +117,16 @@ export default function Quote({ token }) {
           ? "bg-rose-100 text-rose-700"
           : quoteData.status === "DECLINED"
             ? "bg-rose-100 text-rose-700"
-            : "bg-gray-100 text-gray-700";
+            : "bg-slate-100 text-slate-600";
 
-  const badgeBase =
-    "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold";
-
-  const pillBadge = `${badgeBase} ${statusColor}`;
-
+  const pillBadge = `inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold ${statusColor}`;
   const btnPrimary =
-    "inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight disabled:cursor-not-allowed disabled:opacity-60";
-
+    "inline-flex items-center rounded-xl bg-[#ff6a00] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ff7a1f] disabled:cursor-not-allowed disabled:opacity-60";
   const cardBase =
-    "relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm";
-
-  const textMuted = "text-sm text-gray-600";
+    "relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm";
 
   return (
     <>
-      <nav aria-label="breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <li>
-            <Link
-              to={`/`}
-              className="font-semibold text-accent hover:text-accentLight"
-            >
-              Contractorz
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to={`/user/business/home`}
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              Dashboard
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to={`/user/business/quotes`}
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              Quotes
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="font-semibold text-gray-800">
-            Edit Quote ({quoteData.quote_number})
-          </li>
-        </ol>
-      </nav>
-
       {alert.message && (
         <AlertDispatcher
           type={alert.type}
@@ -196,9 +135,9 @@ export default function Quote({ token }) {
         />
       )}
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <h3 className="text-xl font-semibold text-primary">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h3 className="text-3xl font-medium tracking-tight text-slate-900">
             {quoteData.quote_number}
           </h3>
           <span className={pillBadge}>{quoteData.status}</span>
@@ -206,15 +145,15 @@ export default function Quote({ token }) {
 
         <button
           type="button"
-          className={btnPrimary}
+          className={`${btnPrimary} min-w-43 justify-center`}
           onClick={handleSendQuote}
           disabled={disableSendBtn || sending}
         >
           {sending && (
             <span
-              className="h-4 w-4 animate-spin rounded-full border-2 border-white/50 border-t-white"
+              className="h-5 w-5 animate-spin rounded-full border-2 border-white/50 border-t-white"
               aria-hidden="true"
-            ></span>
+            />
           )}
           {sending ? "Sending Quote..." : "Send Quote"}
         </button>
@@ -234,99 +173,145 @@ export default function Quote({ token }) {
       <form onSubmit={handleSubmit} className="grid gap-5 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-4">
           <div className={cardBase}>
-            <div className="absolute right-4 top-4">
-              {quoteData.client.is_active === "True" ? (
-                <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <div className="absolute right-4 top-5">
+              {String(client.is_active) === "True" || client.is_active === true ? (
+                <span className="inline-flex items-center rounded-lg bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                   ACTIVE
                 </span>
               ) : (
-                <span className="inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                <span className="inline-flex items-center rounded-lg bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
                   INACTIVE
                 </span>
               )}
             </div>
 
-            <h5 className="text-base font-semibold text-gray-900">
-              Client Details
-            </h5>
+            <h5 className="text-lg font-semibold text-slate-900">Client Details</h5>
 
-            <p className={`${textMuted} mt-2`}>Name: {quoteData.client_name}</p>
-            <p className={textMuted}>Email: {quoteData.client.client_email}</p>
-            <p className={textMuted}>Phone: {quoteData.client.client_phone}</p>
+            <div className="mt-5 space-y-4 text-slate-700">
+              <div className="flex items-start gap-3">
+                <LuUser className="mt-1 h-5 w-5 shrink-0 text-slate-400" />
+                <div>
+                  <p className="text-sm text-slate-500">Name</p>
+                  <p className="text-base font-medium text-slate-800">
+                    {quoteData.client_name || client.name || "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <LuMail className="mt-1 h-5 w-5 shrink-0 text-slate-400" />
+                <div>
+                  <p className="text-sm text-slate-500">Email</p>
+                  <p className="text-base font-medium text-slate-800">
+                    {client.client_email || client.email || "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <LuPhone className="mt-1 h-5 w-5 shrink-0 text-slate-400" />
+                <div>
+                  <p className="text-sm text-slate-500">Phone</p>
+                  <p className="text-base font-medium text-slate-800">
+                    {client.client_phone || client.phone || "-"}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className={cardBase}>
-            <div className="absolute right-4 top-4 flex flex-wrap items-center justify-end gap-2">
-              <span className="inline-flex items-center rounded-full bg-gray-800 px-3 py-1 text-xs font-semibold text-white">
-                {quoteData.service_data.service_type}
+            <div className="absolute right-4 top-6 flex flex-wrap items-center justify-end gap-2">
+              <span className="inline-flex items-center rounded-lg bg-slate-800 px-3 py-1 text-xs font-semibold text-white">
+                {serviceData.service_type || "-"}
               </span>
               <span
-                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                  ["ACTIVE", "COMPLETED"].includes(
-                    quoteData.service_data.status,
-                  )
+                className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold ${
+                  ["ACTIVE", "COMPLETED"].includes(serviceData.status)
                     ? "bg-emerald-100 text-emerald-700"
-                    : quoteData.service_data.status === "PENDING"
+                    : serviceData.status === "PENDING"
                       ? "bg-blue-100 text-blue-700"
                       : "bg-rose-100 text-rose-700"
                 }`}
               >
-                {quoteData.service_data.status}
+                {serviceData.status || "-"}
               </span>
             </div>
 
-            <h5 className="text-base font-semibold text-gray-900">
-              Service Details
-            </h5>
+            <h5 className="text-lg font-semibold text-slate-900">Service Details</h5>
 
-            <p className={`${textMuted} mt-2`}>
-              Name:{" "}
-              <Link
-                to={`/user/business/service/${quoteData.service_data.id}`}
-                className="font-semibold text-accent hover:text-accentLight"
-              >
-                {quoteData.service_data.service_name}
-              </Link>
-            </p>
+            <div className="mt-5 space-y-4 text-slate-700">
+              <div>
+                <p className="text-sm text-slate-500">Service Name</p>
+                <p className="text-base font-semibold text-slate-900">
+                  <Link
+                    to={`/user/business/service/${serviceData.id}`}
+                    className="transition hover:text-[#ff6a00]"
+                  >
+                    {serviceData.service_name || "-"}
+                  </Link>
+                </p>
+              </div>
 
-            {quoteData.service_data.description && (
-              <p className="mt-2 rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
-                <i className="fa fa-info mr-2 text-secondary"></i>{" "}
-                {quoteData.service_data.description}
-              </p>
-            )}
-            <p className={textMuted}>
-              Price: ${quoteData.service_data.price}{" "}
-              {quoteData.service_data.currency}
-            </p>
-            <p className={textMuted}>
-              Billing Cycle: {quoteData.service_data.billing_cycle || "-"}
-            </p>
-            <div className="mb-1 flex items-center justify-between text-sm text-gray-600">
-              <p className="mb-0">
-                Start Date: {quoteData.service_data.start_date}
-              </p>
-              <p className="mb-0">
-                End Date: {quoteData.service_data.end_date || "-"}
-              </p>
+              {serviceData.description && (
+                <div>
+                  <p className="text-sm text-slate-500">Description</p>
+                  <p className="text-base font-medium text-slate-900">{serviceData.description}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 text-slate-800">
+                <div>
+                  <p className="text-sm text-slate-500">Price</p>
+                  <p className="text-base font-medium">
+                    ${serviceData.price || "-"} {serviceData.currency || ""}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Billing Cycle</p>
+                  <p className="text-base font-medium">{serviceData.billing_cycle || "-"}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-slate-800">
+                <div>
+                  <p className="text-sm text-slate-500">Start Date</p>
+                  <p className="text-base font-medium">{serviceData.start_date || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">End Date</p>
+                  <p className="text-base font-medium">{serviceData.end_date || "-"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <LuMapPin className="mt-1 h-5 w-5 shrink-0 text-slate-400" />
+                <div>
+                  <p className="text-sm text-slate-500">Service Address</p>
+                  <p className="text-base font-medium text-slate-800">
+                    {[
+                      serviceData.street_address,
+                      serviceData.city,
+                      serviceData.province_state,
+                      serviceData.country,
+                      serviceData.postal_code,
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || "-"}
+                  </p>
+                </div>
+              </div>
             </div>
-            <p className={textMuted}>
-              Service Address: {quoteData.service_data.street_address},{" "}
-              {quoteData.service_data.city},{" "}
-              {quoteData.service_data.province_state},{" "}
-              {quoteData.service_data.country},{" "}
-              {quoteData.service_data.postal_code}
-            </p>
           </div>
         </div>
 
         <div className="lg:col-span-8">
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
                 type="text"
-                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
-                value={formatDate(quoteData.signed_at)}
+                fieldClass="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-[#ff6a00] focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                value={quoteData.signed_at ? formatDate(quoteData.signed_at) : ""}
                 onChange={() => {}}
                 isDisabled={true}
                 label="Signed At"
@@ -335,30 +320,30 @@ export default function Quote({ token }) {
 
               <Input
                 type="date"
-                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                fieldClass="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-[#ff6a00] focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                 value={validUntil}
                 onChange={setValidUntil}
                 isDisabled={isSigned}
                 isRequired={true}
-                label="Valid Until (*)"
+                label="Valid Until"
                 id="quote-valid-until"
               />
             </div>
 
-            <div className="mb-4">
+            <div className="mt-5">
               <Textarea
                 id="quote-terms-conditions"
-                label="Terms & Conditions (*)"
+                label="Terms & Conditions"
                 value={termsConditions}
                 onChange={setTermsConditions}
                 isRequired={true}
                 isDisabled={isSigned}
-                fieldClass="w-full"
-                rows={4}
+                fieldClass="h-36 w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
+                rows={6}
               />
             </div>
 
-            <div className="mb-4">
+            <div className="mt-5">
               <Textarea
                 id="quote-notes"
                 label="Notes"
@@ -366,12 +351,12 @@ export default function Quote({ token }) {
                 onChange={setNotes}
                 isRequired={false}
                 isDisabled={isSigned}
-                fieldClass="w-full"
-                rows={3}
+                fieldClass="h-44 w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
+                rows={6}
               />
             </div>
 
-            <div className="mt-4 flex justify-end gap-3">
+            <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
                 className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
@@ -382,7 +367,7 @@ export default function Quote({ token }) {
               {!isSigned && (
                 <SubmitButton
                   isLoading={updating}
-                  btnClass="bg-accent px-4 py-2 text-sm text-white shadow-sm hover:bg-accentLight"
+                  btnClass="bg-[#ff6a00] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#ff7a1f]"
                   btnName="Save Changes"
                 />
               )}
