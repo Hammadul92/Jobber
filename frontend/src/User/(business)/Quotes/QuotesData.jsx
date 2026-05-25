@@ -4,6 +4,7 @@ import { useFetchQuotesQuery, useDeleteQuoteMutation } from "../../../store";
 import Select from "../../../Components/ui/Select";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import { formatDate } from "../../../utils/formatDate";
+import { LuCalendarDays, LuMapPin, LuUser, LuPencil, LuTrash2 } from "react-icons/lu";
 
 export default function QuotesData({ token, role, setAlert }) {
   const {
@@ -87,42 +88,44 @@ export default function QuotesData({ token, role, setAlert }) {
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-3">
-        <Select
-          id="quotes-service-filter"
-          label="Service"
-          value={serviceFilter}
-          onChange={setServiceFilter}
-          options={[
-            { value: "", label: "All Services" },
-            ...uniqueServices.map((name) => ({ value: name, label: name })),
-          ]}
-        />
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="grid gap-4 md:grid-cols-3">
+          <Select
+            id="quotes-service-filter"
+            label="Service"
+            value={serviceFilter}
+            onChange={setServiceFilter}
+            options={[
+              { value: "", label: "All Services" },
+              ...uniqueServices.map((name) => ({ value: name, label: name })),
+            ]}
+            fieldClass="h-11 rounded-lg border-gray-200 bg-white px-3 text-sm text-slate-700"
+          />
 
-        <Select
-          id="quotes-client-filter"
-          label="Client"
-          value={clientFilter}
-          onChange={setClientFilter}
-          options={[
-            { value: "", label: "All Clients" },
-            ...uniqueClients.map((name) => ({ value: name, label: name })),
-          ]}
-        />
+          <Select
+            id="quotes-client-filter"
+            label="Client"
+            value={clientFilter}
+            onChange={setClientFilter}
+            options={[
+              { value: "", label: "All Clients" },
+              ...uniqueClients.map((name) => ({ value: name, label: name })),
+            ]}
+            fieldClass="h-11 rounded-lg border-gray-200 bg-white px-3 text-sm text-slate-700"
+          />
 
-        <Select
-          id="quotes-status-filter"
-          label="Status"
-          value={statusFilter}
-          onChange={setStatusFilter}
-          options={[
-            { value: "", label: "All Statuses" },
-            ...uniqueStatuses.map((status) => ({
-              value: status,
-              label: status,
-            })),
-          ]}
-        />
+          <Select
+            id="quotes-status-filter"
+            label="Status"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "", label: "All Statuses" },
+              ...uniqueStatuses.map((status) => ({ value: status, label: status })),
+            ]}
+            fieldClass="h-11 rounded-lg border-gray-200 bg-white px-3 text-sm text-slate-700"
+          />
+        </div>
       </div>
 
       {filteredQuotes.length === 0 ? (
@@ -137,14 +140,14 @@ export default function QuotesData({ token, role, setAlert }) {
           </div>
         </div>
       ) : (
-        <div className="min-h-[65vh] max-h-[65vh] overflow-auto grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2">
           {filteredQuotes.map((quote) => {
             const validUntilDate = quote.valid_until
               ? new Date(quote.valid_until)
               : null;
             const isExpired = validUntilDate && validUntilDate < today;
 
-            let badgeClass = "bg-blue-100 text-blue-700";
+            let badgeClass = "bg-slate-100 text-slate-500";
             let badgeText = quote.status;
 
             if (isExpired && quote.status !== "SIGNED") {
@@ -155,99 +158,97 @@ export default function QuotesData({ token, role, setAlert }) {
             } else if (quote.status === "DECLINED") {
               badgeClass = "bg-rose-100 text-rose-700";
             } else if (quote.status === "DRAFT") {
-              badgeClass = "bg-gray-100 text-gray-700";
+              badgeClass = "bg-slate-100 text-slate-500";
             }
+
+            const serviceData = quote.service_data || {};
+            const serviceAddress = [
+              serviceData.street_address,
+              serviceData.city,
+              serviceData.province_state,
+              serviceData.country,
+              serviceData.postal_code,
+            ]
+              .filter(Boolean)
+              .join(", ");
 
             return (
               <div
-                className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
                 key={quote.quote_number}
               >
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <h5 className="text-base font-semibold text-gray-900">
+                <div className="mb-6 flex items-start justify-between gap-3">
+                  <h5 className="text-xl font-medium tracking-tight text-[#ff6a00]">
                     {quote.quote_number}
                   </h5>
                   <span
-                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${badgeClass}`}
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.04em] ${badgeClass}`}
                   >
                     {badgeText}
                   </span>
                 </div>
 
-                <p className="mb-2 rounded-lg bg-gray-50 p-2 text-center text-sm text-gray-700">
+                <h6 className="text-2xl font-semibold text-slate-900">
                   {role === "MANAGER" ? (
                     <Link
-                      className="font-semibold text-accent hover:text-accentLight"
+                      className="transition hover:text-accent"
                       to={`/user/business/service/${quote.service_data.id}`}
                     >
                       {quote.service_name}
                     </Link>
                   ) : (
                     quote.service_name
-                  )}{" "}
-                  service for {quote.client_name}
+                  )}
+                </h6>
+
+                <p className="mt-1 text-base text-slate-500">
+                  Service for {quote.client_name}
                 </p>
 
-                {!isExpired && quote.status !== "SIGNED" ? (
-                  <p className="mb-1 text-sm text-gray-600">
-                    Valid Until: {formatDate(quote.valid_until)}
-                  </p>
-                ) : isExpired && quote.status !== "SIGNED" ? (
-                  <p className="mb-1 text-sm font-semibold text-rose-700">
-                    Expired on: {formatDate(quote.valid_until)}
-                  </p>
-                ) : null}
-
-                <p className="text-sm text-gray-600">
-                  Service Address: {quote.service_data.street_address},{" "}
-                  {quote.service_data.city}, {quote.service_data.province_state}
-                  , {quote.service_data.country},{" "}
-                  {quote.service_data.postal_code}
-                </p>
-
-                <div className="mt-4 flex items-center justify-between gap-3">
+                <div className="mt-6 space-y-3 text-slate-600">
                   <div className="flex items-center gap-2">
-                    {quote.signature && (
-                      <img
-                        src={quote.signature}
-                        height={36}
-                        alt="signature"
-                        className="h-9 rounded border border-gray-200 bg-white p-1"
-                      />
-                    )}
+                    <LuUser className="h-5 w-5 text-slate-400" />
+                    <span>{quote.client_name}</span>
                   </div>
-                  <div className="flex flex-wrap justify-end gap-2">
-                    {role === "MANAGER" && (
-                      <Link
-                        to={`/user/business/quote/${quote.id}`}
-                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-                        title="Edit Quote"
-                      >
-                        <i className="fa fa-pencil"></i> Edit
-                      </Link>
-                    )}
 
-                    {!isExpired &&
-                      quote.status === "SENT" &&
-                      role === "CLIENT" && (
+                  <div className="flex items-start gap-2">
+                    <LuMapPin className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
+                    <span>{serviceAddress}</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 border-t border-gray-200 pt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <LuCalendarDays className="h-4 w-4 text-slate-500" />
+                      <span>
+                        {isExpired && quote.status !== "SIGNED"
+                          ? `Expired on ${formatDate(quote.valid_until)}`
+                          : `Valid until ${formatDate(quote.valid_until)}`}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {role === "MANAGER" && (
                         <Link
-                          to={`/user/business/quote/sign/${quote.id}`}
-                          className="inline-flex items-center gap-1 rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-accentLight"
-                          title="Sign Quote"
+                          to={`/user/business/quote/${quote.id}`}
+                          className="inline-flex items-center gap-2 rounded-xl border border-secondary bg-secondary px-4 py-2 text-sm font-medium text-white transition hover:bg-secondary/95"
+                          title="Edit Quote"
                         >
-                          <i className="fas fa-file-signature" /> Sign
+                          <LuPencil className="h-4 w-4" /> Edit
                         </Link>
                       )}
 
-                    {role === "MANAGER" && (
-                      <button
-                        className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 shadow-sm transition hover:bg-rose-100"
-                        onClick={() => handleDeleteClick(quote.id)}
-                        type="button"
-                      >
-                        <i className="fa fa-trash-alt"></i> Delete
-                      </button>
-                    )}
+                      {role === "MANAGER" && (
+                        <button
+                          className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
+                          onClick={() => handleDeleteClick(quote.id)}
+                          type="button"
+                        >
+                          <LuTrash2 className="h-4 w-4" /> Delete
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -263,36 +264,36 @@ export default function QuotesData({ token, role, setAlert }) {
           role="dialog"
           aria-modal="true"
         >
-          <div className="max-w-md rounded-2xl bg-white shadow-2xl">
+          <div className="w-1/4 rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-              <h5 className="text-base font-semibold text-gray-900">
+              <h5 className="text-lg font-medium text-gray-900">
                 Delete Quote
               </h5>
               <button
                 type="button"
-                className="text-gray-500 transition hover:text-gray-800"
+                className="text-gray-600 transition hover:text-gray-900 text-2xl"
                 onClick={() => setShowModal(false)}
                 aria-label="Close"
               >
                 ×
               </button>
             </div>
-            <div className="px-5 py-4 text-sm text-gray-700">
+            <div className="px-5 py-4 text-gray-700">
               <p className="mb-0">
                 Are you sure you want to delete this quote?
               </p>
             </div>
-            <div className="flex justify-end gap-3 border-t border-gray-100 px-5 py-4">
+            <div className="flex justify-end gap-3 px-5 py-4">
               <button
                 type="button"
-                className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                 onClick={() => setShowModal(false)}
               >
                 Cancel
               </button>
               <SubmitButton
                 isLoading={deleting}
-                btnClass="bg-rose-600 px-4 py-2 text-sm text-white shadow-sm hover:bg-rose-700"
+                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
                 btnName="Delete"
               />
             </div>
