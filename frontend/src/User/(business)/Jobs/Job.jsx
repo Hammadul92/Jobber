@@ -8,12 +8,12 @@ import {
   useCreateJobPhotoMutation,
   useFetchServiceQuery,
 } from "../../../store";
-import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { formatDate } from "../../../utils/formatDate";
 import Select from "../../../Components/ui/Select";
 import Textarea from "../../../Components/ui/Textarea";
 import Input from "../../../Components/ui/Input";
+import { LuUpload } from "react-icons/lu";
 
 export default function Job({ token, role }) {
   const { id } = useParams();
@@ -143,62 +143,42 @@ export default function Job({ token, role }) {
         />
       )}
 
-      <nav aria-label="breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <li>
-            <Link
-              to="/user/business/home"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              Dashboard
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to="/user/business/jobs"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              Jobs
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="font-semibold text-gray-800">{title}</li>
-        </ol>
-      </nav>
+      {/* Breadcrumb removed to match desired design */}
 
       <div className="grid gap-5 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-4">
-          <div className="relative rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <span
-              className={`absolute right-4 top-4 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+              className={`absolute right-4 top-4 inline-flex rounded-md px-3 py-1 text-xs font-semibold ${
                 status === "COMPLETED"
                   ? "bg-emerald-100 text-emerald-700"
                   : status === "IN_PROGRESS"
                     ? "bg-blue-100 text-blue-700"
                     : status === "CANCELLED"
                       ? "bg-rose-100 text-rose-700"
-                      : "bg-gray-100 text-gray-700"
+                      : status === "PENDING"
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-gray-100 text-gray-700"
               }`}
             >
               {status.replace("_", " ")}
             </span>
 
-            <h5 className="mb-2 text-lg font-semibold text-gray-900">
+            <h5 className="mb-4 text-2xl font-medium text-gray-900">
               {title}
             </h5>
             {serviceData ? (
-              <div className="space-y-2 text-sm text-gray-600">
+              <div className="space-y-2 text-base text-gray-800">
                 <p>
-                  <span className="font-semibold text-gray-800">Service:</span>{" "}
+                  <span className="font-medium block text-sm text-gray-600">Service:</span>{" "}
                   {serviceData.service_name}
                 </p>
                 <p>
-                  <span className="font-semibold text-gray-800">Client:</span>{" "}
+                  <span className="font-medium block text-sm text-gray-600">Client:</span>{" "}
                   {serviceData.client_name || "—"}
                 </p>
                 <p>
-                  <span className="font-semibold text-gray-800">
+                  <span className="font-medium block text-sm text-gray-600">
                     Service Address:
                   </span>{" "}
                   {serviceData.street_address}, {serviceData.city},{" "}
@@ -211,7 +191,7 @@ export default function Job({ token, role }) {
             )}
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <form onSubmit={handlePhotoUpload} className="space-y-4">
               <Select
                 id="photoType"
@@ -227,7 +207,7 @@ export default function Job({ token, role }) {
 
               <Input
                 type="file"
-                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                 onChange={handlePhotoChange}
                 label="Choose Photo"
                 id="job-photo-upload"
@@ -244,12 +224,14 @@ export default function Job({ token, role }) {
                 </div>
               )}
 
-              <div className="flex justify-end">
-                <SubmitButton
-                  isLoading={uploading}
-                  btnClass="bg-accent px-4 py-2 text-sm text-white shadow-sm hover:bg-accentLight"
-                  btnName="Upload"
-                />
+              <div>
+                <button
+                  type="submit"
+                  className="inline-flex w-full items-center justify-center gap-3 rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={uploading}
+                >
+                  <LuUpload className="h-4 w-4" /> Upload
+                </button>
               </div>
             </form>
           </div>
@@ -258,12 +240,12 @@ export default function Job({ token, role }) {
         <div className="space-y-5 lg:col-span-8">
           <form
             onSubmit={handleSubmit}
-            className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+            className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
           >
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-y-0 gap-x-4 md:grid-cols-2">
               <Input
                 type="text"
-                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 h-10"
                 value={title}
                 onChange={setTitle}
                 placeholder="Enter job title"
@@ -285,6 +267,7 @@ export default function Job({ token, role }) {
                   { value: "COMPLETED", label: "Completed" },
                   { value: "CANCELLED", label: "Cancelled" },
                 ]}
+                fieldClass="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
               />
 
               <Select
@@ -294,6 +277,7 @@ export default function Job({ token, role }) {
                 value={assignedTo}
                 onChange={setAssignedTo}
                 isDisabled={role !== "MANAGER"}
+                fieldClass="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
                 options={[
                   { value: "", label: "Select" },
                   ...(teamMembers
@@ -309,7 +293,7 @@ export default function Job({ token, role }) {
 
               <Input
                 type="datetime-local"
-                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                fieldClass="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                 value={scheduledDate}
                 onChange={setScheduledDate}
                 isDisabled={role !== "MANAGER"}
@@ -318,30 +302,33 @@ export default function Job({ token, role }) {
               />
             </div>
 
-            <div className="mt-3">
+            <div>
               <Textarea
                 id="job-description"
                 label="Description"
                 value={description}
                 onChange={setDescription}
                 isRequired={false}
-                fieldClass="w-full"
-                rows={3}
+                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm h-40"
+                rows={6}
                 placeholder="Job description..."
                 isDisabled={role !== "MANAGER"}
               />
             </div>
 
-            <div className="mt-4 flex justify-end">
-              <SubmitButton
-                isLoading={updatingJob}
-                btnClass="bg-accent px-4 py-2 text-sm text-white shadow-sm hover:bg-accentLight"
-                btnName="Save Changes"
-              />
+            <div className="-mt-2 flex justify-end">
+              <button
+                type="submit"
+                className="inline-flex items-center gap-3 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ minWidth: 140 }}
+                disabled={updatingJob}
+              >
+                Save Changes
+              </button>
             </div>
           </form>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
               <h4 className="text-lg font-semibold text-gray-900">
                 Job Photos
@@ -367,13 +354,15 @@ export default function Job({ token, role }) {
                       {photo.photo_type}
                     </span>
 
-                    <div className="absolute bottom-0 left-0 w-full bg-gray-900/70 px-3 py-2 text-center text-xs font-semibold text-white">
+                    <div className="absolute bottom-0 left-0 w-full bg-gray-800 px-3 py-2 text-center text-xs font-semibold text-white rounded-b-lg">
                       {formatDate(photo.uploaded_at)}
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">No photos uploaded yet.</p>
+                <div className="flex h-40 items-center justify-center">
+                  <p className="text-sm text-gray-500">No photos uploaded yet.</p>
+                </div>
               )}
             </div>
           </div>
