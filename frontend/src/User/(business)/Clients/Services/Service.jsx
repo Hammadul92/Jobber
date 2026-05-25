@@ -5,7 +5,6 @@ import { useDispatch } from "react-redux";
 import {
   useFetchServiceQuery,
   useUpdateServiceMutation,
-  useResendQuestionnaireMutation,
 } from "../../../../store";
 
 import SubmitButton from "../../../../Components/ui/SubmitButton";
@@ -20,24 +19,6 @@ export default function Service({ token }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  const [
-    resendQuestionnaire,
-    { isLoading: resending, isSuccess: resendSuccess, error: resendError },
-  ] = useResendQuestionnaireMutation();
-  // Show resend success/error alerts
-  useEffect(() => {
-    if (resendSuccess) {
-      setAlert({
-        type: "success",
-        message: "Questionnaire email resent to client.",
-      });
-    } else if (resendError) {
-      const msg =
-        resendError?.data?.detail || "Failed to resend questionnaire.";
-      setAlert({ type: "danger", message: msg });
-    }
-  }, [resendSuccess, resendError]);
 
   const { data: serviceData, isLoading } = useFetchServiceQuery(id, {
     skip: !token,
@@ -163,7 +144,7 @@ export default function Service({ token }) {
         />
       )}
 
-      <div className="mb-6 overflow-hidden rounded-2xl bg-linear-to-r from-accent to-secondary p-px shadow-lg">
+      <div className="mb-6 overflow-hidden rounded-2xl bg-accent p-px shadow-lg border-l-3 border-accent">
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white/95 px-6 py-5">
           <div className="space-y-1">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-secondary">
@@ -183,7 +164,7 @@ export default function Service({ token }) {
               </span>
             </div>
           </div>
-          <div className="flex flex-col gap-2 rounded-xl bg-linear-to-br from-secondary to-primary px-4 py-3 text-white shadow-md">
+          <div className="flex flex-col gap-2 rounded-xl bg-secondary px-4 py-3 text-white shadow-md">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
               Billing
             </p>
@@ -199,36 +180,22 @@ export default function Service({ token }) {
         </div>
       </div>
 
-      {/* Resend Questionnaire Button (if not filled) */}
-      {serviceData && !serviceData.filled_questionnaire && (
-        <div className="mb-4 flex justify-end">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-xl border border-accent bg-white px-4 py-2 text-sm font-semibold text-accent shadow hover:bg-accent hover:text-white disabled:opacity-60"
-            disabled={resending}
-            onClick={() => resendQuestionnaire(serviceData.id)}
-          >
-            {resending ? "Resending..." : "Resend Questionnaire"}
-          </button>
-        </div>
-      )}
-
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-6 shadow-sm"
+        className="space-y-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:p-6"
       >
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6 mb-0">
           <Input
             type="number"
-            label={"Price"}
+            label="Price"
             value={price}
             onChange={setPrice}
-            fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
             isRequired={true}
+            fieldClass="mb-0 h-10 rounded-xl px-3 py-2 text-sm"
           />
           <Select
             id="currency"
-            label={"Currency"}
+            label="Currency"
             value={currency}
             isRequired={true}
             onChange={setCurrency}
@@ -236,10 +203,11 @@ export default function Service({ token }) {
               { value: "CAD", label: "CAD" },
               { value: "USD", label: "USD" },
             ]}
+            fieldClass="h-10 rounded-xl text-sm"
           />
           <Select
             id="service_type"
-            label={"Service Type"}
+            label="Service Type"
             value={serviceType}
             isRequired={true}
             onChange={(value) => {
@@ -250,42 +218,29 @@ export default function Service({ token }) {
               { value: "ONE_TIME", label: "One Time" },
               { value: "SUBSCRIPTION", label: "Subscription" },
             ]}
+            fieldClass="h-10 rounded-xl text-sm"
           />
-
-          {serviceType === "SUBSCRIPTION" && (
-            <Select
-              id="billing_cycle"
-              label={"Billing Cycle"}
-              value={billingCycle}
-              isRequired={true}
-              onChange={setBillingCycle}
-              options={[
-                { value: "MONTHLY", label: "Monthly" },
-                { value: "YEARLY", label: "YEARLY" },
-              ]}
-            />
-          )}
 
           <Input
             type="date"
             id="start_date"
-            label={"Start Date"}
+            label="Start Date"
             value={startDate}
             isRequired={true}
             onChange={setStartDate}
-            fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+            fieldClass="mb-0 h-10 rounded-xl px-3 py-2 text-sm"
           />
           <Input
             type="date"
             id="end_date"
-            label={"End Date"}
+            label="End Date"
             value={endDate}
             onChange={setEndDate}
-            fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+            fieldClass="mb-0 h-10 rounded-xl px-3 py-2 text-sm"
           />
           <Select
             id="status"
-            label={"Status"}
+            label="Status"
             value={status}
             isRequired={true}
             onChange={setStatus}
@@ -295,11 +250,12 @@ export default function Service({ token }) {
               { value: "COMPLETED", label: "Completed" },
               { value: "CANCELLED", label: "Cancelled" },
             ]}
+            fieldClass="h-10 rounded-xl text-sm"
           />
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-gray-200 bg-linear-to-r from-secondary/5 to-gray-50 p-4">
-          <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
             <input
               id="generate_quote"
               type="checkbox"
@@ -308,17 +264,19 @@ export default function Service({ token }) {
               onChange={() => setAutoGenerateQuote(!autoGenerateQuote)}
               disabled={true}
             />
-            Auto-generate Quote (locked)
+            <span className="inline-flex items-center gap-2">
+              <span className="text-gray-400">🔒</span>
+              Auto-generate Quote (locked)
+            </span>
           </label>
           {autoGenerateQuote && (
-            <p className="flex items-start gap-2 text-sm text-gray-600">
-              <LuInfo className="mt-0.5 h-4 w-4 text-secondary" />A quote will
+            <p className="flex items-start gap-2 text-sm text-slate-500">
+              <LuInfo className="mt-0.5 h-4 w-4 text-slate-400" />A quote will
               be generated automatically after the questionnaire is completed.
-              The client will review and sign; notifications go to both parties.
             </p>
           )}
 
-          <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
             <input
               id="generate_invoices"
               type="checkbox"
@@ -329,32 +287,32 @@ export default function Service({ token }) {
             Auto-generate Invoice(s)
           </label>
           {autoGenerateInvoices && (
-            <p className="flex items-start gap-2 text-sm text-gray-600">
-              <LuInfo className="mt-0.5 h-4 w-4 text-secondary" />
+            <p className="flex items-start gap-2 text-sm text-slate-500">
+              <LuInfo className="mt-0.5 h-4 w-4 text-slate-400" />
               Invoices will be created automatically once the questionnaire is
               completed and the quote is signed.
             </p>
           )}
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h5 className="text-base font-semibold text-primary">
+        <div className="space-y-4">
+          <h5 className="text-lg font-semibold text-slate-900">
             Service Address
           </h5>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="md:col-span-2">
               <Input
                 id="street_address"
-                label={"Street Address"}
+                label="Street Address"
                 value={streetAddress}
                 isRequired={true}
                 onChange={setStreetAddress}
-                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                fieldClass="mb-0 h-10 rounded-xl px-3 py-2 text-sm"
               />
             </div>
             <Select
               id="country"
-              label={"Country"}
+              label="Country"
               value={country}
               isRequired={true}
               onChange={(value) => {
@@ -362,43 +320,45 @@ export default function Service({ token }) {
                 setProvinceState("");
               }}
               options={countries}
+              fieldClass="h-10 rounded-xl text-sm"
             />
             <Select
               id="province"
-              label={"Province/State"}
+              label="Province/State"
               value={provinceState}
               isRequired={true}
               onChange={setProvinceState}
               options={provinces[country]}
+              fieldClass="h-10 rounded-xl text-sm"
             />
 
             <Input
               id="city"
               value={city}
-              label={"City"}
+              label="City"
               onChange={setCity}
               isRequired={true}
-              fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+              fieldClass="mb-0 h-10 rounded-xl px-3 py-2 text-sm"
             />
             <Input
               id="postal_code"
               value={postalCode}
-              label={"Postal/Zip Code"}
+              label="Postal/Zip Code"
               onChange={setPostalCode}
               isRequired={true}
-              fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+              fieldClass="mb-0 h-10 rounded-xl px-3 py-2 text-sm"
             />
           </div>
 
-          <div>
+          <div className="pt-1">
             <Textarea
               id="service-description"
               label="Service Description"
               value={description}
               onChange={setDescription}
               isRequired={false}
-              fieldClass="w-full"
-              rows={3}
+              fieldClass="mb-0 min-h-[120px] rounded-xl px-3 py-3 text-sm"
+              rows={5}
             />
           </div>
         </div>
@@ -406,7 +366,7 @@ export default function Service({ token }) {
         <div className="flex justify-end gap-3">
           <button
             type="button"
-            className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/20"
+            className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/20"
             onClick={() =>
               navigate(`/user/business/client/${serviceData.client}/services`)
             }
@@ -415,7 +375,7 @@ export default function Service({ token }) {
           </button>
           <SubmitButton
             isLoading={updating}
-            btnClass="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-accent to-secondary px-4 py-2 text-sm font-semibold text-white shadow hover:shadow-lg disabled:opacity-60"
+            btnClass="inline-flex items-center justify-center rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight hover:shadow-lg disabled:opacity-60"
             btnName="Save Changes"
           />
         </div>

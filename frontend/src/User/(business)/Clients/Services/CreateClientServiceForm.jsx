@@ -62,34 +62,14 @@ export default function CreateClientServiceForm({
     setStatus("PENDING");
   };
 
-  // Populate form when editing
+  // Reset form when modal opens for creating a new service.
   useEffect(() => {
     if (!showModal) return;
-
-    if (isEditMode && initialData) {
-      setServiceName(initialData.service_name || "");
-      setServiceType(initialData.service_type || "ONE_TIME");
-      setPrice(initialData.price || "");
-      setCurrency(initialData.currency || "CAD");
-      setStartDate(initialData.start_date || "");
-      setEndDate(initialData.end_date || "");
-      setBillingCycle(initialData.billing_cycle || "");
-      setDescription(initialData.description || "");
-      setStreetAddress(initialData.street_address || "");
-      setCity(initialData.city || "");
-      setCountry(initialData.country || "CA");
-      setProvinceState(initialData.province_state || "");
-      setPostalCode(initialData.postal_code || "");
-      setAutoGenerateQuote(initialData.auto_generate_quote || false);
-      setAutoGenerateInvoices(initialData.auto_generate_invoices || false);
-      setStatus(initialData.status || "PENDING");
-      return;
-    }
 
     if (!isEditMode) {
       resetForm();
     }
-  }, [showModal, isEditMode, initialData]);
+  }, [showModal, isEditMode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

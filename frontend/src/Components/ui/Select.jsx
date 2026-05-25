@@ -29,7 +29,7 @@ export default function Select({
         onChange={onChange}
         placeholder={placeholder}
         disabled={isDisabled}
-        buttonClassName={`h-10 border-gray-200 bg-white text-slate-700 ${fieldClass || ""}`}
+        buttonClassName={`h-10! border-gray-200 bg-white text-slate-700 ${fieldClass || ""}`}
         menuClassName="z-50"
       />
     </div>

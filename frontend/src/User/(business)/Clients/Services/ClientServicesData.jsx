@@ -305,16 +305,15 @@ export default function ClientServicesData({
                         <LuTrash2 className="h-3.5 w-3.5" /> Delete
                       </button>
                     )}
-                    {onEdit && (
-                      <button
+                    {onEdit ? (
+                      <Link
+                        to={`/user/business/service/${service.id}`}
                         className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-gray-100"
-                        onClick={() => onEdit(service)}
                         title="Edit Service"
-                        type="button"
                       >
                         <LuPencil className="h-3.5 w-3.5" /> Edit
-                      </button>
-                    )}
+                      </Link>
+                    ) : null}
                   </div>
                 </div>
               </div>

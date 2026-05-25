@@ -25,9 +25,18 @@ export default function CreateQuoteForm({
   const { data: services } = useFetchServicesQuery(undefined, { skip: !token });
   const [createQuote, { isLoading: isCreating }] = useCreateQuoteMutation();
 
-  const quotedServiceIds = quoteData?.map((q) => q.service) || [];
+  const quoteRows = Array.isArray(quoteData)
+    ? quoteData
+    : (quoteData?.results ?? []);
+
+  // Mirror backend rule: block new quote only when an active non-declined quote exists.
+  const quotedServiceIds = quoteRows
+    .filter((quote) => quote?.is_active !== false && quote?.status !== "DECLINED")
+    .map((quote) => Number(quote.service))
+    .filter((serviceIdValue) => Number.isFinite(serviceIdValue));
+
   const availableServices = services?.filter(
-    (service) => !quotedServiceIds.includes(service.id),
+    (service) => !quotedServiceIds.includes(Number(service.id)),
   );
 
   const handleSubmit = async (e) => {
@@ -51,13 +60,25 @@ export default function CreateQuoteForm({
       setTermsConditions("");
       setNotes("");
       setShowModal(false);
-    } catch {
+    } catch (err) {
+      const message =
+        err?.data?.service?.[0] ||
+        err?.data?.detail ||
+        (err?.data && typeof err.data === "object"
+          ? Object.entries(err.data)
+              .map(([key, value]) =>
+                `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
+              )
+              .join(" | ")
+          : "") ||
+        err?.error ||
+        (typeof err?.data === "string" ? err.data : "") ||
+        "Something went wrong while creating the quote. Please try again.";
+
       setAlert({
         type: "danger",
-        message:
-          "Something went wrong while creating the quote. Please try again.",
+        message,
       });
-      setShowModal(false);
     }
   };
 
