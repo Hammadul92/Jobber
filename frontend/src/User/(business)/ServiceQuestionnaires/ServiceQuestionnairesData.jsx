@@ -210,7 +210,7 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
           <div className="w-full md:w-3/5 max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
             <div className="flex items-start justify-between border-b border-gray-100 px-6 py-4">
               <div>
-                <h5 className="text-lg font-semibold text-slate-900">
+                <h5 className="text-xl font-medium text-slate-900">
                   Questionnaire Preview
                 </h5>
                 <p className="mt-1 text-sm text-slate-500">
@@ -238,7 +238,7 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
                   (q, index) => (
                     <div
                       key={`${previewQuestionnaire.id}-${index}`}
-                      className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+                      className="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-xs"
                     >
                       <div className="mb-3 flex items-start justify-between gap-3">
                         <label className="text-sm font-semibold text-slate-900">
@@ -249,7 +249,7 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
                         </label>
                       </div>
 
-                      <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3">
+                      <div>
                         {q.type === "input" && (
                           <input
                             type={q.inputType || "text"}
@@ -311,7 +311,7 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                   onClick={() => setPreviewQuestionnaire(null)}
                 >
                   Close
@@ -326,15 +326,15 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-3">
           <form
             onSubmit={confirmDelete}
-            className="max-w-md rounded-2xl bg-white p-6 shadow-lg"
+            className="max-w-md rounded-2xl bg-white p-6 shadow-lg space-y-8"
           >
             <div className="flex items-start justify-between">
-              <h5 className="text-lg font-semibold text-primary">
+              <h5 className="text-xl font-medium text-slate-900">
                 Delete Service Questionnaire
               </h5>
               <button
                 type="button"
-                className="text-gray-500 transition hover:text-gray-700"
+                className="text-lg text-gray-500 transition hover:text-gray-700"
                 onClick={() => setShowModal(false)}
               >
                 ✕
@@ -346,14 +346,14 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
             <div className="mt-5 flex justify-end gap-3">
               <button
                 type="button"
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                 onClick={() => setShowModal(false)}
               >
                 Cancel
               </button>
               <SubmitButton
                 isLoading={deleting}
-                btnClass="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700"
+                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
                 btnName="Delete"
               />
             </div>

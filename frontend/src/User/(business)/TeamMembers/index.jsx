@@ -41,7 +41,7 @@ export default function TeamMembers({ token }) {
           iconClassName: "h-5 w-5",
           labelClassName: "hidden md:block",
           className:
-            "inline-flex items-center gap-2 rounded-lg bg-accent px-3 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
+            "inline-flex items-center gap-2 rounded-xl bg-accent px-3 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
         },
       }),
     );

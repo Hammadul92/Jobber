@@ -418,7 +418,7 @@ export default function CreateTeamMemberForm({
                             key={skill}
                             type="button"
                             onClick={() => removeSkill(skill)}
-                            className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-gray-200"
+                            className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-gray-200"
                             title="Remove skill"
                           >
                             <LuPlus className="h-3 w-3 rotate-45" />
@@ -435,7 +435,7 @@ export default function CreateTeamMemberForm({
                 <div className="flex items-center justify-end gap-3">
                   <button
                     type="button"
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-gray-100"
+                    className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-gray-100 transition"
                     onClick={() => setShowModal(false)}
                     disabled={isSubmitting}
                   >
@@ -444,7 +444,7 @@ export default function CreateTeamMemberForm({
                   <SubmitButton
                     isLoading={isSubmitting}
                     btnName={isEditMode ? "Save Changes" : "Add Member"}
-                    btnClass="bg-accent px-4 py-2 text-sm text-white shadow hover:bg-accentLight"
+                    btnClass="rounded-xl bg-accent px-4 py-2 text-sm text-white shadow hover:bg-accentLight transition"
                   />
                 </div>
               </div>

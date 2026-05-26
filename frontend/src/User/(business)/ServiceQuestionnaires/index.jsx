@@ -35,10 +35,10 @@ export default function Questionnaires({ token }) {
           label: "Add Questionnaire",
           title: "Add Questionnaire",
           icon: "plus",
-          iconClassName: "h-6 w-6 lg:h-5 lg:w-5",
+          iconClassName: "h-6 w-6 md:h-4.5 md:w-4.5",
           labelClassName: "hidden md:block",
           className:
-            "inline-flex items-center justify-center gap-2 h-10 w-10 md:h-auto md:w-auto rounded-xl lg:rounded-lg bg-accent px-0 md:px-4 py-0 md:py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
+            "inline-flex items-center justify-center gap-2 h-10 w-10 md:h-auto md:w-auto rounded-xl bg-accent px-0 md:px-4 py-0 md:py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
         },
       }),
     );

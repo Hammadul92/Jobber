@@ -683,12 +683,12 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
 
             <form
               onSubmit={confirmDelete}
-              className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+              className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-5"
               role="dialog"
               aria-modal="true"
             >
               <div className="flex items-center justify-between">
-                <h5 className="text-lg font-semibold text-gray-900">
+                <h5 className="text-xl font-medium text-gray-900">
                   Delete Invoice
                 </h5>
                 <button
@@ -708,14 +708,14 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   type="button"
-                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300"
+                  className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                   onClick={() => setShowModal(false)}
                 >
                   Cancel
                 </button>
                 <SubmitButton
                   isLoading={deleting}
-                  btnClass="bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-700"
+                  btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
                   btnName="Delete"
                 />
               </div>

@@ -267,8 +267,8 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                         key={option}
                         type="button"
                         className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${selectedRole === option
-                            ? "bg-slate-100 text-slate-900"
-                            : "text-slate-700 hover:bg-slate-100"
+                          ? "bg-slate-100 text-slate-900"
+                          : "text-slate-700 hover:bg-slate-100"
                           }`}
                         onClick={() => {
                           setSelectedRole(option);
@@ -314,8 +314,8 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                         key={option}
                         type="button"
                         className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${selectedStatus === option
-                            ? "bg-slate-100 text-slate-900"
-                            : "text-slate-700 hover:bg-slate-100"
+                          ? "bg-slate-100 text-slate-900"
+                          : "text-slate-700 hover:bg-slate-100"
                           }`}
                         onClick={() => {
                           setSelectedStatus(option);
@@ -361,8 +361,8 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                         key={option}
                         type="button"
                         className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${selectedExpertise === option
-                            ? "bg-slate-100 text-slate-900"
-                            : "text-slate-700 hover:bg-slate-100"
+                          ? "bg-slate-100 text-slate-900"
+                          : "text-slate-700 hover:bg-slate-100"
                           }`}
                         onClick={() => {
                           setSelectedExpertise(option);
@@ -419,8 +419,8 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
               <div className="mb-4">
                 <span
                   className={`inline-flex rounded-lg border px-3 py-0.5 text-sm font-semibold ${m._active
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                      : "border-amber-200 bg-amber-50 text-amber-700"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-amber-200 bg-amber-50 text-amber-700"
                     }`}
                 >
                   {m._active ? "Active" : "Pending"}
@@ -440,16 +440,16 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
 
               <div className="mt-5 space-y-2">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-700">
+                  <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-600">
                     Job Duties
                   </p>
-                  <p className="text-base text-slate-600">
+                  <p className="text-base text-slate-800">
                     {m.job_duties || "-"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-700">
+                  <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-600">
                     Expertise
                   </p>
                   <div className="my-1 flex flex-wrap gap-2">
@@ -457,7 +457,7 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                       getExpertiseTags(m.expertise).map((tag) => (
                         <span
                           key={`${m.id}-${tag}`}
-                          className="rounded-lg bg-gray-100 px-3 py-1 text-sm font-medium text-slate-700"
+                          className="rounded-lg bg-gray-100 px-3 py-1 text-sm font-medium text-slate-800"
                         >
                           {tag}
                         </span>
@@ -503,20 +503,15 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <form
             onSubmit={confirmDelete}
-            className="max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            className="max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-6"
           >
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <h5 className="text-lg font-semibold text-primary">
-                  Delete Team Member
-                </h5>
-                <p className="text-sm text-gray-600">
-                  This action cannot be undone.
-                </p>
-              </div>
+            <div className="flex items-start justify-between gap-3">
+              <h5 className="text-xl font-medium text-primary">
+                Delete Team Member
+              </h5>
               <button
                 type="button"
-                className="rounded-full p-2 text-gray-500 hover:bg-gray-100"
+                className="text-2xl text-gray-500 hover:text-gray-800"
                 onClick={() => setShowModal(false)}
                 aria-label="Close"
               >
@@ -524,14 +519,14 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
               </button>
             </div>
 
-            <p className="text-sm text-gray-700">
+            <p className="text-gray-700">
               Are you sure you want to delete this team member?
             </p>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="flex justify-end gap-3">
               <button
                 type="button"
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
                 onClick={() => setShowModal(false)}
                 disabled={deleting}
               >
@@ -539,7 +534,7 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
               </button>
               <SubmitButton
                 isLoading={deleting}
-                btnClass="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-rose-700"
+                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
                 btnName="Delete"
               />
             </div>

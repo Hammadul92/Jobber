@@ -249,7 +249,7 @@ export default function Job({ token, role }) {
               <div>
                 <button
                   type="submit"
-                  className="inline-flex w-full items-center justify-center gap-3 rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
                   disabled={uploading}
                 >
                   <LuUpload className="h-4 w-4" /> Upload
@@ -341,7 +341,7 @@ export default function Job({ token, role }) {
             <div className="-mt-2 flex justify-end">
               <button
                 type="submit"
-                className="inline-flex items-center gap-3 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-3 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ minWidth: 140 }}
                 disabled={updatingJob}
               >

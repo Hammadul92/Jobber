@@ -121,7 +121,7 @@ export default function Quote({ token }) {
 
   const pillBadge = `inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold ${statusColor}`;
   const btnPrimary =
-    "inline-flex items-center rounded-xl bg-[#ff6a00] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ff7a1f] disabled:cursor-not-allowed disabled:opacity-60";
+    "inline-flex items-center rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ff7a1f] disabled:cursor-not-allowed disabled:opacity-60";
   const cardBase =
     "relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm";
 
@@ -359,7 +359,7 @@ export default function Quote({ token }) {
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
-                className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
                 onClick={() => navigate("/user/business/quotes")}
               >
                 Cancel
@@ -367,7 +367,7 @@ export default function Quote({ token }) {
               {!isSigned && (
                 <SubmitButton
                   isLoading={updating}
-                  btnClass="bg-[#ff6a00] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#ff7a1f]"
+                  btnClass="bg-accent rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#ff7a1f]"
                   btnName="Save Changes"
                 />
               )}

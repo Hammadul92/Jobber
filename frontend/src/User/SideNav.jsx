@@ -142,6 +142,7 @@ export default function SideNav({ user, businessRegistered }) {
     const singularPatternsMap = {
       "/user/business/clients": "/user/business/client/",
       "/user/business/team-members": "/user/business/team-member/",
+      "/user/business/services": "/user/business/service/",
       "/user/business/quotes": "/user/business/quote/",
       "/user/business/jobs": "/user/business/job/",
       "/user/business/invoices": "/user/business/invoice/",
@@ -212,6 +213,7 @@ export default function SideNav({ user, businessRegistered }) {
               <NavLink
                 key={item.key}
                 to={item.path}
+                end={item.key === "business"}
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-xl p-3 font-medium transition ${
                     isActive

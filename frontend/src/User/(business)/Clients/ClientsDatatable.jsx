@@ -192,11 +192,10 @@ export default function ClientsDatatable({ token, showAddClient }) {
               {props.row.client_name}
             </span>
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                props.row.is_active === "True"
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${props.row.is_active === "True"
                   ? "bg-accent/15 text-accent"
                   : "bg-amber-100 text-amber-800"
-              }`}
+                }`}
             >
               {props.row.is_active === "True" ? "ACTIVE" : "INACTIVE"}
             </span>
@@ -426,7 +425,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                               Client Name
                             </p>
                             <span
-                              className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+                              className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
                             >
                               {isActive ? "Active" : "Inactive"}
                             </span>
@@ -612,11 +611,10 @@ export default function ClientsDatatable({ token, showAddClient }) {
                           className={`w-full px-2  text-left text-base transition `}
                         >
                           <div
-                            className={`flex items-center gap-2 w-full ${
-                              isSelected
+                            className={`flex items-center gap-2 w-full ${isSelected
                                 ? "bg-accent/10 font-semibold text-slate-900"
                                 : "text-slate-700 hover:bg-gray-50"
-                            } rounded-lg px-2 py-1`}
+                              } rounded-lg px-2 py-1`}
                           >
                             <span>{size}</span>
                             {isSelected && (
@@ -739,21 +737,16 @@ export default function ClientsDatatable({ token, showAddClient }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <form
             onSubmit={confirmDelete}
-            className="min-w-md rounded-xl bg-white p-6 shadow-2xl"
+            className="min-w-md rounded-xl bg-white p-6 shadow-2xl space-y-5"
             role="dialog"
           >
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <h5 className="text-lg font-semibold text-primary">
-                  Delete Client
-                </h5>
-                <p className="mt-1 text-sm text-gray-600">
-                  This action cannot be undone.
-                </p>
-              </div>
+            <div className="flex items-start justify-between gap-3">
+              <h5 className="text-xl font-medium text-primary">
+                Delete Client
+              </h5>
               <button
                 type="button"
-                className="text-gray-400 transition hover:text-gray-600"
+                className="text-gray-400 text-2xl transition hover:text-gray-600"
                 onClick={() => setShowModal(false)}
                 aria-label="Close"
               >
@@ -761,17 +754,21 @@ export default function ClientsDatatable({ token, showAddClient }) {
               </button>
             </div>
 
+            <p className="text-gray-600">
+              This action cannot be undone.
+            </p>
+
             <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
                 onClick={() => setShowModal(false)}
               >
                 Cancel
               </button>
               <SubmitButton
                 isLoading={deleting}
-                btnClass="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-red-700 disabled:opacity-60"
+                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
                 btnName="Delete"
               />
             </div>

@@ -164,11 +164,11 @@ export default function Service({ token }) {
               </span>
             </div>
           </div>
-          <div className="flex flex-col gap-2 rounded-xl bg-secondary px-4 py-3 text-white shadow-md">
+          <div className="flex flex-col gap-2 rounded-xl bg-secondary px-4 py-3 text-white shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
               Billing
             </p>
-            <p className="text-sm font-semibold">
+            <p className="text-xl font-medium">
               {price ? `$${price} ${currency}` : "Price TBD"}{" "}
               {billingCycle && `• ${billingCycle}`}
             </p>

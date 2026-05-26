@@ -4,7 +4,7 @@ import { useFetchJobsQuery, useDeleteJobMutation } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Dropdown from "../../../Components/ui/Dropdown";
 import { MdOutlineHomeRepairService } from "react-icons/md";
-import { LuCalendarDays, LuPencilLine } from "react-icons/lu";
+import { LuCalendarDays, LuPencilLine, LuTrash2 } from "react-icons/lu";
 
 export default function JobData({ token, role, setAlert }) {
   const [deleteJob, { isLoading: deleting }] = useDeleteJobMutation();
@@ -335,14 +335,15 @@ export default function JobData({ token, role, setAlert }) {
                     <div className="flex items-end justify-end gap-3 md:w-2/5">
                       <button
                         type="button"
-                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-gray-300 bg-white px-6 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
+                        className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
                         onClick={() => handleDeleteClick(job.id)}
                         title="Delete Job"
                       >
+                        <LuTrash2 className="h-4 w-4" />
                         Delete
                       </button>
                       <Link
-                        className="inline-flex items-center justify-center gap-1 rounded-lg bg-accent px-6 py-2 text-sm font-semibold text-white transition hover:bg-accentLight"
+                        className="inline-flex items-center justify-center gap-1 border border-secondary rounded-xl bg-secondary px-4 py-2 text-sm font-semibold text-white transition hover:bg-secondary/90"
                         to={`/user/business/job/${job.id}`}
                         title="Edit Job"
                       >
@@ -375,12 +376,12 @@ export default function JobData({ token, role, setAlert }) {
 
           <form
             onSubmit={confirmDelete}
-            className="relative z-10 w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            className="relative z-10 w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-6"
             role="dialog"
             aria-modal="true"
           >
             <div className="flex items-center justify-between">
-              <h5 className="text-lg font-semibold text-gray-900">
+              <h5 className="text-xl font-medium text-gray-900">
                 Delete Job
               </h5>
               <button
@@ -393,21 +394,21 @@ export default function JobData({ token, role, setAlert }) {
               </button>
             </div>
 
-            <p className="mt-3 text-sm text-gray-600">
+            <p className="mt-3 text-gray-600">
               Are you sure you want to delete this job?
             </p>
 
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300"
+                className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                 onClick={() => setShowModal(false)}
               >
                 Cancel
               </button>
               <SubmitButton
                 isLoading={deleting}
-                btnClass="bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-700"
+                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
                 btnName="Delete"
               />
             </div>

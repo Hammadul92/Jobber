@@ -28,10 +28,10 @@ export default function Clients({ token }) {
           label: "Add Client",
           title: "Add Client",
           icon: "user-plus",
-          iconClassName: "h-5 w-5",
+          iconClassName: "h-6 w-6 md:h-4.5 md:w-4.5",
           labelClassName: "hidden md:block",
           className:
-            "inline-flex items-center gap-2 rounded-lg bg-accent px-3 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
+            "inline-flex items-center gap-2 rounded-xl bg-accent px-3 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
         },
       }),
     );

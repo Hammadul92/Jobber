@@ -205,7 +205,7 @@ export default function CreateJobForm({
                 <div className="flex justify-end gap-3">
                   <button
                     type="button"
-                    className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                    className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
                     onClick={() => setShowModal(false)}
                     disabled={isCreating}
                   >
@@ -213,7 +213,7 @@ export default function CreateJobForm({
                   </button>
                   <SubmitButton
                     isLoading={isCreating}
-                    btnClass="bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accentLight"
+                    btnClass="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accentLight"
                     btnName="Create Job"
                   />
                 </div>

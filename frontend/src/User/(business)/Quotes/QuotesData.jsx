@@ -266,7 +266,7 @@ export default function QuotesData({ token, role, setAlert }) {
         >
           <div className="w-1/4 rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-              <h5 className="text-lg font-medium text-gray-900">
+              <h5 className="text-xl font-medium text-gray-900">
                 Delete Quote
               </h5>
               <button

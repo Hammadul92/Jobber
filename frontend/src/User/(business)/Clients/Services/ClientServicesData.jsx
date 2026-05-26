@@ -212,11 +212,10 @@ export default function ClientServicesData({
               key={tab.key}
               type="button"
               onClick={() => setStatusFilter(tab.key)}
-              className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
-                isActive
+              className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${isActive
                   ? "border-amber-300 bg-amber-50 text-amber-800"
                   : "border-gray-200 bg-white text-slate-600 hover:border-gray-300"
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -281,10 +280,10 @@ export default function ClientServicesData({
                   {service.service_questionnaires?.id ? (
                     <Link
                       to={`/user/business/service-questionnaire/${service.service_questionnaires?.id}/form/${service.id}`}
-                      className="inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-1.5 text-xs font-semibold text-white"
+                      className="inline-flex items-center gap-2 rounded-xl bg-secondary px-3 py-1.5 text-sm font-medium text-white border border-secondary"
                     >
                       {service.filled_questionnaire && (
-                        <LuCheck className="h-3.5 w-3.5" />
+                        <LuCheck className="h-4 w-4" />
                       )}
                       Service Questionnaires
                     </Link>
@@ -297,7 +296,7 @@ export default function ClientServicesData({
                   <div className="flex gap-2">
                     {role === "MANAGER" && (
                       <button
-                        className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                        className="inline-flex items-center gap-2 rounded-xl border border-rose-300 bg-rose-50/75 px-3 py-1.5 text-sm font-semibold text-rose-600 transition hover:bg-red-50"
                         onClick={() => handleDeleteClick(service.id)}
                         title="Delete Service"
                         type="button"
@@ -308,7 +307,7 @@ export default function ClientServicesData({
                     {onEdit ? (
                       <Link
                         to={`/user/business/service/${service.id}`}
-                        className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-gray-100"
+                        className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-secondary px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-secondary/90"
                         title="Edit Service"
                       >
                         <LuPencil className="h-3.5 w-3.5" /> Edit
@@ -335,21 +334,16 @@ export default function ClientServicesData({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <form
             onSubmit={confirmDelete}
-            className="w-2/7 max-w-md rounded-xl bg-white p-6 shadow-2xl"
+            className="w-2/7 max-w-md rounded-xl bg-white p-6 shadow-2xl space-y-5"
             role="dialog"
           >
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <h5 className="text-lg font-semibold text-primary">
-                  Delete Service
-                </h5>
-                <p className="mt-1 text-sm text-gray-600">
-                  This cannot be undone.
-                </p>
-              </div>
+            <div className="flex items-start justify-between gap-3">
+              <h5 className="text-xl font-medium text-primary">
+                Delete Service
+              </h5>
               <button
                 type="button"
-                className="text-gray-400 transition hover:text-gray-600"
+                className="text-2xl text-gray-400 transition hover:text-gray-600"
                 onClick={() => setShowModal(false)}
                 aria-label="Close"
               >
@@ -357,17 +351,23 @@ export default function ClientServicesData({
               </button>
             </div>
 
+            <div>
+              <p className="text-gray-600">
+                This cannot be undone.
+              </p>
+            </div>
+
             <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
                 onClick={() => setShowModal(false)}
               >
                 Cancel
               </button>
               <SubmitButton
                 isLoading={deleting}
-                btnClass="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow hover:shadow-lg disabled:opacity-60"
+                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
                 btnName="Delete"
               />
             </div>

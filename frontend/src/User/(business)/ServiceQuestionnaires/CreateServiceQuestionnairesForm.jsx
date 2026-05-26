@@ -474,7 +474,7 @@ export default function CreateServiceQuestionnairesForm({
             <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
                 onClick={() => setShowModal(false)}
                 disabled={isSubmitting}
               >
@@ -482,7 +482,7 @@ export default function CreateServiceQuestionnairesForm({
               </button>
               <SubmitButton
                 isLoading={isSubmitting}
-                btnClass="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accentLight"
+                btnClass="rounded-xl border border-accent bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accentLight"
                 btnName={mode === "edit" ? "Save Changes" : "Create"}
               />
             </div>
