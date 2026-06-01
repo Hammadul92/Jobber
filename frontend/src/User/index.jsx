@@ -222,7 +222,7 @@ export default function UserDashboard({ page, token, user }) {
 
       <SideNav user={user} businessRegistered={businessRegistered} />
 
-      <main className="flex-1 max-h-screen overflow-auto pt-10 md:pt-14 lg:pt-0">
+      <main className="flex-1 max-h-screen overflow-auto pt-15 md:pt-14 lg:pt-0">
         {alert.message && (
           <AlertDispatcher
             type={alert.type}

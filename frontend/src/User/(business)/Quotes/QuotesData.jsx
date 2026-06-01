@@ -22,7 +22,7 @@ export default function QuotesData({ token, role, setAlert }) {
   const [clientFilter, setClientFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  const quotes = quoteData || [];
+  const quotes = useMemo(() => quoteData || [], [quoteData]);
 
   const uniqueServices = useMemo(
     () => [...new Set(quotes.map((q) => q.service_name).filter(Boolean))],
@@ -229,6 +229,16 @@ export default function QuotesData({ token, role, setAlert }) {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {role === "CLIENT" && (
+                        <Link
+                          to={`/user/business/quote/sign/${quote.id}`}
+                          className="inline-flex items-center gap-2 rounded-xl border border-accent bg-white px-4 py-2 text-sm font-medium text-[#ff6a00] transition hover:bg-[#fff4ec]"
+                          title="View Quote"
+                        >
+                          View Quote
+                        </Link>
+                      )}
+
                       {role === "MANAGER" && (
                         <Link
                           to={`/user/business/quote/${quote.id}`}
