@@ -142,7 +142,7 @@ export default function AcceptAndSignQuote({
 
               <div className="mt-3 flex items-center justify-between gap-3">
                 <div
-                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold ${
+                  className={`inline-flex items-center gap-2 rounded-lg px-3 py-1 text-[11px] font-semibold ${
                     signatureData
                       ? "bg-emerald-100 text-emerald-700"
                       : "bg-amber-100 text-amber-700"

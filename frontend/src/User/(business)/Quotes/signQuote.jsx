@@ -216,7 +216,7 @@ export default function SignQuote({ token }) {
                         </p>
                         {quote.valid_until && status === "SENT" && (
                             <div
-                                className={`md:mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${timeRemaining === "Expired"
+                                className={`md:mt-2 inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold ${timeRemaining === "Expired"
                                         ? "bg-rose-100 text-rose-700"
                                         : "bg-emerald-100 text-emerald-700"
                                     }`}
@@ -262,11 +262,11 @@ export default function SignQuote({ token }) {
                                     Client Details
                                 </h4>
                                 {String(client.is_active) === "True" || client.is_active === true ? (
-                                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                    <span className="inline-flex items-center rounded-lg bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                                         ACTIVE
                                     </span>
                                 ) : (
-                                    <span className="inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                                    <span className="inline-flex items-center rounded-lg bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
                                         INACTIVE
                                     </span>
                                 )}

@@ -182,7 +182,7 @@ export default function QuotesData({ token, role, setAlert }) {
                     {quote.quote_number}
                   </h5>
                   <span
-                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.04em] ${badgeClass}`}
+                    className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold uppercase tracking-[0.04em] ${badgeClass}`}
                   >
                     {badgeText}
                   </span>
