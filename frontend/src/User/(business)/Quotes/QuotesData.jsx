@@ -88,7 +88,7 @@ export default function QuotesData({ token, role, setAlert }) {
 
   return (
     <>
-      <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="p-5 mb-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
         <div className="grid gap-4 md:grid-cols-3">
           <Select
             id="quotes-service-filter"
@@ -130,7 +130,7 @@ export default function QuotesData({ token, role, setAlert }) {
 
       {filteredQuotes.length === 0 ? (
         <div className="min-h-[65vh] rounded-xl border border-dashed border-gray-200 bg-white text-center">
-          <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-gray-600">
+          <div className="flex flex-col items-center justify-center h-full gap-2 p-6 text-gray-600">
             <p className="text-base font-semibold text-gray-800">
               No quotes found.
             </p>
@@ -174,10 +174,10 @@ export default function QuotesData({ token, role, setAlert }) {
 
             return (
               <div
-                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+                className="p-5 bg-white border border-gray-200 shadow-sm rounded-2xl"
                 key={quote.quote_number}
               >
-                <div className="mb-6 flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-3 mb-6">
                   <h5 className="text-xl font-medium tracking-tight text-[#ff6a00]">
                     {quote.quote_number}
                   </h5>
@@ -207,7 +207,7 @@ export default function QuotesData({ token, role, setAlert }) {
 
                 <div className="mt-6 space-y-3 text-slate-600">
                   <div className="flex items-center gap-2">
-                    <LuUser className="h-5 w-5 text-slate-400" />
+                    <LuUser className="w-5 h-5 text-slate-400" />
                     <span>{quote.client_name}</span>
                   </div>
 
@@ -217,10 +217,10 @@ export default function QuotesData({ token, role, setAlert }) {
                   </div>
                 </div>
 
-                <div className="mt-6 border-t border-gray-200 pt-4">
+                <div className="pt-4 mt-6 border-t border-gray-200">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <LuCalendarDays className="h-4 w-4 text-slate-500" />
+                      <LuCalendarDays className="w-4 h-4 text-slate-500" />
                       <span>
                         {isExpired && quote.status !== "SIGNED"
                           ? `Expired on ${formatDate(quote.valid_until)}`
@@ -242,20 +242,20 @@ export default function QuotesData({ token, role, setAlert }) {
                       {role === "MANAGER" && (
                         <Link
                           to={`/user/business/quote/${quote.id}`}
-                          className="inline-flex items-center gap-2 rounded-xl border border-secondary bg-secondary px-4 py-2 text-sm font-medium text-white transition hover:bg-secondary/95"
+                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition border rounded-xl border-secondary bg-secondary hover:bg-secondary/95"
                           title="Edit Quote"
                         >
-                          <LuPencil className="h-4 w-4" /> Edit
+                          <LuPencil className="w-4 h-4" /> Edit
                         </Link>
                       )}
 
                       {role === "MANAGER" && (
                         <button
-                          className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
+                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition border rounded-xl border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
                           onClick={() => handleDeleteClick(quote.id)}
                           type="button"
                         >
-                          <LuTrash2 className="h-4 w-4" /> Delete
+                          <LuTrash2 className="w-4 h-4" /> Delete
                         </button>
                       )}
                     </div>
@@ -270,18 +270,18 @@ export default function QuotesData({ token, role, setAlert }) {
       {showModal && (
         <form
           onSubmit={confirmDelete}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50"
           role="dialog"
           aria-modal="true"
         >
-          <div className="w-1/4 rounded-2xl bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+          <div className="w-1/4 bg-white shadow-2xl rounded-2xl">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h5 className="text-xl font-medium text-gray-900">
                 Delete Quote
               </h5>
               <button
                 type="button"
-                className="text-gray-600 transition hover:text-gray-900 text-2xl"
+                className="text-2xl text-gray-600 transition hover:text-gray-900"
                 onClick={() => setShowModal(false)}
                 aria-label="Close"
               >
@@ -296,7 +296,7 @@ export default function QuotesData({ token, role, setAlert }) {
             <div className="flex justify-end gap-3 px-5 py-4">
               <button
                 type="button"
-                className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                className="inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 transition bg-white border border-gray-200 rounded-xl hover:bg-gray-50"
                 onClick={() => setShowModal(false)}
               >
                 Cancel

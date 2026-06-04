@@ -186,7 +186,7 @@ export default function JobData({ token, role, setAlert }) {
               value={startDateFilter}
               onChange={(e) => setStartDateFilter(e.target.value)}
               placeholder="dd/mm/yyyy"
-              className="date-input-no-icon w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-900 placeholder-gray-500 transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              className="h-11 date-input-no-icon w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-900 transition focus:border-accent focus:outline-none"
             />
             <svg
               className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer text-gray-400 transition hover:text-gray-600"
@@ -218,7 +218,7 @@ export default function JobData({ token, role, setAlert }) {
               value={endDateFilter}
               onChange={(e) => setEndDateFilter(e.target.value)}
               placeholder="dd/mm/yyyy"
-              className="date-input-no-icon w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-900 placeholder-gray-500 transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              className="h-11 date-input-no-icon w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-900 transition focus:border-accent focus:outline-none"
             />
             <svg
               className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer text-gray-400 transition hover:text-gray-600"

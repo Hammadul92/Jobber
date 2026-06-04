@@ -415,26 +415,26 @@ export default function BankingInformation({ token, setAlert = () => {} }) {
           role="dialog"
           aria-modal="true"
         >
-          <div className="max-w-md rounded-xl bg-white shadow-xl">
-            <div className="border-b border-gray-200 px-5 py-4">
-              <h5 className="text-lg font-semibold text-gray-900">
+          <div className="max-w-lg w-2/7 rounded-xl bg-white shadow-xl space-y-5">
+            <div className="border-b border-gray-50 px-5 py-4">
+              <h5 className="text-xl font-medium text-gray-900">
                 Delete Payment Method
               </h5>
             </div>
             <div className="px-5 py-4 text-sm text-gray-700">
               Are you sure you want to delete this payment method?
             </div>
-            <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4">
+            <div className="flex items-center justify-end gap-3 border-t border-gray-50 px-5 py-4">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-accent hover:text-accent"
+                className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                 onClick={() => setShowModal(false)}
               >
                 Cancel
               </button>
               <SubmitButton
                 isLoading={deleting}
-                btnClass="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-red-700 disabled:opacity-60"
+                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
                 btnName="Delete"
               />
             </div>
