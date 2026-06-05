@@ -104,7 +104,7 @@ export default function Header() {
     <li className="flex items-center justify-between ">
       <Link
         to={to}
-        className="flex items-center justify-between w-full text-gray-800 hover:text-white py-3 px-6 hover:bg-accent hover:shadow shadow-accent/50 rounded-xl"
+        className="flex items-center justify-between w-full px-6 py-3 text-gray-800 hover:text-white hover:bg-accent hover:shadow shadow-accent/50 rounded-xl"
         onClick={() => setShowDropdown(false)}
       >
         <span className="flex items-center gap-3">
@@ -234,7 +234,7 @@ export default function Header() {
         {/* Mobile Menu Button */}
         <div className="lg:hidden">
           <button
-            className="text-secondary mt-3"
+            className="mt-3 text-secondary"
             onClick={() => setMobileNavOpen(!mobileNavOpen)}
           >
             <FaBars className="text-xl" />
@@ -248,11 +248,11 @@ export default function Header() {
             onClick={() => setMobileNavOpen(false)}
           >
             <div
-              className="w-4/5 md:w-3/7 h-screen bg-white overflow-y-auto"
+              className="w-4/5 h-screen overflow-y-auto bg-white md:w-3/7"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-8 inset-0 flex justify-between">
-                <h3 className="font-heading text-2xl">Menu</h3>
+              <div className="inset-0 flex justify-between p-8">
+                <h3 className="text-2xl font-heading">Menu</h3>
               </div>
               <nav className="flex flex-col items-start justify-start font-medium">
                 <Link
@@ -286,7 +286,7 @@ export default function Header() {
                   )}
                 </div>
                 {showMobileIndustries && (
-                  <div className="pl-14 pb-2">
+                  <div className="pb-2 pl-14">
                     <div className="flex flex-col gap-3 mb-2 text-gray-600">
                       <span>HVAC</span>
                       <span>Landscaping</span>
@@ -314,17 +314,19 @@ export default function Header() {
                       }}
                     >
                       SEE ALL INDUSTRIES{" "}
-                      <FaChevronRight className="text-secondary mb-px" />
+                      <FaChevronRight className="mb-px text-secondary" />
                     </Link>
                   </div>
                 )}
-                <Link
+
+                {/* <Link
                   to="/"
                   onClick={handlePricingClick}
-                  className="w-full text-lg text-left px-8 py-5"
+                  className="w-full px-8 py-5 text-lg text-left"
                 >
                   Pricing
-                </Link>
+                </Link> */}
+
                 <Link
                   onClick={(e) => {
                     e.stopPropagation();
@@ -382,7 +384,7 @@ export default function Header() {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="hidden lg:flex items-center md:text-lg gap-x-10 lg:mt-2 font-medium">
+        <nav className="items-center hidden font-medium lg:flex md:text-lg gap-x-10 lg:mt-2">
           <Link to="/" className={linkClass("/")}>
             Home
           </Link>
@@ -415,7 +417,7 @@ export default function Header() {
             {showMegaMenu && (
               <div
                 ref={megaMenuRef}
-                className="absolute left-0 top-full min-w-180 max-w-225 bg-white shadow-2xl rounded-xl border border-gray-200 z-40"
+                className="absolute left-0 z-40 bg-white border border-gray-200 shadow-2xl top-full min-w-180 max-w-225 rounded-xl"
               >
                 <MegaMenu onClose={() => setShowMegaMenu(false)} />
               </div>
@@ -436,40 +438,40 @@ export default function Header() {
         </nav>
 
         {showDropdown && (
-          <div className="absolute top-0 left-0 bg-black/40 w-full h-screen" />
+          <div className="absolute top-0 left-0 w-full h-screen bg-black/40" />
         )}
 
         {/* Login button and User account dropdown */}
-        <div className=" flex items-center gap-3 md:flex">
+        <div className="flex items-center gap-3 md:flex">
           {loading ? (
             <span className="text-gray-500">Loading...</span>
           ) : !token || !user ? (
             <>
               <Link
-                className="text-2xl md:text-xl md:hidden font-bold"
+                className="text-2xl font-bold md:text-xl md:hidden"
                 to="/sign-in"
               >
                 <FiLogIn className="mb-1" />
               </Link>
-              <Link className="primary hidden md:inline" to="/sign-in">
+              <Link className="hidden primary md:inline" to="/sign-in">
                 Login
               </Link>
             </>
           ) : (
             <div className="relative z-30" ref={menuRef}>
               <button
-                className="cursor-pointer flex items-center gap-2 rounded-md py-2 text-gray-800 hover:text-accent"
+                className="flex items-center gap-2 py-2 text-gray-800 rounded-md cursor-pointer hover:text-accent"
                 type="button"
                 onClick={() => setShowDropdown((open) => !open)}
                 aria-expanded={showDropdown}
                 aria-haspopup="true"
               >
                 <LuCircleUser className="text-2xl md:text-xl" />
-                <span className="hidden md:block font-bold">{user.name}</span>
+                <span className="hidden font-bold md:block">{user.name}</span>
                 {showDropdown ? (
-                  <FaChevronUp className="hidden md:block text-xs" />
+                  <FaChevronUp className="hidden text-xs md:block" />
                 ) : (
-                  <FaChevronDown className="hidden md:block text-xs" />
+                  <FaChevronDown className="hidden text-xs md:block" />
                 )}
               </button>
 
@@ -478,12 +480,12 @@ export default function Header() {
                   {/* Profile Section */}
                   <div className="flex items-center gap-3 mb-6">
                     {/* Profile avatar */}
-                    <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="flex items-center justify-center w-12 h-12 bg-gray-200 rounded-full">
                       {user.profilePic ? (
                         <img
                           src={user.profilePic}
                           alt="Profile"
-                          className="h-full w-full rounded-full object-cover"
+                          className="object-cover w-full h-full rounded-full"
                         />
                       ) : (
                         <span className="text-xl font-bold text-gray-700">
@@ -492,13 +494,13 @@ export default function Header() {
                       )}
                     </div>
                     <div>
-                      <div className="font-semibold text-lg">{user.name}</div>
+                      <div className="text-lg font-semibold">{user.name}</div>
                       <div className="text-xs text-gray-500">{user.email}</div>
                     </div>
                   </div>
 
                   <div>
-                    <ul className="overflow-hidden rounded-xl border border-gray-100 bg-gray-50 p-3 font-medium text-gray-800">
+                    <ul className="p-3 overflow-hidden font-medium text-gray-800 border border-gray-100 rounded-xl bg-gray-50">
                       {renderLink("/user/profile", LuUser, "Profile")}
                       {(user.role === "USER" || user.role === "MANAGER") &&
                         renderLink("/user/business", LuBuilding2, "Business")}
@@ -517,7 +519,7 @@ export default function Header() {
                                                         ? 'Client Portal'
                                                         : 'Employee Portal'}
                                             </h5>
-                                            <ul className="overflow-hidden rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-800">
+                                            <ul className="overflow-hidden text-sm font-medium text-gray-800 bg-white border border-gray-200 rounded-lg">
                                                 {roleMenus[user.role]}
                                             </ul>
                                         </div>
@@ -525,7 +527,7 @@ export default function Header() {
 
                   <button
                     onClick={handleLogout}
-                    className="cursor-pointer rounded-xl mt-2 flex items-center justify-center gap-2 w-full px-4 py-2 text-gray-600 hover:text-gray-950 hover:bg-gray-100 transition"
+                    className="flex items-center justify-center w-full gap-2 px-4 py-2 mt-2 text-gray-600 transition cursor-pointer rounded-xl hover:text-gray-950 hover:bg-gray-100"
                   >
                     <LuLogOut /> Logout Account
                   </button>
