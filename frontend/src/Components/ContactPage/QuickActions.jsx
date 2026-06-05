@@ -20,13 +20,13 @@ function QuickActions() {
             Perfect for discussing pricing, custom plans, or migrating from
             another tool like Jobber or Housecall Pro.
           </p>
-          <a
+          {/* <a
             href="#"
             className="font-semibold text-secondary mt-auto hover:underline flex items-center gap-1"
           >
             Chat with an expert{" "}
             <MdOutlineArrowForwardIos className="inline-flex" />
-          </a>
+          </a> */}
         </div>
 
         {/* Card 2: Book a Live Demo */}
@@ -41,13 +41,13 @@ function QuickActions() {
             See exactly how Contractorz works for your specific trade. We'll
             walk through scheduling, quoting, and invoicing.
           </p>
-          <a
+          {/* <a
             href="#"
             className="font-semibold text-accent mt-auto hover:underline flex items-center gap-1"
           >
             Schedule a walkthrough{" "}
             <MdOutlineArrowForwardIos className="inline-flex" />
-          </a>
+          </a> */}
         </div>
 
         {/* Card 3: Customer Support */}
@@ -62,13 +62,13 @@ function QuickActions() {
             Already using Contractorz? Get help with technical issues, account
             settings, or team onboarding.
           </p>
-          <a
+          {/* <a
             href="#"
             className="font-semibold text-secondary mt-auto hover:underline flex items-center gap-1"
           >
             Visit Help Center{" "}
             <MdOutlineArrowForwardIos className="inline-flex" />
-          </a>
+          </a> */}
         </div>
       </div>
     </section>

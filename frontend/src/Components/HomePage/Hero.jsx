@@ -120,7 +120,7 @@ function Hero() {
         </div>
         <button
           onClick={() => {
-            navigate("/contact-us");
+            navigate("/contact");
           }}
           className="primary md:min-w-sm mt-12"
         >

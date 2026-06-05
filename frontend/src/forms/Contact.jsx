@@ -1,6 +1,9 @@
-import React from "react";
+import { useState, React } from "react";
+import Textarea from "../Components/ui/Textarea";
 
 function Contact() {
+  const [helpText, setHelpText] = useState("");
+
   return (
     <form className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 flex flex-col gap-5 max-w-xl mx-auto">
       <h3 className="text-xl font-semibold mb-1">Send us a message</h3>
@@ -15,7 +18,7 @@ function Contact() {
           <input
             type="text"
             placeholder="Jane"
-            className="w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
         <div className="flex-1">
@@ -25,7 +28,7 @@ function Contact() {
           <input
             type="text"
             placeholder="Doe"
-            className="w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
       </div>
@@ -36,7 +39,7 @@ function Contact() {
         <input
           type="email"
           placeholder="jane@company.com"
-          className="w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </div>
       <div>
@@ -46,7 +49,7 @@ function Contact() {
         <input
           type="text"
           placeholder="Acme Contracting"
-          className="w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </div>
       <div>
@@ -56,10 +59,10 @@ function Contact() {
         <Textarea
           id="contact-help"
           label={null}
-          value={helpText}
-          onChange={setHelpText}
+          value={helpText || ""}
+          onChange={setHelpText || (() => {})}
           isRequired={false}
-          fieldClass="w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+          fieldClass="w-full border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent resize-none"
           rows={4}
           placeholder="I'm interested in a demo and have a question about Quickbooks integration..."
         />
@@ -76,7 +79,7 @@ function Contact() {
       </div>
       <button
         type="submit"
-        className="mt-2 bg-black text-white rounded-md py-3 font-semibold text-base hover:bg-gray-900 transition"
+        className="mt-2 bg-black text-white rounded-xl py-3 font-semibold text-base hover:bg-gray-900 transition"
       >
         Send Request
       </button>

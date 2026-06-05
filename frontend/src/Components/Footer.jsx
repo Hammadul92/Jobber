@@ -88,7 +88,7 @@ export default function Footer() {
               >
                 Privacy Policy
               </Link>
-              <Link to="/contact-us" className="text-white/70 hover:text-white">
+              <Link to="/contact" className="text-white/70 hover:text-white">
                 Contact Us
               </Link>
             </div>
@@ -99,9 +99,9 @@ export default function Footer() {
               Connect With Us
             </h4>
             <div className="flex flex-col items-start lg:gap-4 mt-2 md:mt-5 max-w-3xs text-white/70">
-              <p>27 Division St, New York, NY 10002, USA</p>
-              <p>+123 324 2653</p>
-              <p>info@contractorz.com</p>
+              {/* <p>27 Division St, New York, NY 10002, USA</p> */}
+              <p>+1 (403) 970-3777</p>
+              <p>info@getcontractorz.com</p>
             </div>
           </div>
         </div>

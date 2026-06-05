@@ -107,7 +107,7 @@ function LandscapingFeatures() {
         </div>
       </div>
       {/* Mobile-Friendly for Field Work */}
-      <div className="bg-[#0F172A] rounded-xl p-6 flex items-center gap-4 mt-8">
+      <div className="bg-secondary rounded-xl p-6 flex items-center gap-4 mt-8">
         <div>
           <p className="text-white text-xl mb-3 font-medium">
             Mobile-Friendly for Field Work

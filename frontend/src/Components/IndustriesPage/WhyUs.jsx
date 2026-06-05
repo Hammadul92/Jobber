@@ -1,10 +1,11 @@
 import React from "react";
 import { IoMdCheckmarkCircleOutline } from "react-icons/io";
+import { Link } from "react-router-dom";
 
 function WhyUs() {
   return (
     <section className="px-6 py-10 md:py-20 md:px-16 lg:px-32 bg-white flex items-center justify-center">
-      <div className="bg-[#0F172A] rounded-2xl px-4 py-12 md:px-16 md:py-16 w-5xl max-w-xl mx-auto">
+      <div className="bg-secondary rounded-2xl px-4 py-12 md:px-16 md:py-16 w-5xl max-w-xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-extrabold text-white text-center mb-10">
           Why businesses choose Contractorz
         </h2>
@@ -44,12 +45,12 @@ function WhyUs() {
             business with clarity and confidence.
           </p>
           <div className="flex flex-col md:flex-row gap-4 justify-center">
-            <button className="bg-white text-[#0F172A] font-semibold px-8 py-4 rounded-xl md:text-lg hover:bg-gray-100 transition">
+            <Link to="/register" className="bg-white text-[#0F172A] font-semibold px-8 py-4 rounded-xl md:text-lg hover:bg-gray-100 transition">
               Start Free Trial
-            </button>
-            <button className="border border-[#334155] text-white font-semibold px-8 py-4 rounded-xl md:text-lg hover:bg-[#1e293b] transition">
+            </Link>
+            <Link to="/contact" className="border border-white text-white font-semibold px-8 py-4 rounded-xl md:text-lg hover:bg-[#1e293b] transition">
               Book a Demo
-            </button>
+            </Link>
           </div>
         </div>
       </div>
