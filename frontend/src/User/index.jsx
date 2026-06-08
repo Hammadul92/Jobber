@@ -243,7 +243,7 @@ export default function UserDashboard({ page, token, user }) {
           </div>
         )}
 
-        <div className="pt-8 pb-4 px-4 md:px-12 md:pt-12 lg:pb-12 lg:p-12 lg:pr-14">
+        <div className="px-4 pt-8 pb-4 md:px-12 md:pt-12 lg:pb-12 lg:p-12 lg:pr-14">
           {renderTab()}
         </div>
       </main>
