@@ -33,10 +33,10 @@ export default function Jobs({ token, role }) {
                 label: "Add Job",
                 title: "Add Job",
                 icon: "plus",
-                iconClassName: "h-6 w-6 md:h-4.5 md:w-4.5",
+                iconClassName: "h-6 w-6 md:h-7 md:w-7",
                 labelClassName: "hidden md:inline-flex",
                 className:
-                  "inline-flex items-center gap-2 rounded-xl bg-accent px-2 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:opacity-60",
+                  "inline-flex items-center gap-2 rounded-xl bg-accent px-3 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight disabled:opacity-60",
               }
             : null,
       }),

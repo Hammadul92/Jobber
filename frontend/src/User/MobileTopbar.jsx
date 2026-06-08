@@ -1,4 +1,4 @@
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useLocation } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { FaBars } from "react-icons/fa";
 import {
@@ -20,7 +20,7 @@ import { IoClose } from "react-icons/io5";
 
 function MobileTopbar({ role, businessName, user }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // const location = useLocation();
+  const location = useLocation();
 
   const logo = "/images/contractorz-logo-horizontal.svg";
 
@@ -125,6 +125,27 @@ function MobileTopbar({ role, businessName, user }) {
     "User";
   const displayEmail = user?.email || "";
 
+  const isBusinessMenuItemActive = (menuPath) => {
+    const currentPath = location.pathname;
+
+    if (currentPath.startsWith(menuPath)) return true;
+
+    const singularPatternsMap = {
+      "/user/business/clients": "/user/business/client/",
+      "/user/business/team-members": "/user/business/team-member/",
+      "/user/business/services": "/user/business/service/",
+      "/user/business/quotes": "/user/business/quote/",
+      "/user/business/jobs": "/user/business/job/",
+      "/user/business/invoices": "/user/business/invoice/",
+      "/user/business/payouts": "/user/business/payout/",
+      "/user/business/service-questionnaires":
+        "/user/business/service-questionnaire/",
+    };
+
+    const singularPattern = singularPatternsMap[menuPath];
+    return singularPattern ? currentPath.startsWith(singularPattern) : false;
+  };
+
   // const segmentLabels = {
   //     dashboard: 'Dashboard',
   //     home: 'Home',
@@ -170,7 +191,7 @@ function MobileTopbar({ role, businessName, user }) {
   const closeMobileMenu = () => setIsMenuOpen(false);
 
   return (
-    <div className="fixed z-20 inset-x-0 top-0 bg-background text-secondary shadow-sm p-4 md:px-12 flex items-end justify-between lg:hidden">
+    <div className="fixed inset-x-0 top-0 z-20 flex items-end justify-between p-4 shadow-sm bg-background text-secondary md:px-12 lg:hidden">
       <button
         onClick={toggleMobileMenu}
         aria-expanded={isMenuOpen}
@@ -199,45 +220,46 @@ function MobileTopbar({ role, businessName, user }) {
         className={`absolute top-0 left-0 h-screen w-4/5 md:w-2/5 max-w-sm p-2 transition-transform duration-300 ease-out ${isMenuOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"}`}
         aria-hidden={!isMenuOpen}
       >
-        <div className="bg-white h-full flex flex-col shadow-md rounded-2xl p-3 overflow-y-auto overscroll-contain">
+        <div className="flex flex-col h-full p-3 overflow-y-auto bg-white shadow-md rounded-3xl overscroll-contain">
           <button
-            className="mr-auto mb-6 flex h-10 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-black cursor-pointer shadow-sm transition hover:bg-gray-100"
+            className="flex items-center justify-center h-10 mb-6 mr-auto text-black transition bg-white border border-gray-200 shadow-sm cursor-pointer w-9 rounded-xl hover:bg-gray-100"
             onClick={closeMobileMenu}
             aria-label="Close navigation"
             type="button"
           >
-            <IoClose className="h-8 w-6" />
+            <IoClose className="w-6 h-8" />
           </button>
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+            <div className="flex items-center justify-center w-12 h-12 bg-gray-200 rounded-full">
               {user?.profile_picture ? (
                 <img
                   src={user.profile_picture}
                   alt="Profile"
-                  className="h-full w-full rounded-full object-cover"
+                  className="object-cover w-full h-full rounded-full"
                 />
               ) : (
-                <span className="text-gray-500 text-lg font-bold">
+                <span className="text-lg font-bold text-gray-500">
                   {displayName.charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
             <div>
-              <div className="font-semibold text-black text-lg leading-tight">
+              <div className="text-lg font-semibold leading-tight text-black">
                 {displayName}
               </div>
               <div className="text-sm text-gray-500">{displayEmail}</div>
             </div>
           </div>
 
-          <nav className="mb-4 space-y-1 bg-gray-50 border border-gray-100 p-1 rounded-xl">
+          <nav className="p-1 mb-4 space-y-1 border border-gray-100 bg-gray-50 rounded-xl">
             {accountMenu
               .filter((item) => item.visible)
               .map((item) => (
                 <NavLink
                   key={item.key}
                   to={item.path}
+                  end={item.key === "business"}
                   onClick={closeMobileMenu}
                   className={({ isActive }) =>
                     `flex items-center gap-3 rounded-xl px-3 py-2 font-medium transition ${
@@ -258,29 +280,27 @@ function MobileTopbar({ role, businessName, user }) {
               <div className="mt-2 text-[0.7rem] text-gray-400 font-semibold">
                 WORKSPACE
               </div>
-              <div className="mb-4 font-bold text-lg text-gray-900">
+              <div className="mb-4 text-lg font-bold text-gray-900">
                 {businessName || "Dashboard"}
               </div>
             </>
           )}
 
-          <ul className="flex flex-1 flex-col gap-1 rounded-xl">
+          <ul className="flex flex-col flex-1 gap-1 rounded-xl">
             {navItems.map((item) =>
               item.is_visible ? (
                 <li key={item.path}>
                   <NavLink
                     to={item.path}
                     onClick={closeMobileMenu}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 rounded-xl px-3 py-2 font-medium transition ${
-                        isActive
-                          ? "bg-gray-100 text-black font-bold"
-                          : "text-gray-500 hover:bg-gray-100 hover:text-black font-medium"
-                      }`
-                    }
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 font-medium transition ${
+                      isBusinessMenuItemActive(item.path)
+                        ? "bg-gray-100 text-black font-bold"
+                        : "text-gray-500 hover:bg-gray-100 hover:text-black font-medium"
+                    }`}
                     title={item.name}
                   >
-                    <item.icon className="h-5 w-5" />
+                    <item.icon className="w-5 h-5" />
                     <span>{item.name}</span>
                   </NavLink>
                 </li>
@@ -288,10 +308,10 @@ function MobileTopbar({ role, businessName, user }) {
             )}
           </ul>
 
-          <div className="mt-auto  pt-6 px-3">
+          <div className="px-3 pt-6 mt-auto">
             <button
               onClick={closeMobileMenu}
-              className="p-3 flex items-center gap-2 text-gray-500 bg-gray-100 border border-gray-200 w-full text-sm font-medium rounded-xl"
+              className="flex items-center w-full gap-2 p-3 text-sm font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded-xl"
               type="button"
             >
               <LuLogOut className="w-5 h-5" />
