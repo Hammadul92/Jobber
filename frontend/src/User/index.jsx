@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFetchBusinessesQuery } from "../store";
 import MobileTopbar from "./MobileTopbar";
+import DashboardTopbar from "./DashboardTopbar";
 import Topbar from "./Topbar";
 import SideNav from "./SideNav";
 
@@ -234,7 +235,11 @@ export default function UserDashboard({ page, token, user }) {
         {/* Topbar for desktop view */}
         {showBusinessTopbar && (
           <div>
-            <Topbar businessName={business?.name || "Dashboard"} />
+            {page === "home" ? (
+              <DashboardTopbar user={user} />
+            ) : (
+              <Topbar businessName={business?.name || "Dashboard"} />
+            )}
           </div>
         )}
 

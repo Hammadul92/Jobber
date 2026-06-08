@@ -1,32 +1,12 @@
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
-import { useDispatch } from "react-redux";
 import {
   useFetchInvoicesQuery,
   useFetchQuotesQuery,
   useFetchJobsQuery,
   useFetchPayoutsQuery,
 } from "../../../store";
-import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
-export default function DashboardHome({ token, user }) {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(
-      setTopbar({
-        title: "Dashboard",
-        description:
-          "Quick overview of your workspace. Use shortcuts for invoices, quotes, jobs, and payouts.",
-        action: null,
-      }),
-    );
-
-    return () => {
-      dispatch(resetTopbar());
-    };
-  }, [dispatch]);
-
+export default function DashboardHome({ token }) {
   const { data: invoiceData, isLoading: loadingInvoices } =
     useFetchInvoicesQuery(undefined, { skip: !token });
   const { data: quoteData, isLoading: loadingQuotes } = useFetchQuotesQuery(
@@ -86,18 +66,6 @@ export default function DashboardHome({ token, user }) {
 
   return (
     <>
-      <div className="mb-6">
-        <div>
-          <h3 className="text-sm md:text-base lg:text-lg font-semibold font-heading text-accent">
-            Welcome back! <br />
-            <span className="text-2xl md:text-3xl lg:text-4xl text-secondary">
-              {" "}
-              {user?.name}
-            </span>
-          </h3>
-        </div>
-      </div>
-
       <div className="grid gap-5 lg:grid-cols-12">
         <section className="lg:col-span-12 space-y-5">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
