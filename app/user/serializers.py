@@ -99,3 +99,21 @@ class ResetPasswordSerializer(serializers.Serializer):
 class CheckUserExistsSerializer(serializers.Serializer):
     """Serializer for checking if a user exists by email."""
     email = serializers.EmailField(required=True)
+
+
+class ContactSubmissionSerializer(serializers.Serializer):
+    """Serializer for public contact form submissions."""
+
+    first_name = serializers.CharField(min_length=2, max_length=100)
+    last_name = serializers.CharField(min_length=2, max_length=100)
+    email = serializers.EmailField()
+    company_name = serializers.CharField(min_length=2, max_length=150)
+    message = serializers.CharField(min_length=10, max_length=5000)
+    privacy_agreed = serializers.BooleanField()
+
+    def validate_privacy_agreed(self, value):
+        if value is not True:
+            raise serializers.ValidationError(
+                "You must agree to the privacy policy before submitting."
+            )
+        return value

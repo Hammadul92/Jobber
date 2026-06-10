@@ -9,7 +9,7 @@ from django.utils import timezone
 from rest_framework import generics, authentication, permissions, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -22,6 +22,7 @@ from user.serializers import (
     RequestPasswordResetSerializer,
     ResetPasswordSerializer,
     CheckUserExistsSerializer,
+    ContactSubmissionSerializer,
 )
 from user.utils import (
     generate_email_token,
@@ -30,7 +31,11 @@ from user.utils import (
     verify_password_reset_token,
     verify_magic_login_token,
 )
-from user.emails import send_registration_email, send_password_reset_email
+from user.emails import (
+    send_registration_email,
+    send_password_reset_email,
+    send_contact_submission_email,
+)
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -195,3 +200,33 @@ class MagicLoginView(APIView):
         user.save(update_fields=["last_login"])
 
         return Response({"token": auth_token.key}, status=status.HTTP_200_OK)
+
+
+class ContactSubmissionView(generics.GenericAPIView):
+    """Accept public contact form submissions and email staff users."""
+
+    serializer_class = ContactSubmissionSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            send_contact_submission_email(serializer.validated_data)
+        except ValueError:
+            return Response(
+                {
+                    "detail": (
+                        "Contact form recipients are not configured right now. "
+                        "Please try again later."
+                    )
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return Response(
+            {"detail": "Your message has been sent successfully."},
+            status=status.HTTP_200_OK,
+        )

@@ -37,4 +37,9 @@ urlpatterns = [
         views.MagicLoginView.as_view(),
         name="magic-login"
     ),
+    path(
+        "contact/",
+        views.ContactSubmissionView.as_view(),
+        name="contact",
+    ),
 ]

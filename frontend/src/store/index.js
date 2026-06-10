@@ -79,6 +79,7 @@ export {
   useResetPasswordMutation,
   useCheckUserExistsMutation,
   useMagicLoginMutation,
+  useSubmitContactInquiryMutation,
 } from "./apis/userApi";
 
 export {

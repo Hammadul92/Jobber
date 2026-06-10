@@ -1,6 +1,7 @@
 """
 Tests for the user API.
 """
+from django.core import mail
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -15,6 +16,7 @@ from PIL import Image
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
 ME_URL = reverse('user:me')
+CONTACT_URL = reverse('user:contact')
 
 
 def create_user(**params):
@@ -120,6 +122,74 @@ class PublicUserApiTests(TestCase):
         res = self.client.get(ME_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_submit_contact_form_success(self):
+        """Test a valid contact submission emails all active staff users."""
+        staff_user = create_user(
+            email="staff@example.com",
+            password="testpass123",
+            name="Staff User",
+        )
+        staff_user.is_staff = True
+        staff_user.save(update_fields=["is_staff"])
+
+        inactive_staff = create_user(
+            email="inactive@example.com",
+            password="testpass123",
+            name="Inactive Staff",
+        )
+        inactive_staff.is_staff = True
+        inactive_staff.is_active = False
+        inactive_staff.save(update_fields=["is_staff", "is_active"])
+
+        payload = {
+            "first_name": "Ali",
+            "last_name": "Ahsan",
+            "email": "ali@example.com",
+            "company_name": "InsoLogics",
+            "message": "I would like to learn more about your product demo.",
+            "privacy_agreed": True,
+        }
+
+        res = self.client.post(CONTACT_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["staff@example.com"])
+        self.assertEqual(mail.outbox[0].reply_to, ["ali@example.com"])
+        self.assertIn("InsoLogics", mail.outbox[0].body)
+
+    def test_submit_contact_form_requires_privacy_agreement(self):
+        """Test contact form rejects submissions without privacy agreement."""
+        payload = {
+            "first_name": "Ali",
+            "last_name": "Ahsan",
+            "email": "ali@example.com",
+            "company_name": "InsoLogics",
+            "message": "I would like to learn more about your product demo.",
+            "privacy_agreed": False,
+        }
+
+        res = self.client.post(CONTACT_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("privacy_agreed", res.data)
+
+    def test_submit_contact_form_without_staff_recipients(self):
+        """Test contact form returns service unavailable without staff recipients."""
+        payload = {
+            "first_name": "Ali",
+            "last_name": "Ahsan",
+            "email": "ali@example.com",
+            "company_name": "InsoLogics",
+            "message": "I would like to learn more about your product demo.",
+            "privacy_agreed": True,
+        }
+
+        res = self.client.post(CONTACT_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(len(mail.outbox), 0)
 
 
 class PrivateUserApiTests(TestCase):

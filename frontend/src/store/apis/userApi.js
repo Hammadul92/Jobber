@@ -49,7 +49,9 @@ const userApi = createApi({
         try {
           const { data } = await queryFulfilled;
           localStorage.setItem("token", data.token);
-        } catch (err) {}
+        } catch {
+          return;
+        }
       },
     }),
     updateUser: builder.mutation({
@@ -102,8 +104,17 @@ const userApi = createApi({
         try {
           const { data } = await queryFulfilled;
           localStorage.setItem("token", data.token);
-        } catch (err) {}
+        } catch {
+          return;
+        }
       },
+    }),
+    submitContactInquiry: builder.mutation({
+      query: (data) => ({
+        url: "/contact/",
+        method: "POST",
+        body: data,
+      }),
     }),
   }),
 });
@@ -119,6 +130,7 @@ export const {
   useResetPasswordMutation,
   useCheckUserExistsMutation,
   useMagicLoginMutation,
+  useSubmitContactInquiryMutation,
 } = userApi;
 
 export { userApi };
