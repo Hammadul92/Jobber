@@ -48,6 +48,7 @@ export default function BankingInformation({ token, setAlert = () => {} }) {
     (i) => i.payment_method_type === "BANK_ACCOUNT",
   );
   const activeCard = bankingInfo.find((i) => i.payment_method_type === "CARD");
+  const isBankConnected = Boolean(activeBank?.account_number_last4);
 
   const [checkBankAccount, { isLoading: syncingBank }] =
     useCheckBankAccountMutation();
@@ -160,23 +161,19 @@ export default function BankingInformation({ token, setAlert = () => {} }) {
                 </div>
               </div>
               <div
-                className={`border ${!activeBank ? "border-gray-200 bg-gray-100" : !activeBank?.account_number_last4 ? "border-amber-200 bg-amber-100" : "border-green-300 bg-green-100"} px-3 pb-0.5 ml-10 md:ml-0 mt-2 md:mt-0 lg:pt-1 lg:pb-1.5 rounded-full`}
+                className={`border ${!isBankConnected ? "border-gray-200 bg-gray-100" : "border-green-300 bg-green-100"} px-3 pb-0.5 ml-10 md:ml-0 mt-2 md:mt-0 lg:pt-1 lg:pb-1.5 rounded-full`}
               >
                 <div
-                  className={`w-2 h-2 rounded-full inline-flex mr-2 ${!activeBank ? "bg-gray-400" : !activeBank?.account_number_last4 ? "bg-amber-500" : "bg-green-500"}`}
+                  className={`w-2 h-2 rounded-full inline-flex mr-2 ${!isBankConnected ? "bg-gray-400" : "bg-green-500"}`}
                 />
                 <p className="text-xs font-bold uppercase inline-flex text-gray-400">
-                  {!activeBank
-                    ? "Not Connected"
-                    : !activeBank?.account_number_last4
-                      ? "Syncing..."
-                      : "Active"}
+                  {!isBankConnected ? "Not Connected" : "Active"}
                 </p>
               </div>
             </div>
             {/* Body */}
             <div className="border-t border-gray-200 p-4 md:px-10 md:py-8">
-              {!activeBank || showBankForm ? (
+              {!isBankConnected || showBankForm ? (
                 <BankAccountForm
                   onSuccess={() => setShowBankForm(false)}
                   setAlert={setAlert}
