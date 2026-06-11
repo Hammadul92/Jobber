@@ -18,6 +18,12 @@ import {
   LuInfo,
   LuBuilding2,
   LuArrowUpRight,
+  LuLandmark,
+  LuUserRound,
+  LuBriefcaseBusiness,
+  LuGlobe,
+  LuBadgeDollarSign,
+  LuUnplug,
 } from "react-icons/lu";
 import { NavLink } from "react-router-dom";
 
@@ -25,7 +31,7 @@ const stripePromise = loadStripe(
   "pk_test_51SLr7cRuypPIYSuTPWUFePiiEIVEbhvXQVRYQD75FQgO9Xoc3GwzezuEGBwV7Dgxy2l5r2MY3bXgc3Ou4DkbmNeJ0085c8HpC8",
 );
 
-export default function BankingInformation({ token, setAlert = () => {} }) {
+export default function BankingInformation({ token, setAlert = () => { } }) {
   const [showBankForm, setShowBankForm] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -78,6 +84,11 @@ export default function BankingInformation({ token, setAlert = () => {} }) {
     const date = new Date(2000, month - 1);
     const monthName = date.toLocaleString("default", { month: "short" });
     return `${monthName} ${year}`;
+  };
+
+  const formatAccountHolderType = (value) => {
+    if (!value) return "Business";
+    return value.charAt(0).toUpperCase() + value.slice(1);
   };
 
   if (businessLoading || bankingInfoLoading || syncingBank) {
@@ -179,45 +190,122 @@ export default function BankingInformation({ token, setAlert = () => {} }) {
                   setAlert={setAlert}
                 />
               ) : (
-                <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
-                  <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-                    <div className="flex flex-col md:flex-row items-start md:items-start gap-5">
-                      <div className="rounded-full border-2 border-green-600 bg-green-100 p-2 lg:p-4 md:mt-1">
-                        <LuShieldCheck className="text-green-600 text-2xl lg:text-3xl" />
+                <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 md:p-5">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-col items-start gap-4 md:flex-row">
+                          <LuShieldCheck className="text-5xl text-green-600" />
+                          <div>
+                            <h4 className="text-xl font-bold text-gray-900 md:text-2xl">
+                              Stripe Connected
+                            </h4>
+                            <p className="mt-1.5 text-sm text-gray-600 md:text-base">
+                              Your Stripe account is successfully connected.
+                            </p>
+
+                            <div className="mt-0 flex flex-wrap items-center gap-3 text-sm">
+                              <p className="text-sm text-gray-600 md:text-base">
+                                Connected as:{" "}
+                                <span className="font-semibold text-gray-900">
+                                  {businesses?.[0]?.email || "Stripe account"}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="inline-flex max-w-full items-center gap-3 rounded-2xl bg-white/80 px-4 py-3 text-gray-800">
+                          <div className="rounded-xl bg-slate-50 p-2 text-slate-700">
+                            <LuLandmark className="text-xl" />
+                          </div>
+                          <p className="text-base font-semibold uppercase tracking-wide text-slate-700 md:text-lg">
+                            {activeBank.bank_name} •••• {activeBank.account_number_last4}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-2xl font-bold text-gray-900">
-                          Stripe Connected
-                        </h4>
-                        <p className="mt-1 text-gray-600">
-                          Connected as:{" "}
-                          {activeBank?.stripe_account_email ||
-                            activeBank?.email ||
-                            businesses?.[0]?.email ||
-                            "Stripe account"}
-                        </p>
-                        <p className="mt-2 font-semibold text-gray-600">
-                          {activeBank.bank_name} ••••{" "}
-                          {activeBank.account_number_last4}
-                        </p>
+
+                      <div className="flex flex-wrap items-center gap-3 xl:justify-end">
+                        <button
+                          className="inline-flex items-center gap-2 rounded-2xl bg-secondary px-4 py-2.5 font-medium text-white shadow-sm transition hover:shadow-lg md:px-5"
+                          onClick={() => setShowBankForm(true)}
+                        >
+                          <FaPen />
+                          Replace
+                        </button>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 font-medium text-gray-700 shadow-sm transition hover:border-red-200 hover:text-red-600 md:px-5"
+                          onClick={() => handleDeleteClick(activeBank.id)}
+                        >
+                          <LuUnplug />
+                          Disconnect
+                        </button>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <button
-                        className={actionBtn}
-                        onClick={() => setShowBankForm(true)}
-                      >
-                        <FaPen />
-                        Replace
-                      </button>
-                      <button
-                        type="button"
-                        className="font-medium text-gray-600 underline underline-offset-4 transition hover:text-red-600"
-                        onClick={() => handleDeleteClick(activeBank.id)}
-                      >
-                        Disconnect
-                      </button>
+                    <div className="border-t border-emerald-200 pt-3">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="flex items-center gap-3 rounded-2xl bg-white/65 px-4 py-3.5">
+                          <div className="rounded-full bg-green-50 p-2.5 text-green-600">
+                            <LuUserRound className="text-xl" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                              Account Holder
+                            </p>
+                            <p className="truncate text-lg font-semibold text-gray-900">
+                              {activeBank.account_holder_name ||
+                                businesses?.[0]?.name ||
+                                "Not available"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 rounded-2xl bg-white/65 px-4 py-3.5">
+                          <div className="rounded-full bg-green-50 p-2.5 text-green-600">
+                            <LuBriefcaseBusiness className="text-xl" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                              Account Type
+                            </p>
+                            <p className="text-lg font-semibold text-gray-900">
+                              {formatAccountHolderType(
+                                activeBank.account_holder_type,
+                              )}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 rounded-2xl bg-white/65 px-4 py-3.5">
+                          <div className="rounded-full bg-green-50 p-2.5 text-green-600">
+                            <LuGlobe className="text-xl" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                              Country
+                            </p>
+                            <p className="text-lg font-semibold text-gray-900">
+                              {activeBank.country || businesses?.[0]?.country || "-"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 rounded-2xl bg-white/65 px-4 py-3.5">
+                          <div className="rounded-full bg-green-50 p-2.5 text-green-600">
+                            <LuBadgeDollarSign className="text-xl" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                              Currency
+                            </p>
+                            <p className="text-lg font-semibold uppercase text-gray-900">
+                              {activeBank.currency || "CAD"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
