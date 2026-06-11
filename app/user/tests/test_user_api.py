@@ -1,6 +1,7 @@
 """
 Tests for the user API.
 """
+import tempfile
 from django.core import mail
 from django.test import TestCase
 from django.contrib.auth import get_user_model
@@ -250,10 +251,16 @@ class PrivateUserApiTests(TestCase):
             content_type='image/png',
         )
 
-        res = self.client.patch(ME_URL, {'photo': image}, format='multipart')
+        with tempfile.TemporaryDirectory() as temp_media_root:
+            with self.settings(MEDIA_ROOT=temp_media_root):
+                res = self.client.patch(
+                    ME_URL,
+                    {'photo': image},
+                    format='multipart',
+                )
 
-        self.user.refresh_from_db()
+                self.user.refresh_from_db()
 
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertTrue(self.user.photo)
-        self.assertIn('uploads/profile_photos/', res.data['photoUrl'])
+                self.assertEqual(res.status_code, status.HTTP_200_OK)
+                self.assertTrue(self.user.photo)
+                self.assertIn('uploads/profile_photos/', res.data['photoUrl'])
