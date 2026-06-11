@@ -281,7 +281,7 @@ export default function Credentials({ setAlert }) {
                 special: false,
               });
             }}
-            className="rounded-2xl px-4 md:px-6 py-3 md:text-lg font-semibold text-white bg-gray-500 hover:bg-gray-100"
+            className="rounded-2xl border border-gray-300 px-4 py-2 bg-gray-50 md:text-lg font-semibold text-slate-600 hover:bg-gray-100 transition"
           >
             Cancel
           </button>
@@ -293,7 +293,7 @@ export default function Credentials({ setAlert }) {
               newPassword !== confirmNewPassword ||
               !newPassword
             }
-            className={`rounded-2xl px-4 md:px-6 py-3 md:text-lg font-semibold transition ${isLoading || !isStrongPassword || newPassword !== confirmNewPassword ? "bg-gray-400 cursor-not-allowed! text-white" : "bg-accent hover:shadow-md hover:shadow-accent text-white"}`}
+            className={`rounded-2xl bg-accent px-4 py-2 font-semibold md:text-lg text-white shadow hover:bg-accentLight transition ${isLoading || !isStrongPassword || newPassword !== confirmNewPassword ? "bg-gray-400 cursor-not-allowed! text-white" : "bg-accent text-white"}`}
           >
             {isLoading ? "Updating..." : "Update Password"}
           </button>
