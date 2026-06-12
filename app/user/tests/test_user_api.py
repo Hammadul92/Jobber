@@ -196,6 +196,8 @@ class PublicUserApiTests(TestCase):
 
     def test_fetch_faqs_returns_only_active_items_in_order(self):
         """Test FAQ endpoint returns active FAQs ordered by sort order."""
+        FAQ.all_objects.all().delete()
+
         FAQ.objects.create(
             question="Can clients sign quotes online?",
             answer="Yes, clients can sign quotes through a secure link.",
