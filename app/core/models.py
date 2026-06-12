@@ -200,6 +200,24 @@ class ActiveManager(models.Manager):
         return super().get_queryset().filter(is_deleted=False)
 
 
+class FAQ(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
+    question = models.CharField(max_length=255)
+    answer = models.TextField()
+    sort_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return self.question
+
+
 class Business(SoftDeletableModel):
     objects = ActiveManager()
     all_objects = models.Manager()

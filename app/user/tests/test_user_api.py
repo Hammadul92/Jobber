@@ -12,12 +12,14 @@ from io import BytesIO
 from rest_framework.test import APIClient
 from rest_framework import status
 from PIL import Image
+from core.models import FAQ
 
 
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
 ME_URL = reverse('user:me')
 CONTACT_URL = reverse('user:contact')
+FAQS_URL = reverse('user:faqs')
 
 
 def create_user(**params):
@@ -191,6 +193,39 @@ class PublicUserApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(len(mail.outbox), 0)
+
+    def test_fetch_faqs_returns_only_active_items_in_order(self):
+        """Test FAQ endpoint returns active FAQs ordered by sort order."""
+        FAQ.objects.create(
+            question="Can clients sign quotes online?",
+            answer="Yes, clients can sign quotes through a secure link.",
+            sort_order=2,
+            is_active=True,
+        )
+        FAQ.objects.create(
+            question="How do payouts work?",
+            answer="Payouts are tracked from Stripe-connected banking.",
+            sort_order=3,
+            is_active=False,
+        )
+        FAQ.objects.create(
+            question="Do you support service questionnaires?",
+            answer="Yes, businesses can create service-specific questionnaires.",
+            sort_order=1,
+            is_active=True,
+        )
+
+        res = self.client.get(FAQS_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 2)
+        self.assertEqual(
+            [item["question"] for item in res.data],
+            [
+                "Do you support service questionnaires?",
+                "Can clients sign quotes online?",
+            ],
+        )
 
 
 class PrivateUserApiTests(TestCase):

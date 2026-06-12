@@ -72,6 +72,7 @@ export {
   useSigninUserMutation,
   useFetchUserQuery,
   useVerifyEmailQuery,
+  useFetchFaqsQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
   useLogoutUserMutation,

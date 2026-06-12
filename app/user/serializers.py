@@ -9,6 +9,7 @@ from django.core.exceptions import DisallowedHost
 from django.utils.translation import gettext as _
 
 from rest_framework import serializers
+from core.models import FAQ
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -117,3 +118,11 @@ class ContactSubmissionSerializer(serializers.Serializer):
                 "You must agree to the privacy policy before submitting."
             )
         return value
+
+
+class FAQSerializer(serializers.ModelSerializer):
+    """Serializer for public FAQ entries."""
+
+    class Meta:
+        model = FAQ
+        fields = ["id", "question", "answer", "sort_order"]

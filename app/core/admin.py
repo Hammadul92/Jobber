@@ -291,6 +291,14 @@ class PayoutAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     ordering = ["-processed_at"]
 
 
+class FAQAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
+    list_display = ["question", "sort_order", "is_active", "created_at"]
+    list_filter = ["is_active"]
+    search_fields = ["question", "answer"]
+    readonly_fields = ["created_at", "updated_at"]
+    ordering = ["sort_order", "id"]
+
+
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Business, BusinessAdmin)
 admin.site.register(models.Client, ClientAdmin)
@@ -303,3 +311,4 @@ admin.site.register(models.Quote, QuoteAdmin)
 admin.site.register(models.ServiceQuestionnaire, ServiceQuestionnaireAdmin)
 admin.site.register(models.Invoice, InvoiceAdmin)
 admin.site.register(models.Payout, PayoutAdmin)
+admin.site.register(models.FAQ, FAQAdmin)

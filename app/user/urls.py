@@ -42,4 +42,9 @@ urlpatterns = [
         views.ContactSubmissionView.as_view(),
         name="contact",
     ),
+    path(
+        "faqs/",
+        views.FAQListView.as_view(),
+        name="faqs",
+    ),
 ]

@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
+from core.models import FAQ
 from user.serializers import (
     UserSerializer,
     AuthTokenSerializer,
@@ -23,6 +24,7 @@ from user.serializers import (
     ResetPasswordSerializer,
     CheckUserExistsSerializer,
     ContactSubmissionSerializer,
+    FAQSerializer,
 )
 from user.utils import (
     generate_email_token,
@@ -230,3 +232,14 @@ class ContactSubmissionView(generics.GenericAPIView):
             {"detail": "Your message has been sent successfully."},
             status=status.HTTP_200_OK,
         )
+
+
+class FAQListView(generics.ListAPIView):
+    """Return active FAQs for public pages."""
+
+    serializer_class = FAQSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def get_queryset(self):
+        return FAQ.objects.filter(is_active=True).order_by("sort_order", "id")

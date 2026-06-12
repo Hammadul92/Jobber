@@ -2,39 +2,14 @@
 
 import React from "react";
 import FAQAccordian from "../ui/FAQAccordian";
+import { useFetchFaqsQuery } from "../../store";
 
 const HorizontalRectangle = "/images/rounded-horizontal-rectangle-white.svg";
 const VerticalRectangle = "/images/rounded-vertical-rectangle.svg";
 
-const FAQ_ITEMS = [
-  {
-    question: "What is this platform used for?",
-    answer:
-      "It's an AI-powered design assistant that helps you generate, customize, and export creative assets in seconds—whether for personal projects, brand work, or commercial use.",
-  },
-  {
-    question: "What happens if I hit my free generation limit?",
-    answer:
-      "When you reach your free limit you can upgrade to a paid plan to continue generating, or wait for your quota to reset depending on the plan rules.",
-  },
-  {
-    question: "Do I need design experience to use it?",
-    answer:
-      "No — the assistant is designed for users of all levels and provides templates and one-click refinements.",
-  },
-  {
-    question: "Can I collaborate with my team?",
-    answer:
-      "Yes — you can invite team members to projects and share access based on roles.",
-  },
-  {
-    question: "Is it really free to use?",
-    answer:
-      "Yes! We offer a free tier with basic features and a limited number of generations. You can upgrade anytime for more advanced features.",
-  },
-];
-
 function FAQSection() {
+  const { data: faqItems = [], isLoading, isError } = useFetchFaqsQuery();
+
   return (
     <section className="relative w-full lg:min-h-screen px-6 py-12 md:px-16 lg:px-32 md:py-28 bg-secondary">
       {/* Design Elements */}
@@ -58,7 +33,28 @@ function FAQSection() {
           Got questions? We&apos;ve got answers.
         </p>
       </div>
-      <FAQAccordian items={FAQ_ITEMS} />
+
+      {isLoading ? (
+        <div className="z-20 w-full px-6 md:px-16 lg:px-32">
+          <div className="mx-auto max-w-4xl py-6 text-center text-white/80">
+            Loading FAQs...
+          </div>
+        </div>
+      ) : isError ? (
+        <div className="z-20 w-full px-6 md:px-16 lg:px-32">
+          <div className="mx-auto max-w-4xl py-6 text-center text-white/80">
+            We couldn&apos;t load the FAQs right now.
+          </div>
+        </div>
+      ) : faqItems.length ? (
+        <FAQAccordian items={faqItems} />
+      ) : (
+        <div className="z-20 w-full px-6 md:px-16 lg:px-32">
+          <div className="mx-auto max-w-4xl py-6 text-center text-white/80">
+            No FAQs available yet.
+          </div>
+        </div>
+      )}
     </section>
   );
 }
