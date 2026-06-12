@@ -1,14 +1,42 @@
 import React from "react";
 import TestimonialCard from "../ui/TestimonialCard";
 
-const testimonial = {
-  title: "Amazing Tool! Saved me months for sure.",
-  content:
-    "Contractorz transformed our hiring process. The platform is intuitive and has saved us countless hours.",
-  userName: "Ali Ahsan",
-  userRole: "Director, ABC.com",
-  userImage: "/images/user.png",
-};
+const testimonials = [
+  {
+    title: "We stopped chasing customers for basic job details.",
+    content:
+      "Before Contractorz, every new request turned into a back-and-forth over text and phone. Now clients fill out the service questionnaire first, and my team starts with the right scope, address, and notes already in the system.",
+    userName: "Michael Reyes",
+    userRole: "Owner, Reyes Landscaping",
+    userImage: "/images/user.png",
+    light: true,
+  },
+  {
+    title: "Quotes get signed faster because the process feels professional.",
+    content:
+      "We create the quote, send it from the dashboard, and the client signs it through the secure link without us explaining the next step. That alone cut down the time between estimate and approval for our flooring jobs.",
+    userName: "Sarah Patel",
+    userRole: "Operations Manager, Northline Flooring",
+    userImage: "/images/user.png",
+  },
+  {
+    title: "Invoices and payouts are finally connected in one workflow.",
+    content:
+      "What I like most is that billing is not separate from the work anymore. Once a service is active and payment comes in, I can see the invoice, the payout status, and our banking details in one place instead of reconciling three different tools.",
+    userName: "Jordan Kim",
+    userRole: "Founder, ClearPeak Exteriors",
+    userImage: "/images/user.png",
+  },
+  {
+    title: "My crew and office see the same job picture now.",
+    content:
+      "The office can assign jobs, the team can track status, and we have one record of what was quoted, scheduled, and completed. It sounds simple, but for a growing contractor that visibility makes a huge difference.",
+    userName: "Danielle Brooks",
+    userRole: "General Manager, Brooks Home Services",
+    userImage: "/images/user.png",
+    light: true,
+  },
+];
 
 function Testimonials() {
   return (
@@ -31,7 +59,8 @@ function Testimonials() {
               className="md:w-10 lg:w-18 h-auto"
             />
             <p className="text-3xs leading-tight">
-              lorem ipsum is a placeholder text to demonstrate.
+              Real stories from contractors using questionnaires, quotes,
+              jobs, invoices, and payouts in one workflow.
             </p>
           </div>
         </div>
@@ -39,36 +68,17 @@ function Testimonials() {
       </div>
       {/* Testimonials Cards */}
       <div className="grid md:grid-cols-2 gap-4 mt-8">
-        <TestimonialCard
-          title={testimonial.title}
-          content={testimonial.content}
-          userName={testimonial.userName}
-          userRole={testimonial.userRole}
-          userImage={testimonial.userImage}
-          light={true}
-        />
-        <TestimonialCard
-          title={testimonial.title}
-          content={testimonial.content}
-          userName={testimonial.userName}
-          userRole={testimonial.userRole}
-          userImage={testimonial.userImage}
-        />
-        <TestimonialCard
-          title={testimonial.title}
-          content={testimonial.content}
-          userName={testimonial.userName}
-          userRole={testimonial.userRole}
-          userImage={testimonial.userImage}
-        />
-        <TestimonialCard
-          title={testimonial.title}
-          content={testimonial.content}
-          userName={testimonial.userName}
-          userRole={testimonial.userRole}
-          userImage={testimonial.userImage}
-          light={true}
-        />
+        {testimonials.map((testimonial) => (
+          <TestimonialCard
+            key={`${testimonial.userName}-${testimonial.title}`}
+            title={testimonial.title}
+            content={testimonial.content}
+            userName={testimonial.userName}
+            userRole={testimonial.userRole}
+            userImage={testimonial.userImage}
+            light={testimonial.light}
+          />
+        ))}
       </div>
     </section>
   );
