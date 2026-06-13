@@ -31,8 +31,10 @@ def send_quote_email(quote):
     )
 
 
-def send_service_questionnaire_email(service, questionnaire, magic_token):
+def send_service_questionnaire_email(service, questionnaire, magic_token=None):
     """Send email to client with questionnaire magic link (no login required)."""
+    if not magic_token:
+        magic_token = generate_magic_login_token(service.client.user)
 
     subject = "Please Fill Out Your Service Questionnaire"
     questionnaire_link = (
