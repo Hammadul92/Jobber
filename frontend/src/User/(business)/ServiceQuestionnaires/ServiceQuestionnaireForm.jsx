@@ -169,7 +169,7 @@ export default function ServiceQuestionnaireForm(props) {
         >
           {Object.entries(questions).map(([key, q], index) => (
             <div
-              className="rounded-xl border border-gray-200 bg-gray-50/70 p-4"
+              className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4"
               key={key}
             >
               <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -183,7 +183,7 @@ export default function ServiceQuestionnaireForm(props) {
                 {q.type === "input" && (
                   <input
                     type={q.inputType || "text"}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                     value={q.answer || ""}
                     onChange={(e) => handleChange(key, e.target.value)}
                     required={q.required}

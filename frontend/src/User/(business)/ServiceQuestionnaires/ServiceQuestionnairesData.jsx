@@ -255,7 +255,7 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
                             type={q.inputType || "text"}
                             disabled
                             placeholder="Answer preview"
-                            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600"
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600"
                           />
                         )}
 
@@ -264,7 +264,7 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
                             {(q.options || []).map((opt, optIndex) => (
                               <label
                                 key={optIndex}
-                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+                                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
                               >
                                 <input
                                   type="radio"
@@ -282,7 +282,7 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
                             {(q.options || []).map((opt, optIndex) => (
                               <label
                                 key={optIndex}
-                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+                                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
                               >
                                 <input
                                   type="checkbox"

@@ -127,6 +127,7 @@ export default function Service({ token }) {
         country,
         postal_code: postalCode,
       }).unwrap();
+      navigate(`/user/business/client/${serviceData.client}/services`);
     } catch (err) {
       setAlert({ type: "danger", message: `Failed to update service: ${err}` });
     }
