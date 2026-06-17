@@ -10,8 +10,10 @@ import {
   LuChevronLeft,
   LuChevronRight,
   LuDownload,
+  LuEye,
   LuFileText,
   LuSearch,
+  LuTrash2,
 } from "react-icons/lu";
 
 export default function PayoutDatatable({ token, role }) {
@@ -438,23 +440,23 @@ export default function PayoutDatatable({ token, role }) {
                             : "—"}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <div className="flex justify-end gap-2">
+                          <div className="flex justify-start">
                             <Link
                               to={`/user/business/payout/${row.id}`}
-                              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-secondary transition hover:border-secondary hover:text-accent"
+                              className="inline-flex items-center gap-2 rounded-xl p-2 text-sm font-medium text-secondary transition hover:bg-secondary/5"
                               title="View Payout"
                             >
-                              View
+                              <LuEye className="h-4 w-4" />
                             </Link>
 
                             {role === "MANAGER" && (
                               <button
                                 type="button"
-                                className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-rose-200 hover:text-rose-700"
+                                className="inline-flex items-center gap-2 rounded-xl p-2.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
                                 onClick={() => handleDeleteClick(row.id)}
                                 title="Delete Payout"
                               >
-                                Delete
+                                <LuTrash2 className="h-4 w-4" />
                               </button>
                             )}
                           </div>
@@ -613,12 +615,12 @@ export default function PayoutDatatable({ token, role }) {
 
             <form
               onSubmit={confirmDelete}
-              className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+              className="relative z-10 w-full md:w-4/7 lg:w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-xl"
               role="dialog"
               aria-modal="true"
             >
               <div className="flex items-center justify-between">
-                <h5 className="text-lg font-semibold text-gray-900">
+                <h5 className="text-xl font-medium text-gray-900">
                   Delete Payout
                 </h5>
                 <button
@@ -638,14 +640,14 @@ export default function PayoutDatatable({ token, role }) {
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   type="button"
-                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300"
+                  className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                   onClick={() => setShowModal(false)}
                 >
                   Cancel
                 </button>
                 <SubmitButton
                   isLoading={deleting}
-                  btnClass="bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-700"
+                  btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
                   btnName="Delete"
                 />
               </div>

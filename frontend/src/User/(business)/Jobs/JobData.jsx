@@ -376,7 +376,7 @@ export default function JobData({ token, role, setAlert }) {
 
           <form
             onSubmit={confirmDelete}
-            className="relative z-10 w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-6"
+            className="relative z-10 w-full md:w-4/7 lg:w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-6"
             role="dialog"
             aria-modal="true"
           >

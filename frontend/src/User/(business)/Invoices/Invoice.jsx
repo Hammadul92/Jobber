@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import {
   useFetchInvoiceQuery,
   useUpdateInvoiceMutation,
@@ -10,9 +11,28 @@ import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { formatDate } from "../../../utils/formatDate";
+import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
-export default function Invoice({ token, role, business }) {
+const STATUS_STYLES = {
+  DRAFT: "bg-slate-100 text-slate-600",
+  SENT: "bg-blue-100 text-blue-700",
+  PAID: "bg-emerald-100 text-emerald-700",
+  CANCELLED: "bg-rose-100 text-rose-700",
+};
+
+const ACTION_BTN_BASE =
+  "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60";
+
+const ACTION_BTN_STYLES = {
+  send: `${ACTION_BTN_BASE} border border-secondary bg-secondary text-white hover:bg-secondary/95`,
+  paid: `${ACTION_BTN_BASE} border border-accent bg-accent text-white hover:bg-[#ff7a1f]`,
+  cancel: `${ACTION_BTN_BASE} border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100`,
+};
+
+export default function Invoice({ token, role }) {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const {
     data: invoiceData,
@@ -58,6 +78,24 @@ export default function Invoice({ token, role, business }) {
       setPaidAt(invoiceData.paid_at || "");
     }
   }, [invoiceData]);
+
+  useEffect(() => {
+    dispatch(
+      setTopbar({
+        title:
+          serviceName && clientName
+            ? `${serviceName} invoice for ${clientName}`
+            : invoiceNumber || "Invoice",
+        description:
+          "Review billing details, status, due date, and payment activity.",
+        action: null,
+      }),
+    );
+
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch, invoiceNumber, serviceName, clientName]);
 
   useEffect(() => {
     const sub = parseFloat(subtotal) || 0;
@@ -125,12 +163,16 @@ export default function Invoice({ token, role, business }) {
     return new Date(dueDate) < new Date();
   };
 
-  if (isLoading)
+  const formatMoney = (value) =>
+    `${Number.parseFloat(value || 0).toFixed(2)} ${currency || ""}`.trim();
+
+  if (isLoading) {
     return (
       <div className="py-10 text-center text-sm text-gray-500">
         Loading invoice...
       </div>
     );
+  }
 
   if (error) {
     return (
@@ -142,6 +184,11 @@ export default function Invoice({ token, role, business }) {
     );
   }
 
+  const badgeClass = STATUS_STYLES[status] || STATUS_STYLES.DRAFT;
+  const disableSend = status === "SENT" || isLocked;
+  const disableMarkPaid = status === "PAID" || isLocked;
+  const disableCancel = status === "CANCELLED" || isLocked;
+
   return (
     <>
       {alert.message && (
@@ -152,45 +199,7 @@ export default function Invoice({ token, role, business }) {
         />
       )}
 
-      <nav aria-label="breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <li>
-            <Link
-              to={`/`}
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              Contractorz
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to="/user/business/home"
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              {business?.name ||
-                (role === "CLIENT"
-                  ? "Client Portal"
-                  : role === "EMPLOYEE"
-                    ? "Employee Portal"
-                    : "Dashboard")}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link
-              to={`/user/business/invoices`}
-              className="font-semibold text-secondary hover:text-accent"
-            >
-              Invoices
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="font-semibold text-gray-800">{invoiceNumber}</li>
-        </ol>
-      </nav>
-
-      {invoiceData?.has_paid_payout && (
+      {invoiceData?.has_paid_payout && role === "MANAGER" && (
         <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
           Payout has already been processed for this invoice.{" "}
           <Link
@@ -202,155 +211,169 @@ export default function Invoice({ token, role, business }) {
         </div>
       )}
 
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h3 className="text-3xl font-medium tracking-tight text-slate-900">
+            {invoiceNumber || "Invoice"}
+          </h3>
+          <span
+            className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold ${badgeClass}`}
+          >
+            {status || "DRAFT"}
+          </span>
+          {isOverdue() && (
+            <span className="inline-flex items-center rounded-lg bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+              OVERDUE
+            </span>
+          )}
+        </div>
+
+        {role === "MANAGER" && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className={ACTION_BTN_STYLES.send}
+              disabled={disableSend}
+              onClick={() => handleStatusChange("SENT")}
+            >
+              Send
+            </button>
+            <button
+              type="button"
+              className={ACTION_BTN_STYLES.paid}
+              disabled={disableMarkPaid}
+              onClick={() => handleStatusChange("PAID")}
+            >
+              Mark Paid
+            </button>
+            <button
+              type="button"
+              className={ACTION_BTN_STYLES.cancel}
+              disabled={disableCancel}
+              onClick={() => handleStatusChange("CANCELLED")}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="grid gap-5 lg:grid-cols-12">
         {role === "MANAGER" && (
-          <div className="lg:col-span-4">
-            <div className="relative rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-              <span
-                className={`absolute right-4 top-4 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                  status === "PAID"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : status === "SENT"
-                      ? "bg-blue-100 text-blue-700"
-                      : status === "CANCELLED"
-                        ? "bg-rose-100 text-rose-700"
-                        : "bg-gray-100 text-gray-700"
-                }`}
-              >
-                {status}
-              </span>
+          <div className="space-y-4 lg:col-span-4">
+            <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-500">
+                Billing Summary
+              </p>
 
-              <h4 className="mb-1 text-lg font-semibold text-gray-900">
-                {invoiceNumber}
-              </h4>
-              <p className="text-sm text-gray-500">Billing summary</p>
-
-              <div className="mt-4 space-y-2 text-sm text-gray-700">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Business</span>
-                  <span className="font-semibold text-gray-900">
-                    {businessName}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Client</span>
-                  <span className="font-semibold text-gray-900">
-                    {clientName}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Service</span>
-                  <span className="font-semibold text-gray-900">
-                    {serviceName}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Currency</span>
-                  <span className="font-semibold text-gray-900">
-                    {currency}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-blue-700 transition hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={status === "SENT" || isLocked}
-                  onClick={() => handleStatusChange("SENT")}
-                >
-                  Send
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={status === "PAID" || isLocked}
-                  onClick={() => handleStatusChange("PAID")}
-                >
-                  Mark Paid
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:border-rose-300 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={status === "CANCELLED" || isLocked}
-                  onClick={() => handleStatusChange("CANCELLED")}
-                >
-                  Cancel
-                </button>
+              <div className="mt-5 space-y-4 text-slate-700">
+                <SummaryRow label="Business" value={businessName} />
+                <SummaryRow label="Client" value={clientName} />
+                <SummaryRow label="Service" value={serviceName} />
+                <SummaryRow label="Currency" value={currency} />
+                <SummaryRow
+                  label="Created"
+                  value={
+                    invoiceData?.created_at
+                      ? formatDate(invoiceData.created_at)
+                      : "-"
+                  }
+                />
+                <SummaryRow
+                  label="Due Date"
+                  value={dueDate ? formatDate(dueDate) : "-"}
+                />
               </div>
 
               {status === "PAID" && paidAt && (
-                <div className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-                  Paid on: {formatDate(paidAt)}
+                <div className="mt-5 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+                  Paid on {formatDate(paidAt)}
                 </div>
               )}
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-500">
+                Amount Details
+              </p>
+
+              <div className="mt-5 space-y-3">
+                <AmountRow label="Subtotal" value={formatMoney(subtotal)} />
+                <AmountRow label="Tax Rate" value={`${taxRate || 0}%`} />
+                <AmountRow label="Tax Amount" value={formatMoney(taxAmount)} />
+                <div className="mt-4 rounded-2xl bg-secondary px-4 py-4 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
+                    Total Amount
+                  </p>
+                  <p className="mt-2 text-2xl font-semibold">
+                    {formatMoney(totalAmount)}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        <div
-          className={role === "MANAGER" ? "lg:col-span-8" : "lg:col-span-12"}
-        >
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className={role === "MANAGER" ? "lg:col-span-8" : "lg:col-span-12"}>
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             {role === "MANAGER" ? (
-              <form
-                onSubmit={handleSubmit}
-                className="grid gap-4 md:grid-cols-2"
-              >
-                <Input
-                  type="date"
-                  fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
-                  value={dueDate}
-                  onChange={setDueDate}
-                  isRequired={true}
-                  isDisabled={isLocked}
-                  label="Due Date"
-                  id="invoice-due-date"
-                />
+              <form onSubmit={handleSubmit}>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    type="date"
+                    fieldClass="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-[#ff6a00] focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                    value={dueDate}
+                    onChange={setDueDate}
+                    isRequired={true}
+                    isDisabled={isLocked}
+                    label="Due Date"
+                    id="invoice-due-date"
+                  />
 
-                <Input
-                  type="number"
-                  fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
-                  value={subtotal}
-                  onChange={setSubtotal}
-                  isRequired={true}
-                  isDisabled={isLocked}
-                  label="Subtotal"
-                  id="invoice-subtotal"
-                />
+                  <Input
+                    type="number"
+                    fieldClass="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-[#ff6a00] focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                    value={subtotal}
+                    onChange={setSubtotal}
+                    isRequired={true}
+                    isDisabled={isLocked}
+                    label="Subtotal"
+                    id="invoice-subtotal"
+                  />
 
-                <Input
-                  type="number"
-                  fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
-                  value={taxRate}
-                  onChange={setTaxRate}
-                  isRequired={true}
-                  isDisabled={isLocked}
-                  label="Tax Rate (%)"
-                  id="invoice-tax-rate"
-                />
+                  <Input
+                    type="number"
+                    fieldClass="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-[#ff6a00] focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                    value={taxRate}
+                    onChange={setTaxRate}
+                    isRequired={true}
+                    isDisabled={isLocked}
+                    label="Tax Rate (%)"
+                    id="invoice-tax-rate"
+                  />
 
-                <Input
-                  type="number"
-                  fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
-                  value={taxAmount}
-                  onChange={() => {}}
-                  isDisabled={true}
-                  label="Tax Amount"
-                  id="invoice-tax-amount"
-                />
+                  <Input
+                    type="number"
+                    fieldClass="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-[#ff6a00] focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                    value={taxAmount}
+                    onChange={() => {}}
+                    isDisabled={true}
+                    label="Tax Amount"
+                    id="invoice-tax-amount"
+                  />
 
-                <Input
-                  type="number"
-                  fieldClass="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
-                  value={totalAmount}
-                  onChange={() => {}}
-                  isDisabled={true}
-                  label="Total Amount"
-                  id="invoice-total-amount"
-                />
+                  <Input
+                    type="number"
+                    fieldClass="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-[#ff6a00] focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                    value={totalAmount}
+                    onChange={() => {}}
+                    isDisabled={true}
+                    label="Total Amount"
+                    id="invoice-total-amount"
+                  />
+                </div>
 
-                <div className="md:col-span-2">
+                <div className="mt-5">
                   <Textarea
                     id="invoice-notes"
                     label="Notes"
@@ -358,15 +381,22 @@ export default function Invoice({ token, role, business }) {
                     onChange={setNotes}
                     isRequired={false}
                     isDisabled={isLocked}
-                    fieldClass="w-full"
-                    rows={3}
+                    fieldClass="h-40 w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
+                    rows={6}
                   />
                 </div>
 
-                <div className="md:col-span-2 mt-2 flex justify-end">
+                <div className="mt-6 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                    onClick={() => navigate("/user/business/invoices")}
+                  >
+                    Cancel
+                  </button>
                   <SubmitButton
                     isLoading={updatingInvoice}
-                    btnClass="bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accentLight"
+                    btnClass="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#ff7a1f]"
                     btnName="Save Changes"
                     disabled={isLocked}
                   />
@@ -389,6 +419,7 @@ export default function Invoice({ token, role, business }) {
                 taxRate={taxRate}
                 subtotal={subtotal}
                 serviceName={serviceName}
+                dueDate={dueDate}
               />
             )}
           </div>
@@ -398,7 +429,26 @@ export default function Invoice({ token, role, business }) {
   );
 }
 
-// Extracted Customer View for cleaner code
+function SummaryRow({ label, value }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-right text-base font-semibold text-slate-900">
+        {value || "-"}
+      </span>
+    </div>
+  );
+}
+
+function AmountRow({ label, value }) {
+  return (
+    <div className="flex items-center justify-between gap-3 text-slate-700">
+      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-base font-semibold text-slate-900">{value}</span>
+    </div>
+  );
+}
+
 function CustomerView({
   invoiceData,
   totalAmount,
@@ -415,116 +465,130 @@ function CustomerView({
   taxRate,
   subtotal,
   serviceName,
+  dueDate,
 }) {
+  const formattedSubtotal = Number.parseFloat(subtotal || 0).toFixed(2);
+  const formattedTax = (
+    (parseFloat(subtotal || 0) * parseFloat(taxRate || 0)) /
+    100
+  ).toFixed(2);
+  const formattedTotal = Number.parseFloat(totalAmount || 0).toFixed(2);
+
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-4">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 px-6 py-6">
         <div>
-          <h3 className="text-xl font-semibold text-gray-900">Invoice</h3>
-          <p className="text-sm text-gray-500">#{invoiceNumber}</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-500">
+            Invoice
+          </p>
+          <h4 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 md:text-3xl">
+            {invoiceNumber}
+          </h4>
+          <p className="mt-2 text-sm text-slate-500 md:text-base">
+            Issued by {businessName} for {clientName}
+          </p>
         </div>
-        <div className="text-right">
-          <h5 className="text-lg font-semibold text-gray-900">
-            {businessName}
-          </h5>
-          <p className="text-sm text-gray-500">
-            {formatDate(invoiceData?.created_at)}
+
+        <div className="min-w-[220px] rounded-2xl bg-secondary px-5 py-4 text-right text-white shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
+            Total Due
+          </p>
+          <p className="mt-2 text-3xl font-semibold tracking-tight">
+            {formattedTotal} {currency}
           </p>
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Bill From
+      <div className="grid gap-4 px-6 py-6 md:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+            Service
           </p>
-          <p className="text-sm font-semibold text-gray-900">{businessName}</p>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-right">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Bill To
+          <p className="mt-2 text-lg font-semibold text-slate-900">
+            {serviceName}
           </p>
-          <p className="text-sm font-semibold text-gray-900">{clientName}</p>
         </div>
-      </div>
-
-      <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Service
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Subtotal
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Tax ({taxRate}%)
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Total
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-t border-gray-100">
-              <td className="px-4 py-3 text-gray-800">{serviceName}</td>
-              <td className="px-4 py-3 text-right text-gray-800">
-                {subtotal} {currency}
-              </td>
-              <td className="px-4 py-3 text-right text-gray-800">
-                {((parseFloat(subtotal) * parseFloat(taxRate)) / 100).toFixed(
-                  2,
-                )}{" "}
-                {currency}
-              </td>
-              <td className="px-4 py-3 text-right text-gray-900 font-semibold">
-                {totalAmount} {currency}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm text-gray-700">
-          <span className="font-semibold text-gray-800">Due Date:</span>
-          <span>{formatDate(invoiceData?.due_date)}</span>
-          {isOverdue() && (
-            <span className="inline-flex rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
-              Overdue
-            </span>
-          )}
-          {status === "PAID" && paidAt && (
-            <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-              Paid {formatDate(paidAt)}
-            </span>
-          )}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+            Due Date
+          </p>
+          <p className="mt-2 text-lg font-semibold text-slate-900">
+            {formatDate(dueDate)}
+          </p>
         </div>
-      </div>
-
-      {notes && (
-        <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-          <h6 className="text-sm font-semibold text-gray-900">Notes</h6>
-          <p className="text-sm text-gray-600">{notes}</p>
-        </div>
-      )}
-
-      {status !== "PAID" && (
-        <div className="text-right">
-          {invoiceData?.has_payment_method ? (
-            <button
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={handlePayment}
-              disabled={processingPayment}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+            Status
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                STATUS_STYLES[status] || STATUS_STYLES.DRAFT
+              }`}
             >
-              {processingPayment
-                ? "Processing..."
-                : `Pay ${totalAmount} ${currency}`}
-            </button>
-          ) : (
-            <div className="text-sm text-gray-500">
-              <i>
+              {status}
+            </span>
+            {isOverdue() && (
+              <span className="inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                Overdue
+              </span>
+            )}
+            {status === "PAID" && paidAt && (
+              <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                Paid {formatDate(paidAt)}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="px-6 pb-6">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="grid grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] gap-4 bg-slate-50 px-5 py-4 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+            <div>Service</div>
+            <div className="text-right">Subtotal</div>
+            <div className="text-right">Tax ({taxRate}%)</div>
+            <div className="text-right">Total</div>
+          </div>
+          <div className="grid grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] gap-4 px-5 py-5 text-sm text-slate-700">
+            <div className="text-lg font-semibold text-slate-900">
+              {serviceName}
+            </div>
+            <div className="text-right font-medium">
+              {formattedSubtotal} {currency}
+            </div>
+            <div className="text-right font-medium">
+              {formattedTax} {currency}
+            </div>
+            <div className="text-right text-lg font-semibold text-slate-900">
+              {formattedTotal} {currency}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-100 px-6 py-6">
+        {notes && (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+            <h6 className="text-sm font-semibold text-slate-900">Notes</h6>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{notes}</p>
+          </div>
+        )}
+
+        {status !== "PAID" && (
+          <div className={`${notes ? "mt-5" : ""} flex justify-end`}>
+            {invoiceData?.has_payment_method ? (
+              <button
+                className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={handlePayment}
+                disabled={processingPayment}
+              >
+                {processingPayment
+                  ? "Processing..."
+                  : `Pay ${formattedTotal} ${currency}`}
+              </button>
+            ) : (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
                 No active payment method found. Please{" "}
                 <Link
                   to="/user/banking"
@@ -533,11 +597,11 @@ function CustomerView({
                   add a payment method
                 </Link>{" "}
                 to make payment.
-              </i>
-            </div>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

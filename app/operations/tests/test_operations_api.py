@@ -2,19 +2,24 @@
 Test for business APIs
 """
 
+from datetime import date, timedelta
+from decimal import Decimal
+
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Business
+from core.models import Business, Client, Quote, Service, Invoice
 
 from operations.serializers import BusinessSerializer
 
 
 BUSINESSES_URL = reverse("operations:business-list")
+QUOTE_SIGN_URL = "operations:quote-sign-quote"
 
 
 def create_business(owner, **params):
@@ -86,3 +91,82 @@ class PrivateBusinessApiTests(TestCase):
         serializer = BusinessSerializer(businesses, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+
+class QuoteInvoiceAutomationTests(TestCase):
+    """Test automatic invoice creation around quote signing."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.owner = get_user_model().objects.create_user(
+            "owner@example.com",
+            "test123",
+        )
+        self.client_user = get_user_model().objects.create_user(
+            "client@example.com",
+            "test123",
+            role="CLIENT",
+        )
+        self.business = create_business(
+            owner=self.owner,
+            slug="test-business",
+            postal_code="T2T2T2",
+            tax_rate=Decimal("5.00"),
+        )
+        self.client_record = Client.objects.create(
+            business=self.business,
+            user=self.client_user,
+        )
+        self.service = Service.objects.create(
+            client=self.client_record,
+            business=self.business,
+            service_name="Flooring",
+            description="Install new flooring",
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=7),
+            service_type="ONE_TIME",
+            price=Decimal("100.00"),
+            currency="CAD",
+            billing_cycle=None,
+            status="ACTIVE",
+            street_address="123 Test Street",
+            city="Calgary",
+            country="CA",
+            province_state="AB",
+            postal_code="T2T2T2",
+            filled_questionnaire={"Room size": "Large"},
+            auto_generate_quote=True,
+            auto_generate_invoices=True,
+        )
+        self.quote = Quote.objects.create(
+            service=self.service,
+            valid_until=date.today() + timedelta(days=2),
+            terms_conditions="Test terms",
+            notes="Test notes",
+            status="SENT",
+        )
+
+    def test_signing_quote_creates_invoice_for_active_service(self):
+        """Test signing a quote auto-creates an invoice for eligible services."""
+        self.client.force_authenticate(self.client_user)
+        signature = SimpleUploadedFile(
+            "signature.png",
+            b"signature-bytes",
+            content_type="image/png",
+        )
+
+        res = self.client.post(
+            reverse(QUOTE_SIGN_URL, args=[self.quote.id]),
+            {"status": "SIGNED", "signature": signature},
+            format="multipart",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(Invoice.objects.filter(service=self.service).count(), 1)
+
+        invoice = Invoice.objects.get(service=self.service)
+        self.assertEqual(invoice.client, self.client_record)
+        self.assertEqual(invoice.business, self.business)
+        self.assertEqual(invoice.subtotal, Decimal("100.00"))
+        self.assertEqual(invoice.tax_amount, Decimal("5.00"))
+        self.assertEqual(invoice.total_amount, Decimal("105.00"))

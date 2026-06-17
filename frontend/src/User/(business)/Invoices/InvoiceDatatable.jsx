@@ -13,9 +13,11 @@ import {
   LuChevronLeft,
   LuChevronRight,
   LuDownload,
+  LuEye,
   LuFileText,
   LuPlus,
   LuSearch,
+  LuTrash2,
   LuX,
 } from "react-icons/lu";
 
@@ -471,23 +473,24 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-start">
                               <Link
                                 to={`/user/business/invoice/${row.id}`}
-                                className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-secondary transition hover:border-secondary hover:text-accent"
+                                className="inline-flex items-center gap-2 rounded-xl p-2 text-sm font-medium text-secondary transition hover:bg-secondary/5"
                                 title="View Invoice"
                               >
-                                View
+                                <LuEye className="h-4 w-4" />
+
                               </Link>
 
                               {role === "MANAGER" && (
                                 <button
                                   type="button"
-                                  className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-rose-200 hover:text-rose-700"
+                                  className="inline-flex items-center gap-2 rounded-xl p-2.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
                                   onClick={() => handleDeleteClick(row.id)}
                                   title="Delete Invoice"
                                 >
-                                  Delete
+                                  <LuTrash2 className="h-3.5 w-3.5" />
                                 </button>
                               )}
                             </div>
@@ -683,7 +686,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
 
             <form
               onSubmit={confirmDelete}
-              className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-5"
+              className="relative z-10 w-full md:w-4/7 lg:w-2/7 max-w-lg rounded-2xl bg-white p-6 shadow-xl space-y-5"
               role="dialog"
               aria-modal="true"
             >

@@ -4,7 +4,14 @@ import { useFetchQuotesQuery, useDeleteQuoteMutation } from "../../../store";
 import Select from "../../../Components/ui/Select";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import { formatDate } from "../../../utils/formatDate";
-import { LuCalendarDays, LuMapPin, LuUser, LuPencil, LuTrash2 } from "react-icons/lu";
+import {
+  LuCalendarDays,
+  LuEye,
+  LuMapPin,
+  LuPencil,
+  LuTrash2,
+  LuUser,
+} from "react-icons/lu";
 
 export default function QuotesData({ token, role, setAlert }) {
   const {
@@ -162,6 +169,7 @@ export default function QuotesData({ token, role, setAlert }) {
             }
 
             const serviceData = quote.service_data || {};
+            const isSigned = quote.status === "SIGNED";
             const serviceAddress = [
               serviceData.street_address,
               serviceData.city,
@@ -174,7 +182,7 @@ export default function QuotesData({ token, role, setAlert }) {
 
             return (
               <div
-                className="p-5 bg-white border border-gray-200 shadow-sm rounded-2xl"
+                className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
                 key={quote.quote_number}
               >
                 <div className="flex items-start justify-between gap-3 mb-6">
@@ -217,7 +225,7 @@ export default function QuotesData({ token, role, setAlert }) {
                   </div>
                 </div>
 
-                <div className="pt-4 mt-6 border-t border-gray-200">
+                <div className="mt-auto border-t border-gray-200 pt-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <LuCalendarDays className="w-4 h-4 text-slate-500" />
@@ -243,13 +251,18 @@ export default function QuotesData({ token, role, setAlert }) {
                         <Link
                           to={`/user/business/quote/${quote.id}`}
                           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition border rounded-xl border-secondary bg-secondary hover:bg-secondary/95"
-                          title="Edit Quote"
+                          title={isSigned ? "View Quote" : "Edit Quote"}
                         >
-                          <LuPencil className="w-4 h-4" /> Edit
+                          {isSigned ? (
+                            <LuEye className="w-4 h-4" />
+                          ) : (
+                            <LuPencil className="w-4 h-4" />
+                          )}{" "}
+                          {isSigned ? "View" : "Edit"}
                         </Link>
                       )}
 
-                      {role === "MANAGER" && (
+                      {role === "MANAGER" && !isSigned && (
                         <button
                           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition border rounded-xl border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
                           onClick={() => handleDeleteClick(quote.id)}

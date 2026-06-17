@@ -29,6 +29,22 @@ import ResetPassword from "./forms/ResetPassword";
 import MagicLogin from "./pages/MagicLogin";
 import UserDashboard from "./User";
 
+function AdminRedirect() {
+  useEffect(() => {
+    const configuredApiBase = import.meta.env.VITE_API_BASE_URL;
+    const apiBase =
+      configuredApiBase ||
+      (import.meta.env.PROD
+        ? `${window.location.origin}/api`
+        : "http://localhost:8000/api");
+    const backendOrigin = apiBase.replace(/\/api\/?$/, "");
+
+    window.location.replace(`${backendOrigin}/admin/`);
+  }, []);
+
+  return <div className="text-center py-5">Redirecting to Django admin...</div>;
+}
+
 function App() {
   return (
     <Router>
@@ -51,6 +67,7 @@ function MainApp() {
     const currentPath = window.location.pathname + window.location.search;
     const isPublicPage = [
       "/",
+      "/admin",
       "/sign-in",
       "/register",
       "/forgot-password",
@@ -77,6 +94,9 @@ function MainApp() {
 
       {/* <main> */}
       <Routes>
+        <Route path="/admin" element={<AdminRedirect />} />
+        <Route path="/admin/*" element={<AdminRedirect />} />
+
         {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import {
   useFetchQuoteQuery,
   useUpdateQuoteMutation,
@@ -16,10 +17,12 @@ import {
   LuPhone,
   LuUser,
 } from "react-icons/lu";
+import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
 export default function Quote({ token }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const {
     data: quoteData,
@@ -41,6 +44,26 @@ export default function Quote({ token }) {
       setNotes(quoteData.notes || "");
     }
   }, [quoteData]);
+
+  useEffect(() => {
+    const serviceName = quoteData?.service_name;
+    const clientName = quoteData?.client_name;
+
+    dispatch(
+      setTopbar({
+        title:
+          serviceName && clientName
+            ? `${serviceName} Quote for ${clientName}`
+            : quoteData?.quote_number || "Quote",
+        description: "Review quote details, terms, validity, and delivery status.",
+        action: null,
+      }),
+    );
+
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch, quoteData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

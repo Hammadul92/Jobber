@@ -2,6 +2,8 @@
 Views for operations APIs.
 """
 
+from datetime import timedelta
+
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -23,6 +25,38 @@ from core.models import (
     Quote,
 )
 from operations import serializers, paginations, emails
+
+
+def create_auto_invoice_for_service(service):
+    """Create an invoice when a service is invoice-eligible."""
+    if (
+        service.status != "ACTIVE"
+        or not service.auto_generate_invoices
+        or service.invoices.filter(is_active=True).exists()
+    ):
+        return None
+
+    quote = (
+        service.service_quotes.filter(is_active=True)
+        .exclude(status="DECLINED")
+        .first()
+    )
+    if not quote or quote.status != "SIGNED":
+        return None
+
+    tax_amount = service.price * service.business.tax_rate / 100
+    return Invoice.objects.create(
+        business=service.business,
+        client=service.client,
+        service=service,
+        due_date=timezone.now().date() + timedelta(days=2),
+        currency=service.currency,
+        subtotal=service.price,
+        tax_rate=service.business.tax_rate,
+        tax_amount=tax_amount,
+        total_amount=service.price + tax_amount,
+        notes="Auto-generated invoice.",
+    )
 
 
 class BusinessViewSet(viewsets.ModelViewSet):
@@ -150,7 +184,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
             ):
                 quote = Quote.objects.create(
                     service=instance,
-                    valid_until=timezone.now().date(),
+                    valid_until=timezone.now().date() + timedelta(days=2),
                     terms_conditions="Auto-generated quote.",
                     notes="Auto-generated.",
                     status="DRAFT",
@@ -169,26 +203,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
             and instance.status == "ACTIVE"
             and instance.auto_generate_invoices
         ):
-            quote = (
-                instance.service_quotes.filter(is_active=True)
-                .exclude(status="DECLINED")
-                .first()
-            )
-            if quote and quote.status == "SIGNED":
-                if not instance.invoices.filter(is_active=True).exists():
-                    Invoice.objects.create(
-                        business=instance.business,
-                        client=instance.client,
-                        service=instance,
-                        due_date=timezone.now().date(),
-                        currency=instance.currency,
-                        subtotal=instance.price,
-                        tax_rate=instance.business.tax_rate,
-                        tax_amount=instance.price * instance.business.tax_rate / 100,
-                        total_amount=instance.price
-                        + (instance.price * instance.business.tax_rate / 100),
-                        notes="Auto-generated invoice.",
-                    )
+            create_auto_invoice_for_service(instance)
 
         return response
 
@@ -357,6 +372,9 @@ class QuoteViewSet(viewsets.ModelViewSet):
             quote.signature = None
 
         quote.save(update_fields=["status", "signed_at", "signature"])
+
+        if new_status == "SIGNED":
+            create_auto_invoice_for_service(quote.service)
 
         return Response(
             {"detail": f"Quote successfully {new_status.lower()}."},
