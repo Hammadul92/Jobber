@@ -2,6 +2,7 @@
 Test for business APIs
 """
 
+import tempfile
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -155,11 +156,13 @@ class QuoteInvoiceAutomationTests(TestCase):
             content_type="image/png",
         )
 
-        res = self.client.post(
-            reverse(QUOTE_SIGN_URL, args=[self.quote.id]),
-            {"status": "SIGNED", "signature": signature},
-            format="multipart",
-        )
+        with tempfile.TemporaryDirectory() as temp_media_root:
+            with self.settings(MEDIA_ROOT=temp_media_root):
+                res = self.client.post(
+                    reverse(QUOTE_SIGN_URL, args=[self.quote.id]),
+                    {"status": "SIGNED", "signature": signature},
+                    format="multipart",
+                )
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(Invoice.objects.filter(service=self.service).count(), 1)
