@@ -177,23 +177,17 @@ class ServiceViewSet(viewsets.ModelViewSet):
             and instance.filled_questionnaire
             and instance.auto_generate_quote
         ):
-            if (
-                not instance.service_quotes.filter(is_active=True)
+            if not (
+                instance.service_quotes.filter(is_active=True)
                 .exclude(status="DECLINED")
                 .exists()
             ):
-                quote = Quote.objects.create(
+                Quote.objects.create(
                     service=instance,
                     valid_until=timezone.now().date() + timedelta(days=2),
                     terms_conditions="Auto-generated quote.",
                     notes="Auto-generated.",
                     status="DRAFT",
-                )
-            else:
-                quote = (
-                    instance.service_quotes.filter(is_active=True)
-                    .exclude(status="DECLINED")
-                    .first()
                 )
 
         # If status changed to ACTIVE, and auto_generate_invoices is true,
