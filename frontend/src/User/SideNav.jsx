@@ -13,6 +13,7 @@ import {
   LuBuilding2,
   LuCreditCard,
   LuKey,
+  LuScrollText,
 } from "react-icons/lu";
 import { RiDashboardLine } from "react-icons/ri";
 import {
@@ -23,6 +24,7 @@ import {
   businessApi,
   clientApi,
   serviceQuestionnaireApi,
+  serviceTermsTemplateApi,
   teamMemberApi,
   serviceApi,
   quoteApi,
@@ -102,6 +104,11 @@ export default function SideNav({ user, businessRegistered }) {
         path: "/user/business/service-questionnaires",
         icon: LuClipboardList,
       },
+      {
+        name: "Terms & Conditions",
+        path: "/user/business/terms-and-conditions",
+        icon: LuScrollText,
+      },
       { name: "Clients", path: "/user/business/clients", icon: LuCircleUser },
       { name: "Services", path: "/user/business/services", icon: LuFileText },
       { name: "Quotes", path: "/user/business/quotes", icon: LuFileText },
@@ -149,6 +156,8 @@ export default function SideNav({ user, businessRegistered }) {
       "/user/business/payouts": "/user/business/payout/",
       "/user/business/service-questionnaires":
         "/user/business/service-questionnaire/",
+      "/user/business/terms-and-conditions":
+        "/user/business/terms-and-condition/",
     };
 
     // Check if current path matches a singular detail page pattern
@@ -167,6 +176,7 @@ export default function SideNav({ user, businessRegistered }) {
       businessApi,
       clientApi,
       serviceQuestionnaireApi,
+      serviceTermsTemplateApi,
       teamMemberApi,
       serviceApi,
       quoteApi,

@@ -18,6 +18,7 @@ import ClientServices from "./(business)/Clients/Services";
 import Service from "./(business)/Clients/Services/Service";
 import ServiceQuestionnaires from "./(business)/ServiceQuestionnaires";
 import ServiceQuestionnaireForm from "./(business)/ServiceQuestionnaires/ServiceQuestionnaireForm";
+import TermsAndConditions from "./(business)/TermsAndConditions";
 import TeamMembers from "./(business)/TeamMembers";
 import TeamMember from "./(business)/TeamMembers/TeamMember";
 import Quotes from "./(business)/Quotes";
@@ -43,6 +44,7 @@ export default function UserDashboard({ page, token, user }) {
         "service",
         "service-questionnaires",
         "service-questionnaire-form",
+        "terms-and-conditions",
         "team-members",
         "team-member",
         "quotes",
@@ -72,6 +74,7 @@ export default function UserDashboard({ page, token, user }) {
       { page: "client-services", roles: ["MANAGER", "CLIENT"] },
       { page: "service-questionnaires", roles: ["MANAGER"] },
       { page: "service-questionnaire-form", roles: ["MANAGER", "CLIENT"] },
+      { page: "terms-and-conditions", roles: ["MANAGER"] },
       { page: "quotes", roles: ["CLIENT", "MANAGER"] },
       { page: "quote", roles: ["CLIENT", "MANAGER"] },
       { page: "sign-quote", roles: ["CLIENT"] },
@@ -167,6 +170,14 @@ export default function UserDashboard({ page, token, user }) {
             token={token}
             role={user?.role}
             business={business}
+          />
+        );
+      case "terms-and-conditions":
+        return (
+          <TermsAndConditions
+            token={token}
+            business={business}
+            role={user?.role}
           />
         );
       case "team-members":

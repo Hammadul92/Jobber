@@ -16,6 +16,7 @@ from core.models import (
     JobPhoto,
     Quote,
     ServiceQuestionnaire,
+    ServiceTermsTemplate,
     Service,
     TeamMember,
 )
@@ -162,6 +163,7 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     """Serializer for services with optimized validation."""
     quotations = serializers.SerializerMethodField()
     service_questionnaires = serializers.SerializerMethodField()
+    service_terms_template = serializers.SerializerMethodField()
     tax_rate = serializers.SerializerMethodField()
     client_name = serializers.CharField(
         source="client.user.name",
@@ -172,7 +174,8 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         model = Service
         fields = [
             "id", "client", "client_name", "business", "quotations",
-            "service_name", "service_questionnaires", "filled_questionnaire",
+            "service_name", "service_questionnaires", "service_terms_template",
+            "filled_questionnaire",
             "description", "start_date", "end_date", "service_type",
             "price", "currency", "billing_cycle", "status", "tax_rate",
             "auto_generate_quote", "auto_generate_invoices",
@@ -203,6 +206,19 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     def get_tax_rate(self, obj):
         """Return the business tax rate associated with this service."""
         return round(float(obj.business.tax_rate/100), 2)
+
+    def get_service_terms_template(self, obj):
+        """Return the active general terms template for this service if exists."""
+        template = obj.business.service_terms_templates.filter(
+            service_name=obj.service_name,
+            is_active=True,
+        ).first()
+        if template:
+            return {
+                "id": template.id,
+                "content": template.content,
+            }
+        return {}
 
     def validate(self, data):
         """
@@ -239,8 +255,16 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                 "This client does not belong to the selected business."
             )
 
-        # Only check for questionnaire existence when creating
-        if not self.instance:
+        should_require_service_templates = (
+            not self.instance or
+            (
+                "service_name" in data and
+                data.get("service_name") != getattr(self.instance, "service_name", None)
+            )
+        )
+
+        # Only require service templates on create or when service_name changes
+        if should_require_service_templates:
             has_questionnaire = business.service_questionnaires.filter(
                 service_name=service_name,
                 is_active=True
@@ -249,6 +273,16 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                 errors["service_name"] = (
                     "Cannot create this service because there is no active "
                     "questionnaire for the selected service name."
+                )
+
+            has_terms_template = business.service_terms_templates.filter(
+                service_name=service_name,
+                is_active=True,
+            ).exists()
+            if not has_terms_template:
+                errors["service_name"] = (
+                    "Cannot create this service because there is no active "
+                    "terms and conditions template for the selected service name."
                 )
 
         # Prevent activation before questionnaire is filled
@@ -319,6 +353,7 @@ class QuoteSerializer(serializers.ModelSerializer):
 
     service_data = ServiceSerializer(source="service", read_only=True)
     client = ClientSerializer(source="service.client", read_only=True)
+    combined_terms_conditions = serializers.SerializerMethodField()
     service_name = serializers.CharField(
         source="service.service_name",
         read_only=True
@@ -337,11 +372,13 @@ class QuoteSerializer(serializers.ModelSerializer):
         fields = [
             "id", "quote_number", "service", "service_data", "client",
             "service_name", "client_name", "business_name", "valid_until",
-            "status", "signed_at", "signature", "terms_conditions",
+            "status", "signed_at", "signature", "general_terms_conditions",
+            "terms_conditions", "combined_terms_conditions",
             "notes", "is_active", "created_at", "updated_at",
         ]
         read_only_fields = [
-            "id", "quote_number", "status", "created_at", "updated_at",
+            "id", "quote_number", "status", "general_terms_conditions",
+            "combined_terms_conditions", "created_at", "updated_at",
         ]
 
     def validate_valid_until(self, value):
@@ -374,6 +411,66 @@ class QuoteSerializer(serializers.ModelSerializer):
                 )
 
         return attrs
+
+    def get_combined_terms_conditions(self, obj):
+        general_terms = (obj.general_terms_conditions or "").strip()
+        additional_terms = (obj.terms_conditions or "").strip()
+
+        if general_terms and additional_terms:
+            return f"{general_terms}\n\nAdditional Terms:\n{additional_terms}"
+        return general_terms or additional_terms
+
+    def create(self, validated_data):
+        service = validated_data["service"]
+        template = service.business.service_terms_templates.filter(
+            service_name=service.service_name,
+            is_active=True,
+        ).first()
+        if not template:
+            raise serializers.ValidationError(
+                {
+                    "service": (
+                        "No active terms and conditions template exists for "
+                        "this service."
+                    )
+                }
+            )
+
+        validated_data["general_terms_conditions"] = template.content
+        return super().create(validated_data)
+
+
+class ServiceTermsTemplateSerializer(serializers.ModelSerializer):
+    business_name = serializers.CharField(
+        source="business.name",
+        read_only=True,
+    )
+
+    class Meta:
+        model = ServiceTermsTemplate
+        fields = [
+            "id",
+            "business",
+            "business_name",
+            "service_name",
+            "content",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "business_name",
+            "created_at",
+            "updated_at",
+        ]
+
+    def validate_content(self, value):
+        word_count = len(value.split())
+        if word_count > 10000:
+            raise serializers.ValidationError(
+                "General terms and conditions cannot exceed 10,000 words."
+            )
+        return value
 
 
 class ServiceQuestionnaireSerializer(serializers.ModelSerializer):

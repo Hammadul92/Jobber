@@ -14,6 +14,7 @@ import {
   LuBuilding2,
   LuCreditCard,
   LuKey,
+  LuScrollText,
 } from "react-icons/lu";
 import { RiDashboardLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
@@ -36,6 +37,12 @@ function MobileTopbar({ role, businessName, user }) {
         name: "Questionnaires",
         path: "/user/business/service-questionnaires",
         icon: LuClipboardList,
+        is_visible: role === "MANAGER",
+      },
+      {
+        name: "Terms & Conditions",
+        path: "/user/business/terms-and-conditions",
+        icon: LuScrollText,
         is_visible: role === "MANAGER",
       },
       {
@@ -140,6 +147,8 @@ function MobileTopbar({ role, businessName, user }) {
       "/user/business/payouts": "/user/business/payout/",
       "/user/business/service-questionnaires":
         "/user/business/service-questionnaire/",
+      "/user/business/terms-and-conditions":
+        "/user/business/terms-and-condition/",
     };
 
     const singularPattern = singularPatternsMap[menuPath];

@@ -417,6 +417,63 @@ class ServiceQuestionnaire(SoftDeletableModel):
                 }
             )
 
+        existing_templates = ServiceTermsTemplate.objects.filter(
+            business=self.business,
+            service_name=self.service_name,
+        ).exclude(id=self.id)
+        if existing_templates.exists():
+            raise ValidationError(
+                {
+                    "service_name": (
+                        "A terms and conditions template already exists for "
+                        "this service."
+                    )
+                }
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+
+class ServiceTermsTemplate(SoftDeletableModel):
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
+    business = models.ForeignKey(
+        "Business",
+        related_name="service_terms_templates",
+        on_delete=models.CASCADE,
+    )
+    service_name = models.CharField(
+        max_length=100,
+        help_text="Name of the service this terms template is for",
+    )
+    content = models.TextField(
+        help_text="Reusable general terms and conditions for this service",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["business", "service_name"]
+
+    def __str__(self):
+        return f"{self.service_name} Terms ({self.business.name})"
+
+    def clean(self):
+        offered_services = self.business.services_offered.names()
+        if self.service_name not in offered_services:
+            raise ValidationError(
+                {
+                    "service_name": (
+                        "Service must be one of the business's offered services: "
+                        f"{offered_services}"
+                    )
+                }
+            )
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
@@ -600,7 +657,8 @@ class Quote(SoftDeletableModel):
     signed_at = models.DateTimeField(null=True, blank=True)
     signature = models.ImageField(upload_to="signatures/", null=True, blank=True)
 
-    terms_conditions = models.TextField()
+    general_terms_conditions = models.TextField(blank=True, null=True)
+    terms_conditions = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)

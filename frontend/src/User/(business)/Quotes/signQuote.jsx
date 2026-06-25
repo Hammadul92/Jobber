@@ -492,11 +492,38 @@ export default function SignQuote({ token }) {
                     onClose={closeSectionPopup}
                     title={sectionPopup === "terms" ? "Terms & Conditions" : "Notes"}
                 >
-                    <p className="text-slate-700">
-                        {sectionPopup === "terms"
-                            ? quote.terms_conditions || "_"
-                            : quote.notes || "No notes added."}
-                    </p>
+                    {sectionPopup === "terms" ? (
+                        (() => {
+                            const combinedTerms = quote.combined_terms_conditions || "_";
+                            const additionalTermsSeparator = "\n\nAdditional Terms:\n";
+                            const [generalTerms, additionalTerms] =
+                                combinedTerms.split(additionalTermsSeparator);
+
+                            if (!additionalTerms) {
+                                return (
+                                    <p className="whitespace-pre-wrap text-slate-700">
+                                        {combinedTerms}
+                                    </p>
+                                );
+                            }
+
+                            return (
+                                <div className="space-y-4 text-slate-700">
+                                    <p className="whitespace-pre-wrap">{generalTerms}</p>
+                                    <div>
+                                        <p className="font-semibold text-slate-900">
+                                            Additional Terms:
+                                        </p>
+                                        <p className="mt-2 whitespace-pre-wrap">
+                                            {additionalTerms}
+                                        </p>
+                                    </div>
+                                </div>
+                            );
+                        })()
+                    ) : (
+                        <p className="text-slate-700">{quote.notes || "No notes added."}</p>
+                    )}
                 </QuoteSectionPopup>
 
                 <div className="px-6 py-4 border-t border-gray-200">

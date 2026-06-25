@@ -116,7 +116,7 @@ export default function Quote({ token }) {
   const isInactiveClient =
     client.is_active === false || client.is_active === "False";
   const isServiceInactive = serviceData.status !== "ACTIVE";
-  const isRequiredFieldsMissing = !validUntil || !termsConditions;
+  const isRequiredFieldsMissing = !validUntil;
   const isExpired = new Date(validUntil) < new Date();
 
   const disableSendBtn =
@@ -129,7 +129,7 @@ export default function Quote({ token }) {
   if (isInactiveClient) disableReasons.push("The client is inactive. Reactivate the client before sending.");
   if (isServiceInactive) disableReasons.push("The linked service is inactive. Please ensure it is active.");
   if (isRequiredFieldsMissing)
-    disableReasons.push("Please fill in all required fields (Valid Until and Terms & Conditions).");
+    disableReasons.push("Please fill in all required fields (Valid Until).");
 
   const statusColor =
     quoteData.status === "SIGNED"
@@ -355,11 +355,24 @@ export default function Quote({ token }) {
 
             <div className="mt-5">
               <Textarea
+                id="quote-general-terms-conditions"
+                label="General Terms & Conditions"
+                value={quoteData.general_terms_conditions || ""}
+                onChange={() => {}}
+                isRequired={false}
+                isDisabled={true}
+                fieldClass="h-36 w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700 disabled:cursor-not-allowed disabled:bg-gray-50"
+                rows={6}
+              />
+            </div>
+
+            <div className="mt-5">
+              <Textarea
                 id="quote-terms-conditions"
-                label="Terms & Conditions"
+                label="Additional Terms & Conditions"
                 value={termsConditions}
                 onChange={setTermsConditions}
-                isRequired={true}
+                isRequired={false}
                 isDisabled={isSigned}
                 fieldClass="h-36 w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
                 rows={6}
@@ -374,7 +387,7 @@ export default function Quote({ token }) {
                 onChange={setNotes}
                 isRequired={false}
                 isDisabled={isSigned}
-                fieldClass="h-44 w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
+                fieldClass="h-36 w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
                 rows={6}
               />
             </div>

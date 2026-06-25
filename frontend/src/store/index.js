@@ -4,6 +4,7 @@ import { userApi } from "./apis/userApi";
 import { businessApi } from "./apis/businessApi";
 import { clientApi } from "./apis/clientApi";
 import { serviceQuestionnaireApi } from "./apis/serviceQuestionnaireApi";
+import { serviceTermsTemplateApi } from "./apis/serviceTermsTemplateApi";
 import { teamMemberApi } from "./apis/teamMemberApi";
 import { serviceApi } from "./apis/serviceApi";
 import { quoteApi } from "./apis/quoteApi";
@@ -22,6 +23,7 @@ const store = configureStore({
     [serviceApi.reducerPath]: serviceApi.reducer,
     [quoteApi.reducerPath]: quoteApi.reducer,
     [serviceQuestionnaireApi.reducerPath]: serviceQuestionnaireApi.reducer,
+    [serviceTermsTemplateApi.reducerPath]: serviceTermsTemplateApi.reducer,
     [jobApi.reducerPath]: jobApi.reducer,
     [bankingInformationApi.reducerPath]: bankingInformationApi.reducer,
     [invoiceApi.reducerPath]: invoiceApi.reducer,
@@ -41,6 +43,7 @@ const store = configureStore({
       .concat(businessApi.middleware)
       .concat(clientApi.middleware)
       .concat(serviceQuestionnaireApi.middleware)
+      .concat(serviceTermsTemplateApi.middleware)
       .concat(teamMemberApi.middleware)
       .concat(serviceApi.middleware)
       .concat(quoteApi.middleware)
@@ -59,6 +62,7 @@ export {
   businessApi,
   clientApi,
   serviceQuestionnaireApi,
+  serviceTermsTemplateApi,
   teamMemberApi,
   serviceApi,
   quoteApi,
@@ -133,6 +137,14 @@ export {
   useUpdateServiceQuestionnaireMutation,
   useDeleteServiceQuestionnaireMutation,
 } from "./apis/serviceQuestionnaireApi";
+
+export {
+  useFetchServiceTermsTemplatesQuery,
+  useFetchServiceTermsTemplateQuery,
+  useCreateServiceTermsTemplateMutation,
+  useUpdateServiceTermsTemplateMutation,
+  useDeleteServiceTermsTemplateMutation,
+} from "./apis/serviceTermsTemplateApi";
 
 export {
   useFetchJobsQuery,

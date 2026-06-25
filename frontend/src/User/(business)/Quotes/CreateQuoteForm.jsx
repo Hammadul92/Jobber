@@ -150,13 +150,13 @@ export default function CreateQuoteForm({
 
                   <Textarea
                     id="create-quote-terms-conditions"
-                    label="Terms & Condition"
+                    label="Additional Terms & Conditions"
                     value={termsConditions}
                     onChange={setTermsConditions}
-                    isRequired={true}
+                    isRequired={false}
                     fieldClass="h-28 rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
                     rows={5}
-                    placeholder="Optional notes or invoice description......."
+                    placeholder="Add any extra quote-specific terms on top of the service's general terms..."
                   />
 
                   <Textarea

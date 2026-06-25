@@ -14,12 +14,22 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Business, Client, Quote, Service, Invoice
+from core.models import (
+    Business,
+    Client,
+    Invoice,
+    Quote,
+    Service,
+    ServiceQuestionnaire,
+    ServiceTermsTemplate,
+)
 
 from operations.serializers import BusinessSerializer
 
 
 BUSINESSES_URL = reverse("operations:business-list")
+SERVICES_URL = reverse("operations:service-list")
+QUOTES_URL = reverse("operations:quote-list")
 QUOTE_SIGN_URL = "operations:quote-sign-quote"
 
 
@@ -173,3 +183,108 @@ class QuoteInvoiceAutomationTests(TestCase):
         self.assertEqual(invoice.subtotal, Decimal("100.00"))
         self.assertEqual(invoice.tax_amount, Decimal("5.00"))
         self.assertEqual(invoice.total_amount, Decimal("105.00"))
+
+
+class ServiceTermsTemplateApiTests(TestCase):
+    """Test service terms template integration with services and quotes."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.owner = get_user_model().objects.create_user(
+            "manager@example.com",
+            "test123",
+            role="MANAGER",
+        )
+        self.client.force_authenticate(self.owner)
+        self.business = create_business(
+            owner=self.owner,
+            slug="service-terms-business",
+            postal_code="T2T2T2",
+            tax_rate=Decimal("5.00"),
+        )
+        self.business.services_offered.add("Flooring")
+        self.client_user = get_user_model().objects.create_user(
+            "flooring-client@example.com",
+            "test123",
+            role="CLIENT",
+        )
+        self.client_record = Client.objects.create(
+            business=self.business,
+            user=self.client_user,
+        )
+        ServiceQuestionnaire.objects.create(
+            business=self.business,
+            service_name="Flooring",
+            additional_questions_form=[
+                {"text": "Room size", "type": "input", "required": True},
+            ],
+        )
+
+    def test_create_service_requires_active_terms_template(self):
+        """Test service creation fails without an active terms template."""
+        payload = {
+            "client": self.client_record.id,
+            "business": self.business.id,
+            "service_name": "Flooring",
+            "description": "Install flooring",
+            "start_date": date.today(),
+            "end_date": date.today() + timedelta(days=7),
+            "service_type": "ONE_TIME",
+            "price": "100.00",
+            "currency": "CAD",
+            "status": "PENDING",
+            "street_address": "101 Demo Street",
+            "city": "Calgary",
+            "country": "CA",
+            "province_state": "AB",
+            "postal_code": "T2T2T2",
+        }
+
+        res = self.client.post(SERVICES_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("service_name", res.data)
+
+    def test_create_quote_copies_general_terms_snapshot(self):
+        """Test quote stores service general terms plus additional terms."""
+        ServiceTermsTemplate.objects.create(
+            business=self.business,
+            service_name="Flooring",
+            content="General flooring terms apply.",
+            is_active=True,
+        )
+        service = Service.objects.create(
+            client=self.client_record,
+            business=self.business,
+            service_name="Flooring",
+            description="Install new flooring",
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=7),
+            service_type="ONE_TIME",
+            price=Decimal("100.00"),
+            currency="CAD",
+            billing_cycle=None,
+            status="PENDING",
+            street_address="123 Test Street",
+            city="Calgary",
+            country="CA",
+            province_state="AB",
+            postal_code="T2T2T2",
+        )
+
+        res = self.client.post(
+            QUOTES_URL,
+            {
+                "service": service.id,
+                "valid_until": date.today() + timedelta(days=2),
+                "terms_conditions": "Remove furniture before work begins.",
+                "notes": "Quote notes",
+            },
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        quote = Quote.objects.get(id=res.data["id"])
+        self.assertEqual(quote.general_terms_conditions, "General flooring terms apply.")
+        self.assertEqual(quote.terms_conditions, "Remove furniture before work begins.")
+        self.assertIn("General flooring terms apply.", res.data["combined_terms_conditions"])
+        self.assertIn("Remove furniture before work begins.", res.data["combined_terms_conditions"])

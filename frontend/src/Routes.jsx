@@ -212,6 +212,16 @@ function MainApp() {
             }
           />
           <Route
+            path="terms-and-conditions"
+            element={
+              <UserDashboard
+                page="terms-and-conditions"
+                token={token}
+                user={user}
+              />
+            }
+          />
+          <Route
             path="service/:id"
             element={<UserDashboard page="service" token={token} user={user} />}
           />

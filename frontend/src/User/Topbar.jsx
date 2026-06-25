@@ -19,6 +19,7 @@ const SEGMENT_LABELS = {
   service: "Service",
   "service-questionnaires": "Questionnaires",
   "service-questionnaire": "Questionnaire",
+  "terms-and-conditions": "Terms & Conditions",
   quotes: "Quotes",
   quote: "Quote",
   jobs: "Jobs",

@@ -8,6 +8,7 @@ from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -20,11 +21,20 @@ from core.models import (
     Job,
     JobPhoto,
     ServiceQuestionnaire,
+    ServiceTermsTemplate,
     TeamMember,
     Service,
     Quote,
 )
 from operations import serializers, paginations, emails
+
+
+def get_active_service_terms_template(service):
+    """Return active general terms template for a service, if any."""
+    return service.business.service_terms_templates.filter(
+        service_name=service.service_name,
+        is_active=True,
+    ).first()
 
 
 def create_auto_invoice_for_service(service):
@@ -182,10 +192,12 @@ class ServiceViewSet(viewsets.ModelViewSet):
                 .exclude(status="DECLINED")
                 .exists()
             ):
+                terms_template = get_active_service_terms_template(instance)
                 Quote.objects.create(
                     service=instance,
                     valid_until=timezone.now().date() + timedelta(days=2),
-                    terms_conditions="Auto-generated quote.",
+                    general_terms_conditions=terms_template.content if terms_template else "",
+                    terms_conditions="",
                     notes="Auto-generated.",
                     status="DRAFT",
                 )
@@ -394,6 +406,38 @@ class ServiceQuestionnaireViewSet(viewsets.ModelViewSet):
         if user.role == "CLIENT":
             return qs.filter(business__clients__user=user).order_by("-id")
         return qs.none()
+
+    def perform_destroy(self, instance):
+        instance.soft_delete(user=self.request.user)
+
+
+class ServiceTermsTemplateViewSet(viewsets.ModelViewSet):
+    """View for managing service terms template APIs."""
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = ServiceTermsTemplate.objects.all().select_related("business")
+    serializer_class = serializers.ServiceTermsTemplateSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = super().get_queryset()
+        if user.role == "ADMIN":
+            return qs.order_by("-id")
+        if user.role == "MANAGER":
+            return qs.filter(business__owner=user).order_by("-id")
+        return qs.none()
+
+    def perform_create(self, serializer):
+        business = serializer.validated_data["business"]
+        user = self.request.user
+
+        if user.role != "ADMIN" and business.owner != user:
+            raise PermissionDenied(
+                "You do not have permission to manage terms for this business."
+            )
+
+        serializer.save()
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
