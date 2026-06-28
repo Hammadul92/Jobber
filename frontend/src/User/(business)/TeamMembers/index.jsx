@@ -9,7 +9,7 @@ import {
   unregisterTopbarActionHandler,
 } from "../../topbarActionRegistry";
 
-export default function TeamMembers({ token }) {
+export default function TeamMembers({ token, role }) {
   const [showModal, setShowModal] = useState(false);
   const [editTeamMember, setEditTeamMember] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
@@ -26,30 +26,35 @@ export default function TeamMembers({ token }) {
   }, []);
 
   useEffect(() => {
-    registerTopbarActionHandler("add-member", handleOpenCreate);
+    if (role === "MANAGER") {
+      registerTopbarActionHandler("add-member", handleOpenCreate);
+    }
 
     dispatch(
       setTopbar({
         title: "Team Members",
         description: "Manage your staff access, duties, and expertise.",
-        action: {
-          type: "button",
-          key: "add-member",
-          label: "Add Member",
-          title: "Add Member",
-          icon: "user-plus",
-          iconClassName: "h-6 w-6 md:h-4.5 md:w-4.5",
-          labelClassName: "hidden md:block",
-          className:
-            "inline-flex items-center gap-2 rounded-xl bg-accent px-3 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
-        },
+        action:
+          role === "MANAGER"
+            ? {
+                type: "button",
+                key: "add-member",
+                label: "Add Member",
+                title: "Add Member",
+                icon: "user-plus",
+                iconClassName: "h-6 w-6 md:h-4.5 md:w-4.5",
+                labelClassName: "hidden md:block",
+                className:
+                  "inline-flex items-center gap-2 rounded-xl bg-accent px-3 md:px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight",
+              }
+            : null,
       }),
     );
     return () => {
       unregisterTopbarActionHandler("add-member");
       dispatch(resetTopbar());
     };
-  }, [dispatch, handleOpenCreate]);
+  }, [dispatch, handleOpenCreate, role]);
 
   useEffect(() => {
     if (!showModal) {

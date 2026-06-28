@@ -352,6 +352,19 @@ export default function JobData({ token, role, setAlert }) {
                       </Link>
                     </div>
                   )}
+
+                  {role === "EMPLOYEE" && (
+                    <div className="flex items-end justify-end gap-3 md:w-2/5">
+                      <Link
+                        className="inline-flex items-center justify-center gap-1 rounded-xl border border-secondary bg-secondary px-4 py-2 text-sm font-semibold text-white transition hover:bg-secondary/90"
+                        to={`/user/business/job/${job.id}`}
+                        title="Update Job Photos"
+                      >
+                        <LuPencilLine className="h-4 w-4" />
+                        Update
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             ))

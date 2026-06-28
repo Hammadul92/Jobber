@@ -513,5 +513,18 @@ class JobPhotoViewSet(viewsets.ModelViewSet):
 
         return qs
 
+    def perform_create(self, serializer):
+        job_photo = serializer.save()
+        job = job_photo.job
+
+        if job_photo.photo_type == "BEFORE":
+            job.status = "IN_PROGRESS"
+            job.completed_at = None
+            job.save(update_fields=["status", "completed_at", "updated_at"])
+        elif job_photo.photo_type == "AFTER":
+            job.status = "COMPLETED"
+            job.completed_at = timezone.now()
+            job.save(update_fields=["status", "completed_at", "updated_at"])
+
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)

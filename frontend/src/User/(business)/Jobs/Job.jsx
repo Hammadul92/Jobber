@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import {
   useFetchJobQuery,
   useUpdateJobMutation,
@@ -17,6 +17,7 @@ import { LuUpload } from "react-icons/lu";
 
 export default function Job({ token, role }) {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const {
     data: jobData,
@@ -51,18 +52,56 @@ export default function Job({ token, role }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState("");
   const [photoInputKey, setPhotoInputKey] = useState(0);
+  const canEditJobDetails = role === "MANAGER";
+  const uploadedPhotoTypes = new Set((jobPhotos || []).map((photo) => photo.photo_type));
+  const availablePhotoTypeOptions = [
+    { value: "BEFORE", label: "Before" },
+    { value: "AFTER", label: "After" },
+  ].filter((option) => !uploadedPhotoTypes.has(option.value));
+  const isPhotoTypeFullyUsed = availablePhotoTypeOptions.length === 0;
+  const assignedToOptions = canEditJobDetails
+    ? [
+        { value: "", label: "Select" },
+        ...(teamMembers
+          ? teamMembers
+              .filter((member) => member.is_active === "True")
+              .map((member) => ({
+                value: String(member.id),
+                label: member.employee_name,
+              }))
+          : []),
+      ]
+    : jobData?.assigned_to && jobData?.assigned_to_name
+      ? [
+          {
+            value: String(jobData.assigned_to),
+            label: jobData.assigned_to_name,
+          },
+        ]
+      : [{ value: "", label: "Unassigned" }];
 
   createdAt;
   useEffect(() => {
     if (jobData) {
       setTitle(jobData.title || "");
       setDescription(jobData.description || "");
-      setAssignedTo(jobData.assigned_to || "");
+      setAssignedTo(jobData.assigned_to ? String(jobData.assigned_to) : "");
       setScheduledDate(jobData.scheduled_date?.slice(0, 16) || "");
       setStatus(jobData.status || "PENDING");
       setCreatedAt(jobData.created_at || "");
     }
   }, [jobData]);
+
+  useEffect(() => {
+    if (availablePhotoTypeOptions.length > 0) {
+      const currentPhotoTypeStillAvailable = availablePhotoTypeOptions.some(
+        (option) => option.value === photoType,
+      );
+      if (!currentPhotoTypeStillAvailable) {
+        setPhotoType(availablePhotoTypeOptions[0].value);
+      }
+    }
+  }, [availablePhotoTypeOptions, photoType]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -114,6 +153,13 @@ export default function Job({ token, role }) {
       });
     }
 
+    if (uploadedPhotoTypes.has(photoType)) {
+      return setAlert({
+        type: "danger",
+        message: `${photoType === "BEFORE" ? "Before" : "After"} image has already been uploaded for this job.`,
+      });
+    }
+
     const formData = new FormData();
     formData.append("job", id);
     formData.append("photo_type", photoType);
@@ -121,15 +167,23 @@ export default function Job({ token, role }) {
 
     try {
       await createJobPhoto(formData).unwrap();
-      setAlert({ type: "success", message: "Photo uploaded successfully." });
       setSelectedFile(null);
       setPhotoPreview("");
+      if (role === "EMPLOYEE") {
+        navigate("/user/business/jobs");
+        return;
+      }
+      setStatus(photoType === "BEFORE" ? "IN_PROGRESS" : "COMPLETED");
+      setAlert({ type: "success", message: "Photo uploaded successfully." });
       refetchPhotos();
     } catch (err) {
       console.error(err);
       setAlert({
         type: "danger",
-        message: err?.data?.detail || "Failed to upload photo.",
+        message:
+          err?.data?.photo_type?.[0] ||
+          err?.data?.detail ||
+          "Failed to upload photo.",
       });
     }
   };
@@ -212,10 +266,8 @@ export default function Job({ token, role }) {
                 value={photoType}
                 onChange={setPhotoType}
                 isRequired={true}
-                options={[
-                  { value: "BEFORE", label: "Before" },
-                  { value: "AFTER", label: "After" },
-                ]}
+                isDisabled={isPhotoTypeFullyUsed}
+                options={availablePhotoTypeOptions}
               />
 
               <Input
@@ -226,7 +278,14 @@ export default function Job({ token, role }) {
                 label="Choose Photo"
                 id="job-photo-upload"
                 isRequired={true}
+                isDisabled={isPhotoTypeFullyUsed}
               />
+
+              {isPhotoTypeFullyUsed && (
+                <p className="-mt-2 text-sm text-slate-500">
+                  Before and after images have already been uploaded for this job.
+                </p>
+              )}
 
               {photoPreview && (
                 <div className="relative overflow-hidden rounded-lg shadow-sm">
@@ -250,7 +309,7 @@ export default function Job({ token, role }) {
                 <button
                   type="submit"
                   className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
-                  disabled={uploading}
+                  disabled={uploading || isPhotoTypeFullyUsed}
                 >
                   <LuUpload className="h-4 w-4" /> Upload
                 </button>
@@ -271,7 +330,7 @@ export default function Job({ token, role }) {
                 value={title}
                 onChange={setTitle}
                 placeholder="Enter job title"
-                isDisabled={role !== "MANAGER"}
+                isDisabled={!canEditJobDetails}
                 isRequired={true}
                 label="Title"
                 id="job-title"
@@ -283,6 +342,7 @@ export default function Job({ token, role }) {
                 label="Status"
                 value={status}
                 onChange={setStatus}
+                isDisabled={!canEditJobDetails}
                 options={[
                   { value: "PENDING", label: "Pending" },
                   { value: "IN_PROGRESS", label: "In Progress" },
@@ -298,19 +358,9 @@ export default function Job({ token, role }) {
                 label="Assigned To"
                 value={assignedTo}
                 onChange={setAssignedTo}
-                isDisabled={role !== "MANAGER"}
+                isDisabled={!canEditJobDetails}
                 fieldClass="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                options={[
-                  { value: "", label: "Select" },
-                  ...(teamMembers
-                    ? teamMembers
-                        .filter((member) => member.is_active === "True")
-                        .map((member) => ({
-                          value: member.id,
-                          label: member.employee_name,
-                        }))
-                    : []),
-                ]}
+                options={assignedToOptions}
               />
 
               <Input
@@ -318,7 +368,7 @@ export default function Job({ token, role }) {
                 fieldClass="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                 value={scheduledDate}
                 onChange={setScheduledDate}
-                isDisabled={role !== "MANAGER"}
+                isDisabled={!canEditJobDetails}
                 label="Scheduled Date"
                 id="job-scheduled-date"
               />
@@ -334,20 +384,22 @@ export default function Job({ token, role }) {
                 fieldClass="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm h-40"
                 rows={6}
                 placeholder="Job description..."
-                isDisabled={role !== "MANAGER"}
+                isDisabled={!canEditJobDetails}
               />
             </div>
 
-            <div className="-mt-2 flex justify-end">
-              <button
-                type="submit"
-                className="inline-flex items-center gap-3 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
-                style={{ minWidth: 140 }}
-                disabled={updatingJob}
-              >
-                Save Changes
-              </button>
-            </div>
+            {canEditJobDetails && (
+              <div className="-mt-2 flex justify-end">
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-3 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ minWidth: 140 }}
+                  disabled={updatingJob}
+                >
+                  Save Changes
+                </button>
+              </div>
+            )}
           </form>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

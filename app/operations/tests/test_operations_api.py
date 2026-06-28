@@ -3,6 +3,7 @@ Test for business APIs
 """
 
 import tempfile
+from io import BytesIO
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -10,7 +11,9 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
 
+from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -18,10 +21,13 @@ from core.models import (
     Business,
     Client,
     Invoice,
+    Job,
+    JobPhoto,
     Quote,
     Service,
     ServiceQuestionnaire,
     ServiceTermsTemplate,
+    TeamMember,
 )
 
 from operations.serializers import BusinessSerializer
@@ -31,6 +37,7 @@ BUSINESSES_URL = reverse("operations:business-list")
 SERVICES_URL = reverse("operations:service-list")
 QUOTES_URL = reverse("operations:quote-list")
 QUOTE_SIGN_URL = "operations:quote-sign-quote"
+JOB_PHOTOS_URL = reverse("operations:jobphoto-list")
 
 
 def create_business(owner, **params):
@@ -52,6 +59,18 @@ def create_business(owner, **params):
 
     business = Business.objects.create(owner=owner, **defaults)
     return business
+
+
+def create_test_image_file(name="job-photo.png"):
+    """Create a tiny valid PNG image for upload tests."""
+    buffer = BytesIO()
+    Image.new("RGB", (1, 1), color="white").save(buffer, format="PNG")
+    buffer.seek(0)
+    return SimpleUploadedFile(
+        name,
+        buffer.getvalue(),
+        content_type="image/png",
+    )
 
 
 class PublicBusinessApiTests(TestCase):
@@ -288,3 +307,132 @@ class ServiceTermsTemplateApiTests(TestCase):
         self.assertEqual(quote.terms_conditions, "Remove furniture before work begins.")
         self.assertIn("General flooring terms apply.", res.data["combined_terms_conditions"])
         self.assertIn("Remove furniture before work begins.", res.data["combined_terms_conditions"])
+
+
+class JobPhotoStatusAutomationTests(TestCase):
+    """Test job status automation when before/after photos are uploaded."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.owner = get_user_model().objects.create_user(
+            "jobs-manager@example.com",
+            "test123",
+            role="MANAGER",
+        )
+        self.employee_user = get_user_model().objects.create_user(
+            "employee@example.com",
+            "test123",
+            role="EMPLOYEE",
+        )
+        self.business = create_business(
+            owner=self.owner,
+            slug="jobs-business",
+            postal_code="T2T2T2",
+            tax_rate=Decimal("5.00"),
+        )
+        self.client_user = get_user_model().objects.create_user(
+            "jobs-client@example.com",
+            "test123",
+            role="CLIENT",
+        )
+        self.client_record = Client.objects.create(
+            business=self.business,
+            user=self.client_user,
+        )
+        self.team_member = TeamMember.objects.create(
+            business=self.business,
+            employee=self.employee_user,
+        )
+        self.service = Service.objects.create(
+            client=self.client_record,
+            business=self.business,
+            service_name="Flooring",
+            description="Install new flooring",
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=7),
+            service_type="ONE_TIME",
+            price=Decimal("100.00"),
+            currency="CAD",
+            billing_cycle=None,
+            status="ACTIVE",
+            street_address="123 Test Street",
+            city="Calgary",
+            country="CA",
+            province_state="AB",
+            postal_code="T2T2T2",
+            filled_questionnaire={"Room size": "Large"},
+        )
+        self.job = Job.objects.create(
+            service=self.service,
+            assigned_to=self.team_member,
+            title="Flooring Visit",
+            description="Take progress photos",
+            scheduled_date=timezone.now() + timedelta(days=1),
+            status="PENDING",
+        )
+
+    def test_uploading_before_photo_sets_job_in_progress(self):
+        """Test uploading a before photo updates job status to IN_PROGRESS."""
+        self.client.force_authenticate(self.employee_user)
+
+        with tempfile.TemporaryDirectory() as temp_media_root:
+            with self.settings(MEDIA_ROOT=temp_media_root):
+                res = self.client.post(
+                    JOB_PHOTOS_URL,
+                    {
+                        "job": self.job.id,
+                        "photo_type": "BEFORE",
+                        "photo": create_test_image_file("before.png"),
+                    },
+                    format="multipart",
+                )
+
+        self.job.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.job.status, "IN_PROGRESS")
+        self.assertIsNone(self.job.completed_at)
+
+    def test_uploading_after_photo_sets_job_completed(self):
+        """Test uploading an after photo updates job status to COMPLETED."""
+        self.client.force_authenticate(self.employee_user)
+
+        with tempfile.TemporaryDirectory() as temp_media_root:
+            with self.settings(MEDIA_ROOT=temp_media_root):
+                res = self.client.post(
+                    JOB_PHOTOS_URL,
+                    {
+                        "job": self.job.id,
+                        "photo_type": "AFTER",
+                        "photo": create_test_image_file("after.png"),
+                    },
+                    format="multipart",
+                )
+
+        self.job.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.job.status, "COMPLETED")
+        self.assertIsNotNone(self.job.completed_at)
+
+    def test_cannot_upload_duplicate_photo_type_for_same_job(self):
+        """Test duplicate before/after uploads are rejected for a job."""
+        self.client.force_authenticate(self.employee_user)
+        JobPhoto.objects.create(
+            job=self.job,
+            photo=create_test_image_file("existing-before.png"),
+            photo_type="BEFORE",
+        )
+
+        with tempfile.TemporaryDirectory() as temp_media_root:
+            with self.settings(MEDIA_ROOT=temp_media_root):
+                res = self.client.post(
+                    JOB_PHOTOS_URL,
+                    {
+                        "job": self.job.id,
+                        "photo_type": "BEFORE",
+                        "photo": create_test_image_file("duplicate-before.png"),
+                    },
+                    format="multipart",
+                )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("photo_type", res.data)

@@ -573,6 +573,34 @@ class JobSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
 
 class JobPhotoSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        job = attrs.get("job") or getattr(self.instance, "job", None)
+        photo_type = (
+            attrs.get("photo_type")
+            or getattr(self.instance, "photo_type", None)
+        )
+
+        if job and photo_type:
+            existing_photos = job.photos.filter(
+                photo_type=photo_type,
+                is_deleted=False,
+            )
+
+            if self.instance:
+                existing_photos = existing_photos.exclude(id=self.instance.id)
+
+            if existing_photos.exists():
+                raise serializers.ValidationError(
+                    {
+                        "photo_type": (
+                            f"A {photo_type.lower()} photo has already been "
+                            "uploaded for this job."
+                        )
+                    }
+                )
+
+        return attrs
+
     class Meta:
         model = JobPhoto
         fields = [
