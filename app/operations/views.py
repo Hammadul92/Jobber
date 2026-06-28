@@ -10,7 +10,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 
@@ -97,6 +97,30 @@ class BusinessViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="marquee-logos",
+        authentication_classes=[],
+        permission_classes=[AllowAny],
+    )
+    def marquee_logos(self, request):
+        """Return up to 10 active business logos for the public marquee."""
+        businesses = (
+            Business.objects.filter(
+                is_active=True,
+                logo__isnull=False,
+            )
+            .exclude(logo="")
+            .order_by("-created_at")[:10]
+        )
+        serializer = serializers.BusinessMarqueeLogoSerializer(
+            businesses,
+            many=True,
+            context={"request": request},
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ClientViewSet(viewsets.ModelViewSet):

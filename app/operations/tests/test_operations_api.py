@@ -34,6 +34,7 @@ from operations.serializers import BusinessSerializer
 
 
 BUSINESSES_URL = reverse("operations:business-list")
+BUSINESS_MARQUEE_LOGOS_URL = reverse("operations:business-marquee-logos")
 SERVICES_URL = reverse("operations:service-list")
 QUOTES_URL = reverse("operations:quote-list")
 QUOTE_SIGN_URL = "operations:quote-sign-quote"
@@ -84,6 +85,60 @@ class PublicBusinessApiTests(TestCase):
         res = self.client.get(BUSINESSES_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_fetch_marquee_logos_returns_public_active_business_logos(self):
+        """Test public marquee endpoint returns up to 10 active business logos."""
+        owner = get_user_model().objects.create_user(
+            "logos@example.com",
+            "test123",
+        )
+        inactive_owner = get_user_model().objects.create_user(
+            "inactive@example.com",
+            "test123",
+        )
+
+        with tempfile.TemporaryDirectory() as temp_media_root:
+            with self.settings(MEDIA_ROOT=temp_media_root):
+                for index in range(11):
+                    business = create_business(
+                        owner=owner,
+                        name=f"Business {index}",
+                        slug=f"business-{index}",
+                        postal_code=f"T2T{index:02d}",
+                    )
+                    business.logo.save(
+                        f"logo-{index}.png",
+                        create_test_image_file(f"logo-{index}.png"),
+                        save=True,
+                    )
+
+                inactive_business = create_business(
+                    owner=inactive_owner,
+                    name="Inactive Business",
+                    slug="inactive-business",
+                    postal_code="T2T999",
+                    is_active=False,
+                )
+                inactive_business.logo.save(
+                    "inactive-logo.png",
+                    create_test_image_file("inactive-logo.png"),
+                    save=True,
+                )
+
+                no_logo_business = create_business(
+                    owner=owner,
+                    name="No Logo Business",
+                    slug="no-logo-business",
+                    postal_code="T2T998",
+                )
+
+                res = self.client.get(BUSINESS_MARQUEE_LOGOS_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 10)
+        self.assertNotIn("Inactive Business", [item["name"] for item in res.data])
+        self.assertNotIn("No Logo Business", [item["name"] for item in res.data])
+        self.assertTrue(all(item["logo"] for item in res.data))
 
 
 class PrivateBusinessApiTests(TestCase):

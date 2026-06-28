@@ -68,6 +68,26 @@ class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         return business
 
 
+class BusinessMarqueeLogoSerializer(serializers.ModelSerializer):
+    """Serializer for public-facing business marquee logos."""
+
+    logo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Business
+        fields = ["id", "name", "logo"]
+
+    def get_logo(self, obj):
+        if not obj.logo:
+            return None
+
+        request = self.context.get("request")
+        logo_url = obj.logo.url
+        if request:
+            return request.build_absolute_uri(logo_url)
+        return logo_url
+
+
 class ClientSerializer(serializers.ModelSerializer):
     """ Serializer for clients."""
     client_name = serializers.CharField(

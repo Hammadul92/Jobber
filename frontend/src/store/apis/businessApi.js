@@ -34,6 +34,10 @@ const businessApi = createApi({
       providesTags: ["Business"],
     }),
 
+    fetchBusinessMarqueeLogos: builder.query({
+      query: () => "/business/marquee-logos/",
+    }),
+
     fetchBusiness: builder.query({
       query: (id) => `/business/${id}/`,
       providesTags: (result, error, id) => [{ type: "Business", id }],
@@ -72,6 +76,7 @@ const businessApi = createApi({
 
 export const {
   useFetchBusinessesQuery,
+  useFetchBusinessMarqueeLogosQuery,
   useFetchBusinessQuery,
   useCreateBusinessMutation,
   useUpdateBusinessMutation,

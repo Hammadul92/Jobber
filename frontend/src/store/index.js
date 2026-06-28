@@ -89,6 +89,7 @@ export {
 
 export {
   useFetchBusinessesQuery,
+  useFetchBusinessMarqueeLogosQuery,
   useFetchBusinessQuery,
   useCreateBusinessMutation,
   useUpdateBusinessMutation,
