@@ -4,6 +4,7 @@ import {
   useFetchServiceTermsTemplatesQuery,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
+import RichTextContent from "../../../Components/ui/RichTextContent";
 import {
   LuCircleAlert,
   LuCircleDashed,
@@ -141,7 +142,7 @@ export default function ServiceTermsData({ token, setAlert, onEdit }) {
             {templates.map((template) => (
               <div
                 key={template.id}
-                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-gray-300 hover:shadow-md"
+                className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-gray-300 hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -164,7 +165,7 @@ export default function ServiceTermsData({ token, setAlert, onEdit }) {
                   {template.content}
                 </p>
 
-                <div className="mt-6 flex items-center gap-2">
+                <div className="mt-auto flex items-center gap-2 pt-6">
                   <button
                     type="button"
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
@@ -223,8 +224,8 @@ export default function ServiceTermsData({ token, setAlert, onEdit }) {
             </div>
 
             <div className="max-h-[75vh] overflow-y-auto px-6 py-5">
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-7 text-slate-700 whitespace-pre-wrap">
-                {previewTemplate.content}
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-7 text-slate-700">
+                <RichTextContent html={previewTemplate.content} />
               </div>
             </div>
 

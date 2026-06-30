@@ -4,6 +4,7 @@ Serializers for business APIs
 
 import json
 from core.utils import BusinessTimezoneMixin
+from django.utils.html import strip_tags
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -485,7 +486,12 @@ class ServiceTermsTemplateSerializer(serializers.ModelSerializer):
         ]
 
     def validate_content(self, value):
-        word_count = len(value.split())
+        plain_text = strip_tags(value or "").strip()
+        word_count = len(plain_text.split()) if plain_text else 0
+        if not plain_text:
+            raise serializers.ValidationError(
+                "General terms and conditions cannot be blank."
+            )
         if word_count > 10000:
             raise serializers.ValidationError(
                 "General terms and conditions cannot exceed 10,000 words."

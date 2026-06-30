@@ -39,6 +39,9 @@ SERVICES_URL = reverse("operations:service-list")
 QUOTES_URL = reverse("operations:quote-list")
 QUOTE_SIGN_URL = "operations:quote-sign-quote"
 JOB_PHOTOS_URL = reverse("operations:jobphoto-list")
+SERVICE_TERMS_TEMPLATES_URL = reverse(
+    "operations:servicetermstemplate-list"
+)
 
 
 def create_business(owner, **params):
@@ -125,7 +128,7 @@ class PublicBusinessApiTests(TestCase):
                     save=True,
                 )
 
-                no_logo_business = create_business(
+                create_business(
                     owner=owner,
                     name="No Logo Business",
                     slug="no-logo-business",
@@ -318,6 +321,35 @@ class ServiceTermsTemplateApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("service_name", res.data)
+
+    def test_create_terms_template_accepts_formatted_html_content(self):
+        """Test Quill-formatted terms content is accepted and stored."""
+        payload = {
+            "business": self.business.id,
+            "service_name": "Flooring",
+            "content": "<h2>Payment Terms</h2><p>Payment is due on receipt.</p>",
+            "is_active": True,
+        }
+
+        res = self.client.post(SERVICE_TERMS_TEMPLATES_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        terms = ServiceTermsTemplate.objects.get(id=res.data["id"])
+        self.assertEqual(terms.content, payload["content"])
+
+    def test_create_terms_template_rejects_empty_html_content(self):
+        """Test empty Quill HTML is treated as blank content."""
+        payload = {
+            "business": self.business.id,
+            "service_name": "Flooring",
+            "content": "<p><br></p>",
+            "is_active": True,
+        }
+
+        res = self.client.post(SERVICE_TERMS_TEMPLATES_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("content", res.data)
 
     def test_create_quote_copies_general_terms_snapshot(self):
         """Test quote stores service general terms plus additional terms."""

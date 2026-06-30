@@ -11,6 +11,7 @@ import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { formatDate } from "../../../utils/formatDate";
 import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
+import RichTextContent from "../../../Components/ui/RichTextContent";
 import {
   LuMail,
   LuMapPin,
@@ -354,16 +355,21 @@ export default function Quote({ token }) {
             </div>
 
             <div className="mt-5">
-              <Textarea
+              <label
+                htmlFor="quote-general-terms-conditions"
+                className="mb-1 block text-sm font-semibold uppercase text-gray-500"
+              >
+                General Terms & Conditions
+              </label>
+              <div
                 id="quote-general-terms-conditions"
-                label="General Terms & Conditions"
-                value={quoteData.general_terms_conditions || ""}
-                onChange={() => {}}
-                isRequired={false}
-                isDisabled={true}
-                fieldClass="h-36 w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700 disabled:cursor-not-allowed disabled:bg-gray-50"
-                rows={6}
-              />
+                className="min-h-36 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 text-sm text-slate-700"
+              >
+                <RichTextContent
+                  html={quoteData.general_terms_conditions || ""}
+                  emptyText="No general terms added."
+                />
+              </div>
             </div>
 
             <div className="mt-5">

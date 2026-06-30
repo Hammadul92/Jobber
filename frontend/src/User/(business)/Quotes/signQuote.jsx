@@ -13,6 +13,7 @@ import {
 import AcceptAndSignQuote from "./AcceptAndSignQuote";
 import QuoteSectionPopup from "./QuoteSectionPopup";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import RichTextContent from "../../../Components/ui/RichTextContent";
 import { formatDate } from "../../../utils/formatDate";
 import {
     LuCalendarDays,
@@ -494,30 +495,31 @@ export default function SignQuote({ token }) {
                 >
                     {sectionPopup === "terms" ? (
                         (() => {
-                            const combinedTerms = quote.combined_terms_conditions || "_";
-                            const additionalTermsSeparator = "\n\nAdditional Terms:\n";
-                            const [generalTerms, additionalTerms] =
-                                combinedTerms.split(additionalTermsSeparator);
+                            const generalTerms = quote.general_terms_conditions || "";
+                            const additionalTerms = quote.terms_conditions || "";
 
-                            if (!additionalTerms) {
+                            if (!generalTerms && !additionalTerms) {
                                 return (
-                                    <p className="whitespace-pre-wrap text-slate-700">
-                                        {combinedTerms}
-                                    </p>
+                                    <p className="text-slate-700">No terms added.</p>
                                 );
                             }
 
                             return (
                                 <div className="space-y-4 text-slate-700">
-                                    <p className="whitespace-pre-wrap">{generalTerms}</p>
-                                    <div>
-                                        <p className="font-semibold text-slate-900">
-                                            Additional Terms:
-                                        </p>
-                                        <p className="mt-2 whitespace-pre-wrap">
-                                            {additionalTerms}
-                                        </p>
-                                    </div>
+                                    {generalTerms && (
+                                        <RichTextContent html={generalTerms} />
+                                    )}
+                                    {additionalTerms && (
+                                        <div>
+                                            <div className="mb-4 border-t border-gray-200" />
+                                            <p className="font-semibold text-slate-900">
+                                                Additional Terms:
+                                            </p>
+                                            <p className="mt-2 whitespace-pre-wrap">
+                                                {additionalTerms}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })()

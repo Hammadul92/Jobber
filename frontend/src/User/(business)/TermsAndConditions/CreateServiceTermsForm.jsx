@@ -7,8 +7,14 @@ import {
 } from "../../../store";
 import Dropdown from "../../../Components/ui/Dropdown";
 import SubmitButton from "../../../Components/ui/SubmitButton";
-import Textarea from "../../../Components/ui/Textarea";
+import RichTextEditor from "../../../Components/ui/RichTextEditor";
 import { CgClose } from "react-icons/cg";
+
+const getPlainTextFromHtml = (html) => {
+  if (!html) return "";
+  const documentBody = new DOMParser().parseFromString(html, "text/html").body;
+  return documentBody.textContent || "";
+};
 
 export default function CreateServiceTermsForm({
   token,
@@ -22,6 +28,7 @@ export default function CreateServiceTermsForm({
   const [serviceName, setServiceName] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [content, setContent] = useState("");
+  const [wordCount, setWordCount] = useState(0);
 
   const [createServiceTermsTemplate, { isLoading: isCreating }] =
     useCreateServiceTermsTemplateMutation();
@@ -38,13 +45,18 @@ export default function CreateServiceTermsForm({
   const servicesOffered = business?.services_offered || [];
   const existingTemplates = Array.isArray(templatesData) ? templatesData : [];
   const isSubmitting = isCreating || isUpdating;
-  const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
   const maxWords = 10000;
+  const plainContent = getPlainTextFromHtml(content);
 
   useEffect(() => {
     if (mode === "edit" && initialData && showModal) {
       setServiceName(initialData.service_name || "");
       setContent(initialData.content || "");
+      setWordCount(
+        getPlainTextFromHtml(initialData.content || "").trim()
+          ? getPlainTextFromHtml(initialData.content || "").trim().split(/\s+/).length
+          : 0,
+      );
       setIsActive(initialData.is_active ?? true);
       return;
     }
@@ -52,23 +64,15 @@ export default function CreateServiceTermsForm({
     if (!showModal || (mode === "create" && showModal && !initialData)) {
       setServiceName("");
       setContent("");
+      setWordCount(0);
       setIsActive(true);
     }
   }, [initialData, mode, showModal]);
 
-  const handleContentChange = (nextValue) => {
-    const trimmedValue = nextValue.trim();
-    const nextWordCount = trimmedValue ? trimmedValue.split(/\s+/).length : 0;
-
-    if (nextWordCount <= maxWords) {
-      setContent(nextValue);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!serviceName || !content.trim()) {
+    if (!serviceName || !plainContent.trim()) {
       setAlert({
         type: "danger",
         message: "Please fill in all required fields.",
@@ -135,11 +139,11 @@ export default function CreateServiceTermsForm({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-end bg-black/50 px-3"
+      className="fixed h-screen inset-0 z-50 flex items-start justify-end bg-black/50 px-3"
       onClick={() => setShowModal(false)}
     >
       <div
-        className="absolute right-0 top-0 z-10 h-screen w-full overflow-hidden border-l border-gray-200 bg-white shadow-2xl md:w-4/6 lg:w-2/6"
+        className="absolute right-0 top-0 z-10 h-screen w-full overflow-hidden border-l border-gray-200 bg-white shadow-2xl md:w-5/6 lg:w-3/5 xl:w-2/5"
         onClick={(event) => event.stopPropagation()}
       >
         <form onSubmit={handleSubmit} className="flex h-full flex-col">
@@ -213,14 +217,21 @@ export default function CreateServiceTermsForm({
                 />
               </div>
 
-              <Textarea
+              <RichTextEditor
                 id="service-terms-content"
                 label="General Terms & Conditions"
                 value={content}
-                onChange={handleContentChange}
+                onChange={setContent}
+                maxWords={maxWords}
                 isRequired={true}
-                fieldClass="h-64 rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
-                rows={12}
+                onWordCountChange={setWordCount}
+                onLimitReached={() =>
+                  setAlert({
+                    type: "danger",
+                    message:
+                      "General terms and conditions cannot exceed 10,000 words.",
+                  })
+                }
                 placeholder="Add the reusable terms and conditions for this service..."
               />
               <div className="flex justify-end">
