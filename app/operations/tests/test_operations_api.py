@@ -503,14 +503,15 @@ class JobPhotoStatusAutomationTests(TestCase):
     def test_cannot_upload_duplicate_photo_type_for_same_job(self):
         """Test duplicate before/after uploads are rejected for a job."""
         self.client.force_authenticate(self.employee_user)
-        JobPhoto.objects.create(
-            job=self.job,
-            photo=create_test_image_file("existing-before.png"),
-            photo_type="BEFORE",
-        )
 
         with tempfile.TemporaryDirectory() as temp_media_root:
             with self.settings(MEDIA_ROOT=temp_media_root):
+                JobPhoto.objects.create(
+                    job=self.job,
+                    photo=create_test_image_file("existing-before.png"),
+                    photo_type="BEFORE",
+                )
+
                 res = self.client.post(
                     JOB_PHOTOS_URL,
                     {
