@@ -1,15 +1,6 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
   LuArrowDownRight,
   LuArrowUpRight,
   LuBriefcase,
@@ -280,28 +271,190 @@ function StatsCard({ icon, title, value, change }) {
   );
 }
 
-function ChartTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null;
+function RevenueChart({ chartData, maxChartValue }) {
+  const width = 900;
+  const height = 300;
+  const left = 46;
+  const right = 16;
+  const top = 14;
+  const bottom = 246;
+  const labelY = 280;
+  const chartWidth = width - left - right;
+  const chartHeight = bottom - top;
+  const safeMax = Math.max(maxChartValue, 1);
+  const slotWidth = chartWidth / Math.max(chartData.length, 1);
+  const yForValue = (value) =>
+    bottom - (Number(value || 0) / safeMax) * chartHeight;
+  const billedPoints = chartData.map((item, index) => {
+    const x = left + slotWidth * index + slotWidth / 2;
+    const y = yForValue(item.revenue);
+    return { x, y, ...item };
+  });
+  const collectedPoints = chartData.map((item, index) => {
+    const x = left + slotWidth * index + slotWidth / 2;
+    const y = yForValue(item.collected);
+    return { x, y, ...item };
+  });
+  const billedPath = buildSmoothPath(billedPoints);
+  const collectedPath = buildSmoothPath(collectedPoints);
+  const gridLines = Array.from({ length: 5 }, (_, index) => {
+    const y = top + (chartHeight / 4) * index;
+    return y;
+  });
 
   return (
-    <div className="px-4 py-3 bg-white border border-gray-200 shadow-lg rounded-2xl">
-      <p className="text-sm font-semibold text-slate-900">{label}</p>
-      {payload.map((item) => (
-        <p
-          key={item.dataKey}
-          className="mt-1 text-sm"
-          style={{ color: item.color }}
-        >
-          {item.name}: {formatCurrency(item.value, "USD")}
-        </p>
-      ))}
+    <div className="h-[300px] w-full overflow-hidden">
+      <svg
+        className="h-full w-full"
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label="Revenue overview chart"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <filter id="revenue-line-glow" x="-20%" y="-40%" width="140%" height="180%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feColorMatrix
+              in="blur"
+              type="matrix"
+              values="0 0 0 0 0.12 0 0 0 0 0.32 0 0 0 0 0.9 0 0 0 0.22 0"
+              result="glow"
+            />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        <rect width={width} height={height} fill="#ffffff" />
+
+        {gridLines.map((y) => (
+          <line
+            key={y}
+            className="revenue-chart-grid"
+            x1={left}
+            x2={width - right}
+            y1={y}
+            y2={y}
+            stroke="#e2e8f0"
+            strokeDasharray="5 7"
+            strokeWidth="1"
+          />
+        ))}
+
+        {chartData.map((item, index) => (
+          <text
+            key={item.label}
+            className="revenue-chart-label"
+            x={left + slotWidth * index + slotWidth / 2}
+            y={labelY}
+            textAnchor="middle"
+            fill="#64748b"
+            fontSize="14"
+            fontWeight="500"
+          >
+            {item.label}
+          </text>
+        ))}
+
+        <path
+          className="revenue-chart-line revenue-chart-line-billed"
+          d={billedPath}
+          fill="none"
+          stroke="#ff8a1f"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="4"
+          filter="url(#revenue-line-glow)"
+        />
+
+        <path
+          className="revenue-chart-line revenue-chart-line-collected"
+          d={collectedPath}
+          fill="none"
+          stroke="#2563eb"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="4"
+          filter="url(#revenue-line-glow)"
+        />
+
+        {billedPoints.map((point, index) =>
+          Number(point.revenue || 0) > 0 ? (
+            <circle
+              key={`${point.label}-billed`}
+              className="revenue-chart-dot"
+              cx={point.x}
+              cy={point.y}
+              r="5"
+              fill="#ff8a1f"
+              stroke="#ffffff"
+              strokeWidth="3"
+              style={{ "--dot-delay": `${0.55 + index * 0.04}s` }}
+            >
+              <title>
+                {`${point.label} billed: ${formatCurrency(point.revenue, "USD")}`}
+              </title>
+            </circle>
+          ) : null,
+        )}
+
+        {collectedPoints.map((point, index) =>
+          Number(point.collected || 0) > 0 ? (
+            <circle
+              key={`${point.label}-collected`}
+              className="revenue-chart-dot"
+              cx={point.x}
+              cy={point.y}
+              r="5"
+              fill="#2563eb"
+              stroke="#ffffff"
+              strokeWidth="3"
+              style={{ "--dot-delay": `${0.75 + index * 0.04}s` }}
+            >
+              <title>
+                {`${point.label} collected: ${formatCurrency(point.collected, "USD")}`}
+              </title>
+            </circle>
+          ) : null,
+        )}
+      </svg>
     </div>
   );
+}
+
+function buildSmoothPath(points) {
+  if (!points.length) return "";
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+  return points.reduce((path, point, index) => {
+    if (index === 0) return `M ${point.x} ${point.y}`;
+
+    const previous = points[index - 1];
+    const controlX = (previous.x + point.x) / 2;
+    return `${path} C ${controlX} ${previous.y}, ${controlX} ${point.y}, ${point.x} ${point.y}`;
+  }, "");
 }
 
 function RevenueOverview({ chartData, chartRange, setChartRange }) {
   const hasChartData = chartData.some(
     (item) => Number(item.revenue || 0) > 0 || Number(item.collected || 0) > 0,
+  );
+  const maxChartValue = Math.max(
+    ...chartData.map((item) =>
+      Math.max(Number(item.revenue || 0), Number(item.collected || 0)),
+    ),
+    0,
+  );
+  const yAxisMax = maxChartValue > 0 ? Math.ceil(maxChartValue * 1.2) : 100;
+  const billedTotal = chartData.reduce(
+    (sum, item) => sum + Number(item.revenue || 0),
+    0,
+  );
+  const collectedTotal = chartData.reduce(
+    (sum, item) => sum + Number(item.collected || 0),
+    0,
   );
 
   return (
@@ -333,37 +486,34 @@ function RevenueOverview({ chartData, chartRange, setChartRange }) {
 
       <div className="mt-8 h-[360px]">
         {hasChartData ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 12, left: -20, bottom: 0 }}>
-              <CartesianGrid vertical={false} stroke="#eef2f7" strokeDasharray="4 6" />
-              <XAxis
-                dataKey="label"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "#64748b", fontSize: 14 }}
-              />
-              <YAxis hide domain={[0, "dataMax + 200"]} />
-              <Tooltip content={<ChartTooltip />} />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                name="Revenue"
-                stroke="#ff6a00"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 5, fill: "#ff6a00" }}
-              />
-              <Line
-                type="monotone"
-                dataKey="collected"
-                name="Collected"
-                stroke="#2563eb"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 5, fill: "#2563eb" }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <>
+            <RevenueChart
+              chartData={chartData}
+              maxChartValue={yAxisMax}
+            />
+            <div className="mt-4 flex flex-wrap items-center justify-end gap-4 text-sm text-slate-500">
+              <span className="inline-flex items-center gap-2">
+                <span className="h-1 w-5 rounded-full bg-orange-400" />
+                Billed
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="h-1 w-5 rounded-full bg-blue-600" />
+                Collected
+              </span>
+              <span>
+                Billed:{" "}
+                <strong className="font-semibold text-slate-900">
+                  {formatCurrency(billedTotal, "USD")}
+                </strong>
+              </span>
+              <span>
+                Collected:{" "}
+                <strong className="font-semibold text-slate-900">
+                  {formatCurrency(collectedTotal, "USD")}
+                </strong>
+              </span>
+            </div>
+          </>
         ) : (
           <EmptyState message="No revenue data available yet." />
         )}
@@ -662,7 +812,10 @@ export default function DashboardHome({ token }) {
   const teamMembers = useMemo(() => teamMembersData || [], [teamMembersData]);
   const quotes = useMemo(() => quoteData || [], [quoteData]);
   const jobs = useMemo(() => jobsData || [], [jobsData]);
-  const invoices = useMemo(() => invoiceData?.results || [], [invoiceData]);
+  const invoices = useMemo(
+    () => (Array.isArray(invoiceData) ? invoiceData : invoiceData?.results || []),
+    [invoiceData],
+  );
   const questionnaires = useMemo(
     () => questionnaireData || [],
     [questionnaireData],
@@ -684,20 +837,20 @@ export default function DashboardHome({ token }) {
       (invoice) => !["PAID", "CANCELLED"].includes(invoice.status),
     );
 
-    const paidInvoices = invoices.filter((invoice) => invoice.status === "PAID");
+    const paidInvoices = invoices.filter(isPaidInvoice);
     const currentMonthRevenue = paidInvoices
       .filter((invoice) => {
         const paidDate = parseApiDate(invoice.paid_at || invoice.updated_at);
         return paidDate ? isSameMonth(paidDate, now) : false;
       })
-      .reduce((sum, invoice) => sum + Number(invoice.total_amount || 0), 0);
+      .reduce((sum, invoice) => sum + parseInvoiceAmount(invoice), 0);
 
     const previousMonthRevenue = paidInvoices
       .filter((invoice) => {
         const paidDate = parseApiDate(invoice.paid_at || invoice.updated_at);
         return paidDate ? isSameMonth(paidDate, previousMonthStart) : false;
       })
-      .reduce((sum, invoice) => sum + Number(invoice.total_amount || 0), 0);
+      .reduce((sum, invoice) => sum + parseInvoiceAmount(invoice), 0);
 
     const servicesWithResponses = services.filter(
       (service) =>
@@ -810,7 +963,7 @@ export default function DashboardHome({ token }) {
         .map((invoice) => ({
           id: `invoice-${invoice.id}`,
           title:
-            invoice.status === "PAID" ? "Invoice paid" : "Invoice sent",
+            isPaidInvoice(invoice) ? "Invoice paid" : "Invoice sent",
           description: `${invoice.invoice_number} for ${invoice.client_name}`,
           date: parseApiDate(invoice.paid_at || invoice.updated_at),
         })),
@@ -1038,6 +1191,38 @@ function countStatusesInRange(records, statuses, key, startDate, endDate) {
   }).length;
 }
 
+function getInvoiceRevenueDate(invoice) {
+  return parseApiDate(invoice.created_at || invoice.due_date || invoice.updated_at);
+}
+
+function getInvoiceCollectedDate(invoice) {
+  return parseApiDate(invoice.paid_at || invoice.updated_at || invoice.created_at);
+}
+
+function parseInvoiceAmount(invoice) {
+  const rawValue =
+    invoice.total_amount ??
+    invoice.subtotal ??
+    invoice.invoice_total ??
+    0;
+
+  if (typeof rawValue === "number") {
+    return Number.isFinite(rawValue) ? rawValue : 0;
+  }
+
+  const normalizedValue = String(rawValue).replace(/[^0-9.-]/g, "");
+  const amount = Number(normalizedValue);
+  return Number.isFinite(amount) ? amount : 0;
+}
+
+function isPaidInvoice(invoice) {
+  return String(invoice.status || "").toUpperCase() === "PAID";
+}
+
+function sumInvoiceTotals(records) {
+  return records.reduce((sum, invoice) => sum + parseInvoiceAmount(invoice), 0);
+}
+
 function buildRevenueSeries({ invoices, range, now }) {
   if (range === "Weekly") {
     const currentWeek = startOfWeek(now);
@@ -1050,22 +1235,21 @@ function buildRevenueSeries({ invoices, range, now }) {
       const nextWeek = addWeeks(weekStart, 1);
 
       const periodInvoices = invoices.filter((invoice) => {
-        const date = parseApiDate(invoice.due_date || invoice.created_at);
+        const date = getInvoiceRevenueDate(invoice);
         return date ? date >= weekStart && date < nextWeek : false;
       });
 
-      const periodPaid = periodInvoices.filter((invoice) => invoice.status === "PAID");
+      const periodPaid = invoices.filter((invoice) => {
+        const paidDate = getInvoiceCollectedDate(invoice);
+        return isPaidInvoice(invoice) && paidDate
+          ? paidDate >= weekStart && paidDate < nextWeek
+          : false;
+      });
 
       return {
         label,
-        revenue: periodInvoices.reduce(
-          (sum, invoice) => sum + Number(invoice.total_amount || 0),
-          0,
-        ),
-        collected: periodPaid.reduce(
-          (sum, invoice) => sum + Number(invoice.total_amount || 0),
-          0,
-        ),
+        revenue: sumInvoiceTotals(periodInvoices),
+        collected: sumInvoiceTotals(periodPaid),
       };
     });
   }
@@ -1076,44 +1260,43 @@ function buildRevenueSeries({ invoices, range, now }) {
 
     return years.map((year) => {
       const periodInvoices = invoices.filter((invoice) => {
-        const date = parseApiDate(invoice.due_date || invoice.created_at);
+        const date = getInvoiceRevenueDate(invoice);
         return date ? date.getFullYear() === year : false;
       });
-      const periodPaid = periodInvoices.filter((invoice) => invoice.status === "PAID");
+      const periodPaid = invoices.filter((invoice) => {
+        const paidDate = getInvoiceCollectedDate(invoice);
+        return isPaidInvoice(invoice) && paidDate
+          ? paidDate.getFullYear() === year
+          : false;
+      });
 
       return {
         label: String(year),
-        revenue: periodInvoices.reduce(
-          (sum, invoice) => sum + Number(invoice.total_amount || 0),
-          0,
-        ),
-        collected: periodPaid.reduce(
-          (sum, invoice) => sum + Number(invoice.total_amount || 0),
-          0,
-        ),
+        revenue: sumInvoiceTotals(periodInvoices),
+        collected: sumInvoiceTotals(periodPaid),
       };
     });
   }
 
   return Array.from({ length: 12 }, (_, monthIndex) => {
     const periodInvoices = invoices.filter((invoice) => {
-      const date = parseApiDate(invoice.due_date || invoice.created_at);
+      const date = getInvoiceRevenueDate(invoice);
       return date
         ? date.getFullYear() === now.getFullYear() && date.getMonth() === monthIndex
         : false;
     });
-    const periodPaid = periodInvoices.filter((invoice) => invoice.status === "PAID");
+    const periodPaid = invoices.filter((invoice) => {
+      const paidDate = getInvoiceCollectedDate(invoice);
+      return isPaidInvoice(invoice) && paidDate
+        ? paidDate.getFullYear() === now.getFullYear() &&
+            paidDate.getMonth() === monthIndex
+        : false;
+    });
 
     return {
       label: MONTH_LABELS[monthIndex],
-      revenue: periodInvoices.reduce(
-        (sum, invoice) => sum + Number(invoice.total_amount || 0),
-        0,
-      ),
-      collected: periodPaid.reduce(
-        (sum, invoice) => sum + Number(invoice.total_amount || 0),
-        0,
-      ),
+      revenue: sumInvoiceTotals(periodInvoices),
+      collected: sumInvoiceTotals(periodPaid),
     };
   });
 }
