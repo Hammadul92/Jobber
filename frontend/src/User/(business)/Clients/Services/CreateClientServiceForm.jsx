@@ -420,7 +420,6 @@ export default function CreateClientServiceForm({
                           options={provinces[country] || []}
                           placeholder="Select State/Province"
                           buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                          disabled={!country}
                           disabled={lockToStatusOnly || !country}
                         />
                       </div>

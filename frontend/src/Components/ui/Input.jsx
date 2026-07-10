@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { FaEyeSlash, FaEye } from "react-icons/fa";
 
+const PHONE_REGEX = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
+
 export default function Input({
   id,
   fieldClass,
@@ -20,7 +22,6 @@ export default function Input({
   const isFile = type === "file";
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const phoneRegex = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
   const handlePhoneChange = (e) => {
     let inputVal = e.target.value;
 
@@ -31,10 +32,8 @@ export default function Input({
     onChange(inputVal);
   };
 
-  const validatePhone = (number) => phoneRegex.test(number.trim());
-
   useEffect(() => {
-    if (isPhone && value && !validatePhone(value)) {
+    if (isPhone && value && !PHONE_REGEX.test(value.trim())) {
       setError(
         "Phone number must be in valid +1 format (e.g. +1 555-555-5555)",
       );
@@ -119,7 +118,7 @@ export default function Input({
           onChange={handleChange}
           onKeyDown={onKeyDown}
           onBlur={() => {
-            if (isPhone && value && !validatePhone(value)) {
+            if (isPhone && value && !PHONE_REGEX.test(value.trim())) {
               setError(
                 "Phone number must be in valid +1 format (e.g. +1555-555-5555)",
               );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import {
   AiOutlineInfoCircle,
@@ -25,6 +25,11 @@ export default function AlertDispatcher({
 
   const duration = autoDismiss ?? 5000;
 
+  const handleClose = useCallback(() => {
+    setVisible(false);
+    if (onClose) onClose();
+  }, [onClose]);
+
   useEffect(() => {
     setVisible(true);
 
@@ -32,7 +37,7 @@ export default function AlertDispatcher({
       const timer = setTimeout(() => handleClose(), duration);
       return () => clearTimeout(timer);
     }
-  }, [message, type, duration]);
+  }, [message, type, duration, handleClose]);
 
   if (!visible || !message) return null;
 
@@ -57,7 +62,7 @@ export default function AlertDispatcher({
     },
   };
 
-  const { bg, border, text, accent } = variants[type] || variants.info;
+  const { bg, border, text } = variants[type] || variants.info;
 
   const renderMessage = () => {
     if (Array.isArray(message)) {
@@ -74,11 +79,6 @@ export default function AlertDispatcher({
     } else {
       return <div>Unknown response format.</div>;
     }
-  };
-
-  const handleClose = () => {
-    setVisible(false);
-    if (onClose) onClose();
   };
 
   let Icon;
