@@ -7,7 +7,6 @@ import {
 } from "../store";
 import SubmitButton from "../Components/ui/SubmitButton";
 import Input from "../Components/ui/Input";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -17,7 +16,6 @@ export default function SignIn() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   const [signinUser, { isLoading: signinLoading, error: signinError }] =
     useSigninUserMutation();

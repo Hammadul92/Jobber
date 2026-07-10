@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  FaCheckCircle,
-  FaTimesCircle,
-  FaEyeSlash,
-  FaEye,
-} from "react-icons/fa";
+import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { useCreateUserMutation } from "../store";
 
 import SubmitButton from "../Components/ui/SubmitButton";
@@ -18,8 +13,6 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [alert, setAlert] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreeOffers, setAgreeOffers] = useState(false);
