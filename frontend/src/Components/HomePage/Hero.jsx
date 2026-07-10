@@ -7,7 +7,11 @@ const HorizontalRectangle = "/images/rounded-horizontal-rectangle.svg";
 const VerticalRectangle = "/images/rounded-vertical-rectangle.svg";
 const Hexagon = "/images/hexagon.svg";
 const DotsBg = "/images/dots-bg.svg";
-const user = "/images/user.png";
+const user1 = "/images/user1.png";
+const user2 = "/images/user2.png";
+const user3 = "/images/user3.png";
+const user4 = "/images/user4.png";
+const user5 = "/images/user5.png";
 import { useNavigate } from "react-router-dom";
 import HeroSection from "../ui/HeroSection";
 
@@ -27,41 +31,41 @@ function Hero() {
 
       {/* Happy Clients Bubble */}
       <div className="z-1 md:mb-8 lg:mb-6 flex items-center gap-2 bg-accent/20 rounded-full px-3 py-1 md:px-5 md:py-2.5 border border-accent">
-        <div className=" flex items-center -space-x-3">
+        <div className="flex items-center -space-x-3">
           <img
-            src={user}
+            src={user3}
+            alt="User"
+            width={40}
+            height={40}
+            className="object-cover w-8! h-8! md:w-10! md:h-10! rounded-full overflow-hidden border border-background"
+          />
+          <img
+            src={user5}
             alt="User"
             width={40}
             height={40}
             className="w-8 md:w-10 rounded-full overflow-hidden border border-background"
           />
           <img
-            src={user}
+            src={user2}
+            alt="User"
+            width={40}
+            height={40}
+            className="object-cover w-8! h-8! md:w-10! md:h-10! rounded-full overflow-hidden border border-background"
+          />
+          <img
+            src={user4}
             alt="User"
             width={40}
             height={40}
             className="w-8 md:w-10 rounded-full overflow-hidden border border-background"
           />
           <img
-            src={user}
+            src={user1}
             alt="User"
             width={40}
             height={40}
-            className="w-8 md:w-10 rounded-full overflow-hidden border border-background"
-          />
-          <img
-            src={user}
-            alt="User"
-            width={40}
-            height={40}
-            className="w-8 md:w-10 rounded-full overflow-hidden border border-background"
-          />
-          <img
-            src={user}
-            alt="User"
-            width={40}
-            height={40}
-            className="w-8 md:w-10 rounded-full overflow-hidden border border-background"
+            className="object-cover w-8! h-8! md:w-10! md:h-10! rounded-full overflow-hidden border border-background"
           />
         </div>
         <div>
