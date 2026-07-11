@@ -8,11 +8,10 @@ from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-
 
 from core.models import (
     Business,
@@ -323,6 +322,26 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
+
+    def perform_create(self, serializer):
+        """Prevent duplicate active quotes for the same service at API level."""
+        service = serializer.validated_data["service"]
+        if (
+            service.service_quotes.filter(is_active=True)
+            .exclude(status="DECLINED")
+            .exists()
+        ):
+            raise ValidationError(
+                {
+                    "service": (
+                        "A quote already exists for this service. "
+                        "You cannot create another unless the existing one "
+                        "is declined or expired."
+                    )
+                }
+            )
+
+        serializer.save()
 
     def update(self, request, *args, **kwargs):
         """Prevent updates if quote is already signed."""

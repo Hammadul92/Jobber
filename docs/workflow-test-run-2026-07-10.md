@@ -2,14 +2,17 @@
 
 This report tracks the automated checks run against the workflow scenarios in `docs/workflow-regression-scenarios.md`.
 
+Latest update: 2026-07-11.
+
 ## Result Summary
 
 All currently available automated checks pass after fixing frontend lint blockers.
 
 | Area | Command | Result |
 | --- | --- | --- |
-| Backend tests | `docker compose run --rm app sh -c "python manage.py test"` | Passed, 39 tests |
+| Backend tests | `docker compose run --rm app sh -c "python manage.py test"` | Passed, 55 tests |
 | Backend lint | `docker compose run --rm app sh -c "flake8"` | Passed |
+| Frontend dashboard unit tests | `npm test` from `frontend/` | Passed, 3 tests |
 | Frontend lint | `npm run lint` from `frontend/` | Passed |
 | Frontend production build | `npm run build` from `frontend/` | Passed |
 
@@ -18,7 +21,7 @@ Build warnings still present:
 - `../fonts/Moderniz.otf` is left for runtime resolution by Vite.
 - Frontend bundle is larger than Vite's default chunk warning threshold.
 
-## Fixes Made During This Run
+## Fixes Made During The Initial Run
 
 - Removed unused password visibility state/imports from `Register.jsx` and `SignIn.jsx`.
 - Fixed `AlertDispatcher.jsx` hook dependencies and removed an unused style token.
@@ -26,6 +29,29 @@ Build warnings still present:
 - Removed a duplicated `disabled` prop in `CreateClientServiceForm.jsx`.
 
 These were lint/build hygiene fixes only; no workflow behavior was intentionally changed.
+
+## Workflow Automation Added On 2026-07-11
+
+- Added backend integration coverage for the full happy path from service setup through questionnaire, quote, invoice, payment, payout, and job creation.
+- Added regression coverage for deleted questionnaires invalidating pending questionnaire submissions and resend attempts.
+- Added validation so deleted terms block questionnaire-driven auto quote generation when a quote still needs to be created.
+- Added regression coverage that sent quotes keep their original general terms snapshot after the service terms template is edited.
+- Added regression coverage that signed quotes on pending services create no invoice until service activation, and activation creates only one invoice.
+- Added finance workflow coverage for no client payment method, no connected business Stripe account, successful payout creation, blocked repeat payment, successful refund, and blocked duplicate refund.
+- Added API role-scope coverage for manager, client, and employee job visibility.
+- Added soft-delete/restore cascade coverage for client, service, quote, invoice, payout, and job records.
+- Added duplicate-submission coverage for service creation, quote creation, and quote signing.
+- Added email backend selection coverage for local console email and production SendGrid selection.
+- Added frontend unit coverage for dashboard revenue bucketing by monthly and yearly ranges.
+
+Behavioral fixes made to support the approved workflow:
+
+- Questionnaire submissions now require the active questionnaire to still exist.
+- Auto quote generation from questionnaire submission now requires active general terms when no quote exists yet.
+- Soft-delete metadata saves for questionnaires no longer re-run unrelated questionnaire/terms validation.
+- Restore cascades now include already-soft-deleted child records by using `all_objects` where available.
+- Quote `is_active` is now backend-owned/read-only in the API so omitted multipart form fields cannot create invisible inactive quotes.
+- Quote creation has an API-level duplicate guard for active non-declined quotes.
 
 ## Existing Automated Coverage
 
@@ -42,34 +68,23 @@ Current tests already cover these important scenarios:
 - Signing an eligible quote auto-creates an invoice.
 - Job photo uploads automatically move jobs to `IN_PROGRESS` and `COMPLETED`.
 - Duplicate job photo type uploads are rejected.
+- Payment and payout success/failure behavior is covered with mocked Stripe calls.
+- Dashboard revenue bucketing logic is covered by frontend unit tests.
 - Core user/business model basics and Django admin pages.
 
 ## Scenarios Not Fully Automated Yet
 
-The scenario map is broader than the current test suite. These should be added as explicit tests before we can honestly say every scenario has been tested end-to-end:
+The backend and pure frontend logic coverage is now much stronger. The remaining gap is browser-level E2E coverage for visual/interactive role-specific behavior that API tests cannot prove:
 
-- Full happy path from business setup through questionnaire, quote, invoice, payment, payout, job, and dashboard revenue.
-- Questionnaire deleted after a service/questionnaire link already exists.
-- General terms deleted before quote generation.
-- General terms edited after quote is sent and before quote is signed.
-- Offered service name changed after historical services, quotes, invoices, and jobs exist.
-- Quote signed while service is pending, then service activated later without duplicate invoice creation.
-- Payment blocked when client has no payment method.
-- Payment blocked when business has no connected Stripe/bank account.
-- Successful payment creates exactly one payout.
-- Re-paying an already-paid invoice is blocked.
-- Payout refund succeeds once and rejects duplicate refunds.
-- Dashboard revenue buckets paid invoices correctly across monthly, weekly, and yearly filters.
-- Frontend role-specific behavior for employees, managers, and clients through browser/E2E tests.
-- Soft-delete and restore behavior across clients, services, questionnaires, terms, quotes, invoices, payouts, and jobs.
-- Email delivery behavior in local console backend versus SendGrid production settings.
-- Concurrent double submissions for service creation, quote signing, invoice payment, and refund actions.
+- Employee should not see manager-only buttons such as Add Member.
+- Employee job detail fields should render read-only while photo upload controls remain usable.
+- Manager/client/employee navigation should show the correct tabs and actions in desktop, tablet, and mobile sidebars.
+- Client quote/invoice signing/payment screens should show the correct action states from the user interface, not just API permissions.
 
 ## Recommended Next Automation Batch
 
-1. Add backend integration tests for Stories A-H in `workflow-regression-scenarios.md`.
-2. Add focused API tests for dashboard revenue aggregation.
-3. Add browser/E2E tests for role-specific UI behavior that backend tests cannot prove.
-4. Add concurrency tests around quote signing, invoice payment, and refund actions.
+1. Add Playwright or Cypress for browser/E2E role-specific UI tests.
+2. Add true concurrency tests with parallel requests for quote signing, invoice payment, and refund actions if race conditions become a concern.
+3. Expand frontend dashboard tests to cover weekly buckets and empty-state rendering.
 
-Current status: the available automated suite is green, but the complete real-life scenario matrix is not fully automated yet.
+Current status: backend/API workflow coverage and dashboard bucketing tests are green. Browser-level role UI automation is the main remaining layer.

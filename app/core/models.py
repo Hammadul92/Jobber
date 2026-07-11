@@ -190,7 +190,15 @@ class SoftDeletableModel(models.Model):
                 if isinstance(related_manager, models.Model):
                     related_manager.restore(cascade=True)
                 else:
-                    for obj in related_manager.all():
+                    related_model = related.related_model
+                    if hasattr(related_model, "all_objects"):
+                        related_objects = related_model.all_objects.filter(
+                            **{related.field.name: self}
+                        )
+                    else:
+                        related_objects = related_manager.all()
+
+                    for obj in related_objects:
                         if hasattr(obj, "restore"):
                             obj.restore(cascade=True)
 
@@ -432,6 +440,12 @@ class ServiceQuestionnaire(SoftDeletableModel):
             )
 
     def save(self, *args, **kwargs):
+        update_fields = set(kwargs.get("update_fields") or [])
+        soft_delete_fields = {"is_deleted", "deleted_by", "deleted_at"}
+        if update_fields and update_fields.issubset(soft_delete_fields):
+            super().save(*args, **kwargs)
+            return
+
         self.full_clean()
         super().save(*args, **kwargs)
 

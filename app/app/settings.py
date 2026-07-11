@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 
+from app.email_settings import get_email_backend
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -176,12 +178,11 @@ CSRF_TRUSTED_ORIGINS = [
 
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 
-if not DEBUG and SENDGRID_API_KEY:
-    EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+EMAIL_BACKEND = get_email_backend(DEBUG, SENDGRID_API_KEY)
+
+if EMAIL_BACKEND == "sendgrid_backend.SendgridBackend":
     SENDGRID_SANDBOX_MODE_IN_DEBUG = False
     SENDGRID_ECHO_TO_STDOUT = DEBUG
-else:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
