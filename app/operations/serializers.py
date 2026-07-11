@@ -343,12 +343,53 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                 data.get("filled_questionnaire")
                 or getattr(self.instance, "filled_questionnaire", None)
             )
+            is_submitting_questionnaire = (
+                "filled_questionnaire" in data
+                and data.get("filled_questionnaire")
+                and not getattr(self.instance, "filled_questionnaire", None)
+            )
 
             if new_status == "ACTIVE" and not filled_questionnaire:
                 errors["status"] = (
                     "Cannot mark this service as active until the client "
                     "has filled out the questionnaire."
                 )
+
+            if is_submitting_questionnaire:
+                has_questionnaire = business.service_questionnaires.filter(
+                    service_name=service_name,
+                    is_active=True,
+                ).exists()
+                if not has_questionnaire:
+                    errors["filled_questionnaire"] = (
+                        "No active questionnaire found for this service."
+                    )
+
+                will_auto_generate_quote = data.get(
+                    "auto_generate_quote",
+                    getattr(self.instance, "auto_generate_quote", False),
+                )
+                has_active_quote = (
+                    self.instance.service_quotes.filter(is_active=True)
+                    .exclude(status="DECLINED")
+                    .exists()
+                )
+                has_terms_template = business.service_terms_templates.filter(
+                    service_name=service_name,
+                    is_active=True,
+                ).exists()
+                if (
+                    will_auto_generate_quote
+                    and not has_active_quote
+                    and not has_terms_template
+                ):
+                    errors.setdefault(
+                        "filled_questionnaire",
+                        (
+                            "No active terms and conditions template exists "
+                            "for this service."
+                        ),
+                    )
 
         # Prevent duplicate address for same service_name within a business
         if business and service_name:
@@ -429,7 +470,7 @@ class QuoteSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id", "quote_number", "status", "general_terms_conditions",
-            "combined_terms_conditions", "created_at", "updated_at",
+            "combined_terms_conditions", "is_active", "created_at", "updated_at",
         ]
 
     def validate_valid_until(self, value):
