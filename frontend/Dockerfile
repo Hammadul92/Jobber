@@ -2,9 +2,10 @@ FROM node:22-alpine
 
 WORKDIR /frontend
 
-COPY package*.json ./
+COPY frontend/package*.json ./
 RUN npm install
 
-COPY . .
+COPY frontend/ ./
+COPY app/public_site/templates/ /app/public_site/templates/
 
 CMD ["npm", "run", "dev", "--", "--host"]

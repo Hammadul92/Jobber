@@ -1,0 +1,84 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ meta_title }}</title>
+  <meta name="description" content="{{ meta_description }}">
+  <meta name="robots" content="index,follow">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Contractorz">
+  <meta property="og:title" content="{{ meta_title }}">
+  <meta property="og:description" content="{{ meta_description }}">
+  <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <link rel="icon" href="{% static 'public_site/images/favicon.png' %}">
+  <link rel="stylesheet" href="{{ public_site_css_url }}">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Contractorz","url":"{{ request.scheme }}://{{ request.get_host }}/"}</script>
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-white text-primary" data-frontend-url="{{ frontend_url }}">
+  <div class="bg-secondary px-4 py-2 text-center text-sm font-medium text-white">Turning ideas into spaces you’re proud to call home.</div>
+  <header id="site-header" class="fixed left-0 top-9 z-30 flex w-full items-end justify-between bg-background px-6 pt-2 transition-[top] duration-150 ease-in-out md:items-center md:px-16 md:pt-4 lg:px-32">
+    <div class="lg:hidden"><button id="mobile-menu-button" class="mt-3 text-xl text-secondary" type="button" aria-label="Open navigation" aria-expanded="false">☰</button></div>
+    <div><a href="{% url 'public_site:home' %}" aria-label="Contractorz home"><img src="{% static 'public_site/images/contractorz-logo-horizontal.svg' %}" alt="Contractorz" width="170" height="45" class="w-38 lg:w-44"></a></div>
+    <nav class="hidden items-center gap-x-10 font-medium md:text-lg lg:mt-2 lg:flex" aria-label="Primary navigation">
+      <a href="{% url 'public_site:home' %}" class="hover:text-accent {% if request.path == '/' %}font-bold text-secondary{% endif %}">Home</a>
+      <div id="industries-menu-wrapper" class="relative inline-block">
+        <button id="industries-menu-button" type="button" class="flex items-center gap-1 hover:text-accent" aria-haspopup="true" aria-expanded="false" aria-controls="industries-menu">
+          Industries
+          <svg id="industries-menu-chevron" class="h-3 w-3 transition-transform" viewBox="0 0 12 8" fill="none" aria-hidden="true"><path d="m1 1.5 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div id="industries-menu" class="absolute left-0 top-full z-40 hidden min-w-180 max-w-225 rounded-xl border border-gray-200 bg-white shadow-2xl" aria-hidden="true">
+          <div class="flex w-full flex-col gap-8 border-t border-gray-200 bg-white px-10 py-8 shadow-lg lg:flex-row">
+            <div class="min-w-45">
+              <div class="mb-4 flex items-center gap-2 font-heading text-lg text-secondary"><span aria-hidden="true">▦</span> INDUSTRIES</div>
+              <div class="flex flex-col gap-2 text-base"><span>HVAC</span><span>Landscaping</span><span>Painting</span><span>Residential Cleaning</span></div>
+              <a href="{% url 'public_site:industries' %}" class="mt-8 flex items-center gap-1 font-semibold text-secondary hover:underline">SEE ALL INDUSTRIES <span aria-hidden="true">›</span></a>
+            </div>
+            <div class="flex min-w-45 flex-col gap-2.5 text-base"><span>Plumbing</span><span>Lawn Care</span><span>Renovations</span><span>Janitorial Cleaning</span><span>Electrician</span></div>
+            <div class="flex min-w-45 flex-col gap-2.5 text-base"><span>Tree Care</span><span>Appliance Repair</span><span>Pressure Washing</span><span>Roofing</span><span>Pool Service</span></div>
+          </div>
+        </div>
+      </div>
+      <a href="{% url 'public_site:home' %}#faqs" class="hover:text-accent">FAQ's</a>
+      <a href="{% url 'public_site:about' %}" class="hover:text-accent">About Us</a>
+      <a href="{% url 'public_site:contact' %}" class="hover:text-accent">Contact Us</a>
+    </nav>
+    <div class="flex items-center gap-3 md:flex"><a data-account-link href="{{ frontend_url }}/sign-in" class="hidden primary md:inline">Login</a></div>
+  </header>
+  <aside id="mobile-menu" class="fixed inset-0 z-50 hidden bg-black/50" aria-hidden="true">
+    <div class="h-full w-4/5 overflow-y-auto bg-white p-8 md:w-3/7">
+      <div class="mb-6 flex items-center justify-between"><h2 class="font-heading text-2xl">Menu</h2><button id="mobile-menu-close" class="text-2xl" type="button" aria-label="Close navigation">×</button></div>
+      <nav class="flex flex-col text-lg font-medium">
+        <a class="px-2 py-4" href="{% url 'public_site:home' %}">Home</a>
+        <button id="mobile-industries-button" class="flex w-full items-center justify-between px-2 py-4 text-left" type="button" aria-expanded="false" aria-controls="mobile-industries-menu">Industries <span id="mobile-industries-chevron" class="transition-transform" aria-hidden="true">⌄</span></button>
+        <div id="mobile-industries-menu" class="hidden border-l-2 border-accent pl-4 text-base" aria-hidden="true">
+          <div class="grid grid-cols-2 gap-x-4 px-2 pb-3 text-primary/80"><span>HVAC</span><span>Plumbing</span><span>Landscaping</span><span>Lawn Care</span><span>Painting</span><span>Renovations</span><span>Roofing</span><span>Electrician</span></div>
+          <a class="block px-2 py-3 font-semibold text-secondary" href="{% url 'public_site:industries' %}">See all industries</a>
+        </div>
+        <a class="px-2 py-4" href="{% url 'public_site:home' %}#faqs">FAQ's</a>
+        <a class="px-2 py-4" href="{% url 'public_site:about' %}">About Us</a>
+        <a class="px-2 py-4" href="{% url 'public_site:contact' %}">Contact Us</a>
+        <a class="px-2 py-4" href="{% url 'public_site:marketplace' %}">Marketplace</a>
+        <a data-account-link class="mt-4 rounded-xl bg-accent px-5 py-3 text-center font-semibold text-white" href="{{ frontend_url }}/sign-in">Login</a>
+      </nav>
+    </div>
+  </aside>
+
+  {% block content %}{% endblock %}
+
+  <footer class="w-full bg-secondary px-6 py-12 text-white md:px-16 lg:px-32 lg:py-18">
+    <div class="flex w-full flex-wrap items-start justify-between gap-8 lg:flex-nowrap lg:gap-20">
+      <div class="lg:max-w-2xs"><h2 class="text-xl font-semibold md:text-3xl">About Us</h2><p class="mt-5 text-white/70">Contractorz connects client intake, quotes, field work, invoicing, and payouts for growing service businesses.</p></div>
+      <div><h2 class="text-xl font-medium md:text-2xl">Useful Links</h2><div class="mt-5 flex flex-col gap-3 text-white/70"><a href="{% url 'public_site:about' %}">About</a><a href="{% url 'public_site:marketplace' %}">Marketplace</a><a href="{% url 'public_site:services' %}">Services</a><a href="{% url 'public_site:team' %}">Team</a></div></div>
+      <div><h2 class="text-xl font-medium md:text-2xl">Help</h2><div class="mt-5 flex flex-col gap-3 text-white/70"><a href="{% url 'public_site:terms-and-conditions' %}">Terms & Conditions</a><a href="{% url 'public_site:privacy-policy' %}">Privacy Policy</a><a href="{% url 'public_site:contact' %}">Contact Us</a></div></div>
+      <div><h2 class="text-xl font-medium md:text-2xl">Connect With Us</h2><div class="mt-5 flex flex-col gap-3 text-white/70"><p>+1 403-970-3777</p><p>info@getcontractorz.com</p></div></div>
+    </div>
+    <div class="mt-12 flex flex-wrap items-center justify-between border-t-2 border-white/20 pt-12 font-light"><span>© {% now "Y" %} Contractorz. All rights reserved.</span><span class="text-accent">Built for service businesses</span></div>
+  </footer>
+  <script src="{% static 'public_site/js/site.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -21,7 +21,6 @@ import CustomerSupport from "./pages/CustomerSupport";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ContactUs from "./pages/ContactUs";
-
 import SignIn from "./forms/SignIn";
 import Register from "./forms/Register";
 import ForgotPassword from "./forms/ForgotPassword";

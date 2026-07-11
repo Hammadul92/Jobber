@@ -28,6 +28,9 @@ services:
       - media-files:/app/media
     depends_on:
       - db
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             gunicorn app.wsgi:application --bind 0.0.0.0:8000 --workers 3"
 
   frontend:
     image: ghcr.io/hammadul92/jobber-frontend:${IMAGE_TAG}

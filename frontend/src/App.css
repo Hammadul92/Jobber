@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../app/public_site/templates/**/*.html";
 
 @font-face {
   font-family: "MODERNIZ";
@@ -87,7 +88,8 @@
 .revenue-chart-line {
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;
-  animation: revenue-chart-line-draw 1100ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: revenue-chart-line-draw 1100ms cubic-bezier(0.22, 1, 0.36, 1)
+    forwards;
 }
 
 .revenue-chart-line-collected {
@@ -99,7 +101,8 @@
   transform: scale(0.4);
   transform-box: fill-box;
   transform-origin: center;
-  animation: revenue-chart-dot-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: revenue-chart-dot-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1)
+    forwards;
   animation-delay: var(--dot-delay, 700ms);
 }
 
@@ -237,30 +240,66 @@ body {
   content: "Normal";
 }
 
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-label[data-value="1"]::before,
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-item[data-value="1"]::before {
   content: "Heading 1";
 }
 
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-label[data-value="2"]::before,
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-item[data-value="2"]::before {
   content: "Heading 2";
 }
 
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-label[data-value="3"]::before,
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-item[data-value="3"]::before {
   content: "Heading 3";
 }
 
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="4"]::before,
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before {
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-label[data-value="4"]::before,
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-item[data-value="4"]::before {
   content: "Heading 4";
 }
 
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before,
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before,
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before,
-.rich-text-editor .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before {
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-item[data-value="1"]::before,
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-item[data-value="2"]::before,
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-item[data-value="3"]::before,
+.rich-text-editor
+  .ql-snow
+  .ql-picker.ql-header
+  .ql-picker-item[data-value="4"]::before {
   font-size: 0.875rem;
   font-weight: 600;
 }
