@@ -13,12 +13,14 @@ import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
 import RichTextContent from "../../../Components/ui/RichTextContent";
 import {
+  LuDownload,
   LuMail,
   LuMapPin,
   LuPhone,
   LuUser,
 } from "react-icons/lu";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
+import { getBaseUrl } from "../../../store/apis/baseConfig";
 
 export default function Quote({ token }) {
   const { id } = useParams();
@@ -37,6 +39,7 @@ export default function Quote({ token }) {
   const [termsConditions, setTermsConditions] = useState("");
   const [notes, setNotes] = useState("");
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (quoteData) {
@@ -94,6 +97,40 @@ export default function Quote({ token }) {
         type: "danger",
         message: err?.data?.detail || "Failed to send quote email. Please try again.",
       });
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    setDownloading(true);
+    try {
+      const response = await fetch(
+        `${getBaseUrl()}/ops/quote/${id}/download-pdf/`,
+        {
+          headers: { Authorization: `Token ${token}` },
+        },
+      );
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.detail || "Failed to download signed quotation.");
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = `${quoteData.quote_number}-signed.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      setAlert({
+        type: "danger",
+        message: err.message || "Failed to download signed quotation.",
+      });
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -167,23 +204,42 @@ export default function Quote({ token }) {
           <span className={pillBadge}>{quoteData.status}</span>
         </div>
 
-        <button
-          type="button"
-          className={`${btnPrimary} min-w-43 justify-center`}
-          onClick={handleSendQuote}
-          disabled={disableSendBtn || sending}
-        >
-          {sending && (
-            <span
-              className="h-5 w-5 animate-spin rounded-full border-2 border-white/50 border-t-white"
-              aria-hidden="true"
-            />
-          )}
-          {sending ? "Sending Quote..." : "Send Quote"}
-        </button>
+        {isSigned ? (
+          <button
+            type="button"
+            className={`${btnPrimary} min-w-52 justify-center gap-2`}
+            onClick={handleDownloadPdf}
+            disabled={downloading}
+          >
+            {downloading ? (
+              <span
+                className="h-5 w-5 animate-spin rounded-full border-2 border-white/50 border-t-white"
+                aria-hidden="true"
+              />
+            ) : (
+              <LuDownload className="h-5 w-5" aria-hidden="true" />
+            )}
+            {downloading ? "Preparing PDF..." : "Download Signed PDF"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={`${btnPrimary} min-w-43 justify-center`}
+            onClick={handleSendQuote}
+            disabled={disableSendBtn || sending}
+          >
+            {sending && (
+              <span
+                className="h-5 w-5 animate-spin rounded-full border-2 border-white/50 border-t-white"
+                aria-hidden="true"
+              />
+            )}
+            {sending ? "Sending Quote..." : "Send Quote"}
+          </button>
+        )}
       </div>
 
-      {disableSendBtn && (
+      {disableSendBtn && !isSigned && (
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
           <p className="font-semibold">Note:</p>
           <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">

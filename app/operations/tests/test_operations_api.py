@@ -38,6 +38,7 @@ BUSINESS_MARQUEE_LOGOS_URL = reverse("operations:business-marquee-logos")
 SERVICES_URL = reverse("operations:service-list")
 QUOTES_URL = reverse("operations:quote-list")
 QUOTE_SIGN_URL = "operations:quote-sign-quote"
+QUOTE_DOWNLOAD_PDF_URL = "operations:quote-download-pdf"
 JOB_PHOTOS_URL = reverse("operations:jobphoto-list")
 SERVICE_TERMS_TEMPLATES_URL = reverse(
     "operations:servicetermstemplate-list"
@@ -189,6 +190,7 @@ class QuoteInvoiceAutomationTests(TestCase):
         self.owner = get_user_model().objects.create_user(
             "owner@example.com",
             "test123",
+            role="MANAGER",
         )
         self.client_user = get_user_model().objects.create_user(
             "client@example.com",
@@ -260,6 +262,45 @@ class QuoteInvoiceAutomationTests(TestCase):
         self.assertEqual(invoice.subtotal, Decimal("100.00"))
         self.assertEqual(invoice.tax_amount, Decimal("5.00"))
         self.assertEqual(invoice.total_amount, Decimal("105.00"))
+
+    def test_manager_can_download_signed_quote_pdf_with_signature(self):
+        self.quote.status = "SIGNED"
+        self.quote.signed_at = timezone.now()
+
+        with tempfile.TemporaryDirectory() as temp_media_root:
+            with self.settings(MEDIA_ROOT=temp_media_root):
+                self.quote.signature.save(
+                    "signature.png",
+                    create_test_image_file("signature.png"),
+                    save=True,
+                )
+                self.client.force_authenticate(self.owner)
+
+                res = self.client.get(
+                    reverse(QUOTE_DOWNLOAD_PDF_URL, args=[self.quote.id])
+                )
+                content = b"".join(res.streaming_content)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res["Content-Type"], "application/pdf")
+        self.assertIn(
+            f'{self.quote.quote_number}-signed.pdf',
+            res["Content-Disposition"],
+        )
+        self.assertTrue(content.startswith(b"%PDF"))
+
+    def test_unsigned_quote_cannot_be_downloaded_as_pdf(self):
+        self.client.force_authenticate(self.owner)
+
+        res = self.client.get(
+            reverse(QUOTE_DOWNLOAD_PDF_URL, args=[self.quote.id])
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            res.data["detail"],
+            "Only signed quotations can be downloaded as PDF.",
+        )
 
 
 class ServiceTermsTemplateApiTests(TestCase):
