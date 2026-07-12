@@ -1,5 +1,6 @@
 import json
 import tempfile
+from decimal import Decimal
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
@@ -10,6 +11,7 @@ from django.test import TestCase
 from core.models import (
     Business,
     Client,
+    Invoice,
     Job,
     Quote,
     Service,
@@ -94,15 +96,24 @@ class SeedSampleDataCommandTests(TestCase):
                             "quote": {
                                 "status": "SIGNED",
                                 "signature": "sample-signature.png",
+                                "signed_days_ago": 3,
                                 "additional_terms": "Client-specific terms.",
                             },
                             "jobs": [
                                 {
                                     "title": "First visit",
                                     "assigned_to_email": "employee@sample.example",
-                                    "scheduled_in_days": 1,
+                                    "scheduled_in_days": -2,
+                                    "status": "COMPLETED",
+                                    "completed_days_ago": 1,
                                 }
                             ],
+                            "invoice": {
+                                "status": "PAID",
+                                "due_in_days": 14,
+                                "paid_days_ago": 0,
+                                "notes": "Paid sample invoice.",
+                            },
                         }
                     ],
                 }
@@ -145,6 +156,7 @@ class SeedSampleDataCommandTests(TestCase):
         self.assertEqual(Service.objects.count(), 1)
         self.assertEqual(Quote.objects.count(), 1)
         self.assertEqual(Job.objects.count(), 1)
+        self.assertEqual(Invoice.objects.count(), 1)
         self.assertEqual(
             Job.objects.get().assigned_to.employee.email, "employee@sample.example"
         )
@@ -158,6 +170,50 @@ class SeedSampleDataCommandTests(TestCase):
         self.assertEqual(quote.general_terms_conditions, "General cleaning terms.")
         self.assertIsNotNone(quote.signed_at)
         self.assertTrue(quote.signature.name.startswith("signatures/"))
+        invoice = Invoice.objects.get()
+        self.assertEqual(invoice.status, "PAID")
+        self.assertEqual(invoice.subtotal, Decimal("100.00"))
+        self.assertEqual(invoice.tax_amount, Decimal("5.00"))
+        self.assertEqual(invoice.total_amount, Decimal("105.00"))
+        self.assertIsNotNone(invoice.paid_at)
+        service = Service.objects.get()
+        self.assertIn(service.service_name, service.business.services_offered.names())
+        self.assertTrue(
+            service.service_quotes.filter(status="SIGNED", is_active=True).exists()
+        )
+        self.assertFalse(
+            Job.objects.exclude(
+                service__service_quotes__status="SIGNED",
+                service__service_quotes__is_active=True,
+            ).exists()
+        )
+
+    def test_rejects_service_not_offered_by_business_before_writing(self):
+        self.fixture["businesses"][0]["services"][0]["service_name"] = "Roofing"
+
+        with self.assertRaisesMessage(CommandError, "is not offered"):
+            call_command("seed_sample_data", "--input", self._fixture_path())
+
+        self.assertEqual(Business.objects.count(), 0)
+
+    def test_rejects_jobs_without_signed_quote_before_writing(self):
+        self.fixture["businesses"][0]["services"][0]["quote"]["status"] = "SENT"
+        self.fixture["businesses"][0]["services"][0]["quote"].pop("signature")
+
+        with self.assertRaisesMessage(CommandError, "jobs require a signed quote"):
+            call_command("seed_sample_data", "--input", self._fixture_path())
+
+        self.assertEqual(Business.objects.count(), 0)
+
+    def test_rejects_paid_invoice_without_completed_work(self):
+        service = self.fixture["businesses"][0]["services"][0]
+        service["jobs"][0]["status"] = "PENDING"
+        service["jobs"][0].pop("completed_days_ago")
+
+        with self.assertRaisesMessage(CommandError, "requires completed work"):
+            call_command("seed_sample_data", "--input", self._fixture_path())
+
+        self.assertEqual(Business.objects.count(), 0)
 
     def test_reset_requires_an_admin(self):
         self.admin.delete()
@@ -187,6 +243,7 @@ class SeedSampleDataCommandTests(TestCase):
         self.assertEqual(Service.objects.count(), 0)
         self.assertEqual(Quote.objects.count(), 0)
         self.assertEqual(Job.objects.count(), 0)
+        self.assertEqual(Invoice.objects.count(), 0)
         self.assertTrue(get_user_model().objects.filter(pk=self.admin.pk).exists())
         self.assertTrue(
             get_user_model().objects.filter(pk=unrelated_user.pk).exists()

@@ -46,7 +46,31 @@
       <a href="{% url 'public_site:about' %}" class="hover:text-accent">About Us</a>
       <a href="{% url 'public_site:contact' %}" class="hover:text-accent">Contact Us</a>
     </nav>
-    <div class="flex items-center gap-3 md:flex"><a data-account-link href="{{ frontend_url }}/sign-in" class="hidden primary md:inline">Login</a></div>
+    <div data-account-overlay class="fixed inset-0 z-20 hidden bg-black/40" aria-hidden="true"></div>
+    <div id="desktop-account" class="relative z-30 flex items-center gap-3 font-sans md:flex">
+      <a data-account-login href="{{ frontend_url }}/sign-in" class="hidden primary md:inline">Login</a>
+      <button data-account-toggle type="button" class="hidden cursor-pointer items-center gap-2 rounded-md py-2 text-gray-800 hover:text-accent" aria-expanded="false" aria-haspopup="true">
+        <svg class="h-6 w-6 md:h-5 md:w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
+        <span class="hidden font-bold md:block" data-account-name></span>
+        <svg class="hidden h-3 w-3 transition-transform md:block" data-account-chevron viewBox="0 0 12 8" fill="none" aria-hidden="true"><path d="m1 1.5 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div data-account-menu class="absolute right-4 top-4 z-50 mt-3 hidden min-w-[70vw] rounded-2xl bg-white p-4 shadow-lg lg:right-0 lg:min-w-[20vw]" aria-hidden="true">
+        <div class="mb-6 flex items-center gap-3">
+          <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-200 text-xl font-bold text-gray-700" data-account-initial>A</span>
+          <div class="min-w-0"><div class="truncate text-lg font-semibold" data-account-name></div><div class="truncate text-xs text-gray-500" data-account-email></div></div>
+        </div>
+        <nav class="overflow-hidden rounded-xl border border-gray-100 bg-gray-50 p-3 font-medium text-gray-800" aria-label="Account navigation">
+          <a class="block rounded-xl px-6 py-3 hover:bg-accent hover:text-white" href="{{ frontend_url }}/user/profile">Profile</a>
+          <a data-business-link class="hidden rounded-xl px-6 py-3 hover:bg-accent hover:text-white" href="{{ frontend_url }}/user/business">Business</a>
+          <a class="block rounded-xl px-6 py-3 hover:bg-accent hover:text-white" href="{{ frontend_url }}/user/banking">Banking</a>
+          <a class="block rounded-xl px-6 py-3 hover:bg-accent hover:text-white" href="{{ frontend_url }}/user/credentials">Credentials</a>
+        </nav>
+        <a class="mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-950" href="{{ frontend_url }}/logout">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg>
+          <span>Logout Account</span>
+        </a>
+      </div>
+    </div>
   </header>
   <aside id="mobile-menu" class="fixed inset-0 z-50 hidden bg-black/50" aria-hidden="true">
     <div class="h-full w-4/5 overflow-y-auto bg-white p-8 md:w-3/7">
@@ -62,12 +86,22 @@
         <a class="px-2 py-4" href="{% url 'public_site:about' %}">About Us</a>
         <a class="px-2 py-4" href="{% url 'public_site:contact' %}">Contact Us</a>
         <a class="px-2 py-4" href="{% url 'public_site:marketplace' %}">Marketplace</a>
-        <a data-account-link class="mt-4 rounded-xl bg-accent px-5 py-3 text-center font-semibold text-white" href="{{ frontend_url }}/sign-in">Login</a>
+        <a data-account-login class="mt-4 rounded-xl bg-accent px-5 py-3 text-center font-semibold text-white" href="{{ frontend_url }}/sign-in">Login</a>
+        <div data-mobile-account class="mt-4 hidden border-t border-gray-200 pt-4">
+          <div class="px-2 pb-2 font-semibold" data-account-name></div>
+          <a class="block px-2 py-3" href="{{ frontend_url }}/user/">Dashboard</a>
+          <a class="flex items-center gap-2 px-2 py-3 text-gray-600" href="{{ frontend_url }}/logout">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg>
+            <span>Logout Account</span>
+          </a>
+        </div>
       </nav>
     </div>
   </aside>
 
   {% block content %}{% endblock %}
+
+  <iframe id="public-session-bridge" class="hidden" src="{{ frontend_url }}/session-bridge" title="Account session" aria-hidden="true" tabindex="-1"></iframe>
 
   <footer class="w-full bg-secondary px-6 py-12 text-white md:px-16 lg:px-32 lg:py-18">
     <div class="flex w-full flex-wrap items-start justify-between gap-8 lg:flex-nowrap lg:gap-20">

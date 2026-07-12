@@ -16,6 +16,7 @@ from django.utils import timezone
 from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
+from taggit.models import Tag
 
 from core.models import (
     Business,
@@ -35,6 +36,7 @@ from operations.serializers import BusinessSerializer
 
 BUSINESSES_URL = reverse("operations:business-list")
 BUSINESS_MARQUEE_LOGOS_URL = reverse("operations:business-marquee-logos")
+SERVICE_OPTIONS_URL = reverse("operations:business-service-options")
 SERVICES_URL = reverse("operations:service-list")
 QUOTES_URL = reverse("operations:quote-list")
 QUOTE_SIGN_URL = "operations:quote-sign-quote"
@@ -180,6 +182,56 @@ class PrivateBusinessApiTests(TestCase):
         serializer = BusinessSerializer(businesses, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+    def _business_payload(self, services):
+        return {
+            "name": "Catalog Services",
+            "slug": "catalog-services",
+            "phone": "+1 403-555-0100",
+            "email": "catalog@example.com",
+            "business_description": "Catalog validation business.",
+            "street_address": "1 Main Street",
+            "city": "Calgary",
+            "country": "CA",
+            "province_state": "AB",
+            "postal_code": "T2P 1J9",
+            "business_number": "CATALOG-1",
+            "tax_rate": "5.00",
+            "services_offered": services,
+            "timezone": "America/Edmonton",
+        }
+
+    def test_service_options_returns_admin_managed_catalog(self):
+        Tag.objects.get_or_create(name="Custom Admin Service")
+
+        res = self.client.get(SERVICE_OPTIONS_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("Custom Admin Service", [option["name"] for option in res.data])
+
+    def test_business_accepts_only_catalog_service_options(self):
+        Tag.objects.get_or_create(name="Window Cleaning")
+
+        res = self.client.post(
+            BUSINESSES_URL,
+            self._business_payload(["Window Cleaning"]),
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        business = Business.objects.get(pk=res.data["id"])
+        self.assertEqual(list(business.services_offered.names()), ["Window Cleaning"])
+
+    def test_business_rejects_unknown_service_without_creating_tag(self):
+        res = self.client.post(
+            BUSINESSES_URL,
+            self._business_payload(["Unconfigured Service"]),
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("services_offered", res.data)
+        self.assertFalse(Tag.objects.filter(name="Unconfigured Service").exists())
 
 
 class QuoteInvoiceAutomationTests(TestCase):

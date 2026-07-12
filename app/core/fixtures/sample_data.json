@@ -16,7 +16,10 @@
       "business_number": "BN-AURORA-001",
       "tax_rate": "5.00",
       "timezone": "America/Edmonton",
-      "services_offered": ["Home Cleaning", "Window Cleaning"],
+      "services_offered": [
+        "Home Cleaning",
+        "Window Cleaning"
+      ],
       "service_templates": [
         {
           "service_name": "Home Cleaning",
@@ -39,7 +42,10 @@
               "text": "Are pets present during the visit?",
               "type": "checkbox-single",
               "inputType": "text",
-              "options": ["Yes", "No"],
+              "options": [
+                "Yes",
+                "No"
+              ],
               "required": true
             }
           ],
@@ -59,7 +65,10 @@
               "text": "Are screens and tracks included?",
               "type": "checkbox-single",
               "inputType": "text",
-              "options": ["Yes", "No"],
+              "options": [
+                "Yes",
+                "No"
+              ],
               "required": true
             }
           ],
@@ -87,6 +96,22 @@
           "role": "EMPLOYEE",
           "job_duties": "Performs residential cleaning visits.",
           "expertise": "Deep cleaning"
+        },
+        {
+          "name": "Sofia Chen",
+          "email": "sofia@aurorahome.example",
+          "phone": "+1 780-555-0104",
+          "role": "EMPLOYEE",
+          "job_duties": "Completes recurring residential cleaning visits.",
+          "expertise": "Recurring maintenance"
+        },
+        {
+          "name": "Marcus Reed",
+          "email": "marcus@aurorahome.example",
+          "phone": "+1 780-555-0105",
+          "role": "EMPLOYEE",
+          "job_duties": "Performs interior and exterior window cleaning.",
+          "expertise": "Window cleaning"
         }
       ],
       "clients": [
@@ -99,6 +124,21 @@
           "name": "Liam Wilson",
           "email": "liam.wilson@example.com",
           "phone": "+1 780-555-0111"
+        },
+        {
+          "name": "Ethan Hall",
+          "email": "ethan.hall@example.com",
+          "phone": "+1 780-555-0112"
+        },
+        {
+          "name": "Chloe Nguyen",
+          "email": "chloe.nguyen@example.com",
+          "phone": "+1 780-555-0113"
+        },
+        {
+          "name": "Daniel Roy",
+          "email": "daniel.roy@example.com",
+          "phone": "+1 780-555-0114"
         }
       ],
       "services": [
@@ -126,7 +166,7 @@
           "quote": {
             "status": "SIGNED",
             "signature": "signatures/sample-client.png",
-            "signed_days_ago": 2,
+            "signed_days_ago": 30,
             "valid_for_days": 30,
             "additional_terms": "Client will secure the dog before arrival.",
             "notes": "Approved biweekly cleaning plan."
@@ -135,9 +175,10 @@
             {
               "title": "Initial deep clean",
               "description": "Kitchen, bathrooms, and main floor.",
-              "scheduled_in_days": 2,
+              "scheduled_in_days": -20,
               "assigned_to_email": "emma@aurorahome.example",
-              "status": "PENDING"
+              "status": "COMPLETED",
+              "completed_days_ago": 19
             },
             {
               "title": "Biweekly maintenance visit",
@@ -145,7 +186,13 @@
               "assigned_to_email": "emma@aurorahome.example",
               "status": "PENDING"
             }
-          ]
+          ],
+          "invoice": {
+            "status": "PAID",
+            "due_in_days": -10,
+            "paid_days_ago": 15,
+            "notes": "First recurring service invoice paid."
+          }
         },
         {
           "client_email": "liam.wilson@example.com",
@@ -154,7 +201,7 @@
           "start_in_days": 5,
           "service_type": "ONE_TIME",
           "price": "245.00",
-          "status": "ACTIVE",
+          "status": "COMPLETED",
           "auto_generate_quote": true,
           "street_address": "9812 112 Street NW",
           "city": "Edmonton",
@@ -167,7 +214,7 @@
           "quote": {
             "status": "SIGNED",
             "signature": "signatures/sample-client.png",
-            "signed_days_ago": 1,
+            "signed_days_ago": 12,
             "valid_for_days": 21,
             "additional_terms": "Exterior work is weather dependent.",
             "notes": "Screens and tracks included."
@@ -175,11 +222,161 @@
           "jobs": [
             {
               "title": "Exterior window cleaning",
-              "scheduled_in_days": 5,
+              "scheduled_in_days": -5,
               "assigned_to_email": "noah@aurorahome.example",
+              "status": "COMPLETED",
+              "completed_days_ago": 4
+            }
+          ],
+          "invoice": {
+            "status": "PAID",
+            "due_in_days": 5,
+            "paid_days_ago": 2,
+            "notes": "Window cleaning paid online."
+          }
+        },
+        {
+          "client_email": "ethan.hall@example.com",
+          "service_name": "Home Cleaning",
+          "description": "Move-in cleaning for a four-bedroom home.",
+          "start_in_days": -18,
+          "end_in_days": -17,
+          "service_type": "ONE_TIME",
+          "price": "465.00",
+          "status": "COMPLETED",
+          "street_address": "10640 124 Street NW",
+          "city": "Edmonton",
+          "province_state": "AB",
+          "postal_code": "T5N 1S3",
+          "filled_questionnaire": {
+            "How many bedrooms and bathrooms are in the home?": "4 bedrooms and 3 bathrooms",
+            "Which areas need extra attention?": "Inside cabinets and appliances",
+            "Are pets present during the visit?": "No"
+          },
+          "quote": {
+            "status": "SIGNED",
+            "signature": "signatures/sample-client.png",
+            "signed_days_ago": 25,
+            "valid_for_days": 30,
+            "additional_terms": "Property will be vacant during service.",
+            "notes": "Move-in clean approved."
+          },
+          "jobs": [
+            {
+              "title": "Move-in deep clean",
+              "description": "Complete vacant-home cleaning checklist.",
+              "scheduled_in_days": -18,
+              "assigned_to_email": "sofia@aurorahome.example",
+              "status": "COMPLETED",
+              "completed_days_ago": 17
+            }
+          ],
+          "invoice": {
+            "status": "PAID",
+            "due_in_days": -10,
+            "paid_days_ago": 12,
+            "notes": "Paid by card after completion."
+          }
+        },
+        {
+          "client_email": "chloe.nguyen@example.com",
+          "service_name": "Window Cleaning",
+          "description": "Interior and exterior window cleaning.",
+          "start_in_days": -4,
+          "service_type": "ONE_TIME",
+          "price": "310.00",
+          "status": "COMPLETED",
+          "street_address": "7424 118 Avenue NW",
+          "city": "Edmonton",
+          "province_state": "AB",
+          "postal_code": "T5B 0P1",
+          "filled_questionnaire": {
+            "How many storeys does the property have?": "2",
+            "Are screens and tracks included?": "Yes"
+          },
+          "quote": {
+            "status": "SIGNED",
+            "signature": "signatures/sample-client.png",
+            "signed_days_ago": 12,
+            "valid_for_days": 21,
+            "additional_terms": "Client will provide access to locked rooms.",
+            "notes": "Interior and exterior package."
+          },
+          "jobs": [
+            {
+              "title": "Whole-home window cleaning",
+              "scheduled_in_days": -4,
+              "assigned_to_email": "marcus@aurorahome.example",
+              "status": "COMPLETED",
+              "completed_days_ago": 3
+            }
+          ]
+        },
+        {
+          "client_email": "daniel.roy@example.com",
+          "service_name": "Home Cleaning",
+          "description": "Monthly cleaning for main living areas.",
+          "start_in_days": 8,
+          "end_in_days": 180,
+          "service_type": "SUBSCRIPTION",
+          "billing_cycle": "MONTHLY",
+          "price": "225.00",
+          "status": "ACTIVE",
+          "street_address": "5210 109 Street NW",
+          "city": "Edmonton",
+          "province_state": "AB",
+          "postal_code": "T6J 1C3",
+          "filled_questionnaire": {
+            "How many bedrooms and bathrooms are in the home?": "2 bedrooms and 2 bathrooms",
+            "Which areas need extra attention?": "Floors and bathrooms",
+            "Are pets present during the visit?": "One cat"
+          },
+          "quote": {
+            "status": "SIGNED",
+            "signature": "signatures/sample-client.png",
+            "signed_days_ago": 2,
+            "valid_for_days": 30,
+            "additional_terms": "Monthly visits may be rescheduled with 48 hours notice.",
+            "notes": "Six-month recurring plan."
+          },
+          "jobs": [
+            {
+              "title": "First monthly cleaning",
+              "scheduled_in_days": 8,
+              "assigned_to_email": "sofia@aurorahome.example",
+              "status": "PENDING"
+            },
+            {
+              "title": "Second monthly cleaning",
+              "scheduled_in_days": 38,
+              "assigned_to_email": "emma@aurorahome.example",
               "status": "PENDING"
             }
           ]
+        },
+        {
+          "client_email": "daniel.roy@example.com",
+          "service_name": "Window Cleaning",
+          "description": "Seasonal exterior window cleaning proposal.",
+          "start_in_days": 45,
+          "service_type": "ONE_TIME",
+          "price": "195.00",
+          "status": "PENDING",
+          "street_address": "5210 109 Street NW",
+          "city": "Edmonton",
+          "province_state": "AB",
+          "postal_code": "T6J 1C3",
+          "filled_questionnaire": {
+            "How many storeys does the property have?": "1",
+            "Are screens and tracks included?": "No"
+          },
+          "quote": {
+            "status": "SENT",
+            "valid_for_days": 21,
+            "additional_terms": "Work is weather dependent.",
+            "notes": "Awaiting client approval."
+          },
+          "jobs": []
         }
       ]
     },
@@ -198,7 +395,10 @@
       "business_number": "BN-PRAIRIE-002",
       "tax_rate": "5.00",
       "timezone": "America/Edmonton",
-      "services_offered": ["Lawn Care", "Landscape Design"],
+      "services_offered": [
+        "Lawn Care",
+        "Landscape Design"
+      ],
       "service_templates": [
         {
           "service_name": "Lawn Care",
@@ -214,7 +414,10 @@
               "text": "Should clippings be removed?",
               "type": "checkbox-single",
               "inputType": "text",
-              "options": ["Yes", "No"],
+              "options": [
+                "Yes",
+                "No"
+              ],
               "required": true
             }
           ],
@@ -262,6 +465,22 @@
           "role": "EMPLOYEE",
           "job_duties": "Completes lawn and garden work.",
           "expertise": "Horticulture"
+        },
+        {
+          "name": "Owen Patel",
+          "email": "owen@prairiepeak.example",
+          "phone": "+1 403-555-0204",
+          "role": "EMPLOYEE",
+          "job_duties": "Operates mowing and seasonal cleanup equipment.",
+          "expertise": "Lawn maintenance"
+        },
+        {
+          "name": "Nora Kim",
+          "email": "nora@prairiepeak.example",
+          "phone": "+1 403-555-0205",
+          "role": "EMPLOYEE",
+          "job_duties": "Supports site measurements and planting plans.",
+          "expertise": "Landscape design"
         }
       ],
       "clients": [
@@ -274,6 +493,21 @@
           "name": "Mason Clark",
           "email": "mason.clark@example.com",
           "phone": "+1 403-555-0211"
+        },
+        {
+          "name": "Mia Foster",
+          "email": "mia.foster@example.com",
+          "phone": "+1 403-555-0212"
+        },
+        {
+          "name": "Leo Bennett",
+          "email": "leo.bennett@example.com",
+          "phone": "+1 403-555-0213"
+        },
+        {
+          "name": "Aria Scott",
+          "email": "aria.scott@example.com",
+          "phone": "+1 403-555-0214"
         }
       ],
       "services": [
@@ -299,7 +533,7 @@
           "quote": {
             "status": "SIGNED",
             "signature": "signatures/sample-client.png",
-            "signed_days_ago": 4,
+            "signed_days_ago": 20,
             "valid_for_days": 30,
             "additional_terms": "Gate code will be provided before each visit.",
             "notes": "Monthly seasonal package."
@@ -307,9 +541,10 @@
           "jobs": [
             {
               "title": "Spring lawn service",
-              "scheduled_in_days": 3,
+              "scheduled_in_days": -10,
               "assigned_to_email": "lucas@prairiepeak.example",
-              "status": "PENDING"
+              "status": "COMPLETED",
+              "completed_days_ago": 9
             },
             {
               "title": "Monthly lawn service",
@@ -317,7 +552,13 @@
               "assigned_to_email": "lucas@prairiepeak.example",
               "status": "PENDING"
             }
-          ]
+          ],
+          "invoice": {
+            "status": "PAID",
+            "due_in_days": -2,
+            "paid_days_ago": 5,
+            "notes": "Initial lawn service invoice paid."
+          }
         },
         {
           "client_email": "mason.clark@example.com",
@@ -340,7 +581,7 @@
           "quote": {
             "status": "SIGNED",
             "signature": "signatures/sample-client.png",
-            "signed_days_ago": 3,
+            "signed_days_ago": 15,
             "valid_for_days": 45,
             "additional_terms": "Includes two concept revisions.",
             "notes": "Design phase only."
@@ -348,525 +589,165 @@
           "jobs": [
             {
               "title": "Site consultation",
-              "scheduled_in_days": 7,
+              "scheduled_in_days": -7,
+              "assigned_to_email": "ava@prairiepeak.example",
+              "status": "COMPLETED",
+              "completed_days_ago": 6
+            }
+          ],
+          "invoice": {
+            "status": "SENT",
+            "due_in_days": 14,
+            "notes": "Design deposit invoice sent after consultation."
+          }
+        },
+        {
+          "client_email": "mia.foster@example.com",
+          "service_name": "Lawn Care",
+          "description": "Spring cleanup and first mowing service.",
+          "start_in_days": -14,
+          "end_in_days": -13,
+          "service_type": "ONE_TIME",
+          "price": "275.00",
+          "status": "COMPLETED",
+          "street_address": "2404 4 Street NW",
+          "city": "Calgary",
+          "province_state": "AB",
+          "postal_code": "T2M 2Z7",
+          "filled_questionnaire": {
+            "What is the approximate lawn size?": "3,200 square feet",
+            "Should clippings be removed?": "Yes"
+          },
+          "quote": {
+            "status": "SIGNED",
+            "signature": "signatures/sample-client.png",
+            "signed_days_ago": 21,
+            "valid_for_days": 30,
+            "additional_terms": "Green waste removal is included.",
+            "notes": "Spring cleanup package."
+          },
+          "jobs": [
+            {
+              "title": "Spring cleanup and mowing",
+              "scheduled_in_days": -14,
+              "assigned_to_email": "owen@prairiepeak.example",
+              "status": "COMPLETED",
+              "completed_days_ago": 13
+            }
+          ],
+          "invoice": {
+            "status": "PAID",
+            "due_in_days": -7,
+            "paid_days_ago": 9,
+            "notes": "Paid after spring cleanup."
+          }
+        },
+        {
+          "client_email": "leo.bennett@example.com",
+          "service_name": "Landscape Design",
+          "description": "Front-yard planting and hardscape concept.",
+          "start_in_days": -6,
+          "end_in_days": 12,
+          "service_type": "ONE_TIME",
+          "price": "1450.00",
+          "status": "ACTIVE",
+          "street_address": "1812 36 Avenue SW",
+          "city": "Calgary",
+          "province_state": "AB",
+          "postal_code": "T2T 2G1",
+          "filled_questionnaire": {
+            "What are the primary goals for the space?": "More privacy and drought-tolerant planting",
+            "What is the target project budget?": "$18,000"
+          },
+          "quote": {
+            "status": "SIGNED",
+            "signature": "signatures/sample-client.png",
+            "signed_days_ago": 15,
+            "valid_for_days": 45,
+            "additional_terms": "Includes one revised concept.",
+            "notes": "Concept and planting schedule."
+          },
+          "jobs": [
+            {
+              "title": "Front-yard site measurements",
+              "scheduled_in_days": -6,
+              "assigned_to_email": "nora@prairiepeak.example",
+              "status": "COMPLETED",
+              "completed_days_ago": 5
+            },
+            {
+              "title": "Present landscape concept",
+              "scheduled_in_days": 10,
               "assigned_to_email": "ava@prairiepeak.example",
               "status": "PENDING"
             }
           ]
-        }
-      ]
-    },
-    {
-      "name": "Harbour City Electrical",
-      "slug": "harbour-city-electrical",
-      "phone": "+1 604-555-0300",
-      "email": "service@harbourcity.example",
-      "website": "https://harbourcity.example",
-      "logo": "logos/harbour-city-electrical.png",
-      "business_description": "Licensed residential and light-commercial electrical services in Vancouver.",
-      "street_address": "510 West Hastings Street",
-      "city": "Vancouver",
-      "province_state": "BC",
-      "postal_code": "V6B 1L6",
-      "business_number": "BN-HARBOUR-003",
-      "tax_rate": "12.00",
-      "timezone": "America/Vancouver",
-      "services_offered": ["Electrical Repair", "EV Charger Installation"],
-      "service_templates": [
-        {
-          "service_name": "Electrical Repair",
-          "questions": [
-            {
-              "text": "Which circuits or fixtures are affected?",
-              "type": "input",
-              "inputType": "text",
-              "options": [],
-              "required": true
-            },
-            {
-              "text": "Is there visible smoke, heat, or arcing?",
-              "type": "checkbox-single",
-              "inputType": "text",
-              "options": ["Yes", "No"],
-              "required": true
-            }
-          ],
-          "terms_and_conditions": "<h2>Electrical Repair Terms</h2><p>The client will disclose known hazards and provide access to the electrical panel. The initial price covers diagnosis and listed repair work. Permit fees, concealed damage, and code upgrades require written approval.</p>"
         },
         {
-          "service_name": "EV Charger Installation",
-          "questions": [
-            {
-              "text": "What charger model will be installed?",
-              "type": "input",
-              "inputType": "text",
-              "options": [],
-              "required": true
-            },
-            {
-              "text": "Where is the electrical panel relative to the parking space?",
-              "type": "input",
-              "inputType": "text",
-              "options": [],
-              "required": true
-            }
-          ],
-          "terms_and_conditions": "<h2>EV Charger Installation Terms</h2><p>Installation is subject to panel capacity, site access, permit approval, and utility requirements. Trenching, service upgrades, drywall repair, and charger hardware are excluded unless specifically listed.</p>"
-        }
-      ],
-      "owner": {
-        "name": "Isabella Rivera",
-        "email": "isabella@harbourcity.example",
-        "phone": "+1 604-555-0301"
-      },
-      "team_members": [
-        {
-          "name": "Benjamin Lee",
-          "email": "ben@harbourcity.example",
-          "phone": "+1 604-555-0302",
-          "role": "MANAGER",
-          "job_duties": "Dispatches electricians and manages permits.",
-          "expertise": "Electrical code"
-        },
-        {
-          "name": "Mia Patel",
-          "email": "mia@harbourcity.example",
-          "phone": "+1 604-555-0303",
-          "role": "EMPLOYEE",
-          "job_duties": "Performs installations and repairs.",
-          "expertise": "EV systems"
-        }
-      ],
-      "clients": [
-        {
-          "name": "James Taylor",
-          "email": "james.taylor@example.com",
-          "phone": "+1 604-555-0310"
-        },
-        {
-          "name": "Charlotte Moore",
-          "email": "charlotte.moore@example.com",
-          "phone": "+1 604-555-0311"
-        }
-      ],
-      "services": [
-        {
-          "client_email": "james.taylor@example.com",
-          "service_name": "Electrical Repair",
-          "description": "Diagnose intermittent kitchen circuit failure.",
-          "start_in_days": 1,
-          "service_type": "ONE_TIME",
-          "price": "275.00",
-          "status": "ACTIVE",
-          "auto_generate_quote": true,
-          "street_address": "1888 West 15th Avenue",
-          "city": "Vancouver",
-          "province_state": "BC",
-          "postal_code": "V6J 2K8",
-          "filled_questionnaire": {
-            "Which circuits or fixtures are affected?": "Kitchen countertop outlets and dishwasher circuit",
-            "Is there visible smoke, heat, or arcing?": "No"
-          },
-          "quote": {
-            "status": "SIGNED",
-            "signature": "signatures/sample-client.png",
-            "signed_days_ago": 1,
-            "valid_for_days": 14,
-            "additional_terms": "Replacement parts above $100 require approval.",
-            "notes": "Diagnostic and first-hour labour."
-          },
-          "jobs": [
-            {
-              "title": "Circuit diagnostic",
-              "scheduled_in_days": 1,
-              "assigned_to_email": "mia@harbourcity.example",
-              "status": "IN_PROGRESS"
-            }
-          ]
-        },
-        {
-          "client_email": "charlotte.moore@example.com",
-          "service_name": "EV Charger Installation",
-          "description": "Install a Level 2 charger in the garage.",
-          "start_in_days": 10,
-          "end_in_days": 10,
-          "service_type": "ONE_TIME",
-          "price": "1650.00",
-          "status": "ACTIVE",
-          "auto_generate_quote": true,
-          "street_address": "4225 Dunbar Street",
-          "city": "Vancouver",
-          "province_state": "BC",
-          "postal_code": "V6S 2G1",
-          "filled_questionnaire": {
-            "What charger model will be installed?": "ChargePoint Home Flex",
-            "Where is the electrical panel relative to the parking space?": "Garage wall, approximately 8 metres from parking stall"
-          },
-          "quote": {
-            "status": "SIGNED",
-            "signature": "signatures/sample-client.png",
-            "signed_days_ago": 2,
-            "valid_for_days": 30,
-            "additional_terms": "Permit fee and charger hardware included.",
-            "notes": "Installation approved after panel assessment."
-          },
-          "jobs": [
-            {
-              "title": "Electrical panel assessment",
-              "scheduled_in_days": 6,
-              "assigned_to_email": "ben@harbourcity.example",
-              "status": "PENDING"
-            },
-            {
-              "title": "EV charger installation",
-              "scheduled_in_days": 10,
-              "assigned_to_email": "mia@harbourcity.example",
-              "status": "PENDING"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Capital Plumbing Works",
-      "slug": "capital-plumbing-works",
-      "phone": "+1 613-555-0400",
-      "email": "dispatch@capitalplumbing.example",
-      "website": "https://capitalplumbing.example",
-      "logo": "logos/capital-plumbing-works.png",
-      "business_description": "Plumbing repairs and water-heater service throughout Ottawa.",
-      "street_address": "130 Albert Street",
-      "city": "Ottawa",
-      "province_state": "ON",
-      "postal_code": "K1P 5G4",
-      "business_number": "BN-CAPITAL-004",
-      "tax_rate": "13.00",
-      "timezone": "America/Toronto",
-      "services_offered": ["Plumbing Repair", "Water Heater Service"],
-      "service_templates": [
-        {
-          "service_name": "Plumbing Repair",
-          "questions": [
-            {
-              "text": "Where is the leak or blockage located?",
-              "type": "input",
-              "inputType": "text",
-              "options": [],
-              "required": true
-            },
-            {
-              "text": "Can the local water supply be shut off?",
-              "type": "checkbox-single",
-              "inputType": "text",
-              "options": ["Yes", "No", "Unsure"],
-              "required": true
-            }
-          ],
-          "terms_and_conditions": "<h2>Plumbing Repair Terms</h2><p>The client will provide access to fixtures and shutoff valves. Pricing covers the described repair; concealed damage, restoration, and additional failed components require authorization. Emergency conditions should be isolated when safe.</p>"
-        },
-        {
-          "service_name": "Water Heater Service",
-          "questions": [
-            {
-              "text": "What type and age is the water heater?",
-              "type": "input",
-              "inputType": "text",
-              "options": [],
-              "required": true
-            },
-            {
-              "text": "Are there active leaks or error codes?",
-              "type": "input",
-              "inputType": "text",
-              "options": [],
-              "required": true
-            }
-          ],
-          "terms_and_conditions": "<h2>Water Heater Service Terms</h2><p>Routine service includes inspection and maintenance listed in the quote. Replacement parts, venting corrections, code upgrades, and tank replacement are additional. The client will provide safe equipment access.</p>"
-        }
-      ],
-      "owner": {
-        "name": "Henry Davis",
-        "email": "henry@capitalplumbing.example",
-        "phone": "+1 613-555-0401"
-      },
-      "team_members": [
-        {
-          "name": "Amelia King",
-          "email": "amelia@capitalplumbing.example",
-          "phone": "+1 613-555-0402",
-          "role": "MANAGER",
-          "job_duties": "Manages dispatch and customer follow-up.",
-          "expertise": "Service coordination"
-        },
-        {
-          "name": "Daniel Scott",
-          "email": "daniel@capitalplumbing.example",
-          "phone": "+1 613-555-0403",
-          "role": "EMPLOYEE",
-          "job_duties": "Completes plumbing diagnostics and repair.",
-          "expertise": "Water heaters"
-        }
-      ],
-      "clients": [
-        {
-          "name": "Harper Young",
-          "email": "harper.young@example.com",
-          "phone": "+1 613-555-0410"
-        },
-        {
-          "name": "Alexander Hall",
-          "email": "alexander.hall@example.com",
-          "phone": "+1 613-555-0411"
-        }
-      ],
-      "services": [
-        {
-          "client_email": "harper.young@example.com",
-          "service_name": "Plumbing Repair",
-          "description": "Repair leaking kitchen supply line.",
-          "start_in_days": 0,
-          "service_type": "ONE_TIME",
+          "client_email": "aria.scott@example.com",
+          "service_name": "Lawn Care",
+          "description": "Biweekly mowing and edging package.",
+          "start_in_days": 6,
+          "end_in_days": 150,
+          "service_type": "SUBSCRIPTION",
+          "billing_cycle": "MONTHLY",
           "price": "210.00",
           "status": "ACTIVE",
-          "auto_generate_quote": true,
-          "street_address": "284 Somerset Street East",
-          "city": "Ottawa",
-          "province_state": "ON",
-          "postal_code": "K1N 6V8",
+          "street_address": "903 Auburn Bay Boulevard SE",
+          "city": "Calgary",
+          "province_state": "AB",
+          "postal_code": "T3M 0V8",
           "filled_questionnaire": {
-            "Where is the leak or blockage located?": "Cold-water supply under the kitchen sink",
-            "Can the local water supply be shut off?": "Yes"
-          },
-          "quote": {
-            "status": "SIGNED",
-            "signature": "signatures/sample-client.png",
-            "signed_days_ago": 1,
-            "valid_for_days": 14,
-            "additional_terms": "Cabinet restoration is excluded.",
-            "notes": "Supply line and shutoff replacement."
-          },
-          "jobs": [
-            {
-              "title": "Kitchen leak repair",
-              "scheduled_in_days": 0,
-              "assigned_to_email": "daniel@capitalplumbing.example",
-              "status": "IN_PROGRESS"
-            }
-          ]
-        },
-        {
-          "client_email": "alexander.hall@example.com",
-          "service_name": "Water Heater Service",
-          "description": "Annual inspection and flush.",
-          "start_in_days": 8,
-          "service_type": "ONE_TIME",
-          "price": "195.00",
-          "status": "ACTIVE",
-          "auto_generate_quote": true,
-          "street_address": "55 Bayswater Avenue",
-          "city": "Ottawa",
-          "province_state": "ON",
-          "postal_code": "K1Y 2E7",
-          "filled_questionnaire": {
-            "What type and age is the water heater?": "50-gallon gas tank, approximately 6 years old",
-            "Are there active leaks or error codes?": "No active leaks or codes"
-          },
-          "quote": {
-            "status": "SIGNED",
-            "signature": "signatures/sample-client.png",
-            "signed_days_ago": 2,
-            "valid_for_days": 21,
-            "additional_terms": "Replacement components are not included.",
-            "notes": "Annual preventive maintenance."
-          },
-          "jobs": [
-            {
-              "title": "Water heater inspection",
-              "scheduled_in_days": 8,
-              "assigned_to_email": "daniel@capitalplumbing.example",
-              "status": "PENDING"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Maritime Climate Care",
-      "slug": "maritime-climate-care",
-      "phone": "+1 902-555-0500",
-      "email": "care@maritimeclimate.example",
-      "website": "https://maritimeclimate.example",
-      "logo": "logos/maritime-climate-care.png",
-      "business_description": "Heat-pump installation and HVAC maintenance in Halifax Regional Municipality.",
-      "street_address": "1701 Hollis Street",
-      "city": "Halifax",
-      "province_state": "NS",
-      "postal_code": "B3J 3M8",
-      "business_number": "BN-MARITIME-005",
-      "tax_rate": "15.00",
-      "timezone": "America/Halifax",
-      "services_offered": ["Heat Pump Installation", "HVAC Maintenance"],
-      "service_templates": [
-        {
-          "service_name": "Heat Pump Installation",
-          "questions": [
-            {
-              "text": "What areas of the property require heating and cooling?",
-              "type": "input",
-              "inputType": "text",
-              "options": [],
-              "required": true
-            },
-            {
-              "text": "What is the current primary heating system?",
-              "type": "input",
-              "inputType": "text",
-              "options": [],
-              "required": true
-            }
-          ],
-          "terms_and_conditions": "<h2>Heat Pump Installation Terms</h2><p>Equipment selection is based on the documented site assessment. Electrical upgrades, hazardous-material remediation, structural work, and finish repairs are excluded unless listed. Installation dates depend on permits and equipment availability.</p>"
-        },
-        {
-          "service_name": "HVAC Maintenance",
-          "questions": [
-            {
-              "text": "What equipment should be serviced?",
-              "type": "input",
-              "inputType": "text",
-              "options": [],
-              "required": true
-            },
-            {
-              "text": "Are there current comfort or noise concerns?",
-              "type": "input",
-              "inputType": "text",
-              "options": [],
-              "required": true
-            }
-          ],
-          "terms_and_conditions": "<h2>HVAC Maintenance Terms</h2><p>Maintenance covers inspection, cleaning, and adjustments listed in the quote. Repairs and replacement parts require separate approval. The client will provide unobstructed access to indoor and outdoor equipment.</p>"
-        }
-      ],
-      "owner": {
-        "name": "Grace Murphy",
-        "email": "grace@maritimeclimate.example",
-        "phone": "+1 902-555-0501"
-      },
-      "team_members": [
-        {
-          "name": "Jack Campbell",
-          "email": "jack@maritimeclimate.example",
-          "phone": "+1 902-555-0502",
-          "role": "MANAGER",
-          "job_duties": "Plans installations and manages inventory.",
-          "expertise": "HVAC design"
-        },
-        {
-          "name": "Ella MacDonald",
-          "email": "ella@maritimeclimate.example",
-          "phone": "+1 902-555-0503",
-          "role": "EMPLOYEE",
-          "job_duties": "Installs and services HVAC equipment.",
-          "expertise": "Heat pumps"
-        }
-      ],
-      "clients": [
-        {
-          "name": "William Brown",
-          "email": "william.brown@example.com",
-          "phone": "+1 902-555-0510"
-        },
-        {
-          "name": "Evelyn Fraser",
-          "email": "evelyn.fraser@example.com",
-          "phone": "+1 902-555-0511"
-        }
-      ],
-      "services": [
-        {
-          "client_email": "william.brown@example.com",
-          "service_name": "HVAC Maintenance",
-          "description": "Seasonal system inspection and filter replacement.",
-          "start_in_days": 4,
-          "end_in_days": 365,
-          "service_type": "SUBSCRIPTION",
-          "billing_cycle": "YEARLY",
-          "price": "299.00",
-          "status": "ACTIVE",
-          "auto_generate_quote": true,
-          "street_address": "6208 Quinpool Road",
-          "city": "Halifax",
-          "province_state": "NS",
-          "postal_code": "B3L 1A3",
-          "filled_questionnaire": {
-            "What equipment should be serviced?": "Ducted heat pump and air handler",
-            "Are there current comfort or noise concerns?": "Upstairs rooms run warmer in summer"
-          },
-          "quote": {
-            "status": "SIGNED",
-            "signature": "signatures/sample-client.png",
-            "signed_days_ago": 5,
-            "valid_for_days": 30,
-            "additional_terms": "Includes one standard replacement filter.",
-            "notes": "Annual two-visit maintenance plan."
-          },
-          "jobs": [
-            {
-              "title": "Summer HVAC inspection",
-              "scheduled_in_days": 4,
-              "assigned_to_email": "ella@maritimeclimate.example",
-              "status": "PENDING"
-            },
-            {
-              "title": "Winter HVAC inspection",
-              "scheduled_in_days": 184,
-              "assigned_to_email": "ella@maritimeclimate.example",
-              "status": "PENDING"
-            }
-          ]
-        },
-        {
-          "client_email": "evelyn.fraser@example.com",
-          "service_name": "Heat Pump Installation",
-          "description": "Supply and install a ductless heat-pump system.",
-          "start_in_days": 14,
-          "end_in_days": 15,
-          "service_type": "ONE_TIME",
-          "price": "4850.00",
-          "status": "ACTIVE",
-          "auto_generate_quote": true,
-          "street_address": "32 Bedford Highway",
-          "city": "Halifax",
-          "province_state": "NS",
-          "postal_code": "B3M 2J2",
-          "filled_questionnaire": {
-            "What areas of the property require heating and cooling?": "Main floor living area and primary bedroom",
-            "What is the current primary heating system?": "Oil-fired hot-water baseboard"
+            "What is the approximate lawn size?": "5,100 square feet",
+            "Should clippings be removed?": "No"
           },
           "quote": {
             "status": "SIGNED",
             "signature": "signatures/sample-client.png",
             "signed_days_ago": 3,
-            "valid_for_days": 45,
-            "additional_terms": "Electrical permit and equipment pad included.",
-            "notes": "Two-head ductless system."
+            "valid_for_days": 30,
+            "additional_terms": "Service pauses during watering restrictions when required.",
+            "notes": "Seasonal biweekly plan."
           },
           "jobs": [
             {
-              "title": "Heat-loss assessment",
-              "scheduled_in_days": 9,
-              "assigned_to_email": "jack@maritimeclimate.example",
+              "title": "First biweekly lawn visit",
+              "scheduled_in_days": 6,
+              "assigned_to_email": "owen@prairiepeak.example",
               "status": "PENDING"
             },
             {
-              "title": "Heat pump installation",
-              "scheduled_in_days": 14,
-              "assigned_to_email": "ella@maritimeclimate.example",
+              "title": "Second biweekly lawn visit",
+              "scheduled_in_days": 20,
+              "assigned_to_email": "lucas@prairiepeak.example",
               "status": "PENDING"
             }
           ]
+        },
+        {
+          "client_email": "aria.scott@example.com",
+          "service_name": "Landscape Design",
+          "description": "Backyard redesign quotation awaiting approval.",
+          "start_in_days": 30,
+          "end_in_days": 60,
+          "service_type": "ONE_TIME",
+          "price": "2200.00",
+          "status": "PENDING",
+          "street_address": "903 Auburn Bay Boulevard SE",
+          "city": "Calgary",
+          "province_state": "AB",
+          "postal_code": "T3M 0V8",
+          "filled_questionnaire": {
+            "What are the primary goals for the space?": "Outdoor dining area and low-maintenance beds",
+            "What is the target project budget?": "$35,000"
+          },
+          "quote": {
+            "status": "SENT",
+            "valid_for_days": 45,
+            "additional_terms": "Construction pricing is not included in design fees.",
+            "notes": "Awaiting signature."
+          },
+          "jobs": []
         }
       ]
     }

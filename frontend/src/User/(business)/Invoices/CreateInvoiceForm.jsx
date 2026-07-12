@@ -222,22 +222,6 @@ export default function CreateInvoiceForm({
 
                   <div className="mt-4 space-y-4">
                     <div>
-                      <FieldLabel htmlFor="invoice-service">Service</FieldLabel>
-                      <Dropdown
-                        id="invoice-service"
-                        value={serviceId}
-                        onChange={setServiceId}
-                        disabled={!clientId}
-                        placeholder={
-                          clientId ? "Select Service" : "Select Client first"
-                        }
-                        options={serviceOptions}
-                        buttonClassName="border-gray-200 bg-white text-sm text-slate-700"
-                        menuClassName="z-50"
-                      />
-                    </div>
-
-                    <div>
                       <FieldLabel htmlFor="invoice-client">Client</FieldLabel>
                       <Dropdown
                         id="invoice-client"
@@ -248,6 +232,22 @@ export default function CreateInvoiceForm({
                         }}
                         placeholder="Select Client"
                         options={clientOptions}
+                        buttonClassName="border-gray-200 bg-white text-sm text-slate-700"
+                        menuClassName="z-50"
+                      />
+                    </div>
+
+                    <div>
+                      <FieldLabel htmlFor="invoice-service">Service</FieldLabel>
+                      <Dropdown
+                        id="invoice-service"
+                        value={serviceId}
+                        onChange={setServiceId}
+                        disabled={!clientId}
+                        placeholder={
+                          clientId ? "Select Service" : "Select Client first"
+                        }
+                        options={serviceOptions}
                         buttonClassName="border-gray-200 bg-white text-sm text-slate-700"
                         menuClassName="z-50"
                       />

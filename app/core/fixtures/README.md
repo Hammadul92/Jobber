@@ -18,20 +18,22 @@ Business + Client -> have -> Service -> stores completed questionnaire answers
 Service -> has -> Signed Quote -> snapshots terms and stores signature
 Signed Quote + completed questionnaire -> permit seeded Job
 Job -> optionally assigned to -> TeamMember
+Signed Quote + Service -> has -> Invoice -> records tax and payment status
 ```
 
-Each business has its own owner, two team members, two clients, two offered
-service types, templates for both types, two client services, signed quotes, and
-several jobs. Job assignments always reference a team member from the same
-business. Dates in the JSON are offsets from the day the command runs, keeping
-the dataset useful over time.
+The fixture contains two detailed businesses. Each has its own owner, four team
+members, five clients, two offered service types with matching templates, six
+client services and quotes, multiple completed and upcoming jobs, and three
+invoices. Job assignments always reference a team member from the same business.
+Dates in the JSON are offsets from the day the command runs, keeping the dataset
+useful over time.
 
 The JSON deliberately excludes generated IDs, password hashes, customer uploads,
-Stripe identifiers, invoices, and payouts. The five repository-owned sample
-logos under `logos/` and fictional signature under `signatures/` are copied into
-Django media storage when seeded. Django hashes the configured password when
-users are created. Payment workflows can therefore be tested from a clean
-operational starting point without fake external IDs.
+complete payment credentials, Stripe identifiers, and payouts. The two sample
+logos used from `logos/` and fictional signature under `signatures/` are copied
+into Django media storage when seeded. Django hashes the configured password
+when users are created. Seeded invoices model realistic finance records without
+inventing external payment-provider identifiers.
 
 ## Reset and seed
 
@@ -129,9 +131,6 @@ Business owner accounts:
 | --- | --- |
 | Aurora Home Services | `maya@aurorahome.example` |
 | Prairie Peak Landscaping | `ethan@prairiepeak.example` |
-| Harbour City Electrical | `isabella@harbourcity.example` |
-| Capital Plumbing Works | `henry@capitalplumbing.example` |
-| Maritime Climate Care | `grace@maritimeclimate.example` |
 
 Team member and client emails are listed directly in `sample_data.json` and use
 the same password. The preserved admin keeps its existing password.
@@ -148,6 +147,10 @@ Keep every user email unique across the entire JSON file. Within each business:
 - `service_templates` must cover every entry in `services_offered` exactly once.
 - A service with jobs must have completed questionnaire answers and a `SIGNED`
   quote with a fixture-relative signature image.
+- A paid invoice must belong to a service with a signed quote and completed job,
+  and must define `paid_days_ago`.
+- Invoice business, client, currency, subtotal, tax, and total are derived from
+  the validated service and owning business.
 - Signed quotes snapshot their matching template's terms into
   `general_terms_conditions`.
 - `start_in_days`, `end_in_days`, and `scheduled_in_days` are integer offsets.

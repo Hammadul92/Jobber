@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from taggit.managers import TaggableManager
+from taggit.models import Tag
 
 
 ROLE_CHOICES = [
@@ -198,6 +199,15 @@ class SoftDeletableModel(models.Model):
 class ActiveManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False)
+
+
+class ServiceOption(Tag):
+    """Admin-managed catalog of services businesses may offer."""
+
+    class Meta:
+        proxy = True
+        verbose_name = "Service option"
+        verbose_name_plural = "Service options"
 
 
 class FAQ(SoftDeletableModel):

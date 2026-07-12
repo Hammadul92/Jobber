@@ -7,9 +7,15 @@
   const industriesButton = document.getElementById("industries-menu-button");
   const industriesMenu = document.getElementById("industries-menu");
   const industriesChevron = document.getElementById("industries-menu-chevron");
-  const mobileIndustriesButton = document.getElementById("mobile-industries-button");
-  const mobileIndustriesMenu = document.getElementById("mobile-industries-menu");
-  const mobileIndustriesChevron = document.getElementById("mobile-industries-chevron");
+  const mobileIndustriesButton = document.getElementById(
+    "mobile-industries-button",
+  );
+  const mobileIndustriesMenu = document.getElementById(
+    "mobile-industries-menu",
+  );
+  const mobileIndustriesChevron = document.getElementById(
+    "mobile-industries-chevron",
+  );
 
   const updateHeader = () => {
     if (!header) return;
@@ -44,7 +50,9 @@
   };
 
   industriesButton?.addEventListener("click", () => {
-    setIndustriesOpen(industriesButton.getAttribute("aria-expanded") !== "true");
+    setIndustriesOpen(
+      industriesButton.getAttribute("aria-expanded") !== "true",
+    );
   });
 
   document.addEventListener("click", (event) => {
@@ -57,6 +65,7 @@
     if (event.key === "Escape") {
       setIndustriesOpen(false);
       setMenuOpen(false);
+      setAccountMenuOpen(false);
     }
   });
 
@@ -80,13 +89,97 @@
     if (event.target === menu) setMenuOpen(false);
   });
 
-  if (window.localStorage.getItem("token")) {
-    const frontendUrl = document.body.dataset.frontendUrl || "http://localhost:5173";
-    document.querySelectorAll("[data-account-link]").forEach((link) => {
-      link.href = `${frontendUrl}/user/`;
-      link.textContent = "Dashboard";
+  const readPublicSession = () => {
+    const prefix = "contractorz_public_session=";
+    const value = document.cookie
+      .split(";")
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(prefix));
+    if (!value) return null;
+
+    try {
+      const session = JSON.parse(
+        decodeURIComponent(value.slice(prefix.length)),
+      );
+      if (!session || typeof session.name !== "string") return null;
+      return {
+        name: session.name.slice(0, 80) || "Account",
+        email:
+          typeof session.email === "string" ? session.email.slice(0, 120) : "",
+        role: typeof session.role === "string" ? session.role : "",
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  const accountWrapper = document.getElementById("desktop-account");
+  const accountToggle = accountWrapper?.querySelector("[data-account-toggle]");
+  const accountMenu = accountWrapper?.querySelector("[data-account-menu]");
+  const accountOverlay = document.querySelector("[data-account-overlay]");
+
+  const setAccountMenuOpen = (open) => {
+    if (!accountToggle || !accountMenu) return;
+    accountMenu.classList.toggle("hidden", !open);
+    accountMenu.setAttribute("aria-hidden", String(!open));
+    accountToggle.setAttribute("aria-expanded", String(open));
+    accountOverlay?.classList.toggle("hidden", !open);
+    accountWrapper
+      .querySelector("[data-account-chevron]")
+      ?.classList.toggle("rotate-180", open);
+  };
+
+  const renderPublicSession = (publicSession) => {
+    const authenticated = Boolean(publicSession?.name);
+    document.querySelectorAll("[data-account-login]").forEach((link) => {
+      link.classList.toggle("hidden", authenticated);
+      link.classList.toggle("md:hidden", authenticated);
+      link.style.display = authenticated ? "none" : "";
     });
-  }
+    accountToggle?.classList.toggle("hidden", !authenticated);
+    accountToggle?.classList.toggle("flex", authenticated);
+    if (accountToggle)
+      accountToggle.style.display = authenticated ? "flex" : "none";
+    document
+      .querySelectorAll("[data-mobile-account]")
+      .forEach((node) => node.classList.toggle("hidden", !authenticated));
+    if (!authenticated) {
+      setAccountMenuOpen(false);
+      return;
+    }
+    document.querySelectorAll("[data-account-name]").forEach((node) => {
+      node.textContent = publicSession.name;
+    });
+    document.querySelectorAll("[data-account-email]").forEach((node) => {
+      node.textContent = publicSession.email;
+    });
+    document.querySelectorAll("[data-account-initial]").forEach((node) => {
+      node.textContent = publicSession.name.charAt(0).toUpperCase();
+    });
+    const businessLink = accountWrapper?.querySelector("[data-business-link]");
+    const showBusiness = ["USER", "MANAGER"].includes(publicSession.role);
+    businessLink?.classList.toggle("hidden", !showBusiness);
+    businessLink?.classList.toggle("block", showBusiness);
+  };
+
+  renderPublicSession(readPublicSession());
+
+  window.addEventListener("message", (event) => {
+    const frontendUrl = document.body.dataset.frontendUrl;
+    if (!frontendUrl || event.origin !== new URL(frontendUrl).origin) return;
+    if (event.data?.type !== "contractorz:public-session") return;
+    renderPublicSession(event.data.user);
+  });
+
+  accountToggle?.addEventListener("click", () => {
+    setAccountMenuOpen(accountToggle.getAttribute("aria-expanded") !== "true");
+  });
+  accountOverlay?.addEventListener("click", () => setAccountMenuOpen(false));
+
+  document.addEventListener("click", (event) => {
+    if (accountWrapper && !accountWrapper.contains(event.target))
+      setAccountMenuOpen(false);
+  });
 
   document.querySelectorAll("[data-accordion] article").forEach((item) => {
     const button = item.querySelector("button");
@@ -138,7 +231,8 @@
         }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.detail || "Unable to send message.");
+      if (!response.ok)
+        throw new Error(payload.detail || "Unable to send message.");
       contactForm.reset();
       status.className = "mt-4 text-sm text-green-700";
       status.textContent = payload.detail;

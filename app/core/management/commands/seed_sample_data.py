@@ -1,6 +1,7 @@
 import json
 import re
 from datetime import timedelta
+from decimal import Decimal
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
@@ -10,12 +11,14 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
+from taggit.models import Tag
 
 from core.models import (
     BankingInformation,
     Business,
     Client,
     FAQ,
+    Invoice,
     Job,
     Quote,
     Service,
@@ -70,6 +73,7 @@ class Command(BaseCommand):
         payload = self._load_payload(options["input"])
 
         try:
+            self._validate_payload(payload)
             with transaction.atomic():
                 if options["remove"]:
                     counts = self._remove(payload)
@@ -127,6 +131,189 @@ class Command(BaseCommand):
         if not isinstance(payload.get("businesses"), list) or not payload["businesses"]:
             raise CommandError("Seed file must contain a non-empty 'businesses' list.")
         return payload
+
+    def _validate_payload(self, payload):
+        """Reject cross-domain inconsistencies before creating any records."""
+        seen_slugs = set()
+        seen_emails = set()
+        valid_quote_statuses = {"DRAFT", "SENT", "SIGNED", "DECLINED"}
+        valid_job_statuses = {"PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"}
+        valid_invoice_statuses = {"DRAFT", "SENT", "PAID", "CANCELLED"}
+        catalog_services = set(Tag.objects.values_list("name", flat=True))
+
+        for business_data in payload["businesses"]:
+            slug = business_data["slug"]
+            if slug in seen_slugs:
+                raise ValueError(f"duplicate business slug '{slug}'")
+            seen_slugs.add(slug)
+
+            offered_services = business_data.get("services_offered", [])
+            if not offered_services or len(offered_services) != len(
+                set(offered_services)
+            ):
+                raise ValueError(
+                    f"services_offered must be non-empty and unique for '{slug}'"
+                )
+            offered_services = set(offered_services)
+            unknown_catalog_services = sorted(offered_services - catalog_services)
+            if unknown_catalog_services:
+                raise ValueError(
+                    f"services_offered contains options not configured by an "
+                    f"administrator for '{slug}': {unknown_catalog_services}"
+                )
+
+            template_data = business_data.get("service_templates", [])
+            template_names = [item["service_name"] for item in template_data]
+            if len(template_names) != len(set(template_names)):
+                raise ValueError(f"duplicate service template for '{slug}'")
+            if set(template_names) != offered_services:
+                raise ValueError(
+                    f"service_templates must cover every offered service for '{slug}'"
+                )
+            templates = {item["service_name"]: item for item in template_data}
+
+            team_emails = set()
+            client_emails = set()
+            user_data = [business_data["owner"]]
+            user_data.extend(business_data.get("team_members", []))
+            user_data.extend(business_data.get("clients", []))
+            for user in user_data:
+                email = user["email"].lower()
+                if email in seen_emails:
+                    raise ValueError(f"duplicate user email '{email}'")
+                seen_emails.add(email)
+
+            for member in business_data.get("team_members", []):
+                team_emails.add(member["email"].lower())
+            for client in business_data.get("clients", []):
+                client_emails.add(client["email"].lower())
+
+            seen_client_services = set()
+            for service_data in business_data.get("services", []):
+                service_name = service_data["service_name"]
+                client_email = service_data["client_email"].lower()
+                service_key = (client_email, service_name)
+
+                if service_name not in offered_services:
+                    raise ValueError(
+                        f"service '{service_name}' is not offered by '{slug}'"
+                    )
+                if client_email not in client_emails:
+                    raise ValueError(f"unknown client '{client_email}' for '{slug}'")
+                if service_key in seen_client_services:
+                    raise ValueError(
+                        f"duplicate service '{service_name}' for client "
+                        f"'{client_email}' in '{slug}'"
+                    )
+                seen_client_services.add(service_key)
+
+                questionnaire = service_data.get("filled_questionnaire")
+                template_questions = templates[service_name].get("questions", [])
+                if not template_questions:
+                    raise ValueError(
+                        f"questionnaire has no questions for '{service_name}'"
+                    )
+                if questionnaire is not None and not isinstance(questionnaire, dict):
+                    raise ValueError(
+                        f"filled_questionnaire must be an object for '{service_name}'"
+                    )
+                questionnaire = questionnaire or {}
+                defined_questions = {item["text"] for item in template_questions}
+                unknown_answers = set(questionnaire) - defined_questions
+                if unknown_answers:
+                    raise ValueError(
+                        f"questionnaire answers undefined questions for '{service_name}': "
+                        f"{sorted(unknown_answers)}"
+                    )
+                missing_answers = {
+                    item["text"]
+                    for item in template_questions
+                    if item.get("required") and not questionnaire.get(item["text"])
+                }
+                if missing_answers:
+                    if service_data.get("jobs"):
+                        raise ValueError(
+                            f"jobs require a completed questionnaire for "
+                            f"'{service_name}'; missing required answers: "
+                            f"{sorted(missing_answers)}"
+                        )
+                    raise ValueError(
+                        f"questionnaire is missing required answers for "
+                        f"'{service_name}': {sorted(missing_answers)}"
+                    )
+
+                quote_data = service_data.get("quote")
+                quote_status = quote_data.get("status", "DRAFT") if quote_data else None
+                if quote_status and quote_status not in valid_quote_statuses:
+                    raise ValueError(
+                        f"invalid quote status '{quote_status}' for '{service_name}'"
+                    )
+                if quote_status == "SIGNED" and not quote_data.get("signature"):
+                    raise ValueError(
+                        f"signed quote requires a signature for '{service_name}'"
+                    )
+
+                jobs = service_data.get("jobs", [])
+                if jobs and not questionnaire:
+                    raise ValueError(
+                        f"jobs require a completed questionnaire for '{service_name}'"
+                    )
+                if jobs and quote_status != "SIGNED":
+                    raise ValueError(
+                        f"jobs require a signed quote for '{service_name}'"
+                    )
+
+                for job_data in jobs:
+                    assigned_email = job_data.get("assigned_to_email", "").lower()
+                    if assigned_email and assigned_email not in team_emails:
+                        raise ValueError(
+                            f"unknown team member '{assigned_email}' for '{slug}'"
+                        )
+                    job_status = job_data.get("status", "PENDING")
+                    if job_status not in valid_job_statuses:
+                        raise ValueError(
+                            f"invalid job status '{job_status}' for '{service_name}'"
+                        )
+                    completed_days_ago = job_data.get("completed_days_ago")
+                    if job_status == "COMPLETED" and completed_days_ago is None:
+                        raise ValueError(
+                            f"completed job requires completed_days_ago for "
+                            f"'{service_name}'"
+                        )
+                    if job_status != "COMPLETED" and completed_days_ago is not None:
+                        raise ValueError(
+                            f"only completed jobs may set completed_days_ago for "
+                            f"'{service_name}'"
+                        )
+
+                invoice_data = service_data.get("invoice")
+                if invoice_data:
+                    if quote_status != "SIGNED":
+                        raise ValueError(
+                            f"invoice requires a signed quote for '{service_name}'"
+                        )
+                    invoice_status = invoice_data.get("status", "DRAFT")
+                    if invoice_status not in valid_invoice_statuses:
+                        raise ValueError(
+                            f"invalid invoice status '{invoice_status}' for "
+                            f"'{service_name}'"
+                        )
+                    if invoice_status == "PAID" and not any(
+                        job.get("status") == "COMPLETED" for job in jobs
+                    ):
+                        raise ValueError(
+                            f"paid invoice requires completed work for '{service_name}'"
+                        )
+                    paid_days_ago = invoice_data.get("paid_days_ago")
+                    if invoice_status == "PAID" and paid_days_ago is None:
+                        raise ValueError(
+                            f"paid invoice requires paid_days_ago for '{service_name}'"
+                        )
+                    if invoice_status != "PAID" and paid_days_ago is not None:
+                        raise ValueError(
+                            f"only paid invoices may set paid_days_ago for "
+                            f"'{service_name}'"
+                        )
 
     def _reset_data(self):
         User = get_user_model()
@@ -199,6 +386,7 @@ class Command(BaseCommand):
                 service__business__in=businesses
             ).count(),
             "jobs": Job.all_objects.filter(service__business__in=businesses).count(),
+            "invoices": Invoice.all_objects.filter(business__in=businesses).count(),
         }
         businesses.delete()
 
@@ -229,6 +417,7 @@ class Command(BaseCommand):
             "services": 0,
             "quotes": 0,
             "jobs": 0,
+            "invoices": 0,
         }
         default_password = payload.get("default_password", "SamplePass123!")
         seen_slugs = set()
@@ -443,6 +632,39 @@ class Command(BaseCommand):
                         status=job_data.get("status", "PENDING"),
                     )
                     counts["jobs"] += 1
+
+                invoice_data = service_data.get("invoice")
+                if invoice_data:
+                    subtotal = Decimal(
+                        str(invoice_data.get("subtotal", service_data["price"]))
+                    )
+                    tax_rate = Decimal(
+                        str(invoice_data.get("tax_rate", business.tax_rate))
+                    )
+                    tax_amount = (subtotal * tax_rate / Decimal("100")).quantize(
+                        Decimal("0.01")
+                    )
+                    paid_at = None
+                    if invoice_data.get("status") == "PAID":
+                        paid_at = timezone.now() - timedelta(
+                            days=invoice_data["paid_days_ago"]
+                        )
+                    Invoice.objects.create(
+                        business=business,
+                        client=service.client,
+                        service=service,
+                        due_date=timezone.localdate()
+                        + timedelta(days=invoice_data.get("due_in_days", 14)),
+                        status=invoice_data.get("status", "DRAFT"),
+                        currency=service.currency,
+                        subtotal=subtotal,
+                        tax_rate=tax_rate,
+                        tax_amount=tax_amount,
+                        total_amount=subtotal + tax_amount,
+                        notes=invoice_data.get("notes", ""),
+                        paid_at=paid_at,
+                    )
+                    counts["invoices"] += 1
 
         return counts
 

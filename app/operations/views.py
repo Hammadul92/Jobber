@@ -13,6 +13,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from taggit.models import Tag
 
 
 from core.models import (
@@ -99,6 +100,12 @@ class BusinessViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
+
+    @action(detail=False, methods=["get"], url_path="service-options")
+    def service_options(self, request):
+        """Return the admin-managed service catalog."""
+        options = Tag.objects.order_by("name").values("id", "name", "slug")
+        return Response(list(options), status=status.HTTP_200_OK)
 
     @action(
         detail=False,

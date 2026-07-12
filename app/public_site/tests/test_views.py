@@ -54,6 +54,21 @@ class PublicSiteViewTests(TestCase):
 
         self.assertContains(response, 'href="http://frontend.test:5173/sign-in"', count=2)
         self.assertContains(
+            response,
+            'href="http://frontend.test:5173/user/profile"',
+        )
+        self.assertContains(
+            response,
+            'href="http://frontend.test:5173/logout"',
+            count=2,
+        )
+        self.assertContains(response, "data-account-toggle")
+        self.assertContains(response, "data-mobile-account")
+        self.assertContains(
+            response,
+            'src="http://frontend.test:5173/session-bridge"',
+        )
+        self.assertContains(
             industries_response,
             'href="http://frontend.test:5173/register"',
         )

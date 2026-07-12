@@ -8,6 +8,7 @@ from django.utils.html import strip_tags
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+from taggit.models import Tag
 
 
 from core.models import (
@@ -43,25 +44,54 @@ class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         return list(obj.services_offered.names()) \
             if obj.services_offered else []
 
-    def create(self, validated_data):
-        tags = self.initial_data.get('services_offered')
-        if isinstance(tags, str):
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        raw_services = self.initial_data.get("services_offered")
+        if raw_services is None and self.instance:
+            self._submitted_services = None
+            return attrs
+        if isinstance(raw_services, str):
             try:
-                tags = json.loads(tags)
-            except json.JSONDecodeError:
-                tags = []
+                raw_services = json.loads(raw_services)
+            except json.JSONDecodeError as exc:
+                raise serializers.ValidationError(
+                    {"services_offered": "Select services from the available options."}
+                ) from exc
+        if not isinstance(raw_services, list) or not raw_services:
+            raise serializers.ValidationError(
+                {"services_offered": "Select at least one service option."}
+            )
+
+        services = [str(name).strip() for name in raw_services if str(name).strip()]
+        if len(services) != len(set(services)):
+            raise serializers.ValidationError(
+                {"services_offered": "Service selections must be unique."}
+            )
+        existing = set(
+            Tag.objects.filter(name__in=services).values_list("name", flat=True)
+        )
+        unknown = sorted(set(services) - existing)
+        if unknown:
+            raise serializers.ValidationError(
+                {
+                    "services_offered": (
+                        "Select only services configured by an administrator. "
+                        f"Unknown: {', '.join(unknown)}"
+                    )
+                }
+            )
+        self._submitted_services = services
+        return attrs
+
+    def create(self, validated_data):
+        tags = self._submitted_services
         validated_data.pop('services_offered', None)
         business = super().create(validated_data)
         business.services_offered.set(tags)
         return business
 
     def update(self, instance, validated_data):
-        tags = self.initial_data.get('services_offered')
-        if isinstance(tags, str):
-            try:
-                tags = json.loads(tags)
-            except json.JSONDecodeError:
-                tags = []
+        tags = self._submitted_services
         validated_data.pop('services_offered', None)
         business = super().update(instance, validated_data)
         if tags is not None:

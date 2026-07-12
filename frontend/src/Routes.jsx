@@ -27,6 +27,7 @@ import ForgotPassword from "./forms/ForgotPassword";
 import ResetPassword from "./forms/ResetPassword";
 import MagicLogin from "./pages/MagicLogin";
 import UserDashboard from "./User";
+import { clearPublicSession, syncPublicSession } from "./utils/publicSession";
 
 function AdminRedirect() {
   useEffect(() => {
@@ -42,6 +43,35 @@ function AdminRedirect() {
   }, []);
 
   return <div className="text-center py-5">Redirecting to Django admin...</div>;
+}
+
+function LogoutRedirect() {
+  useEffect(() => {
+    localStorage.removeItem("token");
+    clearPublicSession();
+    window.location.replace("/sign-in");
+  }, []);
+
+  return <div className="text-center py-5">Signing out...</div>;
+}
+
+function PublicSessionBridge({ token, user }) {
+  useEffect(() => {
+    if (!document.referrer) return;
+    const parentOrigin = new URL(document.referrer).origin;
+    window.parent.postMessage(
+      {
+        type: "contractorz:public-session",
+        user:
+          token && user
+            ? { name: user.name, email: user.email, role: user.role }
+            : null,
+      },
+      parentOrigin,
+    );
+  }, [token, user]);
+
+  return null;
 }
 
 function App() {
@@ -72,6 +102,7 @@ function MainApp() {
       "/forgot-password",
       "/reset-password",
       "/service-questionnaire",
+      "/session-bridge",
     ].some((path) => window.location.pathname.startsWith(path));
 
     if ((!token || (isError && error?.status === 401)) && !isPublicPage) {
@@ -81,20 +112,31 @@ function MainApp() {
     }
   }, [token, isError, error, navigate]);
 
+  useEffect(() => {
+    if (user) syncPublicSession(user);
+    if (!token || (isError && error?.status === 401)) clearPublicSession();
+  }, [token, user, isError, error]);
+
   if (isFetching) {
     return <div className="text-center py-5">Loading...</div>;
   }
 
   const isDashboardRoute = window.location.pathname.startsWith("/user");
+  const isSessionBridge = window.location.pathname === "/session-bridge";
 
   return (
     <>
-      {!isDashboardRoute && <Header />}
+      {!isDashboardRoute && !isSessionBridge && <Header />}
 
       {/* <main> */}
       <Routes>
         <Route path="/admin" element={<AdminRedirect />} />
         <Route path="/admin/*" element={<AdminRedirect />} />
+        <Route path="/logout" element={<LogoutRedirect />} />
+        <Route
+          path="/session-bridge"
+          element={<PublicSessionBridge token={token} user={user} />}
+        />
 
         {/* Public routes */}
         <Route path="/" element={<Home />} />
@@ -283,7 +325,7 @@ function MainApp() {
       </Routes>
       {/* </main> */}
 
-      {!isDashboardRoute && <Footer />}
+      {!isDashboardRoute && !isSessionBridge && <Footer />}
     </>
   );
 }

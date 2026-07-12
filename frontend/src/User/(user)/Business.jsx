@@ -4,6 +4,7 @@ import { LuCheck, LuImage } from "react-icons/lu";
 import { provinces, countries } from "../../constants/locations";
 import {
   useFetchBusinessesQuery,
+  useFetchServiceOptionsQuery,
   useCreateBusinessMutation,
   useUpdateBusinessMutation,
 } from "../../store";
@@ -43,6 +44,11 @@ export default function Business({ token, setAlert }) {
     isLoading,
     refetch,
   } = useFetchBusinessesQuery(undefined, { skip: !token });
+  const {
+    data: serviceOptions = [],
+    isLoading: loadingServiceOptions,
+    isError: serviceOptionsError,
+  } = useFetchServiceOptionsQuery(undefined, { skip: !token });
   const [createBusiness, { isLoading: isCreating }] =
     useCreateBusinessMutation();
   const [updateBusiness, { isLoading: isUpdating }] =
@@ -77,24 +83,7 @@ export default function Business({ token, setAlert }) {
     }
   }, [businessData]);
 
-  const services = [
-    "Construction",
-    "Cleaning",
-    "Landscaping",
-    "Plumbing",
-    "Electrical",
-    "Snow Removal",
-    "HVAC",
-    "Roofing",
-    "Siding",
-    "Handyman Services",
-    "Flooring",
-    "Windows & Doors",
-    "Appliance Repair",
-    "Moving Services",
-    "Carpet Cleaning",
-    "Pest Control",
-  ];
+  const services = serviceOptions.map((service) => service.name);
 
   const timezones = [
     { value: "America/St_Johns", label: "Newfoundland Time (NT) - St. John’s" },
@@ -519,30 +508,40 @@ export default function Business({ token, setAlert }) {
               <p className="text-gray-400 -mt-4">
                 This helps us customize your dashboard and client workflows.
               </p>
-              <div className="grid grid-cols-2 gap-2 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
-                {services.map((service) => {
-                  const isSelected = selectedServices.includes(service);
-                  return (
-                    <button
-                      key={service}
-                      type="button"
-                      className={`relative rounded-xl border-2 px-3 py-6 md:py-10 text-sm font-medium transition ${
-                        isSelected
-                          ? "border-accent bg-accent/10 text-accent"
-                          : "border-gray-200 bg-white text-gray-700 hover:border-accent/60 hover:text-accent"
-                      }`}
-                      onClick={() => toggleService(service)}
-                    >
-                      {isSelected && (
-                        <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-white">
-                          <LuCheck className="w-3 h-3" />
-                        </span>
-                      )}
-                      {service}
-                    </button>
-                  );
-                })}
-              </div>
+              {loadingServiceOptions ? (
+                <div className="py-10 text-center text-sm text-gray-500">
+                  Loading service options...
+                </div>
+              ) : serviceOptionsError ? (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  Service options could not be loaded. Please try again.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 md:gap-5 md:grid-cols-3 lg:grid-cols-4">
+                  {services.map((service) => {
+                    const isSelected = selectedServices.includes(service);
+                    return (
+                      <button
+                        key={service}
+                        type="button"
+                        className={`relative rounded-xl border-2 px-3 py-6 md:py-10 text-sm font-medium transition ${
+                          isSelected
+                            ? "border-accent bg-accent/10 text-accent"
+                            : "border-gray-200 bg-white text-gray-700 hover:border-accent/60 hover:text-accent"
+                        }`}
+                        onClick={() => toggleService(service)}
+                      >
+                        {isSelected && (
+                          <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-white">
+                            <LuCheck className="w-3 h-3" />
+                          </span>
+                        )}
+                        {service}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
