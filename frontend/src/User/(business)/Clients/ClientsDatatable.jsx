@@ -12,6 +12,7 @@ import {
 import { useFetchClientsQuery, useDeleteClientMutation } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 
 export default function ClientsDatatable({ token, showAddClient }) {
   const [rows, setRows] = useState([]);
@@ -213,7 +214,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
     />
   );
 
-  if (isLoading) return <div>Loading data...</div>;
+  if (isLoading) return <LoadingScreen />;
 
   const hasActiveFilters = selectedStatus !== "ALL";
 

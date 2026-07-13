@@ -7,6 +7,7 @@ import {
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import { useDispatch } from "react-redux";
 
@@ -142,7 +143,7 @@ export default function ServiceQuestionnaireForm(props) {
   }, [errorQ]);
 
   if (loadingQ || loadingS)
-    return <div className="text-center py-5">Loading questionnaire...</div>;
+    return <LoadingScreen />;
   if (!Object.keys(questions).length)
     return (
       <div className="rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">

@@ -9,6 +9,7 @@ import {
   useUpdateBusinessMutation,
 } from "../../store";
 import SubmitButton from "../../Components/ui/SubmitButton";
+import LoadingScreen from "../../Components/ui/LoadingScreen";
 import Input from "../../Components/ui/Input";
 import Dropdown from "../../Components/ui/Dropdown";
 import Textarea from "../../Components/ui/Textarea";
@@ -214,7 +215,7 @@ export default function Business({ token, setAlert }) {
   // const textareaClass =
   //   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";
 
-  if (isLoading) return <div>Loading business data...</div>;
+  if (isLoading) return <LoadingScreen />;
 
   return (
     <>

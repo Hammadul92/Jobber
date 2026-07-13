@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useFetchPayoutsQuery, useDeletePayoutMutation } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import Select from "../../../Components/ui/Select";
 import {
@@ -223,11 +224,7 @@ export default function PayoutDatatable({ token, role }) {
   };
 
   if (isLoading)
-    return (
-      <div className="py-12 text-center text-sm text-gray-500">
-        Loading payouts...
-      </div>
-    );
+    return <LoadingScreen />;
 
   // const summaryCards = [
   //   {

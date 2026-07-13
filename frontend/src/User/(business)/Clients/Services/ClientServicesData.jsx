@@ -11,6 +11,7 @@ import {
   useDeleteServiceMutation,
 } from "../../../../store";
 import SubmitButton from "../../../../Components/ui/SubmitButton";
+import LoadingScreen from "../../../../Components/ui/LoadingScreen";
 import { countries, provinces } from "../../../../constants/locations";
 import { formatDate } from "../../../../utils/formatDate";
 import Dropdown from "../../../../Components/ui/Dropdown";
@@ -116,7 +117,7 @@ export default function ClientServicesData({
   }, [countryFilter]);
 
   if (isLoading)
-    return <div className="text-center py-4">Loading services...</div>;
+    return <LoadingScreen />;
 
   return (
     <>

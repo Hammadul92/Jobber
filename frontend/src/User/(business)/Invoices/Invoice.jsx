@@ -10,6 +10,7 @@ import SubmitButton from "../../../Components/ui/SubmitButton";
 import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
@@ -167,11 +168,7 @@ export default function Invoice({ token, role }) {
     `${Number.parseFloat(value || 0).toFixed(2)} ${currency || ""}`.trim();
 
   if (isLoading) {
-    return (
-      <div className="py-10 text-center text-sm text-gray-500">
-        Loading invoice...
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {

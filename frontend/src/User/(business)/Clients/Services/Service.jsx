@@ -9,6 +9,7 @@ import {
 
 import SubmitButton from "../../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../../Components/ui/LoadingScreen";
 import Select from "../../../../Components/ui/Select";
 import Input from "../../../../Components/ui/Input";
 import Textarea from "../../../../Components/ui/Textarea";
@@ -133,7 +134,7 @@ export default function Service({ token }) {
     }
   };
 
-  if (isLoading) return <div>Loading service...</div>;
+  if (isLoading) return <LoadingScreen />;
 
   return (
     <>

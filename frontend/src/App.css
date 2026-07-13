@@ -159,6 +159,262 @@
   @apply px-6 py-2 bg-secondary rounded-xl text-white font-semibold cursor-pointer hover:bg-secondary/90 hover:scale-[1.02] transition-all duration-300;
 }
 
+.app-loading-screen {
+  display: flex;
+  min-height: calc(100dvh - 7rem);
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1.25rem;
+  color: var(--color-secondary);
+}
+
+.app-loading-screen--fullscreen {
+  min-height: 100dvh;
+}
+
+.app-loading-spinner {
+  --square: 26px;
+  --offset: 30px;
+  --duration: 2.4s;
+  --delay: 0.2s;
+  --timing-function: ease-in-out;
+  --in-duration: 0.4s;
+  --in-delay: 0.1s;
+  --in-timing-function: ease-out;
+  width: calc(3 * var(--offset) + var(--square));
+  height: calc(2 * var(--offset) + var(--square));
+  position: relative;
+}
+
+.app-loading-square {
+  display: inline-block;
+  position: absolute;
+  width: var(--square);
+  height: var(--square);
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-accent);
+  box-shadow: 0 12px 24px rgba(255, 122, 0, 0.18);
+}
+
+.app-loading-square:nth-child(even) {
+  background: var(--color-accent);
+  box-shadow: 0 12px 24px rgba(255, 122, 0, 0.18);
+}
+
+.app-loading-square-1 {
+  left: calc(0 * var(--offset));
+  top: calc(0 * var(--offset));
+  animation:
+    app-loading-square-1 var(--duration) var(--delay)
+      var(--timing-function) infinite,
+    app-loading-square-fade-in var(--in-duration) calc(1 * var(--in-delay))
+      var(--in-timing-function) both;
+}
+
+.app-loading-square-2 {
+  left: calc(0 * var(--offset));
+  top: calc(1 * var(--offset));
+  animation:
+    app-loading-square-2 var(--duration) var(--delay)
+      var(--timing-function) infinite,
+    app-loading-square-fade-in var(--in-duration) calc(1 * var(--in-delay))
+      var(--in-timing-function) both;
+}
+
+.app-loading-square-3 {
+  left: calc(1 * var(--offset));
+  top: calc(1 * var(--offset));
+  animation:
+    app-loading-square-3 var(--duration) var(--delay)
+      var(--timing-function) infinite,
+    app-loading-square-fade-in var(--in-duration) calc(2 * var(--in-delay))
+      var(--in-timing-function) both;
+}
+
+.app-loading-square-4 {
+  left: calc(2 * var(--offset));
+  top: calc(1 * var(--offset));
+  animation:
+    app-loading-square-4 var(--duration) var(--delay)
+      var(--timing-function) infinite,
+    app-loading-square-fade-in var(--in-duration) calc(3 * var(--in-delay))
+      var(--in-timing-function) both;
+}
+
+.app-loading-square-5 {
+  left: calc(3 * var(--offset));
+  top: calc(1 * var(--offset));
+  animation:
+    app-loading-square-5 var(--duration) var(--delay)
+      var(--timing-function) infinite,
+    app-loading-square-fade-in var(--in-duration) calc(4 * var(--in-delay))
+      var(--in-timing-function) both;
+}
+
+.app-loading-label {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-accent);
+}
+
+@keyframes app-loading-square-1 {
+  0% {
+    left: calc(0 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  8.333%,
+  100% {
+    left: calc(0 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+}
+
+@keyframes app-loading-square-2 {
+  0% {
+    left: calc(0 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  8.333% {
+    left: calc(0 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  16.67% {
+    left: calc(1 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  25%,
+  83.33% {
+    left: calc(1 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  91.67% {
+    left: calc(1 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  100% {
+    left: calc(0 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+}
+
+@keyframes app-loading-square-3 {
+  0%,
+  16.67%,
+  100% {
+    left: calc(1 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  25% {
+    left: calc(1 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  33.33% {
+    left: calc(2 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  41.67%,
+  66.67% {
+    left: calc(2 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  75% {
+    left: calc(2 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  83.33% {
+    left: calc(1 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  91.67% {
+    left: calc(1 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+}
+
+@keyframes app-loading-square-4 {
+  0%,
+  33.33% {
+    left: calc(2 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  41.67% {
+    left: calc(2 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  50% {
+    left: calc(3 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  58.33%,
+  100% {
+    left: calc(3 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+}
+
+@keyframes app-loading-square-5 {
+  0%,
+  50% {
+    left: calc(3 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  58.33% {
+    left: calc(3 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  66.67% {
+    left: calc(2 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  75%,
+  100% {
+    left: calc(2 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+}
+
+@keyframes app-loading-square-fade-in {
+  0% {
+    transform: scale(0.75);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-loading-square {
+    animation: none;
+  }
+}
+
 button {
   cursor: pointer;
 }

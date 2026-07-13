@@ -11,6 +11,7 @@ import {
   useCheckBankAccountMutation,
 } from "../../store";
 import SubmitButton from "../../Components/ui/SubmitButton";
+import LoadingScreen from "../../Components/ui/LoadingScreen";
 import {
   LuShieldCheck,
   LuCreditCard,
@@ -92,7 +93,7 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
   };
 
   if (businessLoading || bankingInfoLoading || syncingBank) {
-    return <div className="py-5 text-center text-gray-500">Loading...</div>;
+    return <LoadingScreen />;
   }
 
   const hasBusiness = Array.isArray(businesses) && businesses.length > 0;

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useFetchTeamMemberQuery } from "../../../store";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { useDispatch } from "react-redux";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
@@ -62,11 +63,7 @@ export default function TeamMember({ token }) {
   };
 
   if (isLoading)
-    return (
-      <div className="mt-8 text-center text-gray-600">
-        Loading team member...
-      </div>
-    );
+    return <LoadingScreen />;
 
   if (error) {
     return (

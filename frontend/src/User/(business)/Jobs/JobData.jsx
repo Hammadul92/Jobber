@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useFetchJobsQuery, useDeleteJobMutation } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Dropdown from "../../../Components/ui/Dropdown";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { MdOutlineHomeRepairService } from "react-icons/md";
 import { LuCalendarDays, LuPencilLine, LuTrash2 } from "react-icons/lu";
 
@@ -136,11 +137,7 @@ export default function JobData({ token, role, setAlert }) {
   );
 
   if (isLoading)
-    return (
-      <div className="py-10 text-center text-sm text-gray-500">
-        Loading jobs...
-      </div>
-    );
+    return <LoadingScreen />;
 
   return (
     <>

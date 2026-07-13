@@ -11,6 +11,7 @@ import {
 import Header from "./Components/Header";
 import Footer from "./Components/Footer";
 import PageNotFound from "./Components/PageNotFound";
+import LoadingScreen from "./Components/ui/LoadingScreen";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Industries from "./pages/Industries";
@@ -118,7 +119,7 @@ function MainApp() {
   }, [token, user, isError, error]);
 
   if (isFetching) {
-    return <div className="text-center py-5">Loading...</div>;
+    return <LoadingScreen fullScreen />;
   }
 
   const isDashboardRoute = window.location.pathname.startsWith("/user");

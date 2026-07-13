@@ -13,6 +13,7 @@ import {
 import AcceptAndSignQuote from "./AcceptAndSignQuote";
 import QuoteSectionPopup from "./QuoteSectionPopup";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RichTextContent from "../../../Components/ui/RichTextContent";
 import { formatDate } from "../../../utils/formatDate";
 import {
@@ -164,7 +165,7 @@ export default function SignQuote({ token }) {
         setSectionPopup(null);
     };
 
-    if (isLoading) return <div>Loading quote...</div>;
+    if (isLoading) return <LoadingScreen />;
 
     if (error) {
         return (

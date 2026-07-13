@@ -8,6 +8,7 @@ import {
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
@@ -134,7 +135,7 @@ export default function Quote({ token }) {
     }
   };
 
-  if (isLoading) return <div>Loading quote...</div>;
+  if (isLoading) return <LoadingScreen />;
 
   if (error) {
     return (
