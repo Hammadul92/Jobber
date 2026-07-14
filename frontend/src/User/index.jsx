@@ -33,6 +33,7 @@ import Payout from "./(business)/Payouts/Payout";
 
 export default function UserDashboard({ page, token, user }) {
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const [dashboardNotifications, setDashboardNotifications] = useState([]);
   const navigate = useNavigate();
 
   const businessTabPages = useMemo(
@@ -142,7 +143,14 @@ export default function UserDashboard({ page, token, user }) {
         return <Credentials token={token} user={user} />;
       case "home":
         // Dashboard home tab
-        return <DashboardHome token={token} user={user} business={business} />;
+        return (
+          <DashboardHome
+            token={token}
+            user={user}
+            business={business}
+            onRecentActivityChange={setDashboardNotifications}
+          />
+        );
       case "clients":
         // Clients tab
         return <Clients token={token} business={business} role={user?.role} />;
@@ -239,7 +247,7 @@ export default function UserDashboard({ page, token, user }) {
 
       <SideNav user={user} businessRegistered={businessRegistered} />
 
-      <main className="flex-1 max-h-screen overflow-auto pt-15 md:pt-14 lg:pt-0">
+      <main className="flex-1 min-h-screen overflow-auto pt-15 md:pt-14 lg:pt-0">
         {alert.message && (
           <AlertDispatcher
             type={alert.type}
@@ -252,7 +260,10 @@ export default function UserDashboard({ page, token, user }) {
         {showBusinessTopbar && (
           <div>
             {page === "home" ? (
-              <DashboardTopbar user={user} />
+              <DashboardTopbar
+                user={user}
+                notifications={dashboardNotifications}
+              />
             ) : (
               <Topbar businessName={business?.name || "Dashboard"} />
             )}
