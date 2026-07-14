@@ -65,6 +65,10 @@ def quote_send_url(quote_id):
     return reverse("operations:quote-send-quote", args=[quote_id])
 
 
+def team_member_detail_url(team_member_id):
+    return reverse("operations:teammember-detail", args=[team_member_id])
+
+
 def invoice_make_payment_url(invoice_id):
     return reverse("finance:invoice-make-payment", args=[invoice_id])
 
@@ -752,6 +756,42 @@ class WorkflowRegressionTests(TestCase):
                     },
                     format="multipart",
                 )
+
+    def test_manager_can_update_employee_role(self):
+        """Test manager can promote or demote another team member."""
+        self.client.force_authenticate(self.manager)
+
+        res = self.client.patch(
+            team_member_detail_url(self.team_member.id),
+            {"role": "MANAGER", "job_duties": "Lead field visits"},
+            format="json",
+        )
+
+        self.employee_user.refresh_from_db()
+        self.team_member.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["role"], "MANAGER")
+        self.assertEqual(self.employee_user.role, "MANAGER")
+        self.assertEqual(self.team_member.job_duties, "Lead field visits")
+
+    def test_manager_cannot_update_own_team_member_role(self):
+        """Test manager cannot change their own role through team members."""
+        manager_member = TeamMember.objects.create(
+            business=self.business,
+            employee=self.manager,
+        )
+        self.client.force_authenticate(self.manager)
+
+        res = self.client.patch(
+            team_member_detail_url(manager_member.id),
+            {"role": "EMPLOYEE"},
+            format="json",
+        )
+
+        self.manager.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("role", res.data)
+        self.assertEqual(self.manager.role, "MANAGER")
 
     @patch("operations.views.emails.send_quote_email")
     @patch("operations.views.emails.send_service_questionnaire_email")

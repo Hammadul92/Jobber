@@ -226,7 +226,7 @@ export default function QuotesData({ token, role, setAlert }) {
                   </div>
                 </div>
 
-                <div className="mt-auto border-t border-gray-200 pt-4">
+                <div className="mt-4 border-t border-gray-200 pt-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <LuCalendarDays className="w-4 h-4 text-slate-500" />

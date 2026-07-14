@@ -183,7 +183,12 @@ export default function UserDashboard({ page, token, user }) {
       case "team-members":
         // Team members tab
         return (
-          <TeamMembers token={token} business={business} role={user?.role} />
+          <TeamMembers
+            token={token}
+            business={business}
+            role={user?.role}
+            user={user}
+          />
         );
       case "team-member":
         // Single team member preview tab

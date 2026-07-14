@@ -23,6 +23,14 @@ import {
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import { getBaseUrl } from "../../../store/apis/baseConfig";
 
+function formatMoney(value, currency = "CAD") {
+  const amount = Number.parseFloat(value || 0);
+  return `$${new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(amount) ? amount : 0)} ${currency || "CAD"}`;
+}
+
 export default function Quote({ token }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -345,7 +353,9 @@ export default function Quote({ token }) {
                 <div>
                   <p className="text-sm text-slate-500">Price</p>
                   <p className="text-base font-medium">
-                    ${serviceData.price || "-"} {serviceData.currency || ""}
+                    {serviceData.price
+                      ? formatMoney(serviceData.price, serviceData.currency)
+                      : "-"}
                   </p>
                 </div>
                 <div>

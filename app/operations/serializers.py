@@ -179,7 +179,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         source="employee.is_active",
         read_only=True
     )
-    role = serializers.CharField(source="employee.role", read_only=True)
+    role = serializers.SerializerMethodField()
     business_name = serializers.CharField(
         source="business.name",
         read_only=True
@@ -198,6 +198,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         employee = attrs.get("employee")
+        role = self.initial_data.get("role")
 
         # Prevent adding any business owner as a team member
         if employee and hasattr(employee, "owned_businesses"):
@@ -207,7 +208,45 @@ class TeamMemberSerializer(serializers.ModelSerializer):
                     f"and cannot be added as a team member."
                 )
 
+        if role is not None:
+            normalized_role = str(role).strip().upper()
+            if normalized_role not in {"MANAGER", "EMPLOYEE"}:
+                raise serializers.ValidationError(
+                    {"role": "Role must be Manager or Employee."}
+                )
+
+            request = self.context.get("request")
+            if (
+                self.instance
+                and request
+                and self.instance.employee_id == request.user.id
+            ):
+                raise serializers.ValidationError(
+                    {"role": "You cannot change your own role."}
+                )
+
+            attrs["role"] = normalized_role
+
         return attrs
+
+    def get_role(self, obj):
+        return obj.employee.role
+
+    def create(self, validated_data):
+        role = validated_data.pop("role", None)
+        instance = super().create(validated_data)
+        if role and instance.employee.role != role:
+            instance.employee.role = role
+            instance.employee.save(update_fields=["role"])
+        return instance
+
+    def update(self, instance, validated_data):
+        role = validated_data.pop("role", None)
+        instance = super().update(instance, validated_data)
+        if role and instance.employee.role != role:
+            instance.employee.role = role
+            instance.employee.save(update_fields=["role"])
+        return instance
 
 
 class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):

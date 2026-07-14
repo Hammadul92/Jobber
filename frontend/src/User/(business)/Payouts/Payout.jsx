@@ -17,6 +17,15 @@ const STATUS_STYLES = {
   PENDING: "bg-slate-100 text-slate-600",
 };
 
+function formatMoney(value, currency = "CAD") {
+  const amount = Number.parseFloat(value || 0);
+  const currencyLabel = currency || "CAD";
+  return `$${new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(amount) ? amount : 0)} ${currencyLabel}`;
+}
+
 export default function Payout({ token, role }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -92,8 +101,11 @@ export default function Payout({ token, role }) {
   const grossAmount = Number.parseFloat(payoutData?.amount || 0);
   const stripeFee = grossAmount > 0 ? grossAmount * 0.029 + 0.3 : 0;
   const netPayout = Math.max(grossAmount - stripeFee, 0);
-  const payoutCurrency = payoutData?.currency || "";
-  const canRefund = role === "MANAGER" && payoutData?.status === "PAID" && !payoutData?.is_refunded;
+  const payoutCurrency = payoutData?.currency || "CAD";
+  const canRefund =
+    role === "MANAGER" &&
+    payoutData?.status === "PAID" &&
+    !payoutData?.is_refunded;
 
   return (
     <>
@@ -153,29 +165,25 @@ export default function Payout({ token, role }) {
             <div className="mt-5 space-y-3">
               <SummaryRow
                 label="Gross Amount"
-                value={`${grossAmount.toFixed(2)} ${payoutCurrency}`}
+                value={formatMoney(grossAmount, payoutCurrency)}
               />
               <SummaryRow
                 label="Stripe Fee"
-                value={`${stripeFee.toFixed(2)} ${payoutCurrency}`}
+                value={formatMoney(stripeFee, payoutCurrency)}
               />
               {payoutData?.refunded_amount && (
                 <SummaryRow
                   label="Refunded"
-                  value={`${payoutData.refunded_amount} ${payoutCurrency}`}
+                  value={formatMoney(
+                    payoutData.refunded_amount,
+                    payoutCurrency,
+                  )}
                 />
               )}
-              <div className="mt-4 rounded-2xl bg-secondary px-4 py-4 text-white">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
-                  Payout Total
-                </p>
-                <p className="mt-2 text-2xl font-semibold">
-                  {netPayout.toFixed(2)} {payoutCurrency}
-                </p>
-                <p className="mt-1 text-xs text-white/70">
-                  Net after Stripe fees
-                </p>
-              </div>
+              <SummaryRow
+                label="Payout Total"
+                value={formatMoney(netPayout, payoutCurrency)}
+              />
             </div>
           </div>
 

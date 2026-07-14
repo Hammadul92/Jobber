@@ -41,23 +41,27 @@ export default function PayoutDatatable({ token, role }) {
   const totalCount = payoutData?.count ?? rows.length;
   const currentPage = payoutData?.current_page ?? page;
   const totalPages = payoutData?.total_pages ?? 1;
-  // const currency = rows.find((row) => row.currency)?.currency || "USD";
 
-  // const formatMoney = (amount) => {
-  //   const symbol =
-  //     currency === "CAD" || currency === "USD"
-  //       ? "$"
-  //       : currency === "EUR"
-  //         ? "€"
-  //         : currency === "GBP"
-  //           ? "£"
-  //           : `${currency} `;
+  const formatMoney = (value, currency = "CAD") => {
+    const amount = Number.parseFloat(value || 0);
+    const currencyLabel = currency || "CAD";
+    return `$${new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number.isFinite(amount) ? amount : 0)} ${currencyLabel}`;
+  };
 
-  //   return `${symbol}${new Intl.NumberFormat("en-US", {
-  //     minimumFractionDigits: 2,
-  //     maximumFractionDigits: 2,
-  //   }).format(Number(amount || 0))}`;
-  // };
+  const getPayoutTotal = (row) => {
+    const grossAmount = Number.parseFloat(row?.amount || 0);
+    const stripeFee = grossAmount > 0 ? grossAmount * 0.029 + 0.3 : 0;
+    const netPayout = Math.max(grossAmount - stripeFee, 0);
+    const currency = row?.currency || "CAD";
+
+    return `${formatMoney(netPayout, currency)} (after ${formatMoney(
+      stripeFee,
+      currency,
+    )} stripe fee)`;
+  };
 
   const filteredRows = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -199,7 +203,7 @@ export default function PayoutDatatable({ token, role }) {
       row.invoice_number,
       row.client_name,
       row.service_name,
-      row.payout_total,
+      getPayoutTotal(row),
       row.status,
       row.processed_at ? formatDate(row.processed_at) : "",
     ]);
@@ -422,7 +426,7 @@ export default function PayoutDatatable({ token, role }) {
                           {row.service_name}
                         </td>
                         <td className="px-4 py-3 text-slate-700">
-                          {row.payout_total}
+                          {getPayoutTotal(row)}
                         </td>
                         <td className="px-4 py-3 text-slate-700">
                           <span
