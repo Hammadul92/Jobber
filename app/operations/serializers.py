@@ -4,6 +4,7 @@ Serializers for business APIs
 
 import json
 from core.utils import BusinessTimezoneMixin
+from django.contrib.auth import get_user_model
 from django.utils.html import strip_tags
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
@@ -123,20 +124,20 @@ class ClientSerializer(serializers.ModelSerializer):
     """ Serializer for clients."""
     client_name = serializers.CharField(
         source="user.name",
-        read_only=True
+        required=False
     )
     client_email = serializers.CharField(
         source="user.email",
-        read_only=True
+        required=False
     )
     client_phone = serializers.CharField(
         source="user.phone",
-        read_only=True
+        required=False
     )
     payment_method = serializers.SerializerMethodField()
-    is_active = serializers.CharField(
+    is_active = serializers.BooleanField(
         source="user.is_active",
-        read_only=True
+        required=False
     )
 
     class Meta:
@@ -160,6 +161,34 @@ class ClientSerializer(serializers.ModelSerializer):
             return "-"
 
         return banking_info.payment_method_type
+
+    def validate(self, attrs):
+        user_data = attrs.get("user", {})
+        email = user_data.get("email")
+
+        if email and self.instance:
+            User = get_user_model()
+            if User.objects.exclude(pk=self.instance.user_id).filter(
+                email__iexact=email
+            ).exists():
+                raise serializers.ValidationError({
+                    "client_email": "A user with this email already exists."
+                })
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop("user", {})
+        instance = super().update(instance, validated_data)
+
+        if user_data:
+            user = instance.user
+            for field in ["name", "email", "phone", "is_active"]:
+                if field in user_data:
+                    setattr(user, field, user_data[field])
+            user.save(update_fields=list(user_data.keys()))
+
+        return instance
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):

@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
-import { LuTrash2, LuPlus } from "react-icons/lu";
+import { LuPencil, LuTrash2, LuPlus } from "react-icons/lu";
 import { MdOutlineMiscellaneousServices } from "react-icons/md";
 import {
   LuSearch,
@@ -471,6 +471,14 @@ export default function ClientsDatatable({ token, showAddClient }) {
                           <MdOutlineMiscellaneousServices className="h-4 w-4" />{" "}
                           Services
                         </Link>
+                        <Link
+                          to={`/user/business/client/${row.id}`}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-500 transition hover:bg-gray-50 hover:text-accent"
+                          title="Edit Client"
+                          aria-label={`Edit ${clientLabel}`}
+                        >
+                          <LuPencil className="h-4 w-4" />
+                        </Link>
                         <button
                           className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
                           onClick={() => handleDeleteClick(row.id)}
@@ -560,6 +568,14 @@ export default function ClientsDatatable({ token, showAddClient }) {
                       >
                         <MdOutlineMiscellaneousServices className="h-4 w-4" />{" "}
                         Services
+                      </Link>
+                      <Link
+                        to={`/user/business/client/${row.id}`}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 hover:text-accent"
+                        title="Edit Client"
+                        aria-label={`Edit ${clientLabel}`}
+                      >
+                        <LuPencil className="h-4 w-4" />
                       </Link>
                       <button
                         className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 hover:text-red-500"

@@ -202,6 +202,10 @@ function MainApp() {
             element={<UserDashboard page="clients" token={token} user={user} />}
           />
           <Route
+            path="client/:id"
+            element={<UserDashboard page="client" token={token} user={user} />}
+          />
+          <Route
             path="client/:id/services"
             element={
               <UserDashboard page="client-services" token={token} user={user} />

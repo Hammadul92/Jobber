@@ -14,6 +14,7 @@ import Credentials from "./(user)/Credentials";
 
 import DashboardHome from "./(business)/Home";
 import Clients from "./(business)/Clients";
+import Client from "./(business)/Clients/Client";
 import ClientServices from "./(business)/Clients/Services";
 import Service from "./(business)/Clients/Services/Service";
 import ServiceQuestionnaires from "./(business)/ServiceQuestionnaires";
@@ -41,6 +42,7 @@ export default function UserDashboard({ page, token, user }) {
       new Set([
         "home",
         "clients",
+        "client",
         "client-services",
         "service",
         "service-questionnaires",
@@ -154,6 +156,9 @@ export default function UserDashboard({ page, token, user }) {
       case "clients":
         // Clients tab
         return <Clients token={token} business={business} role={user?.role} />;
+      case "client":
+        // Single client edit tab
+        return <Client token={token} business={business} role={user?.role} />;
       case "client-services":
         // Client services tab
         return (
