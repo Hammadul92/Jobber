@@ -16,6 +16,30 @@ import Textarea from "../../Components/ui/Textarea";
 import { useFetchUserQuery } from "../../store";
 import { NavLink } from "react-router-dom";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
+const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const CANADIAN_POSTAL_REGEX = /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/;
+const US_ZIP_REGEX = /^\d{5}(-\d{4})?$/;
+const LOGO_MAX_SIZE = 5 * 1024 * 1024;
+const LOGO_TYPES = ["image/png", "image/jpeg", "image/svg+xml"];
+const STEP_FIELDS = {
+  1: [
+    "name",
+    "slug",
+    "email",
+    "phone",
+    "website",
+    "timezone",
+    "businessNumber",
+    "taxRate",
+    "businessDescription",
+  ],
+  2: ["country", "provinceState", "streetAddress", "city", "postalCode"],
+  3: ["selectedServices"],
+  4: ["logo"],
+};
+
 export default function Business({ token, setAlert }) {
   const [step, setStep] = useState(1);
   const totalSteps = 4;
@@ -37,6 +61,7 @@ export default function Business({ token, setAlert }) {
   const [timezone, setTimezone] = useState("America/Edmonton");
   const [selectedServices, setSelectedServices] = useState([]);
   const [logo, setLogo] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [_dragActive, setDragActive] = useState(false);
 
   const { data: user } = useFetchUserQuery(undefined, { skip: !token });
@@ -101,30 +126,203 @@ export default function Business({ token, setAlert }) {
         ? prev.filter((s) => s !== service)
         : [...prev, service],
     );
+    setFieldErrors((prev) => ({ ...prev, selectedServices: "" }));
+  };
+
+  const trimValue = (value) => String(value ?? "").trim();
+
+  const getNormalizedWebsite = () => {
+    const trimmedWebsite = website.trim();
+    if (!trimmedWebsite) return "";
+
+    return /^https?:\/\//i.test(trimmedWebsite)
+      ? trimmedWebsite
+      : `https://${trimmedWebsite}`;
+  };
+
+  const isValidWebsite = () => {
+    const normalizedWebsite = getNormalizedWebsite();
+    if (!normalizedWebsite) return true;
+
+    try {
+      const url = new URL(normalizedWebsite);
+      return ["http:", "https:"].includes(url.protocol) && Boolean(url.hostname);
+    } catch {
+      return false;
+    }
+  };
+
+  const isValidPostalCode = () => {
+    const postal = trimValue(postalCode);
+    if (country === "CA") return CANADIAN_POSTAL_REGEX.test(postal);
+    if (country === "US") return US_ZIP_REGEX.test(postal);
+    return postal.length >= 3 && postal.length <= 10;
+  };
+
+  const validateLogoFile = (file) => {
+    if (!file || typeof file === "string") return "";
+    if (!LOGO_TYPES.includes(file.type)) {
+      return "Logo must be a PNG, JPG, or SVG file.";
+    }
+    if (file.size > LOGO_MAX_SIZE) {
+      return "Logo must be 5MB or smaller.";
+    }
+    return "";
+  };
+
+  const setFieldValue = (setter, fieldName) => (value) => {
+    setter(value);
+    setFieldErrors((prev) => ({ ...prev, [fieldName]: "" }));
+  };
+
+  const handleLogoSelection = (file) => {
+    if (!file) return;
+
+    const logoError = validateLogoFile(file);
+    if (logoError) {
+      setFieldErrors((prev) => ({ ...prev, logo: logoError }));
+      setLogo(null);
+      return;
+    }
+
+    setLogo(file);
+    setFieldErrors((prev) => ({ ...prev, logo: "" }));
+  };
+
+  const validateStepFields = (stepNum) => {
+    const errors = {};
+    const taxRateValue = Number(taxRate);
+
+    if (stepNum === 1) {
+      if (!trimValue(name)) errors.name = "Business name is required.";
+      else if (trimValue(name).length > 50) {
+        errors.name = "Business name cannot exceed 50 characters.";
+      }
+
+      if (!trimValue(slug)) errors.slug = "Slug is required.";
+      else if (!SLUG_REGEX.test(trimValue(slug))) {
+        errors.slug =
+          "Use lowercase letters, numbers, and single hyphens only.";
+      } else if (trimValue(slug).length > 50) {
+        errors.slug = "Slug cannot exceed 50 characters.";
+      }
+
+      if (!trimValue(email)) errors.email = "Email is required.";
+      else if (!EMAIL_REGEX.test(trimValue(email))) {
+        errors.email = "Enter a valid email address.";
+      } else if (trimValue(email).length > 50) {
+        errors.email = "Email cannot exceed 50 characters.";
+      }
+
+      if (!trimValue(phone)) errors.phone = "Phone is required.";
+      else if (!PHONE_REGEX.test(trimValue(phone))) {
+        errors.phone = "Use a valid +1 phone number.";
+      }
+
+      if (!isValidWebsite()) {
+        errors.website = "Enter a valid website URL.";
+      } else if (getNormalizedWebsite().length > 100) {
+        errors.website = "Website cannot exceed 100 characters.";
+      }
+
+      if (!timezone) errors.timezone = "Timezone is required.";
+
+      if (!trimValue(businessNumber)) {
+        errors.businessNumber = "Business number is required.";
+      } else if (trimValue(businessNumber).length > 20) {
+        errors.businessNumber =
+          "Business number cannot exceed 20 characters.";
+      }
+
+      if (taxRate === "" || taxRate === null || taxRate === undefined) {
+        errors.taxRate = "Tax rate is required.";
+      } else if (!Number.isFinite(taxRateValue)) {
+        errors.taxRate = "Tax rate must be a valid number.";
+      } else if (taxRateValue < 0 || taxRateValue > 99.99) {
+        errors.taxRate = "Tax rate must be between 0 and 99.99.";
+      }
+
+      if (!trimValue(businessDescription)) {
+        errors.businessDescription = "Business description is required.";
+      } else if (trimValue(businessDescription).length > 1000) {
+        errors.businessDescription =
+          "Business description cannot exceed 1000 characters.";
+      }
+    }
+
+    if (stepNum === 2) {
+      if (!country) errors.country = "Country is required.";
+      if (!provinceState) {
+        errors.provinceState = "Province / state is required.";
+      } else if (
+        !(provinces[country] || []).some((option) => option.value === provinceState)
+      ) {
+        errors.provinceState = "Select a valid province / state.";
+      }
+
+      if (!trimValue(streetAddress)) {
+        errors.streetAddress = "Street address is required.";
+      } else if (trimValue(streetAddress).length > 255) {
+        errors.streetAddress = "Street address cannot exceed 255 characters.";
+      }
+
+      if (!trimValue(city)) errors.city = "City is required.";
+      else if (trimValue(city).length > 100) {
+        errors.city = "City cannot exceed 100 characters.";
+      }
+
+      if (!trimValue(postalCode)) {
+        errors.postalCode = "Postal / ZIP code is required.";
+      } else if (!isValidPostalCode()) {
+        errors.postalCode =
+          country === "CA"
+            ? "Use a valid Canadian postal code, e.g. T5J 1N3."
+            : country === "US"
+              ? "Use a valid ZIP code, e.g. 90210."
+              : "Postal / ZIP code must be 3 to 10 characters.";
+      }
+    }
+
+    if (stepNum === 3) {
+      if (serviceOptionsError) {
+        errors.selectedServices =
+          "Service options could not be loaded. Please refresh and try again.";
+      } else if (!selectedServices.length) {
+        errors.selectedServices = "Select at least one service.";
+      }
+    }
+
+    if (stepNum === 4) {
+      const logoError = validateLogoFile(logo);
+      if (logoError) errors.logo = logoError;
+    }
+
+    return errors;
+  };
+
+  const getFirstErrorMessage = (errors) =>
+    Object.values(errors).find(Boolean) ||
+    "Please fix the highlighted fields before continuing.";
+
+  const getError = (fieldName) => fieldErrors[fieldName];
+
+  const ErrorText = ({ field }) =>
+    getError(field) ? (
+      <p className="mt-2 text-xs font-medium text-red-600">{getError(field)}</p>
+    ) : null;
+
+  const applyStepErrors = (stepNum, errors) => {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      (STEP_FIELDS[stepNum] || []).forEach((fieldName) => {
+        delete next[fieldName];
+      });
+      return { ...next, ...errors };
+    });
   };
 
   const isStepComplete = (stepNum) => {
-    switch (stepNum) {
-      case 1:
-        return (
-          name &&
-          slug &&
-          email &&
-          phone &&
-          businessDescription &&
-          businessNumber &&
-          taxRate &&
-          timezone
-        );
-      case 2:
-        return streetAddress && city && country && provinceState && postalCode;
-      case 3:
-        return selectedServices.length > 0;
-      case 4:
-        return true;
-      default:
-        return false;
-    }
+    return Object.keys(validateStepFields(stepNum)).length === 0;
   };
 
   const isStepVisuallyComplete = (stepNum) => {
@@ -139,17 +337,25 @@ export default function Business({ token, setAlert }) {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const validateStep = () => isStepComplete(step);
+  const validateStep = (stepNum = step) => {
+    const errors = validateStepFields(stepNum);
+    applyStepErrors(stepNum, errors);
+
+    if (Object.keys(errors).length > 0) {
+      setAlert({
+        type: "danger",
+        message: getFirstErrorMessage(errors),
+      });
+      return false;
+    }
+
+    return true;
+  };
 
   const nextStep = () => {
     if (validateStep()) {
       const next = Math.min(step + 1, totalSteps);
       setStep(next);
-    } else {
-      setAlert({
-        type: "danger",
-        message: "Please fill all required fields before continuing.",
-      });
     }
   };
 
@@ -157,14 +363,28 @@ export default function Business({ token, setAlert }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateStep()) return;
+    const allStepErrors = [1, 2, 3, 4].reduce(
+      (errors, stepNum) => ({ ...errors, ...validateStepFields(stepNum) }),
+      {},
+    );
+
+    if (Object.keys(allStepErrors).length > 0) {
+      setFieldErrors(allStepErrors);
+      setAlert({
+        type: "danger",
+        message: getFirstErrorMessage(allStepErrors),
+      });
+      const firstInvalidStep =
+        [1, 2, 3, 4].find(
+          (stepNum) => Object.keys(validateStepFields(stepNum)).length > 0,
+        ) || step;
+      setStep(firstInvalidStep);
+      return;
+    }
 
     try {
       // Normalize website to include scheme because Django URLField rejects bare domains
-      let normalizedWebsite = website.trim();
-      if (normalizedWebsite && !/^https?:\/\//i.test(normalizedWebsite)) {
-        normalizedWebsite = `https://${normalizedWebsite}`;
-      }
+      const normalizedWebsite = getNormalizedWebsite();
 
       const formData = new FormData();
       formData.append("name", name);
@@ -181,7 +401,7 @@ export default function Business({ token, setAlert }) {
       formData.append("province_state", provinceState);
       formData.append("postal_code", postalCode);
       formData.append("business_number", businessNumber);
-      formData.append("tax_rate", parseInt(taxRate));
+      formData.append("tax_rate", parseFloat(taxRate));
       formData.append("timezone", timezone);
       formData.append("services_offered", JSON.stringify(selectedServices));
       if (logo && typeof logo !== "string") formData.append("logo", logo);
@@ -251,22 +471,19 @@ export default function Business({ token, setAlert }) {
                     if (stepNum < step) {
                       setStep(stepNum);
                     } else if (stepNum > step) {
-                      let canProceed = true;
+                      let blockedStep = null;
                       for (let i = step; i < stepNum; i++) {
                         if (!isStepComplete(i)) {
-                          canProceed = false;
+                          blockedStep = i;
                           break;
                         }
                       }
 
-                      if (canProceed) {
+                      if (!blockedStep) {
                         setStep(stepNum);
                       } else {
-                        setAlert({
-                          type: "danger",
-                          message:
-                            "Please fill all required fields before continuing.",
-                        });
+                        setStep(blockedStep);
+                        validateStep(blockedStep);
                       }
                     }
                   }}
@@ -311,52 +528,67 @@ export default function Business({ token, setAlert }) {
                 </p>
               </div>
               <div className="grid grid-cols-1 md:gap-4 md:grid-cols-3">
-                <Input
-                  id="business_name"
-                  label={"Business Name"}
-                  value={name}
-                  isRequired={true}
-                  onChange={setName}
-                  fieldClass={inputClass}
-                />
-                <Input
-                  id="slug"
-                  label={"Slug"}
-                  value={slug}
-                  isRequired={true}
-                  onChange={setSlug}
-                  fieldClass={inputClass}
-                />
-                <Input
-                  type="email"
-                  id="email"
-                  label={"Email"}
-                  value={email}
-                  isRequired={true}
-                  onChange={setEmail}
-                  fieldClass={inputClass}
-                />
+                <div>
+                  <Input
+                    id="business_name"
+                    label={"Business Name"}
+                    value={name}
+                    isRequired={true}
+                    onChange={setFieldValue(setName, "name")}
+                    fieldClass={inputClass}
+                  />
+                  <ErrorText field="name" />
+                </div>
+                <div>
+                  <Input
+                    id="slug"
+                    label={"Slug"}
+                    value={slug}
+                    isRequired={true}
+                    onChange={setFieldValue(setSlug, "slug")}
+                    fieldClass={inputClass}
+                  />
+                  <ErrorText field="slug" />
+                </div>
+                <div>
+                  <Input
+                    type="email"
+                    id="email"
+                    label={"Email"}
+                    value={email}
+                    isRequired={true}
+                    onChange={setFieldValue(setEmail, "email")}
+                    fieldClass={inputClass}
+                  />
+                  <ErrorText field="email" />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:gap-4 md:grid-cols-2">
-                <Input
-                  type="tel"
-                  id="phone"
-                  label={"Phone"}
-                  value={phone}
-                  isRequired={true}
-                  onChange={setPhone}
-                  fieldClass={inputClass}
-                />
-                <Input
-                  type="url"
-                  id="website"
-                  label={"Business Website"}
-                  value={website}
-                  isRequired={false}
-                  onChange={setWebsite}
-                  fieldClass={inputClass}
-                />
+                <div>
+                  <Input
+                    type="tel"
+                    id="phone"
+                    label={"Phone"}
+                    value={phone}
+                    isRequired={true}
+                    onChange={setFieldValue(setPhone, "phone")}
+                    fieldClass={inputClass}
+                  />
+                  <ErrorText field="phone" />
+                </div>
+                <div>
+                  <Input
+                    type="text"
+                    id="website"
+                    label={"Business Website"}
+                    value={website}
+                    isRequired={false}
+                    onChange={setFieldValue(setWebsite, "website")}
+                    fieldClass={inputClass}
+                  />
+                  <ErrorText field="website" />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:gap-4 md:grid-cols-3">
@@ -372,45 +604,60 @@ export default function Business({ token, setAlert }) {
                     value={timezone}
                     placeholder="Select timezone"
                     options={timezones}
-                    onChange={setTimezone}
+                    onChange={setFieldValue(setTimezone, "timezone")}
                     buttonClassName="w-full rounded-xl border-gray-200 bg-white h-[50px]"
                     menuClassName="max-h-72 overflow-auto"
                   />
+                  <ErrorText field="timezone" />
                 </div>
 
-                <Input
-                  type="number"
-                  id="business_number"
-                  label={"Business Number"}
-                  value={businessNumber}
-                  isRequired={true}
-                  onChange={setBusinessNumber}
-                  fieldClass={inputClass}
-                />
+                <div>
+                  <Input
+                    type="text"
+                    id="business_number"
+                    label={"Business Number"}
+                    value={businessNumber}
+                    isRequired={true}
+                    onChange={setFieldValue(
+                      setBusinessNumber,
+                      "businessNumber",
+                    )}
+                    fieldClass={inputClass}
+                  />
+                  <ErrorText field="businessNumber" />
+                </div>
 
-                <Input
-                  min={1}
-                  max={100}
-                  step={0.01}
-                  type="number"
-                  id="tax_rate"
-                  label={"Tax Rate"}
-                  value={taxRate}
-                  isRequired={true}
-                  onChange={setTaxRate}
-                  fieldClass={inputClass}
-                />
+                <div>
+                  <Input
+                    min={0}
+                    max={99.99}
+                    step={0.01}
+                    type="number"
+                    id="tax_rate"
+                    label={"Tax Rate"}
+                    value={taxRate}
+                    isRequired={true}
+                    onChange={setFieldValue(setTaxRate, "taxRate")}
+                    fieldClass={inputClass}
+                  />
+                  <ErrorText field="taxRate" />
+                </div>
               </div>
 
               <Textarea
                 id="business_description"
                 label="Business Description"
                 value={businessDescription}
-                onChange={setBusinessDescription}
+                onChange={setFieldValue(
+                  setBusinessDescription,
+                  "businessDescription",
+                )}
                 isRequired={true}
                 fieldClass="w-full"
                 rows={3}
+                maxLength={1000}
               />
+              <ErrorText field="businessDescription" />
             </div>
           )}
 
@@ -437,10 +684,20 @@ export default function Business({ token, setAlert }) {
                     value={country}
                     placeholder="Select country"
                     options={countries}
-                    onChange={setCountry}
+                    onChange={(value) => {
+                      setCountry(value);
+                      setProvinceState("");
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        country: "",
+                        provinceState: "",
+                        postalCode: "",
+                      }));
+                    }}
                     buttonClassName="w-full rounded-xl border-gray-200 bg-white h-[50px]"
                     menuClassName="max-h-72 overflow-auto"
                   />
+                  <ErrorText field="country" />
                 </div>
                 <div className="flex flex-col">
                   <label
@@ -454,10 +711,11 @@ export default function Business({ token, setAlert }) {
                     value={provinceState}
                     placeholder="Select province / state"
                     options={provinces[country] || []}
-                    onChange={setProvinceState}
+                    onChange={setFieldValue(setProvinceState, "provinceState")}
                     buttonClassName="w-full rounded-xl border-gray-200 bg-white h-[50px]"
                     menuClassName="max-h-72 overflow-auto"
                   />
+                  <ErrorText field="provinceState" />
                 </div>
               </div>
 
@@ -466,28 +724,35 @@ export default function Business({ token, setAlert }) {
                 label={"Street Address"}
                 value={streetAddress}
                 isRequired={true}
-                onChange={setStreetAddress}
+                onChange={setFieldValue(setStreetAddress, "streetAddress")}
                 fieldClass={inputClass}
               />
+              <ErrorText field="streetAddress" />
 
               <div className="grid grid-cols-1 md:gap-4 md:grid-cols-2">
-                <Input
-                  id="city"
-                  label={"City"}
-                  value={city}
-                  isRequired={true}
-                  onChange={setCity}
-                  fieldClass={inputClass}
-                />
+                <div>
+                  <Input
+                    id="city"
+                    label={"City"}
+                    value={city}
+                    isRequired={true}
+                    onChange={setFieldValue(setCity, "city")}
+                    fieldClass={inputClass}
+                  />
+                  <ErrorText field="city" />
+                </div>
 
-                <Input
-                  id="postal_code"
-                  label={"Postal / ZIP Code"}
-                  value={postalCode}
-                  isRequired={true}
-                  onChange={setPostalCode}
-                  fieldClass={inputClass}
-                />
+                <div>
+                  <Input
+                    id="postal_code"
+                    label={"Postal / ZIP Code"}
+                    value={postalCode}
+                    isRequired={true}
+                    onChange={setFieldValue(setPostalCode, "postalCode")}
+                    fieldClass={inputClass}
+                  />
+                  <ErrorText field="postalCode" />
+                </div>
               </div>
             </div>
           )}
@@ -543,6 +808,7 @@ export default function Business({ token, setAlert }) {
                   })}
                 </div>
               )}
+              <ErrorText field="selectedServices" />
             </div>
           )}
 
@@ -584,10 +850,10 @@ export default function Business({ token, setAlert }) {
                   e.stopPropagation();
                   setDragActive(false);
                   if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                    setLogo(e.dataTransfer.files[0]);
+                    handleLogoSelection(e.dataTransfer.files[0]);
                   }
                 }}
-                className={`flex flex-col items-center justify-center py-12 rounded-2xl border-2 border-dashed ${logo ? "border-green-400" : "border-gray-300"} bg-gray-50 transition-all duration-200 relative`}
+                className={`flex flex-col items-center justify-center py-12 rounded-2xl border-2 border-dashed ${getError("logo") ? "border-red-300" : logo ? "border-green-400" : "border-gray-300"} bg-gray-50 transition-all duration-200 relative`}
                 style={{ cursor: "pointer", position: "relative" }}
               >
                 {!logo ? (
@@ -609,7 +875,7 @@ export default function Business({ token, setAlert }) {
                         style={{ display: "none" }}
                         onChange={(e) => {
                           if (e.target.files && e.target.files[0]) {
-                            setLogo(e.target.files[0]);
+                            handleLogoSelection(e.target.files[0]);
                           }
                         }}
                       />
@@ -633,13 +899,17 @@ export default function Business({ token, setAlert }) {
                     <button
                       type="button"
                       className="px-4 py-1 bg-red-500 text-white rounded-lg text-sm font-medium"
-                      onClick={() => setLogo(null)}
+                      onClick={() => {
+                        setLogo(null);
+                        setFieldErrors((prev) => ({ ...prev, logo: "" }));
+                      }}
                     >
                       Remove
                     </button>
                   </div>
                 )}
               </div>
+              <ErrorText field="logo" />
             </div>
           )}
 
@@ -660,7 +930,7 @@ export default function Business({ token, setAlert }) {
                 isLoading={isCreating || isUpdating}
                 btnClass="ml-auto inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2 font-semibold text-white shadow hover:bg-accent/90 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
                 btnName="Save Changes"
-                isDisabled={!validateStep()}
+                isDisabled={Object.keys(validateStepFields(step)).length > 0}
               />
             )}
           </div>
