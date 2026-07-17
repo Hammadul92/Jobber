@@ -137,7 +137,9 @@ class ClientViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.ClientSerializer
-    queryset = Client.objects.filter(is_active=True)
+    queryset = Client.objects.filter(is_active=True).prefetch_related(
+        "client_services"
+    )
     pagination_class = paginations.ClientPagination
 
     def get_queryset(self):

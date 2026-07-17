@@ -9,7 +9,11 @@ import {
   LuX,
   LuChevronDown,
 } from "react-icons/lu";
-import { useFetchClientsQuery, useDeleteClientMutation } from "../../../store";
+import {
+  useFetchClientsQuery,
+  useDeleteClientMutation,
+  useFetchServicesQuery,
+} from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
@@ -28,6 +32,9 @@ export default function ClientsDatatable({ token, showAddClient }) {
     isLoading,
     error,
   } = useFetchClientsQuery(undefined, { skip: !token });
+  const { data: servicesData = [] } = useFetchServicesQuery(undefined, {
+    skip: !token,
+  });
 
   const [deleteClient, { isLoading: deleting }] = useDeleteClientMutation();
 
@@ -103,6 +110,30 @@ export default function ClientsDatatable({ token, showAddClient }) {
       return matchesSearch && matchesStatus;
     });
   }, [rows, searchTerm, selectedStatus]);
+
+  const questionnaireCountsByClient = useMemo(() => {
+    return servicesData.reduce((counts, service) => {
+      const clientId = String(service.client || "");
+      if (!clientId) return counts;
+
+      const current = counts.get(clientId) || { filled: 0, total: 0 };
+      const filledQuestionnaire = service.filled_questionnaire;
+      const isFilled =
+        !!filledQuestionnaire &&
+        (!Array.isArray(filledQuestionnaire) ||
+          filledQuestionnaire.length > 0) &&
+        (typeof filledQuestionnaire !== "object" ||
+          Array.isArray(filledQuestionnaire) ||
+          Object.keys(filledQuestionnaire).length > 0);
+
+      counts.set(clientId, {
+        total: current.total + 1,
+        filled: current.filled + (isFilled ? 1 : 0),
+      });
+
+      return counts;
+    }, new Map());
+  }, [servicesData]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages - 1);
@@ -404,6 +435,22 @@ export default function ClientsDatatable({ token, showAddClient }) {
                 row.paymentMethod ||
                 row.payment ||
                 "No payment method";
+              const serviceQuestionnaireCounts =
+                questionnaireCountsByClient.get(String(row.id));
+              const questionnairesFilled = Number(
+                serviceQuestionnaireCounts?.filled ??
+                  row.questionnaires_filled ??
+                  0,
+              );
+              const questionnairesTotal = Number(
+                serviceQuestionnaireCounts?.total ??
+                  row.questionnaires_total ??
+                  0,
+              );
+              const questionnaireSummary = `${questionnairesFilled} / ${questionnairesTotal}`;
+              const questionnairesComplete =
+                questionnairesTotal > 0 &&
+                questionnairesFilled >= questionnairesTotal;
 
               return (
                 <Fragment key={row.id}>
@@ -457,6 +504,16 @@ export default function ClientsDatatable({ token, showAddClient }) {
                           </p>
                           <p className="truncate">{paymentMethod}</p>
                         </div>
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
+                            Questionnaires
+                          </p>
+                          <p
+                            className={`truncate font-semibold ${questionnairesComplete ? "text-emerald-700" : "text-slate-700"}`}
+                          >
+                            {questionnaireSummary}
+                          </p>
+                        </div>
                       </div>
 
                       {/* Divider line */}
@@ -504,7 +561,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                       </div>
 
                       {/* Client name column */}
-                      <div className="flex-1" style={{ minWidth: "11rem" }}>
+                      <div className="flex-1" style={{ minWidth: "10rem" }}>
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
                             Client Name
@@ -523,7 +580,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                       {/* Email column */}
                       <div
                         className="hidden flex-1 flex-col md:flex"
-                        style={{ minWidth: "12.5rem" }}
+                        style={{ minWidth: "11rem" }}
                       >
                         <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
                           Email Address
@@ -536,7 +593,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                       {/* Phone column */}
                       <div
                         className="hidden flex-1 flex-col lg:flex"
-                        style={{ minWidth: "10.5rem" }}
+                        style={{ minWidth: "9.25rem" }}
                       >
                         <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
                           Phone Number
@@ -549,13 +606,28 @@ export default function ClientsDatatable({ token, showAddClient }) {
                       {/* Payment method column */}
                       <div
                         className="hidden flex-1 flex-col xl:flex"
-                        style={{ minWidth: "11rem" }}
+                        style={{ minWidth: "9.5rem" }}
                       >
                         <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
                           Payment Method
                         </p>
                         <p className="truncate text-sm text-slate-700">
                           {paymentMethod}
+                        </p>
+                      </div>
+
+                      {/* Questionnaire completion column */}
+                      <div
+                        className="hidden flex-col 2xl:flex"
+                        style={{ minWidth: "8.5rem" }}
+                      >
+                        <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
+                          Questionnaires
+                        </p>
+                        <p
+                          className={`truncate text-sm font-semibold ${questionnairesComplete ? "text-emerald-700" : "text-slate-700"}`}
+                        >
+                          {questionnaireSummary}
                         </p>
                       </div>
                     </div>

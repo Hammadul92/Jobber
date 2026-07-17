@@ -135,6 +135,8 @@ class ClientSerializer(serializers.ModelSerializer):
         required=False
     )
     payment_method = serializers.SerializerMethodField()
+    questionnaires_filled = serializers.SerializerMethodField()
+    questionnaires_total = serializers.SerializerMethodField()
     is_active = serializers.BooleanField(
         source="user.is_active",
         required=False
@@ -144,7 +146,8 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = ['id', 'user', 'business', 'client_name',
                   'client_email', 'client_phone', 'is_active',
-                  'payment_method', 'created_at', 'updated_at']
+                  'payment_method', 'questionnaires_filled',
+                  'questionnaires_total', 'created_at', 'updated_at']
 
         read_only_fields = [
             'id', 'user', 'business', 'created_at', 'updated_at'
@@ -161,6 +164,17 @@ class ClientSerializer(serializers.ModelSerializer):
             return "-"
 
         return banking_info.payment_method_type
+
+    def get_questionnaires_filled(self, obj):
+        """Return active client services with submitted questionnaire answers."""
+        return sum(
+            1 for service in obj.client_services.all()
+            if bool(service.filled_questionnaire)
+        )
+
+    def get_questionnaires_total(self, obj):
+        """Return active client services expected to have questionnaires."""
+        return obj.client_services.count()
 
     def validate(self, attrs):
         user_data = attrs.get("user", {})
