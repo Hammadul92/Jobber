@@ -23,6 +23,7 @@ export default function ClientServicesData({
   setAlert,
   onEdit,
 }) {
+  const isAllServicesView = !clientId && role === "MANAGER";
   const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();
   const [showModal, setShowModal] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
@@ -247,7 +248,19 @@ export default function ClientServicesData({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div
+                    className={`grid gap-4 text-sm ${isAllServicesView ? "grid-cols-3" : "grid-cols-2"}`}
+                  >
+                    {isAllServicesView && (
+                      <p className="min-w-0 text-slate-600">
+                        <span className="block text-xs text-slate-400">
+                          Client
+                        </span>
+                        <span className="block truncate">
+                          {service.client_name || "Client"}
+                        </span>
+                      </p>
+                    )}
                     <p className="text-slate-600">
                       <span className="block text-xs text-slate-400">
                         Start
@@ -305,7 +318,7 @@ export default function ClientServicesData({
                         <LuTrash2 className="h-3.5 w-3.5" /> Delete
                       </button>
                     )}
-                    {onEdit ? (
+                    {role === "MANAGER" ? (
                       <Link
                         to={`/user/business/service/${service.id}`}
                         className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-secondary px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-secondary/90"
