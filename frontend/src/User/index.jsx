@@ -5,6 +5,7 @@ import MobileTopbar from "./MobileTopbar";
 import DashboardTopbar from "./DashboardTopbar";
 import Topbar from "./Topbar";
 import SideNav from "./SideNav";
+import DashboardTodos from "./DashboardTodos";
 
 import Profile from "./(user)/Profile";
 import AlertDispatcher from "../Components/ui/AlertDispatcher";
@@ -278,6 +279,7 @@ export default function UserDashboard({ page, token, user }) {
         <div className="px-4 pt-8 pb-4 md:px-12 md:pt-12 lg:pb-12 lg:p-12 lg:pr-14">
           {renderTab()}
         </div>
+        <DashboardTodos token={token} user={user} business={business} />
       </main>
     </div>
   );
