@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.generic import TemplateView
 
@@ -8,26 +8,32 @@ from core.models import Business, FAQ
 
 PUBLIC_PAGE_METADATA = {
     "about": (
-        "About Contractorz",
-        "See how Contractorz connects client intake, quotes, jobs, invoices, and payouts for service businesses.",
+        "About GetContractorz",
+        "Learn why GetContractorz was created and how it helps service businesses "
+        "manage clients, quotations, jobs, teams, invoices, and payments.",
     ),
     "industries": (
         "Industries",
-        "Contractor operations software for landscaping, cleaning, plumbing, "
+        "Service business management software for landscaping, cleaning, plumbing, "
         "electrical, HVAC, and more.",
     ),
     "services": (
-        "Services",
-        "Explore the home-service industries supported by Contractorz.",
+        "Features",
+        "Explore GetContractorz features for client management, questionnaires, "
+        "quotations, jobs, teams, invoices, payments, and customer access.",
     ),
-    "team": ("Our Team", "Meet the builders, thinkers, and doers behind Contractorz."),
+    "team": (
+        "Our Team",
+        "Meet the team building GetContractorz, a service business management platform based in Calgary, Alberta.",
+    ),
     "terms-and-conditions": (
         "Terms and Conditions",
-        "Terms governing use of the Contractorz platform.",
+        "Terms governing use of the GetContractorz platform.",
     ),
     "privacy-policy": (
         "Privacy Policy",
-        "How Contractorz collects, uses, shares, retains, and protects personal information across its service-business platform.",
+        "How GetContractorz collects, uses, shares, retains, and protects "
+        "personal information across its service-business platform.",
     ),
 }
 
@@ -45,10 +51,11 @@ def home(request):
         {
             "businesses": businesses,
             "faqs": FAQ.objects.filter(is_active=True),
-            "meta_title": "Contractorz | Service Business Operations Platform",
+            "meta_title": "Service Business Management Software | GetContractorz",
             "meta_description": (
-                "Manage clients, questionnaires, quotes, jobs, invoices, and "
-                "payouts in one service-business platform."
+                "Manage clients, service questionnaires, quotations, jobs, field "
+                "teams, invoices and online payments in one service business "
+                "management platform. Start free."
             ),
         },
     )
@@ -70,8 +77,12 @@ def marketplace(request):
         {
             "businesses": businesses,
             "query": query,
-            "meta_title": "Contractorz Marketplace",
-            "meta_description": "Discover trusted Canadian home-service businesses.",
+            "meta_title": "Service Business Marketplace | GetContractorz",
+            "meta_description": (
+                "Browse service businesses registered on GetContractorz and use "
+                "their published contact information to discuss your service "
+                "requirements directly."
+            ),
         },
     )
 
@@ -82,8 +93,12 @@ def faqs(request):
         "public_site/faqs.html",
         {
             "faqs": FAQ.objects.filter(is_active=True),
-            "meta_title": "Frequently Asked Questions | Contractorz",
-            "meta_description": "Answers about Contractorz workflows and accounts.",
+            "meta_title": "Service Business Management Software FAQs",
+            "meta_description": (
+                "Get answers about GetContractorz features, client portals, "
+                "quotations, job management, team accounts, invoices, Stripe "
+                "payments and free access."
+            ),
         },
     )
 
@@ -94,12 +109,18 @@ def contact(request):
         "public_site/contact.html",
         {
             "faqs": FAQ.objects.filter(is_active=True),
-            "meta_title": "Contact Contractorz",
+            "meta_title": "Contact GetContractorz | Product and Account Support",
             "meta_description": (
-                "Talk with the Contractorz team about your service business."
+                "Contact GetContractorz for product questions, account assistance, "
+                "marketplace enquiries or information about service business "
+                "management software."
             ),
         },
     )
+
+
+def customer_support(request):
+    return redirect("public_site:faqs", permanent=True)
 
 
 def robots(request):
@@ -116,7 +137,6 @@ def sitemap(request):
         "home",
         "marketplace",
         "industries",
-        "services",
         "about",
         "team",
         "contact",
@@ -157,9 +177,11 @@ class PublicPageView(TemplateView):
         context.update(
             page=page,
             page_title=title,
-            meta_title=f"{title} | Contractorz",
+            meta_title=f"{title} | GetContractorz",
             meta_description=description,
         )
+        if page in {"services", "terms-and-conditions"}:
+            context["meta_robots"] = "noindex,follow"
         if page == "industries":
             context["faqs"] = FAQ.objects.filter(is_active=True)
         return context

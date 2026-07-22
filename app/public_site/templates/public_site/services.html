@@ -1,2 +1,145 @@
-{% extends 'public_site/base.html' %}
-{% block content %}<main><section class="flex min-h-screen w-full flex-col items-center justify-center"><h1 class="text-center font-heading text-4xl text-secondary">Services</h1><p class="mt-5 text-center font-heading text-7xl text-accent">Coming Soon</p></section></main>{% endblock %}
+{% extends 'public_site/base.html' %}{% load static %}
+{% block content %}<main>
+  <section
+    class="relative flex min-h-[70vh] flex-col items-center justify-center overflow-hidden bg-background px-6 pb-20 pt-48 text-center md:px-16 md:pb-24 md:pt-56 lg:px-32 lg:pt-52">
+    <div class="pointer-events-none absolute bottom-8 left-0 w-32 opacity-60 md:w-44 lg:w-52"><img
+        src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute bottom-0 right-0 w-20 opacity-60 md:w-28 lg:w-36"><img
+        src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true"></div>
+    <div class="features-hero-content relative z-10 mx-auto">
+      <p class="text-sm font-semibold uppercase tracking-wide text-accent">Features</p>
+      <h1 class="features-hero-heading mx-auto mt-5 font-heading text-3xl leading-tight text-secondary md:text-4xl lg:text-5xl">
+        SERVICE BUSINESS MANAGEMENT SOFTWARE FEATURES</h1>
+      <p class="features-hero-copy mx-auto mt-6 text-lg leading-relaxed text-gray-600 md:text-xl">GetContractorz helps service
+        businesses keep clients, questionnaires, quotations, jobs, team access, invoices, Stripe payments, and customer
+        records connected.</p>
+      <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"><a href="{{ frontend_url }}/register"
+          class="features-hero-button primary inline-flex items-center justify-center text-center md:min-w-xs">Start Free</a><a
+          href="{% url 'public_site:contact' %}"
+          class="features-hero-button secondary inline-flex items-center justify-center text-center md:min-w-xs">Contact Us</a></div>
+    </div>
+  </section>
+  <section class="px-6 py-16 md:px-16 lg:px-32">
+    <div class="mx-auto grid max-w-7xl gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <article class="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm"><span
+          class="text-sm font-semibold text-accent">01</span>
+        <h2 class="mt-4 text-2xl font-semibold text-primary">Client Management</h2>
+        <p class="mt-3 text-gray-600">Store client contact details, payment-method summaries, service history, and
+          related operational records in one workspace.</p>
+      </article>
+      <article class="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm"><span
+          class="text-sm font-semibold text-accent">02</span>
+        <h2 class="mt-4 text-2xl font-semibold text-primary">Questionnaires</h2>
+        <p class="mt-3 text-gray-600">Create reusable service questionnaires so every client service starts with the
+          required scope and address details.</p>
+      </article>
+      <article class="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm"><span
+          class="text-sm font-semibold text-accent">03</span>
+        <h2 class="mt-4 text-2xl font-semibold text-primary">Quotations</h2>
+        <p class="mt-3 text-gray-600">Prepare numbered quotations with pricing, validity dates, general service terms,
+          and optional additional terms.</p>
+      </article>
+      <article class="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm"><span
+          class="text-sm font-semibold text-accent">04</span>
+        <h2 class="mt-4 text-2xl font-semibold text-primary">Jobs And Photos</h2>
+        <p class="mt-3 text-gray-600">Assign work to team members, track job status, and keep before-and-after photos
+          connected to the job record.</p>
+      </article>
+      <article class="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm"><span
+          class="text-sm font-semibold text-accent">05</span>
+        <h2 class="mt-4 text-2xl font-semibold text-primary">Invoices And Payments</h2>
+        <p class="mt-3 text-gray-600">Create invoices, collect online payments with Stripe, and review fees, refunds,
+          and net payment records.</p>
+      </article>
+      <article class="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm"><span
+          class="text-sm font-semibold text-accent">06</span>
+        <h2 class="mt-4 text-2xl font-semibold text-primary">Role-Based Access</h2>
+        <p class="mt-3 text-gray-600">Give managers, employees, and clients the workspace views they need without
+          exposing unrelated operational controls.</p>
+      </article>
+    </div>
+  </section>
+  <section class="bg-background px-6 py-16 md:px-16 md:py-24 lg:px-32" aria-labelledby="features-operations-title">
+    <div class="features-seo-wrap mx-auto">
+      <div class="grid gap-8 rounded-3xl border border-gray-200 bg-white p-8 shadow-sm md:p-10 lg:grid-cols-3 lg:p-12">
+        <div class="lg:col-span-1">
+          <p class="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Built for service teams</p>
+          <h2 id="features-operations-title" class="mt-4 font-heading text-2xl leading-tight text-secondary md:text-3xl">Features for managers, employees, and clients.</h2>
+        </div>
+        <div class="grid gap-6 md:grid-cols-3 lg:col-span-2">
+          <article>
+            <h3 class="text-xl font-semibold text-primary">Managers</h3>
+            <p class="mt-3 leading-relaxed text-gray-600">Manage clients, services, questionnaires, terms, quotes, invoices, payouts, team access, and job progress from one dashboard.</p>
+          </article>
+          <article>
+            <h3 class="text-xl font-semibold text-primary">Employees</h3>
+            <p class="mt-3 leading-relaxed text-gray-600">View assigned jobs, understand the approved service details, and upload job photos without accessing unrelated business controls.</p>
+          </article>
+          <article>
+            <h3 class="text-xl font-semibold text-primary">Clients</h3>
+            <p class="mt-3 leading-relaxed text-gray-600">Complete questionnaires, review quotations, sign approvals, view invoices, and make online payments through a guided client workspace.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="bg-white px-6 py-16 md:px-16 md:py-24 lg:px-32" aria-labelledby="features-workflow-title">
+    <div class="features-seo-wrap mx-auto">
+      <div class="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Connected service workflow</p>
+          <div class="flex items-end justify-between">
+            <h2 id="features-workflow-title" class="mt-4 font-heading text-2xl leading-tight text-secondary md:text-4xl">How service business management software keeps every job moving.</h2>
+            <p class="mt-5 text-lg leading-relaxed text-gray-600">GetContractorz is designed around the real workflow of a service business: collecting client details, preparing a quotation, assigning work, documenting the job, sending an invoice, and tracking payment records.</p>
+          </div>
+        </div>
+        <div class="grid gap-5 md:grid-cols-2">
+          <article class="rounded-3xl border border-gray-200 bg-background p-6">
+            <span class="text-sm font-semibold text-accent">Step 01</span>
+            <h3 class="mt-3 text-xl font-semibold text-primary">Capture client and service details</h3>
+            <p class="mt-3 leading-relaxed text-gray-600">Use questionnaires to collect scope, property information, service address, and client requirements before quoting the work.</p>
+          </article>
+          <article class="rounded-3xl border border-gray-200 bg-background p-6">
+            <span class="text-sm font-semibold text-accent">Step 02</span>
+            <h3 class="mt-3 text-xl font-semibold text-primary">Send clear quotations</h3>
+            <p class="mt-3 leading-relaxed text-gray-600">Create professional quotations with pricing, validity dates, service-specific terms, and optional additional conditions.</p>
+          </article>
+          <article class="rounded-3xl border border-gray-200 bg-background p-6">
+            <span class="text-sm font-semibold text-accent">Step 03</span>
+            <h3 class="mt-3 text-xl font-semibold text-primary">Assign jobs to the right team</h3>
+            <p class="mt-3 leading-relaxed text-gray-600">Turn approved service work into jobs, assign employees, track status, and keep before-and-after photos tied to the record.</p>
+          </article>
+          <article class="rounded-3xl border border-gray-200 bg-background p-6">
+            <span class="text-sm font-semibold text-accent">Step 04</span>
+            <h3 class="mt-3 text-xl font-semibold text-primary">Invoice and record payment</h3>
+            <p class="mt-3 leading-relaxed text-gray-600">Send invoices, accept Stripe payments, and keep fees, refunds, and net payment records connected to the client service.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="bg-background px-6 py-16 md:px-16 md:py-24 lg:px-32" aria-labelledby="features-cta-title">
+    <div class="features-final-cta mx-auto overflow-hidden rounded-3xl border border-accent/30 bg-white shadow-xl shadow-slate-900/10">
+      <div class="grid gap-8 p-8 md:p-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:p-12">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Start with GetContractorz</p>
+          <h2 id="features-cta-title" class="mt-4 font-heading text-2xl leading-tight text-secondary md:text-4xl">Service business management software built for real client work.</h2>
+          <p class="mt-5 text-lg leading-relaxed text-gray-600">Use GetContractorz to manage clients, service questionnaires, quotations, jobs, team assignments, invoices, Stripe payments, and payment records from one connected workspace.</p>
+          <div class="mt-7 flex flex-col gap-3 sm:flex-row"><a href="{{ frontend_url }}/register"
+              class="primary inline-flex items-center justify-center text-center md:min-w-sm">Start Free</a><a
+              href="{% url 'public_site:contact' %}"
+              class="secondary inline-flex items-center justify-center text-center md:min-w-sm">Contact Us</a></div>
+        </div>
+        <div class="rounded-2xl bg-background p-6">
+          <h3 class="text-xl font-semibold text-primary">What you can organize first</h3>
+          <ul class="mt-5 space-y-4 text-gray-600">
+            <li class="flex gap-3"><span class="font-semibold text-accent">✓</span><span>Create services with questionnaires and terms.</span></li>
+            <li class="flex gap-3"><span class="font-semibold text-accent">✓</span><span>Send professional quotations for client approval.</span></li>
+            <li class="flex gap-3"><span class="font-semibold text-accent">✓</span><span>Track jobs, invoices, payments, and net records.</span></li>
+          </ul>
+          <p class="mt-6 text-sm leading-relaxed text-gray-500">Looking for registered service businesses? Visit the <a href="{% url 'public_site:marketplace' %}" class="font-semibold text-secondary underline hover:text-accent">GetContractorz Marketplace</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>{% endblock %}

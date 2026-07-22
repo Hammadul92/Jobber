@@ -1,39 +1,250 @@
 {% extends 'public_site/base.html' %}{% load static %}
 {% block content %}
 <main>
-  <section class="relative flex w-full flex-col items-center justify-center gap-3 overflow-hidden bg-background px-6 py-40 md:h-fit md:px-16 md:py-34 lg:h-screen lg:min-h-screen lg:px-32">
-    <div class="absolute bottom-7 left-0 w-40 md:bottom-10 md:w-44 lg:bottom-16 lg:w-auto"><img src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="Design Element"></div>
-    <div class="absolute right-0 top-20 w-14 md:w-20 lg:w-fit"><img src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="Design Element" class="w-full"></div>
-    <div class="absolute bottom-18 right-10 h-20 w-20 md:bottom-18 md:right-16 md:h-24 md:w-24 lg:bottom-28 lg:right-70 lg:h-auto lg:w-auto"><img src="{% static 'public_site/images/hexagon.svg' %}" alt="Design Element" width="125"></div>
-    <div class="absolute z-0 top-80 rotate-90 md:-left-10 md:top-40 lg:bottom-0 lg:-left-20 lg:-rotate-[6.5deg]"><img src="{% static 'public_site/images/dots-bg.svg' %}" alt="Design Element" class="scale-150 md:scale-[1.5] lg:scale-[1.2]"></div>
+  <section
+    class="relative flex w-full flex-col items-center justify-center gap-3 overflow-hidden bg-background px-6 py-40 md:h-fit md:px-16 md:py-34 lg:h-screen lg:min-h-screen lg:px-32">
+    <div class="absolute bottom-7 left-0 w-40 md:bottom-10 md:w-44 lg:bottom-16 lg:w-auto"><img
+        src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="Design Element"></div>
+    <div class="absolute right-0 top-20 w-14 md:w-20 lg:w-fit"><img
+        src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="Design Element" class="w-full">
+    </div>
+    <div
+      class="absolute bottom-18 right-10 h-20 w-20 md:bottom-18 md:right-16 md:h-24 md:w-24 lg:bottom-28 lg:right-70 lg:h-auto lg:w-auto">
+      <img src="{% static 'public_site/images/hexagon.svg' %}" alt="Design Element" width="125">
+    </div>
+    <div class="absolute z-0 top-80 rotate-90 md:-left-10 md:top-40 lg:bottom-0 lg:-left-20 lg:-rotate-[6.5deg]"><img
+        src="{% static 'public_site/images/dots-bg.svg' %}" alt="Design Element"
+        class="scale-150 md:scale-[1.5] lg:scale-[1.2]"></div>
     <!-- <div class="z-1 flex items-center gap-2 rounded-full border border-accent bg-accent/20 px-3 py-1 md:mb-8 md:px-5 md:py-2.5 lg:mb-6"><div class="flex -space-x-3">{% for i in '12345' %}<img src="{% static 'public_site/images/user.png' %}" alt="User" width="40" height="40" class="w-8 overflow-hidden rounded-full border border-background md:w-10">{% endfor %}</div><div><div>{% for i in '12345' %}<svg fill="currentColor" viewBox="0 0 576 512" class="mr-0.5 inline-block w-3 text-accent md:w-4" height="16" width="16" aria-hidden="true"><path d="M259.3 17.8L194 150.2 47.9 171.5c-26.2 3.8-36.7 36.1-17.7 54.6l105.7 103-25 145.5c-4.5 26.3 23.2 46 46.4 33.7L288 439.6l130.7 68.7c23.2 12.2 50.9-7.4 46.4-33.7l-25-145.5 105.7-103c19-18.5 8.5-50.8-17.7-54.6L382 150.2 316.7 17.8c-11.7-23.6-45.6-23.9-57.4 0z"></path></svg>{% endfor %}</div><p class="text-[0.65rem] text-black/60 md:text-sm">115+ Happy Clients</p></div></div> -->
-    <div class="z-1 mt-4 flex flex-col items-center gap-5 md:max-w-7xl"><h1 class="text-center font-heading text-[1.7rem] leading-snug md:max-w-7xl md:text-4xl lg:text-[3.2rem]">OPERATE YOUR BUSINESS WITH <span class="text-accent">ASSURANCE </span>AND <span class="text-accent">CLARITY</span>.</h1><p class="section-intro text-center md:mt-2 md:px-28 md:text-xl lg:text-2xl">Empower your HR team with our all-in-one SaaS platform, designed to streamline your entire hiring process from attracting top talent to seamless onboarding.</p></div>
-    <div class="relative z-1 mt-4 md:mt-2"><div class="absolute -left-8 -top-6 md:-left-48 md:-top-6 lg:-left-56 lg:-top-3"><img src="{% static 'public_site/images/message-bubble.svg' %}" alt="Description" class="w-36 md:w-auto"></div><a href="{% url 'public_site:contact' %}" class="primary mt-12 inline-flex items-center justify-center text-center md:min-w-sm">Get Free Consultation <svg fill="currentColor" viewBox="0 0 448 512" class="ml-2 inline-block" height="22" width="22" aria-hidden="true"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"></path></svg></a></div>
+    <div class="z-1 mt-4 flex flex-col items-center gap-5 md:max-w-7xl">
+      <p class="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Service Business Management Software</p>
+      <h1 class="text-center font-heading text-[1.7rem] leading-snug md:max-w-7xl md:text-4xl lg:text-[3.2rem]">KEEP
+        EVERY <span class="text-accent">CLIENT</span>, <span class="text-accent">JOB</span>, AND <span
+          class="text-accent">PAYMENT</span> MOVING.</h1>
+      <p class="section-intro text-center md:mt-2 md:px-28 md:text-xl lg:text-2xl">Manage client information, service
+        questionnaires, quotations, job assignments, project photos, invoices, and online payments from one connected
+        platform.</p>
+      <p class="section-intro text-center text-base text-gray-600 md:px-28 md:text-lg">Give your team the information
+        they need to complete every job and give your clients a clear way to approve quotations, monitor service
+        progress, and pay invoices online.</p>
+    </div>
+    <div class="relative z-1 mt-4 md:mt-2">
+      <div class="absolute -left-8 -top-6 md:-left-48 md:-top-6 lg:-left-56 lg:-top-3"><img
+          src="{% static 'public_site/images/message-bubble.svg' %}" alt="" class="w-36 md:w-auto" aria-hidden="true">
+      </div>
+      <div class="mt-12 flex flex-col items-center gap-3 md:flex-row"><a href="{{ frontend_url }}/register"
+          class="primary inline-flex items-center justify-center text-center md:min-w-sm">Start Free <svg
+            fill="currentColor" viewBox="0 0 448 512" class="ml-2 inline-block" height="22" width="22"
+            aria-hidden="true">
+            <path
+              d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z">
+            </path>
+          </svg></a><a href="{% url 'public_site:services' %}"
+          class="secondary inline-flex items-center justify-center text-center md:min-w-sm">Explore Features</a></div>
+      <p class="mt-4 text-center text-sm text-gray-500">Free to get started. No manual account approval required.</p>
+    </div>
   </section>
 
-  <section class="w-full bg-white px-6 py-8 text-center md:px-0"><span class="mb-10 text-center text-lg font-medium">Trusted by Over <strong>100+</strong> Trusted Partners</span><div class="marquee-wrapper mt-6 lg:mt-3"><div class="marquee-track gap-10 md:gap-14 lg:gap-20">{% for repeat in '12' %}{% for business in businesses %}<a href="{% url 'public_site:marketplace' %}" class="flex items-center justify-center gap-2 px-5"><img src="{{ business.logo.url }}" alt="{{ business.name }}" class="h-8 w-auto max-w-[140px] object-contain md:max-w-[160px]"><span class="font-heading text-sm">{{ business.name }}</span></a>{% endfor %}{% endfor %}</div></div></section>
+  {% if businesses %}<section class="w-full bg-white px-6 py-8 text-center md:px-0"><span
+      class="mb-10 text-center text-lg font-medium">Service businesses building with
+      <strong>GetContractorz</strong></span>
+    <div class="marquee-wrapper mt-6 lg:mt-3">
+      <div class="marquee-track gap-10 md:gap-14 lg:gap-20">{% for repeat in '12' %}{% for business in businesses %}<a
+          href="{% url 'public_site:marketplace' %}" class="flex items-center justify-center gap-2 px-5"><img
+            src="{{ business.logo.url }}" alt="{{ business.name }} logo"
+            class="h-8 w-auto max-w-[140px] object-contain md:max-w-[160px]"><span class="font-heading text-sm">{{
+            business.name }}</span></a>{% endfor %}{% endfor %}</div>
+    </div>
+  </section>{% endif %}
 
-  <section class="w-full px-6 py-12 md:px-16 lg:px-32 lg:py-28"><div><div class="mb-6 flex w-full flex-wrap items-end justify-between gap-5 lg:mb-3 lg:flex-nowrap"><div class="lg:pb-12"><h2 class="max-w-3xl font-heading text-xl leading-relaxed md:text-2xl lg:text-3xl lg:leading-14">HERE'S WHAT OUR <span class="text-accent">CUSTOMERS</span> HAVE TO SAY</h2></div><div class="mb-10 flex max-w-sm items-end justify-start gap-4"><img src="{% static 'public_site/images/linesflower.svg' %}" alt="Customer testimonial" width="70" height="70" class="h-auto md:w-10 lg:w-18"><p class="text-3xs leading-tight">Real stories from contractors using questionnaires, quotes, jobs, invoices, and payouts in one workflow.</p></div></div><a href="{% url 'public_site:contact' %}" class="secondary inline-flex items-center justify-center">Read Customer's Stories</a></div><div class="mt-8 grid gap-4 md:grid-cols-2">
-    <article class="rounded-3xl bg-cardLight p-6 shadow-md"><h3 class="mb-4 font-sans text-2xl text-white">We stopped chasing customers for basic job details.</h3><p class="mb-6 text-sm text-muted">Before Contractorz, every new request turned into a back-and-forth over text and phone. Now clients fill out the service questionnaire first, and my team starts with the right scope, address, and notes already in the system.</p><div class="flex items-center gap-4"><img src="{% static 'public_site/images/user.png' %}" alt="Michael Reyes" class="h-12 w-12 rounded-full object-cover"><div><p class="font-bold text-muted">Michael Reyes</p><p class="text-3xs text-muted">Owner, Reyes Landscaping</p></div></div></article>
-    <article class="rounded-3xl bg-card p-6 shadow-md"><h3 class="mb-4 font-sans text-2xl text-white">Quotes get signed faster because the process feels professional.</h3><p class="mb-6 text-sm text-muted">We create the quote, send it from the dashboard, and the client signs it through the secure link without us explaining the next step. That alone cut down the time between estimate and approval for our flooring jobs.</p><div class="flex items-center gap-4"><img src="{% static 'public_site/images/user.png' %}" alt="Sarah Patel" class="h-12 w-12 rounded-full object-cover"><div><p class="font-bold text-muted">Sarah Patel</p><p class="text-3xs text-muted">Operations Manager, Northline Flooring</p></div></div></article>
-    <article class="rounded-3xl bg-card p-6 shadow-md"><h3 class="mb-4 font-sans text-2xl text-white">Invoices and payouts are finally connected in one workflow.</h3><p class="mb-6 text-sm text-muted">What I like most is that billing is not separate from the work anymore. Once a service is active and payment comes in, I can see the invoice, the payout status, and our banking details in one place instead of reconciling three different tools.</p><div class="flex items-center gap-4"><img src="{% static 'public_site/images/user.png' %}" alt="Jordan Kim" class="h-12 w-12 rounded-full object-cover"><div><p class="font-bold text-muted">Jordan Kim</p><p class="text-3xs text-muted">Founder, ClearPeak Exteriors</p></div></div></article>
-    <article class="rounded-3xl bg-cardLight p-6 shadow-md"><h3 class="mb-4 font-sans text-2xl text-white">My crew and office see the same job picture now.</h3><p class="mb-6 text-sm text-muted">The office can assign jobs, the team can track status, and we have one record of what was quoted, scheduled, and completed. It sounds simple, but for a growing contractor that visibility makes a huge difference.</p><div class="flex items-center gap-4"><img src="{% static 'public_site/images/user.png' %}" alt="Danielle Brooks" class="h-12 w-12 rounded-full object-cover"><div><p class="font-bold text-muted">Danielle Brooks</p><p class="text-3xs text-muted">General Manager, Brooks Home Services</p></div></div></article>
-  </div></section>
+  <section class="w-full px-6 py-12 md:px-16 lg:px-32 lg:py-28">
+    <div>
+      <div class="mb-6 flex w-full flex-wrap items-end justify-between gap-5 lg:mb-3 lg:flex-nowrap">
+        <div class="lg:pb-12">
+          <h2 class="max-w-3xl font-heading text-xl leading-relaxed md:text-2xl lg:text-3xl lg:leading-14">ONE PLATFORM
+            FOR YOUR COMPLETE <span class="text-accent">SERVICE WORKFLOW</span></h2>
+        </div>
+        <div class="mb-10 flex max-w-sm items-end justify-start gap-4"><img
+            src="{% static 'public_site/images/linesflower.svg' %}" alt="" width="70" height="70"
+            class="h-auto md:w-10 lg:w-18" aria-hidden="true">
+          <p class="text-3xs leading-tight">Replace scattered spreadsheets, email threads, paper documents, and
+            disconnected messages with one organized workspace.</p>
+        </div>
+      </div><a href="{% url 'public_site:services' %}" class="secondary inline-flex items-center justify-center">View
+        All Features</a>
+    </div>
+    <div class="mt-8 grid gap-4 md:grid-cols-2">
+      <article class="rounded-3xl bg-cardLight p-6 shadow-md">
+        <h3 class="mb-4 font-sans text-2xl text-white">Create services and questionnaires.</h3>
+        <p class="mb-6 text-sm text-muted">Add the services your business provides and create tailored questionnaires
+          and terms for each one. Collect the information required to understand the client’s needs before the job
+          begins.</p>
+      </article>
+      <article class="rounded-3xl bg-card p-6 shadow-md">
+        <h3 class="mb-4 font-sans text-2xl text-white">Prepare and send quotations.</h3>
+        <p class="mb-6 text-sm text-muted">Create professional quotations connected to a client and service. Send each
+          quote through a secure customer link for review and electronic signature.</p>
+      </article>
+      <article class="rounded-3xl bg-card p-6 shadow-md">
+        <h3 class="mb-4 font-sans text-2xl text-white">Turn approved work into jobs.</h3>
+        <p class="mb-6 text-sm text-muted">Once a quotation is accepted, create the related job, assign it to a team
+          member, and track its progress from pending to completion.</p>
+      </article>
+      <article class="rounded-3xl bg-cardLight p-6 shadow-md">
+        <h3 class="mb-4 font-sans text-2xl text-white">Invoice and accept payment.</h3>
+        <p class="mb-6 text-sm text-muted">Create an invoice after the job is finished and send it directly to the
+          client. Clients can pay online through Stripe while your business keeps a clear payment record.</p>
+      </article>
+    </div>
+  </section>
 
-  <section id="services" class="relative min-h-[50dvh] w-full overflow-hidden px-6 py-12 md:px-16 md:py-20 lg:min-h-screen lg:px-32"><img src="{% static 'public_site/images/industries-section-bg.png' %}" alt="" class="absolute inset-0 h-full w-full object-cover" aria-hidden="true"><div class="relative max-w-6xl"><h2 class="max-w-2xl font-heading text-xl font-bold leading-relaxed text-white md:text-2xl lg:pr-60 lg:text-3xl lg:leading-[1.6]">Supporting home service businesses across <span class="text-accent">50+ industries</span>.</h2><div class="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">◉</div><h3 class="mt-4 text-base font-semibold text-slate-900">Plumbing</h3><p class="mt-1 text-sm text-slate-500">Leaks, pipes & installs</p></article>
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">ϟ</div><h3 class="mt-4 text-base font-semibold text-slate-900">Electrical</h3><p class="mt-1 text-sm text-slate-500">Wiring, lighting & safety</p></article>
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">✣</div><h3 class="mt-4 text-base font-semibold text-slate-900">Heating & Cooling</h3><p class="mt-1 text-sm text-slate-500">AC repair & maintenance</p></article>
-    <article class="relative rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><span class="absolute right-4 top-4 rounded-full bg-teal-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-teal-700">Popular</span><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">✦</div><h3 class="mt-4 text-base font-semibold text-slate-900">House Cleaning</h3><p class="mt-1 text-sm text-slate-500">Deep clean & recurring</p></article>
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">⌂</div><h3 class="mt-4 text-base font-semibold text-slate-900">Roofing</h3><p class="mt-1 text-sm text-slate-500">Inspection & repairs</p></article>
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">♧</div><h3 class="mt-4 text-base font-semibold text-slate-900">Landscaping</h3><p class="mt-1 text-sm text-slate-500">Lawn care & design</p></article>
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">▥</div><h3 class="mt-4 text-base font-semibold text-slate-900">Painting</h3><p class="mt-1 text-sm text-slate-500">Interior & exterior</p></article>
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">⌁</div><h3 class="mt-4 text-base font-semibold text-slate-900">Smart Home</h3><p class="mt-1 text-sm text-slate-500">Security & automation</p></article>
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">□</div><h3 class="mt-4 text-base font-semibold text-slate-900">Moving</h3><p class="mt-1 text-sm text-slate-500">Packing & transport</p></article>
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">⌕</div><h3 class="mt-4 text-base font-semibold text-slate-900">Renovations</h3><p class="mt-1 text-sm text-slate-500">Kitchen & bath</p></article>
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">※</div><h3 class="mt-4 text-base font-semibold text-slate-900">Pest Control</h3><p class="mt-1 text-sm text-slate-500">Extermination & prevention</p></article>
-    <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">⌁</div><h3 class="mt-4 text-base font-semibold text-slate-900">Handyman</h3><p class="mt-1 text-sm text-slate-500">General repairs</p></article>
-  </div><div class="mt-20 flex flex-col items-center gap-3"><a href="{% url 'public_site:services' %}" class="inline-flex items-center rounded-full bg-accent px-8 py-3 font-semibold text-white shadow-lg shadow-orange-500/30">Explore all 50+ services <span class="ml-1 text-2xl" aria-hidden="true">›</span></a><span class="text-xs text-slate-200">Trusted by over 100,000 homeowners</span></div></div></section>
+  <section id="services"
+    class="relative min-h-[50dvh] w-full overflow-hidden px-6 py-12 md:px-16 md:py-20 lg:min-h-screen lg:px-32"><img
+      src="{% static 'public_site/images/industries-section-bg.png' %}" alt=""
+      class="absolute inset-0 h-full w-full object-cover" aria-hidden="true">
+    <div class="relative max-w-6xl">
+      <h2
+        class="max-w-2xl font-heading text-xl font-bold leading-relaxed text-white md:text-2xl lg:pr-60 lg:text-3xl lg:leading-[1.6]">
+        Supporting home service businesses across <span class="text-accent">50+ industries</span>.</h2>
+      <div class="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">◉</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Plumbing</h3>
+          <p class="mt-1 text-sm text-slate-500">Leaks, pipes & installs</p>
+        </article>
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">ϟ</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Electrical</h3>
+          <p class="mt-1 text-sm text-slate-500">Wiring, lighting & safety</p>
+        </article>
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">✣</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Heating & Cooling</h3>
+          <p class="mt-1 text-sm text-slate-500">AC repair & maintenance</p>
+        </article>
+        <article class="relative rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10"><span
+            class="absolute right-4 top-4 rounded-full bg-teal-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-teal-700">Popular</span>
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">✦</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">House Cleaning</h3>
+          <p class="mt-1 text-sm text-slate-500">Deep clean & recurring</p>
+        </article>
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">⌂</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Roofing</h3>
+          <p class="mt-1 text-sm text-slate-500">Inspection & repairs</p>
+        </article>
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">♧</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Landscaping</h3>
+          <p class="mt-1 text-sm text-slate-500">Lawn care & design</p>
+        </article>
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">▥</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Painting</h3>
+          <p class="mt-1 text-sm text-slate-500">Interior & exterior</p>
+        </article>
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">⌁</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Smart Home</h3>
+          <p class="mt-1 text-sm text-slate-500">Security & automation</p>
+        </article>
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">□</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Moving</h3>
+          <p class="mt-1 text-sm text-slate-500">Packing & transport</p>
+        </article>
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">⌕</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Renovations</h3>
+          <p class="mt-1 text-sm text-slate-500">Kitchen & bath</p>
+        </article>
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">※</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Pest Control</h3>
+          <p class="mt-1 text-sm text-slate-500">Extermination & prevention</p>
+        </article>
+        <article class="rounded-2xl bg-white px-6 py-6 shadow-xl shadow-slate-900/10">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-xl text-slate-600">⌁</div>
+          <h3 class="mt-4 text-base font-semibold text-slate-900">Handyman</h3>
+          <p class="mt-1 text-sm text-slate-500">General repairs</p>
+        </article>
+      </div>
+      <div class="mt-20 flex flex-col items-center gap-3"><a href="{% url 'public_site:services' %}"
+          class="inline-flex items-center rounded-full bg-accent px-8 py-3 font-semibold text-white shadow-lg shadow-orange-500/30">Explore
+          software features <span class="ml-1 text-2xl" aria-hidden="true">›</span></a><span
+          class="text-xs text-slate-200">Built for service businesses that manage real client work.</span></div>
+    </div>
+  </section>
+
+  <section class="bg-background px-6 py-16 md:px-16 md:py-24 lg:px-32">
+    <div class="mx-auto max-w-7xl">
+      <div class="max-w-6xl">
+        <p class="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Built for service operations</p>
+        <h2 class="mt-4 max-w-5xl font-heading text-2xl leading-tight text-secondary md:text-4xl lg:text-5xl">SERVICE
+          BUSINESS MANAGEMENT SOFTWARE THAT KEEPS WORK CONNECTED</h2>
+        <p class="mt-6 max-w-5xl text-lg leading-relaxed text-gray-600 md:text-xl">GetContractorz gives service
+          businesses a practical way to manage clients, questionnaires, quotations, jobs, team assignments, invoices,
+          Stripe payments, and payment records without rebuilding the same job details across disconnected tools.</p><a
+          href="{% url 'public_site:services' %}" class="secondary mt-8 inline-flex items-center justify-center">Explore
+          Features</a>
+      </div>
+      <div class="mt-10 grid gap-6 md:grid-cols-2 lg:mt-14">
+        <article class="rounded-3xl border border-gray-200 bg-white px-6 py-6 shadow-sm md:px-8 md:py-7"><span
+            class="text-sm font-semibold text-accent">Client intake</span>
+          <h3 class="mt-3 text-xl font-semibold text-primary md:text-2xl">Capture service details once</h3>
+          <p class="mt-4 leading-relaxed text-gray-600">Use service questionnaires to collect client requirements,
+            property details, address information, and scope before preparing a quotation.</p>
+        </article>
+        <article class="rounded-3xl border border-gray-200 bg-white px-6 py-6 shadow-sm md:px-8 md:py-7"><span
+            class="text-sm font-semibold text-accent">Quotations</span>
+          <h3 class="mt-3 text-xl font-semibold text-primary md:text-2xl">Send clear approvals</h3>
+          <p class="mt-4 leading-relaxed text-gray-600">Create numbered quotations with service-specific terms,
+            additional notes, pricing, validity dates, and secure electronic signing.</p>
+        </article>
+        <article class="rounded-3xl border border-gray-200 bg-white px-6 py-6 shadow-sm md:px-8 md:py-7"><span
+            class="text-sm font-semibold text-accent">Job management</span>
+          <h3 class="mt-3 text-xl font-semibold text-primary md:text-2xl">Coordinate office and field work</h3>
+          <p class="mt-4 leading-relaxed text-gray-600">Turn approved service work into jobs, assign employees, track
+            status, and keep project photos connected to the job record.</p>
+        </article>
+        <article class="rounded-3xl border border-gray-200 bg-white px-6 py-6 shadow-sm md:px-8 md:py-7"><span
+            class="text-sm font-semibold text-accent">Billing</span>
+          <h3 class="mt-3 text-xl font-semibold text-primary md:text-2xl">Connect invoices and payments</h3>
+          <p class="mt-4 leading-relaxed text-gray-600">Create invoices, accept online payments through Stripe, and keep
+            fees, refunds, and net payment records tied to the client service.</p>
+        </article>
+      </div>
+    </div>
+  </section>
   {% include 'public_site/_faq_section.html' %}
+  <section class="flex items-center justify-center bg-white px-6 py-10 md:px-16 md:py-20 lg:px-32">
+    <div
+      class="home-final-cta mx-auto rounded-2xl border-2 border-accent bg-background px-6 py-10 shadow-xl shadow-slate-900/10 md:px-10 md:py-12">
+      <h2 class="mb-8 text-center text-3xl font-extrabold text-secondary md:text-4xl">Start managing service work with
+        GetContractorz</h2>
+      <div class="mb-8 grid grid-cols-1 gap-x-10 gap-y-5 md:grid-cols-2">
+        <p class="flex gap-3 text-gray-600 md:text-lg"><span class="text-accent">✓</span>Add business details and
+          offered services</p>
+        <p class="flex gap-3 text-gray-600 md:text-lg"><span class="text-accent">✓</span>Create questionnaires and
+          service terms</p>
+        <p class="flex gap-3 text-gray-600 md:text-lg"><span class="text-accent">✓</span>Invite team members and add
+          clients</p>
+        <p class="flex gap-3 text-gray-600 md:text-lg"><span class="text-accent">✓</span>Send quotes and invoices
+          through the client workspace</p>
+      </div>
+      <div class="my-8 border-t border-gray-200"></div>
+      <div class="text-center">
+        <h3 class="mb-3 text-xl font-bold text-primary md:text-2xl">Ready to keep clients, jobs, and payments connected?
+        </h3>
+        <p class="mx-auto mb-8 max-w-2xl text-gray-600 md:text-lg">Create your free account and manage the journey from
+          client intake and quotation approval to job completion and online payment.</p>
+        <div class="flex flex-col items-center justify-center gap-4 md:flex-row"><a href="{{ frontend_url }}/register"
+            class="home-final-cta-button inline-flex items-center justify-center rounded-xl bg-accent px-8 py-3 text-center font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-600 md:text-lg">Start
+            Free</a><a href="{% url 'public_site:contact' %}"
+            class="home-final-cta-button inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-8 py-3 text-center font-semibold text-secondary transition hover:border-accent hover:text-accent md:text-lg">Contact
+            Us</a></div>
+      </div>
+    </div>
+  </section>
 </main>
 {% endblock %}

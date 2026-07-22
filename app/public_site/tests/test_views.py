@@ -30,7 +30,7 @@ class PublicSiteViewTests(TestCase):
         )
         self.business.services_offered.add("Plumbing")
         FAQ.objects.create(
-            question="How does Contractorz work?",
+            question="How does GetContractorz work?",
             answer="It connects the service workflow.",
         )
 
@@ -40,11 +40,13 @@ class PublicSiteViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<h1", html=False)
         self.assertContains(response, "Example Plumbing")
-        self.assertContains(response, "How does Contractorz work?")
+        self.assertContains(response, "How does GetContractorz work?")
         self.assertContains(response, 'rel="canonical"')
         self.assertContains(response, 'href="/#faqs"', count=2)
         self.assertContains(response, 'id="faqs"')
         self.assertContains(response, 'class="text-base leading-relaxed text-white/80 md:text-lg"')
+        self.assertContains(response, "SERVICE BUSINESS MANAGEMENT SOFTWARE THAT KEEPS WORK CONNECTED")
+        self.assertContains(response, "Start managing service work with GetContractorz")
         self.assertNotContains(response, "Ready To Design Smarter?")
 
     @override_settings(FRONTEND_URL="http://frontend.test:5173/")
@@ -85,9 +87,9 @@ class PublicSiteViewTests(TestCase):
     def test_contact_matches_public_content_and_includes_faqs(self):
         response = self.client.get(reverse("public_site:contact"))
 
-        self.assertContains(response, "Talk to Sales")
-        self.assertContains(response, "Book a Live Demo")
-        self.assertContains(response, "How does Contractorz work?")
+        self.assertContains(response, "Product Questions")
+        self.assertContains(response, "Account Assistance")
+        self.assertContains(response, "How does GetContractorz work?")
         self.assertContains(response, 'name="privacy_agreed"')
 
     def test_industries_renders_the_full_landscaping_page(self):
@@ -96,21 +98,23 @@ class PublicSiteViewTests(TestCase):
         self.assertTemplateUsed(response, "public_site/industries.html")
         self.assertContains(response, "LANDSCAPING WORK IS HARD ENOUGH")
         self.assertContains(response, "Features built for landscaping businesses")
-        self.assertContains(response, "How a job flows in Contractorz")
+        self.assertContains(response, "How a job flows in GetContractorz")
         self.assertContains(response, "Client completes the service questionnaire")
         self.assertContains(response, "Invoicing & Stripe Payments")
-        self.assertContains(response, "North Trail Landscaping")
-        self.assertContains(response, "How does Contractorz work?")
+        self.assertContains(response, "Operational records landscaping teams can keep connected")
+        self.assertContains(response, "How does GetContractorz work?")
         self.assertNotContains(response, "email/SMS")
         self.assertNotContains(response, "mobile app")
         self.assertNotContains(response, "routes planned")
 
-    def test_services_matches_the_react_coming_soon_page(self):
+    def test_features_page_uses_product_software_positioning(self):
         response = self.client.get(reverse("public_site:services"))
 
         self.assertTemplateUsed(response, "public_site/services.html")
-        self.assertContains(response, "Services")
-        self.assertContains(response, "Coming Soon")
+        self.assertContains(response, "SERVICE BUSINESS MANAGEMENT SOFTWARE FEATURES")
+        self.assertContains(response, "Client Management")
+        self.assertContains(response, 'content="noindex,follow"')
+        self.assertNotContains(response, "Coming Soon")
 
     def test_faq_page_matches_the_react_hero_and_accordion_structure(self):
         response = self.client.get(reverse("public_site:faqs"))
@@ -124,7 +128,7 @@ class PublicSiteViewTests(TestCase):
         response = self.client.get(reverse("public_site:about"))
 
         self.assertTemplateUsed(response, "public_site/about.html")
-        self.assertContains(response, "WE ARE CONTRACTORZ")
+        self.assertContains(response, "ABOUT GETCONTRACTORZ")
         self.assertContains(response, "The full service lifecycle in one place.")
         self.assertContains(response, "Stripe")
         self.assertContains(response, "Built around real service work.")
@@ -180,7 +184,12 @@ class PublicSiteViewTests(TestCase):
     def test_customer_support_is_not_a_separate_public_page(self):
         response = self.client.get("/customer-support/")
 
-        self.assertEqual(response.status_code, 404)
+        self.assertRedirects(
+            response,
+            reverse("public_site:faqs"),
+            status_code=301,
+            target_status_code=200,
+        )
         home = self.client.get(reverse("public_site:home"))
         self.assertNotContains(home, 'href="/customer-support/"')
 
@@ -190,7 +199,7 @@ class PublicSiteViewTests(TestCase):
         self.assertTemplateUsed(response, "public_site/privacy_policy.html")
         self.assertContains(response, "Effective July 11, 2026")
         self.assertContains(response, "YOUR WORKFLOW. YOUR INFORMATION.")
-        self.assertContains(response, "Privacy at Contractorz")
+        self.assertContains(response, "Privacy at GetContractorz")
         self.assertContains(response, "questionnaire responses")
         self.assertContains(response, "electronic signature images")
         self.assertContains(response, "before-and-after job photos")
