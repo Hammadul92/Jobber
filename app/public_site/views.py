@@ -13,9 +13,9 @@ PUBLIC_PAGE_METADATA = {
         "manage clients, quotations, jobs, teams, invoices, and payments.",
     ),
     "industries": (
-        "Industries",
-        "Service business management software for landscaping, cleaning, plumbing, "
-        "electrical, HVAC, and more.",
+        "Service Business Management Software for 50+ Industries",
+        "GetContractorz helps home service businesses manage clients, "
+        "questionnaires, quotations, jobs, invoices, Stripe payments, and teams.",
     ),
     "services": (
         "Features",
