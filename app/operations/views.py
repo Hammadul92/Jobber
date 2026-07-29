@@ -334,22 +334,6 @@ class QuoteViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
 
-    @action(detail=True, methods=["get"], url_path="download-pdf")
-    def download_pdf(self, request, pk=None):
-        """Download the finalized signed quotation as a PDF."""
-        quote = self.get_object()
-        if quote.status != "SIGNED" or not quote.signature:
-            return Response(
-                {"detail": "Only signed quotations can be downloaded as PDF."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return FileResponse(
-            build_signed_quote_pdf(quote),
-            as_attachment=True,
-            filename=f"{quote.quote_number}-signed.pdf",
-            content_type="application/pdf",
-        )
     def perform_create(self, serializer):
         """Prevent duplicate active quotes for the same service at API level."""
         service = serializer.validated_data["service"]

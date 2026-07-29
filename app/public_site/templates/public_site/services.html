@@ -1,16 +1,23 @@
 {% extends 'public_site/base.html' %}{% load static %}
 {% block content %}<main>
   <section
-    class="relative flex min-h-[70vh] flex-col items-center justify-center overflow-hidden bg-background px-6 pb-20 pt-48 text-center md:px-16 md:pb-24 md:pt-56 lg:px-32 lg:pt-52">
-    <div class="pointer-events-none absolute bottom-8 left-0 w-32 opacity-60 md:w-44 lg:w-52"><img
-        src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true"></div>
-    <div class="pointer-events-none absolute bottom-0 right-0 w-20 opacity-60 md:w-28 lg:w-36"><img
-        src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true"></div>
-    <div class="features-hero-content relative z-10 mx-auto">
-      <p class="text-sm font-semibold uppercase tracking-wide text-accent">Features</p>
-      <h1 class="features-hero-heading mx-auto mt-5 font-heading text-3xl leading-tight text-secondary md:text-4xl lg:text-5xl">
+    class="relative flex h-fit w-full flex-col items-center justify-center gap-3 overflow-hidden bg-background px-6 py-40 text-center md:px-16 md:py-34 lg:h-screen lg:min-h-screen lg:px-32">
+    <div class="absolute bottom-7 left-0 w-40 md:bottom-10 md:w-44 lg:bottom-16 lg:w-auto"><img
+        src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="Design Element"></div>
+    <div class="absolute right-0 top-20 w-14 md:w-20 lg:w-fit"><img
+        src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="Design Element" class="w-full"></div>
+    <div
+      class="absolute bottom-18 right-10 h-20 w-20 md:bottom-18 md:right-16 md:h-24 md:w-24 lg:bottom-28 lg:right-70 lg:h-auto lg:w-auto">
+      <img src="{% static 'public_site/images/hexagon.svg' %}" alt="Design Element" width="125"></div>
+    <div
+      class="mb-4 flex items-center justify-center gap-1 rounded-full border border-gray-300 px-3.5 py-1.5 text-xs font-semibold uppercase text-gray-400">
+      <span class="rounded-full bg-green-700/70 p-1.5"></span>
+      <p class="mt-0.5">Features</p>
+    </div>
+    <div class="features-hero-content z-20 w-full max-w-7xl">
+      <h1 class="features-hero-heading mx-auto text-center font-heading text-[1.5rem] leading-snug md:max-w-6xl md:text-4xl lg:text-[3.5rem]">
         SERVICE BUSINESS MANAGEMENT SOFTWARE FEATURES</h1>
-      <p class="features-hero-copy mx-auto mt-6 text-lg leading-relaxed text-gray-600 md:text-xl">GetContractorz helps service
+      <p class="features-hero-copy section-intro mx-auto mt-4 max-w-6xl text-center text-gray-600 md:px-28 md:text-xl lg:text-2xl">GetContractorz helps service
         businesses keep clients, questionnaires, quotations, jobs, team access, invoices, Stripe payments, and customer
         records connected.</p>
       <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"><a href="{{ frontend_url }}/register"
@@ -88,10 +95,8 @@
       <div class="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Connected service workflow</p>
-          <div class="flex items-end justify-between">
-            <h2 id="features-workflow-title" class="mt-4 font-heading text-2xl leading-tight text-secondary md:text-4xl">How service business management software keeps every job moving.</h2>
-            <p class="mt-5 text-lg leading-relaxed text-gray-600">GetContractorz is designed around the real workflow of a service business: collecting client details, preparing a quotation, assigning work, documenting the job, sending an invoice, and tracking payment records.</p>
-          </div>
+          <h2 id="features-workflow-title" class="mt-4 font-heading text-2xl leading-tight text-secondary md:text-4xl">How service business management software keeps every job moving.</h2>
+          <p class="mt-5 max-w-3xl text-lg leading-relaxed text-gray-600">GetContractorz is designed around the real workflow of a service business: collecting client details, preparing a quotation, assigning work, documenting the job, sending an invoice, and tracking payment records.</p>
         </div>
         <div class="grid gap-5 md:grid-cols-2">
           <article class="rounded-3xl border border-gray-200 bg-background p-6">
@@ -120,7 +125,7 @@
   </section>
   <section class="bg-background px-6 py-16 md:px-16 md:py-24 lg:px-32" aria-labelledby="features-cta-title">
     <div class="features-final-cta mx-auto overflow-hidden rounded-3xl border border-accent/30 bg-white shadow-xl shadow-slate-900/10">
-      <div class="grid gap-8 p-8 md:p-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:p-12">
+      <div class="grid gap-8 p-8 md:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,460px)] lg:items-center lg:p-12">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Start with GetContractorz</p>
           <h2 id="features-cta-title" class="mt-4 font-heading text-2xl leading-tight text-secondary md:text-4xl">Service business management software built for real client work.</h2>
@@ -130,14 +135,14 @@
               href="{% url 'public_site:contact' %}"
               class="secondary inline-flex items-center justify-center text-center md:min-w-sm">Contact Us</a></div>
         </div>
-        <div class="rounded-2xl bg-background p-6">
-          <h3 class="text-xl font-semibold text-primary">What you can organize first</h3>
-          <ul class="mt-5 space-y-4 text-gray-600">
-            <li class="flex gap-3"><span class="font-semibold text-accent">✓</span><span>Create services with questionnaires and terms.</span></li>
-            <li class="flex gap-3"><span class="font-semibold text-accent">✓</span><span>Send professional quotations for client approval.</span></li>
-            <li class="flex gap-3"><span class="font-semibold text-accent">✓</span><span>Track jobs, invoices, payments, and net records.</span></li>
+        <div class="w-full rounded-2xl bg-background p-6 md:p-7 lg:justify-self-end">
+          <h3 class="max-w-xs text-xl font-semibold leading-tight text-primary md:text-2xl">What you can organize first</h3>
+          <ul class="mt-6 space-y-4 text-base leading-relaxed text-gray-600">
+            <li class="flex gap-3"><span class="mt-0.5 shrink-0 font-semibold text-accent">✓</span><span>Create services with questionnaires and terms.</span></li>
+            <li class="flex gap-3"><span class="mt-0.5 shrink-0 font-semibold text-accent">✓</span><span>Send professional quotations for client approval.</span></li>
+            <li class="flex gap-3"><span class="mt-0.5 shrink-0 font-semibold text-accent">✓</span><span>Track jobs, invoices, payments, and net records.</span></li>
           </ul>
-          <p class="mt-6 text-sm leading-relaxed text-gray-500">Looking for registered service businesses? Visit the <a href="{% url 'public_site:marketplace' %}" class="font-semibold text-secondary underline hover:text-accent">GetContractorz Marketplace</a>.</p>
+          <p class="mt-6 border-t border-gray-200 pt-5 text-sm leading-relaxed text-gray-500">Looking for registered service businesses? Visit the <a href="{% url 'public_site:marketplace' %}" class="font-semibold text-secondary underline hover:text-accent">GetContractorz Marketplace</a>.</p>
         </div>
       </div>
     </div>

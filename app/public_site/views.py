@@ -8,9 +8,10 @@ from core.models import Business, FAQ
 
 PUBLIC_PAGE_METADATA = {
     "about": (
-        "About GetContractorz",
-        "Learn why GetContractorz was created and how it helps service businesses "
-        "manage clients, quotations, jobs, teams, invoices, and payments.",
+        "About GetContractorz Service Business Management Software",
+        "Learn why Calgary-based GetContractorz helps service businesses "
+        "manage clients, questionnaires, quotations, jobs, teams, invoices, "
+        "Stripe payments, and payment records.",
     ),
     "industries": (
         "Service Business Management Software for 50+ Industries",
@@ -18,13 +19,16 @@ PUBLIC_PAGE_METADATA = {
         "questionnaires, quotations, jobs, invoices, Stripe payments, and teams.",
     ),
     "services": (
-        "Features",
-        "Explore GetContractorz features for client management, questionnaires, "
-        "quotations, jobs, teams, invoices, payments, and customer access.",
+        "Service Business Management Software Features",
+        "Explore GetContractorz features for client management, service "
+        "questionnaires, quotations, job management, team access, invoices, "
+        "Stripe payments, and client workspaces.",
     ),
     "team": (
-        "Our Team",
-        "Meet the team building GetContractorz, a service business management platform based in Calgary, Alberta.",
+        "GetContractorz Team",
+        "Meet the Calgary team building service business management software "
+        "for client intake, quotations, job management, invoicing, payments, "
+        "and connected service records.",
     ),
     "terms-and-conditions": (
         "Terms and Conditions",
@@ -77,11 +81,11 @@ def marketplace(request):
         {
             "businesses": businesses,
             "query": query,
-            "meta_title": "Service Business Marketplace | GetContractorz",
+            "meta_title": "Service Business Marketplace Directory | GetContractorz",
             "meta_description": (
-                "Browse service businesses registered on GetContractorz and use "
-                "their published contact information to discuss your service "
-                "requirements directly."
+                "Browse service businesses registered on GetContractorz by "
+                "business name, location, and service category, then contact "
+                "the business directly about your service requirements."
             ),
         },
     )

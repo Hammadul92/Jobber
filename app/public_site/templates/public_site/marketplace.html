@@ -1,6 +1,88 @@
 {% extends 'public_site/base.html' %}{% load static %}
-{% block head %}<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"Contractorz Marketplace","numberOfItems":{{ businesses|length }}}</script>{% endblock %}
+{% block head %}<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"GetContractorz Marketplace","description":"A public directory of service businesses registered on GetContractorz.","numberOfItems":{{ businesses|length }}}</script>{% endblock %}
 {% block content %}<main>
-  <section class="bg-background px-6 pb-16 pt-24 md:px-16 lg:px-32 lg:pb-24 lg:pt-32"><div class="mx-auto max-w-5xl text-center"><p class="text-sm font-semibold uppercase text-accent">Contractorz Marketplace</p><h1 class="mt-4 font-heading text-3xl text-secondary md:text-5xl">FIND A SERVICE BUSINESS YOU CAN TRUST</h1><p class="mx-auto mt-5 max-w-2xl text-lg text-gray-600">Browse active Canadian service businesses, compare their specialties, and find the right team for your property.</p><form class="mx-auto mt-8 flex max-w-2xl gap-3" method="get"><label class="sr-only" for="marketplace-search">Search businesses</label><input id="marketplace-search" name="q" value="{{ query }}" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm" placeholder="Search by business name"><button class="primary" type="submit">Search</button></form></div></section>
-  <section class="px-6 py-16 md:px-16 lg:px-32"><div class="mx-auto grid max-w-7xl gap-6 md:grid-cols-2 xl:grid-cols-3">{% for business in businesses %}<article class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg"><div class="flex h-52 items-center justify-center bg-background p-8">{% if business.logo %}<img src="{{ business.logo.url }}" alt="{{ business.name }} logo" class="h-full w-full object-contain">{% else %}<span class="font-heading text-2xl text-secondary">{{ business.name }}</span>{% endif %}</div><div class="p-6"><p class="text-sm font-medium text-accent">{{ business.city }}, {{ business.province_state }}</p><h2 class="mt-2 text-2xl font-semibold text-secondary">{{ business.name }}</h2><p class="mt-3 line-clamp-3 text-gray-600">{{ business.business_description }}</p><div class="mt-5 flex flex-wrap gap-2">{% for service in business.services_offered.all %}<span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{{ service.name }}</span>{% endfor %}</div><div class="mt-6 border-t border-gray-100 pt-5"><a class="font-semibold text-secondary hover:text-accent" href="mailto:{{ business.email }}">Contact business →</a></div></div></article>{% empty %}<div class="col-span-full py-20 text-center"><h2 class="text-2xl font-semibold">No businesses found</h2><p class="mt-2 text-gray-500">Try a different search.</p></div>{% endfor %}</div></section>
+  <section class="relative flex h-fit w-full flex-col items-center justify-center gap-3 overflow-hidden bg-background px-6 py-40 text-center md:px-16 md:py-34 lg:h-screen lg:min-h-screen lg:px-32">
+    <div class="absolute bottom-7 left-0 w-40 md:bottom-10 md:w-44 lg:bottom-16 lg:w-auto"><img src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="Design Element"></div>
+    <div class="absolute right-0 top-20 w-14 md:w-20 lg:w-fit"><img src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="Design Element" class="w-full"></div>
+    <div class="absolute bottom-18 right-10 h-20 w-20 md:bottom-18 md:right-16 md:h-24 md:w-24 lg:bottom-28 lg:right-70 lg:h-auto lg:w-auto"><img src="{% static 'public_site/images/hexagon.svg' %}" alt="Design Element" width="125"></div>
+    <div class="mb-4 flex items-center justify-center gap-1 rounded-full border border-gray-300 px-3.5 py-1.5 text-xs font-semibold uppercase text-gray-400"><span class="rounded-full bg-green-700/70 p-1.5"></span><p class="mt-0.5">GetContractorz Marketplace</p></div>
+    <div class="marketplace-hero-content z-20 w-full max-w-7xl">
+      <h1 class="marketplace-hero-heading mx-auto text-center font-heading text-[1.5rem] leading-snug md:max-w-6xl md:text-4xl lg:text-[3.5rem]">FIND SERVICE BUSINESSES REGISTERED ON GETCONTRACTORZ</h1>
+      <p class="marketplace-hero-copy section-intro mx-auto mt-4 max-w-6xl text-center text-gray-600 md:px-28 md:text-xl lg:text-2xl">Browse active service businesses that use GetContractorz to organize client intake, quotations, jobs, invoices, payments, and service records.</p>
+      <form class="marketplace-hero-search mx-auto mt-8 flex flex-col gap-3 sm:flex-row" method="get">
+        <label class="sr-only" for="marketplace-search">Search businesses</label>
+        <input id="marketplace-search" name="q" value="{{ query }}" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm" placeholder="Search by business name">
+        <button class="primary inline-flex items-center justify-center" type="submit">Search</button>
+      </form>
+      <p class="marketplace-hero-note mx-auto mt-5 text-sm leading-relaxed text-gray-500">Marketplace listings are published by registered businesses. Service agreements, availability, pricing, work quality, scheduling, and warranties are handled directly between the client and the selected business.</p>
+    </div>
+  </section>
+
+  <section class="bg-white px-6 py-16 md:px-16 md:py-24 lg:px-32" aria-labelledby="marketplace-directory-title">
+    <div class="mx-auto max-w-7xl">
+      <div class="max-w-4xl">
+        <p class="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Public service directory</p>
+        <h2 id="marketplace-directory-title" class="mt-4 font-heading text-2xl leading-tight text-secondary md:text-4xl">A clearer way to discover service businesses already using GetContractorz.</h2>
+        <p class="mt-5 text-lg leading-relaxed text-gray-600">The marketplace helps visitors find businesses by name, location, and service categories while keeping the operational work inside the GetContractorz platform.</p>
+      </div>
+      <div class="mt-10 grid gap-6 md:grid-cols-3">
+        <article class="rounded-3xl border border-gray-200 bg-background p-6 shadow-sm">
+          <h3 class="text-xl font-semibold text-primary">Published business details</h3>
+          <p class="mt-3 leading-relaxed text-gray-600">Review the business name, location, logo, description, and public contact information provided by the registered business.</p>
+        </article>
+        <article class="rounded-3xl border border-gray-200 bg-background p-6 shadow-sm">
+          <h3 class="text-xl font-semibold text-primary">Service categories</h3>
+          <p class="mt-3 leading-relaxed text-gray-600">See the offered services each business has selected, such as plumbing, HVAC, landscaping, cleaning, painting, renovation, and repair work.</p>
+        </article>
+        <article class="rounded-3xl border border-gray-200 bg-background p-6 shadow-sm">
+          <h3 class="text-xl font-semibold text-primary">Direct enquiries</h3>
+          <p class="mt-3 leading-relaxed text-gray-600">Contact the business directly to discuss scope, availability, service area, pricing, and next steps before work begins.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-background px-6 py-16 md:px-16 md:py-24 lg:px-32" aria-labelledby="marketplace-results-title">
+    <div class="mx-auto max-w-7xl">
+      <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Registered businesses</p>
+          <h2 id="marketplace-results-title" class="mt-3 font-heading text-2xl text-secondary md:text-4xl">Browse marketplace listings</h2>
+        </div>
+        {% if query %}<a href="{% url 'public_site:marketplace' %}" class="font-semibold text-secondary underline hover:text-accent">Clear search</a>{% endif %}
+      </div>
+      <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {% for business in businesses %}
+        <article class="flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-lg shadow-slate-900/5">
+          <div class="flex h-52 items-center justify-center bg-white p-8">
+            {% if business.logo %}<img src="{{ business.logo.url }}" alt="{{ business.name }} logo" class="h-full w-full object-contain">{% else %}<span class="font-heading text-2xl text-secondary">{{ business.name }}</span>{% endif %}
+          </div>
+          <div class="flex flex-1 flex-col p-6">
+            <p class="text-sm font-medium text-accent">{{ business.city }}, {{ business.province_state }}</p>
+            <h3 class="mt-2 text-2xl font-semibold text-secondary">{{ business.name }}</h3>
+            <p class="mt-3 line-clamp-3 leading-relaxed text-gray-600">{{ business.business_description }}</p>
+            <div class="mt-5 flex flex-wrap gap-2">{% for service in business.services_offered.all %}<span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{{ service.name }}</span>{% endfor %}</div>
+            <div class="mt-auto border-t border-gray-100 pt-5"><a class="font-semibold text-secondary hover:text-accent" href="mailto:{{ business.email }}">Contact business →</a></div>
+          </div>
+        </article>
+        {% empty %}
+        <div class="col-span-full rounded-3xl border border-dashed border-gray-300 bg-white px-6 py-20 text-center">
+          <h2 class="text-2xl font-semibold">No businesses found</h2>
+          <p class="mt-2 text-gray-500">Try a different search or check back as more service businesses publish marketplace profiles.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="flex items-center justify-center bg-white px-6 py-10 md:px-16 md:py-20 lg:px-32" aria-labelledby="marketplace-cta-title">
+    <div class="home-final-cta mx-auto rounded-2xl border-2 border-accent bg-background px-6 py-10 shadow-xl shadow-slate-900/10 md:px-10 md:py-12">
+      <h2 id="marketplace-cta-title" class="mb-5 text-center text-3xl font-extrabold text-secondary md:text-4xl">Run a service business? Build your workspace with GetContractorz</h2>
+      <p class="mx-auto mb-8 max-w-2xl text-center text-gray-600 md:text-lg">Create your business profile, add offered services, manage client questionnaires, send quotations, schedule jobs, invoice customers, and keep payment records connected.</p>
+      <div class="flex flex-col items-center justify-center gap-4 md:flex-row">
+        <a href="{{ frontend_url }}/register" class="home-final-cta-button inline-flex items-center justify-center rounded-xl bg-accent px-8 py-3 text-center font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-600 md:text-lg">Start Free</a>
+        <a href="{% url 'public_site:contact' %}" class="home-final-cta-button inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-8 py-3 text-center font-semibold text-secondary transition hover:border-accent hover:text-accent md:text-lg">Contact Us</a>
+      </div>
+    </div>
+  </section>
 </main>{% endblock %}

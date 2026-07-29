@@ -76,12 +76,35 @@ class PublicSiteViewTests(TestCase):
         )
         self.assertContains(response, 'data-frontend-url="http://frontend.test:5173"')
 
+    def test_public_header_marks_current_page_as_active(self):
+        routes = [
+            ("home", "Home"),
+            ("industries", "Industries"),
+            ("services", "Features"),
+            ("marketplace", "Marketplace"),
+            ("faqs", "FAQs"),
+            ("about", "About Us"),
+            ("contact", "Contact Us"),
+        ]
+
+        for route_name, label in routes:
+            with self.subTest(route_name=route_name):
+                response = self.client.get(reverse(f"public_site:{route_name}"))
+
+                self.assertContains(response, 'aria-current="page"')
+                self.assertContains(response, label)
+
     def test_marketplace_lists_business_and_service(self):
         response = self.client.get(reverse("public_site:marketplace"))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Service Business Marketplace Directory")
+        self.assertContains(response, "Browse active service businesses")
         self.assertContains(response, "Example Plumbing")
         self.assertContains(response, "Plumbing")
+        self.assertContains(response, "Marketplace listings are published by registered businesses")
+        self.assertContains(response, "Service agreements, availability, pricing, work quality")
+        self.assertContains(response, "Run a service business? Build your workspace with GetContractorz")
         self.assertContains(response, '"@type":"ItemList"')
 
     def test_contact_matches_public_content_and_includes_faqs(self):
@@ -134,6 +157,7 @@ class PublicSiteViewTests(TestCase):
         response = self.client.get(reverse("public_site:about"))
 
         self.assertTemplateUsed(response, "public_site/about.html")
+        self.assertContains(response, "About GetContractorz Service Business Management Software")
         self.assertContains(response, "ABOUT GETCONTRACTORZ")
         self.assertContains(response, "The full service lifecycle in one place.")
         self.assertContains(response, "Stripe")
@@ -141,6 +165,18 @@ class PublicSiteViewTests(TestCase):
         self.assertNotContains(response, "works offline")
         self.assertNotContains(response, "accounting software")
         self.assertNotContains(response, "Ready To Design Smarter?")
+
+    def test_team_page_uses_credibility_focused_product_copy(self):
+        response = self.client.get(reverse("public_site:team"))
+
+        self.assertContains(response, "GetContractorz Team")
+        self.assertContains(response, "Based in Calgary")
+        self.assertContains(response, "The team behind GetContractorz is building for real service workflows")
+        self.assertContains(response, "Built around the dependencies service businesses manage every day.")
+        self.assertContains(response, "Client intake")
+        self.assertContains(response, "Quotation approval")
+        self.assertContains(response, "Billing records")
+        self.assertNotContains(response, "Content Being Prepared")
 
     def test_marketplace_search_filters_businesses(self):
         response = self.client.get(

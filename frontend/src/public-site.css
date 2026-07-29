@@ -1,0 +1,157 @@
+@import "tailwindcss";
+@source "../../app/public_site/templates/**/*.html";
+
+@font-face {
+  font-family: "MODERNIZ";
+  src: url("../fonts/Moderniz.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@theme {
+  --color-primary: #171717;
+  --color-accent: #ff7a00;
+  --color-accentLight: #ff8b00;
+  --color-secondary: #09355d;
+  --color-background: #f5f7f9;
+  --color-card: #131317;
+  --color-cardLight: #22242f;
+  --color-muted: #f2f2f2;
+  --font-heading: "MODERNIZ", sans-serif;
+  --font-sans: "Inter", Arial, Helvetica, sans-serif;
+  --font-intro: "Open Sans", sans-serif;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1025px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+* {
+  max-width: 100%;
+}
+
+body {
+  width: 100%;
+  overflow-x: hidden;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+button {
+  cursor: pointer;
+}
+
+.primary {
+  @apply px-6 py-2 bg-accent rounded-xl text-white font-semibold cursor-pointer hover:bg-accentLight hover:scale-[1.02] transition-all duration-300;
+}
+
+.secondary {
+  @apply px-6 py-2 bg-secondary rounded-xl text-white font-semibold cursor-pointer hover:bg-secondary/90 hover:scale-[1.02] transition-all duration-300;
+}
+
+.section-intro,
+.main-heading-intro {
+  font-family: var(--font-intro);
+}
+
+.marquee-wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.marquee-track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  max-width: none;
+  white-space: nowrap;
+  animation: marquee-scroll 14s linear infinite;
+}
+
+.marquee-track > * {
+  flex: 0 0 auto;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.features-hero-content {
+  width: 100%;
+  max-width: 80rem;
+}
+
+.features-hero-heading {
+  max-width: 72rem;
+}
+
+.features-hero-copy {
+  max-width: 72rem;
+}
+
+.features-hero-button {
+  width: min(100%, 20rem);
+}
+
+.features-final-cta {
+  width: min(100%, 1180px);
+}
+
+.features-seo-wrap {
+  width: 100%;
+}
+
+.home-final-cta {
+  width: min(100%, 1100px);
+}
+
+.home-final-cta-button {
+  width: min(100%, 18rem);
+}
+
+.marketplace-hero-content {
+  width: 100%;
+  max-width: 80rem;
+}
+
+.marketplace-hero-heading {
+  max-width: 72rem;
+}
+
+.marketplace-hero-copy,
+.marketplace-hero-note {
+  max-width: 72rem;
+}
+
+.marketplace-hero-search {
+  width: min(100%, 820px);
+}
+
+@media (min-width: 1025px) {
+  .features-hero-content {
+    max-width: 80rem;
+  }
+
+  .marketplace-hero-content {
+    max-width: 80rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}

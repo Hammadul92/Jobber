@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@source "../../app/public_site/templates/**/*.html";
 
 @font-face {
   font-family: "MODERNIZ";
@@ -78,44 +77,6 @@
   .marquee-track {
     animation: none;
   }
-}
-
-.features-hero-content {
-  width: min(92vw, 980px);
-}
-
-.features-hero-heading {
-  max-width: 920px;
-}
-
-.features-hero-copy {
-  max-width: 760px;
-}
-
-.features-hero-button {
-  width: min(100%, 20rem);
-}
-
-@media (min-width: 1025px) {
-  .features-hero-content {
-    width: 980px;
-  }
-}
-
-.features-final-cta {
-  width: min(100%, 1180px);
-}
-
-.features-seo-wrap {
-  width: 100%;
-}
-
-.home-final-cta {
-  width: min(100%, 1100px);
-}
-
-.home-final-cta-button {
-  width: min(100%, 18rem);
 }
 
 .revenue-chart-grid,
