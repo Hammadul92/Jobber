@@ -9,10 +9,281 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"
     />
+    <style>
+      :root {
+        --gc-boot-navy: #09355d;
+        --gc-boot-orange: #ff7a00;
+        --gc-boot-page: #f5f7f9;
+      }
+
+      body {
+        margin: 0;
+        background: var(--gc-boot-page);
+      }
+
+      .gc-boot-loader {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 22px;
+        color: var(--gc-boot-navy);
+        font-family: Inter, Ubuntu, Arial, sans-serif;
+      }
+
+      .gc-boot-loader__mark {
+        position: relative;
+        --square: 26px;
+        --offset: 30px;
+        --duration: 2.4s;
+        --delay: 0.2s;
+        --timing-function: ease-in-out;
+        --in-duration: 0.4s;
+        --in-delay: 0.1s;
+        --in-timing-function: ease-out;
+        width: calc(3 * var(--offset) + var(--square));
+        height: calc(2 * var(--offset) + var(--square));
+      }
+
+      .gc-boot-loader__mark span {
+        display: inline-block;
+        position: absolute;
+        width: var(--square);
+        height: var(--square);
+        padding: 0;
+        margin: 0;
+        border: none;
+        border-radius: 7px;
+        background: var(--gc-boot-orange);
+        box-shadow: 0 14px 28px rgb(255 122 0 / 0.2);
+      }
+
+      .gc-boot-loader__mark span:nth-child(1) {
+        left: calc(0 * var(--offset));
+        top: calc(0 * var(--offset));
+        animation:
+          gc-boot-square-1 var(--duration) var(--delay)
+            var(--timing-function) infinite,
+          gc-boot-square-fade-in var(--in-duration) calc(1 * var(--in-delay))
+            var(--in-timing-function) both;
+      }
+
+      .gc-boot-loader__mark span:nth-child(2) {
+        left: calc(0 * var(--offset));
+        top: calc(1 * var(--offset));
+        animation:
+          gc-boot-square-2 var(--duration) var(--delay)
+            var(--timing-function) infinite,
+          gc-boot-square-fade-in var(--in-duration) calc(1 * var(--in-delay))
+            var(--in-timing-function) both;
+      }
+
+      .gc-boot-loader__mark span:nth-child(3) {
+        left: calc(1 * var(--offset));
+        top: calc(1 * var(--offset));
+        animation:
+          gc-boot-square-3 var(--duration) var(--delay)
+            var(--timing-function) infinite,
+          gc-boot-square-fade-in var(--in-duration) calc(2 * var(--in-delay))
+            var(--in-timing-function) both;
+      }
+
+      .gc-boot-loader__mark span:nth-child(4) {
+        left: calc(2 * var(--offset));
+        top: calc(1 * var(--offset));
+        animation:
+          gc-boot-square-4 var(--duration) var(--delay)
+            var(--timing-function) infinite,
+          gc-boot-square-fade-in var(--in-duration) calc(3 * var(--in-delay))
+            var(--in-timing-function) both;
+      }
+
+      .gc-boot-loader__mark span:nth-child(5) {
+        left: calc(3 * var(--offset));
+        top: calc(1 * var(--offset));
+        animation:
+          gc-boot-square-5 var(--duration) var(--delay)
+            var(--timing-function) infinite,
+          gc-boot-square-fade-in var(--in-duration) calc(4 * var(--in-delay))
+            var(--in-timing-function) both;
+      }
+
+      .gc-boot-loader__text {
+        margin: 0;
+        color: var(--gc-boot-navy);
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+      }
+
+      @keyframes gc-boot-square-1 {
+        0% {
+          left: calc(0 * var(--offset));
+          top: calc(0 * var(--offset));
+        }
+
+        8.333%,
+        100% {
+          left: calc(0 * var(--offset));
+          top: calc(1 * var(--offset));
+        }
+      }
+
+      @keyframes gc-boot-square-2 {
+        0% {
+          left: calc(0 * var(--offset));
+          top: calc(1 * var(--offset));
+        }
+
+        8.333% {
+          left: calc(0 * var(--offset));
+          top: calc(2 * var(--offset));
+        }
+
+        16.67% {
+          left: calc(1 * var(--offset));
+          top: calc(2 * var(--offset));
+        }
+
+        25%,
+        83.33% {
+          left: calc(1 * var(--offset));
+          top: calc(1 * var(--offset));
+        }
+
+        91.67% {
+          left: calc(1 * var(--offset));
+          top: calc(0 * var(--offset));
+        }
+
+        100% {
+          left: calc(0 * var(--offset));
+          top: calc(0 * var(--offset));
+        }
+      }
+
+      @keyframes gc-boot-square-3 {
+        0%,
+        16.67%,
+        100% {
+          left: calc(1 * var(--offset));
+          top: calc(1 * var(--offset));
+        }
+
+        25% {
+          left: calc(1 * var(--offset));
+          top: calc(0 * var(--offset));
+        }
+
+        33.33% {
+          left: calc(2 * var(--offset));
+          top: calc(0 * var(--offset));
+        }
+
+        41.67%,
+        66.67% {
+          left: calc(2 * var(--offset));
+          top: calc(1 * var(--offset));
+        }
+
+        75% {
+          left: calc(2 * var(--offset));
+          top: calc(2 * var(--offset));
+        }
+
+        83.33% {
+          left: calc(1 * var(--offset));
+          top: calc(2 * var(--offset));
+        }
+
+        91.67% {
+          left: calc(1 * var(--offset));
+          top: calc(1 * var(--offset));
+        }
+      }
+
+      @keyframes gc-boot-square-4 {
+        0%,
+        33.33% {
+          left: calc(2 * var(--offset));
+          top: calc(1 * var(--offset));
+        }
+
+        41.67% {
+          left: calc(2 * var(--offset));
+          top: calc(2 * var(--offset));
+        }
+
+        50% {
+          left: calc(3 * var(--offset));
+          top: calc(2 * var(--offset));
+        }
+
+        58.33%,
+        100% {
+          left: calc(3 * var(--offset));
+          top: calc(1 * var(--offset));
+        }
+      }
+
+      @keyframes gc-boot-square-5 {
+        0%,
+        50% {
+          left: calc(3 * var(--offset));
+          top: calc(1 * var(--offset));
+        }
+
+        58.33% {
+          left: calc(3 * var(--offset));
+          top: calc(0 * var(--offset));
+        }
+
+        66.67% {
+          left: calc(2 * var(--offset));
+          top: calc(0 * var(--offset));
+        }
+
+        75%,
+        100% {
+          left: calc(2 * var(--offset));
+          top: calc(1 * var(--offset));
+        }
+      }
+
+      @keyframes gc-boot-square-fade-in {
+        0% {
+          transform: scale(0.75);
+          opacity: 0;
+        }
+
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .gc-boot-loader__mark span {
+          animation: none;
+        }
+      }
+    </style>
     <title>CONTRACTORZ | Business With Assurance and Clarity</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="gc-boot-loader" role="status" aria-live="polite" aria-label="Loading GetContractorz">
+        <div class="gc-boot-loader__mark" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <p class="gc-boot-loader__text">Loading GetContractorz</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

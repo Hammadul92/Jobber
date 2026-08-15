@@ -30,6 +30,22 @@ import MagicLogin from "./pages/MagicLogin";
 import UserDashboard from "./User";
 import { clearPublicSession, syncPublicSession } from "./utils/publicSession";
 
+const contractorzLogo = "/images/contractorz-logo-horizontal.svg";
+
+function getPublicSiteHomeUrl() {
+  const configuredPublicSite = import.meta.env.VITE_PUBLIC_SITE_URL;
+  if (configuredPublicSite) return configuredPublicSite.replace(/\/$/, "") || "/";
+
+  const configuredApiBase = import.meta.env.VITE_API_BASE_URL;
+  const apiBase =
+    configuredApiBase ||
+    (import.meta.env.PROD
+      ? `${window.location.origin}/api`
+      : "http://localhost:8000/api");
+
+  return apiBase.replace(/\/api\/?$/, "");
+}
+
 function AdminRedirect() {
   useEffect(() => {
     const configuredApiBase = import.meta.env.VITE_API_BASE_URL;
@@ -73,6 +89,20 @@ function PublicSessionBridge({ token, user }) {
   }, [token, user]);
 
   return null;
+}
+
+function AuthLogoHeader() {
+  return (
+    <div className="flex w-full justify-center px-6 pt-8 -mb-20">
+      <a href={getPublicSiteHomeUrl()} aria-label="GetContractorz home">
+        <img
+          src={contractorzLogo}
+          alt="GetContractorz"
+          className="h-auto w-44 sm:w-52"
+        />
+      </a>
+    </div>
+  );
 }
 
 function App() {
@@ -124,10 +154,18 @@ function MainApp() {
 
   const isDashboardRoute = window.location.pathname.startsWith("/user");
   const isSessionBridge = window.location.pathname === "/session-bridge";
+  const isAuthRoute = [
+    "/sign-in",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+    "/logout",
+  ].includes(window.location.pathname);
 
   return (
     <>
-      {!isDashboardRoute && !isSessionBridge && <Header />}
+      {!isDashboardRoute && !isSessionBridge && !isAuthRoute && <Header />}
+      {isAuthRoute && <AuthLogoHeader />}
 
       {/* <main> */}
       <Routes>
@@ -330,7 +368,7 @@ function MainApp() {
       </Routes>
       {/* </main> */}
 
-      {!isDashboardRoute && !isSessionBridge && <Footer />}
+      {!isDashboardRoute && !isSessionBridge && !isAuthRoute && <Footer />}
     </>
   );
 }

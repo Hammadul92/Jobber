@@ -290,6 +290,18 @@ textarea {
   color: var(--gc-white);
 }
 
+.gc-button__chevron {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  transition: transform 220ms ease;
+}
+
+.gc-button:hover .gc-button__chevron,
+.gc-home-hero__button:hover .gc-button__chevron {
+  transform: translateX(4px);
+}
+
 .gc-card {
   border: 1px solid var(--gc-border);
   border-radius: var(--gc-radius-lg);
@@ -1218,12 +1230,6 @@ textarea {
   min-height: 52px;
   margin-top: 40px;
   padding-inline: 30px;
-}
-
-.gc-public-cta__button span {
-  font-size: 30px;
-  font-weight: 400;
-  line-height: 1;
 }
 
 .gc-public-cta__note {
