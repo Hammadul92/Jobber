@@ -1,0 +1,80 @@
+{% load static %}
+
+<a class="gc-skip-link gc-button gc-button--secondary" href="#main-content">Skip to content</a>
+
+<div class="gc-announcement">
+  Business registration and platform access are currently free.
+</div>
+
+<header class="gc-header" data-public-header>
+  <div class="gc-container-wide gc-header__inner">
+    <a href="/" aria-label="GetContractorz home">
+      <img
+        class="gc-logo"
+        src="{% static 'public_site/images/contractorz-logo-horizontal.svg' %}"
+        width="198"
+        height="51"
+        alt="GetContractorz"
+      >
+    </a>
+
+    {% with current_path=request.path %}
+      <nav class="gc-nav" aria-label="Primary navigation">
+        <a class="gc-nav__link" href="/" {% if current_path == "/" %}aria-current="page"{% endif %}>Home</a>
+
+        <details class="gc-nav__group">
+          <summary>Product</summary>
+          <div class="gc-nav__menu" aria-label="Product pages">
+            <a href="/for-service-businesses/">For Service Businesses</a>
+            <a href="/features/">Features</a>
+            <a href="/how-it-works/">How It Works</a>
+            <a href="/for-clients/">For Clients</a>
+          </div>
+        </details>
+
+        <a class="gc-nav__link" href="/service-categories/" {% if current_path == "/service-categories/" %}aria-current="page"{% endif %}>Service Categories</a>
+        <a class="gc-nav__link" href="/marketplace/" {% if current_path == "/marketplace/" %}aria-current="page"{% endif %}>Marketplace</a>
+
+        <details class="gc-nav__group">
+          <summary>Resources</summary>
+          <div class="gc-nav__menu" aria-label="Resources">
+            <a href="/about/">About</a>
+            <a href="/faq/">FAQ</a>
+            <a href="/contact/">Contact</a>
+          </div>
+        </details>
+
+      </nav>
+
+      <div class="gc-header__actions">
+        <a class="gc-button gc-button--outline gc-header__login" href="{{ frontend_url }}/sign-in">Login</a>
+        <a class="gc-button gc-button--primary" href="{{ frontend_url }}/register">Get Started Free</a>
+      </div>
+
+      <div class="gc-mobile-menu">
+        <details>
+          <summary class="gc-mobile-menu__trigger" aria-label="Open navigation">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </summary>
+          <nav class="gc-mobile-menu__panel" aria-label="Mobile navigation">
+            <span class="gc-mobile-menu__label">Product</span>
+            <a href="/for-service-businesses/">For Service Businesses</a>
+            <a href="/features/">Features</a>
+            <a href="/how-it-works/">How It Works</a>
+            <a href="/for-clients/">For Clients</a>
+            <a href="/service-categories/">Service Categories</a>
+            <a href="/marketplace/">Marketplace</a>
+            <span class="gc-mobile-menu__label">Resources</span>
+            <a href="/about/">About</a>
+            <a href="/faq/">FAQ</a>
+            <a href="/contact/">Contact</a>
+            <a href="{{ frontend_url }}/sign-in">Login</a>
+            <a class="gc-button gc-button--primary" href="{{ frontend_url }}/register">Get Started Free</a>
+          </nav>
+        </details>
+      </div>
+    {% endwith %}
+  </div>
+</header>

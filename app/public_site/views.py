@@ -43,23 +43,15 @@ PUBLIC_PAGE_METADATA = {
 
 
 def home(request):
-    businesses = list(
-        Business.objects.filter(is_active=True)
-        .exclude(logo="")
-        .select_related("owner")
-        .order_by("-created_at")[:10]
-    )
     return render(
         request,
         "public_site/home.html",
         {
-            "businesses": businesses,
-            "faqs": FAQ.objects.filter(is_active=True),
             "meta_title": "Service Business Management Software | GetContractorz",
             "meta_description": (
-                "Manage clients, service questionnaires, quotations, jobs, field "
-                "teams, invoices and online payments in one service business "
-                "management platform. Start free."
+                "Organize clients, services, team members, jobs, quotes, "
+                "invoices, and more in one service-business workspace. Get "
+                "started free with GetContractorz."
             ),
         },
     )

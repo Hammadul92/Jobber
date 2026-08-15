@@ -154,7 +154,7 @@ REST_FRAMEWORK = {
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 PUBLIC_SITE_CSS_URL = os.environ.get(
     "PUBLIC_SITE_CSS_URL",
-    "http://localhost:5173/src/public-site.css" if DEBUG else "/assets/public-site.css",
+    "/static/public_site/css/public-site.css",
 )
 
 ALLOWED_HOSTS_ENV = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver")

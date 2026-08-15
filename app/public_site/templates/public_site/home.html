@@ -1,0 +1,428 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="service business management software, service business software, contractor business software, job and client management platform, service business operations software, client management software for contractors, contractor job management software">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization",
+        "name": "GetContractorz",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/",
+        "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'public_site/images/contractorz-logo-horizontal.svg' %}"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/#website",
+        "name": "GetContractorz",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/",
+        "publisher": {
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "{{ request.scheme }}://{{ request.get_host }}/marketplace/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/#home-faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is GetContractorz free for service businesses?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Business registration and platform access are currently free. A subscription model may be introduced later, but no future plan, price, or billing promise is currently published."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What kinds of service businesses can use GetContractorz?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "GetContractorz currently supports the service categories listed on the Service Categories page, including construction, cleaning, landscaping, plumbing, electrical, HVAC, roofing, moving services, pest control, and others."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does GetContractorz verify businesses in the Marketplace?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. GetContractorz does not currently independently verify business identity, licensing, credentials, insurance, employee backgrounds, service quality, or other business claims."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does GetContractorz guarantee Marketplace leads?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The Marketplace provides public discovery and direct contact, but it does not guarantee enquiries, leads, responses, jobs, earnings, or business growth."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can clients use GetContractorz too?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Clients invited by a registered business can access the parts of the platform relevant to their services, including questionnaires and applicable quotes and invoices."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What can employees do?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Employees can view and complete assigned jobs and upload before-and-after images as part of the job workflow."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+{% endblock %}
+
+{% block content %}
+<section class="gc-home-hero" aria-labelledby="home-hero-title">
+  <img class="gc-home-hero__dots" src="{% static 'public_site/images/dots-bg.svg' %}" alt="" aria-hidden="true">
+  <img class="gc-home-hero__shape gc-home-hero__shape--right"
+    src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true">
+  <img class="gc-home-hero__shape gc-home-hero__shape--left"
+    src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true">
+  <img class="gc-home-hero__shape gc-home-hero__shape--hexagon" src="{% static 'public_site/images/hexagon.svg' %}"
+    alt="" aria-hidden="true">
+
+  <div class="gc-home-hero__content">
+    <p class="gc-home-hero__eyebrow">For service businesses</p>
+    <h1 class="gc-home-hero__title" id="home-hero-title">
+      Keep your service business organized in one
+      <span class="gc-home-hero__title-accent">workspace</span>
+    </h1>
+    <p class="gc-home-hero__copy">
+      Manage the operational work around your clients and jobs from one connected platform - including
+      services, questionnaires, team members, quotes, assigned jobs, before-and-after images, invoices,
+      payouts, and more.
+    </p>
+    <div class="gc-home-hero__actions" aria-label="Home page actions">
+      <a class="gc-home-hero__button gc-home-hero__button--secondary" href="/marketplace/">
+        Explore the Marketplace
+      </a>
+      <a class="gc-home-hero__button gc-home-hero__button--primary" href="{{ frontend_url }}/register">
+        Get Started Free
+        <span class="gc-home-hero__arrow" aria-hidden="true">&rarr;</span>
+      </a>
+    </div>
+    <p class="gc-home-hero__note">Registration and platform access are currently free.</p>
+  </div>
+</section>
+
+<section class="gc-home-section gc-home-section--intro" aria-labelledby="home-clarity-title">
+  <div class="gc-home-container gc-home-split">
+    <div class="gc-home-section__copy">
+      <p class="gc-home-kicker">One workspace for the work behind every job</p>
+      <h2 class="gc-home-section__title" id="home-clarity-title">
+        Less scatter. <span class="gc-heading-accent">More clarity</span> around your day-to-day operations.
+      </h2>
+      <div class="gc-home-section__text">
+        <p>
+          Client details in one place. Service requirements somewhere else. Job photos in messages. Quotes and
+          invoices in separate tools. As the work grows, keeping the full picture organized becomes harder.
+        </p>
+        <p>
+          GetContractorz brings the supported parts of your service workflow into one business workspace so you
+          can manage the information around the job with more structure.
+        </p>
+      </div>
+      <a class="gc-home-link" href="#home-workflow">See How It Works</a>
+    </div>
+    <div aria-hidden="true">
+      <img src="{% static 'public_site/images/generated/home-clarity-workspace.png' %}" alt="">
+    </div>
+  </div>
+</section>
+
+<section class="gc-home-section gc-home-section--features" aria-labelledby="home-manage-title">
+  <div class="gc-home-container">
+    <div class="gc-home-section__header">
+      <p class="gc-home-kicker">What you can manage</p>
+      <h2 class="gc-home-section__title" id="home-manage-title">
+        Built around real service-business <span class="gc-heading-accent">workflows.</span>
+      </h2>
+    </div>
+    <div class="gc-home-feature-grid">
+      <article class="gc-home-feature-card">
+        <span class="gc-home-feature-card__mark">01</span>
+        <h3>Clients & Services</h3>
+        <p>Add clients, manage your services, and create personalized services for the customers you work with.</p>
+      </article>
+      <article class="gc-home-feature-card">
+        <span class="gc-home-feature-card__mark">02</span>
+        <h3>Questionnaires & Terms</h3>
+        <p>Create service-specific questionnaires and terms and conditions so requirements are collected in a consistent
+          way.</p>
+      </article>
+      <article class="gc-home-feature-card">
+        <span class="gc-home-feature-card__mark">03</span>
+        <h3>Team & Assigned Jobs</h3>
+        <p>Add team members, assign work, and give employees access to the jobs they are responsible for completing.</p>
+      </article>
+      <article class="gc-home-feature-card">
+        <span class="gc-home-feature-card__mark">04</span>
+        <h3>Work Documentation</h3>
+        <p>Keep before-and-after job images connected to the work instead of scattered across separate conversations.
+        </p>
+      </article>
+      <article class="gc-home-feature-card">
+        <span class="gc-home-feature-card__mark">05</span>
+        <h3>Quotes & Invoices</h3>
+        <p>Create and send quotes, manage invoices, and keep those customer-facing records in the broader service
+          workflow.</p>
+      </article>
+      <article class="gc-home-feature-card">
+        <span class="gc-home-feature-card__mark">06</span>
+        <h3>Business & Payout Information</h3>
+        <p>Manage business, banking, and credential information, review payouts, and access general business information
+          and analytics in the dashboard.</p>
+      </article>
+    </div>
+    <div class="gc-home-section__actions">
+      <a class="gc-button gc-button--secondary" href="/services/">Explore All Features</a>
+    </div>
+  </div>
+</section>
+
+<section class="gc-home-section gc-home-section--workflow" id="home-workflow" aria-labelledby="home-workflow-title">
+  <div class="gc-home-container gc-home-workflow">
+    <div class="gc-home-section__header gc-home-section__header--dark">
+      <p class="gc-home-kicker">A clear workflow from setup to completed work</p>
+      <h2 class="gc-home-section__title" id="home-workflow-title">
+        From business setup to job documentation, keep the <span class="gc-heading-accent">process connected.</span>
+      </h2>
+    </div>
+    <div class="gc-home-workflow__grid">
+      <div class="gc-home-workflow__steps">
+        <article class="gc-home-step">
+          <span>01</span>
+          <div>
+            <h3>Set up your business</h3>
+            <p>Create your account, register your business, choose the service categories that apply, and configure your
+              services.</p>
+          </div>
+        </article>
+        <article class="gc-home-step">
+          <span>02</span>
+          <div>
+            <h3>Add clients and your team</h3>
+            <p>Create client records, add team members, and prepare the questionnaires and terms your services need.</p>
+          </div>
+        </article>
+        <article class="gc-home-step">
+          <span>03</span>
+          <div>
+            <h3>Create and assign client services</h3>
+            <p>Create a personalized service, collect the client's questionnaire, review it, and activate the service
+              when it is ready.</p>
+          </div>
+        </article>
+        <article class="gc-home-step">
+          <span>04</span>
+          <div>
+            <h3>Complete and manage the work</h3>
+            <p>The assigned employee can complete the job and upload before-and-after images while the Manager handles
+              related quotes, invoices, payouts, and business information.</p>
+          </div>
+        </article>
+        <div class="gc-home-section__actions">
+          <a class="gc-button gc-button--primary" href="#home-workflow">See the Full Workflow</a>
+        </div>
+      </div>
+      <div class="gc-home-workflow__image" aria-hidden="true">
+        <img src="{% static 'public_site/images/generated/home-connected-workflow.png' %}" alt="">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="gc-home-section gc-home-section--roles" aria-labelledby="home-roles-title">
+  <div class="gc-home-container">
+    <div class="gc-home-section__header">
+      <p class="gc-home-kicker">Different roles. One connected service workflow.</p>
+      <h2 class="gc-home-section__title" id="home-roles-title">The right view for the <span
+          class="gc-heading-accent">right role.</span></h2>
+    </div>
+    <div class="gc-home-role-grid">
+      <article class="gc-home-role-card">
+        <h3>Manager</h3>
+        <p>Manage the complete business workspace: clients, services, team members, questionnaires, terms, quotes,
+          assigned jobs, invoices, payouts, and business information.</p>
+      </article>
+      <article class="gc-home-role-card">
+        <h3>Employee</h3>
+        <p>View assigned jobs, complete the work, and upload before-and-after images for the jobs you are responsible
+          for.</p>
+      </article>
+      <article class="gc-home-role-card">
+        <h3>Client</h3>
+        <p>Access relevant services, complete service questionnaires, follow email or magic-link actions, and view
+          applicable quotes and invoices.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="gc-home-section gc-home-section--categories" aria-labelledby="home-categories-title">
+  <div class="gc-home-container gc-home-categories">
+    <div class="gc-home-section__copy">
+      <p class="gc-home-kicker">Built for supported service businesses</p>
+      <h2 class="gc-home-section__title" id="home-categories-title">Your <span class="gc-heading-accent">service
+          category</span> may already fit.</h2>
+      <p>
+        GetContractorz currently supports businesses across construction, cleaning, landscaping, plumbing,
+        electrical, snow removal, HVAC, roofing, siding, handyman services, flooring, windows and doors,
+        appliance repair, moving services, carpet cleaning, and pest control. The supported category set may
+        expand over time.
+      </p>
+      <div class="gc-home-inline-actions">
+        <a class="gc-button gc-button--secondary" href="/industries/">Explore Service Categories</a>
+        <a class="gc-button gc-button--outline" href="{{ frontend_url }}/register">Register Your Business</a>
+      </div>
+    </div>
+    <div class="gc-home-category-cloud" aria-label="Supported service categories">
+      <span>Construction</span>
+      <span>Cleaning</span>
+      <span>Landscaping</span>
+      <span>Plumbing</span>
+      <span>Electrical</span>
+      <span>HVAC</span>
+      <span>Roofing</span>
+      <span>Moving Services</span>
+      <span>Pest Control</span>
+    </div>
+  </div>
+</section>
+
+<section class="gc-home-section gc-home-section--marketplace" aria-labelledby="home-marketplace-title">
+  <div class="gc-home-container gc-home-split gc-home-split--reverse">
+    <div class="gc-home-marketplace-panel">
+      <img src="{% static 'public_site/images/generated/home-marketplace-discovery.png' %}" alt="" aria-hidden="true">
+    </div>
+    <div class="gc-home-section__copy">
+      <p class="gc-home-kicker">Marketplace discovery is separate from business management</p>
+      <h2 class="gc-home-section__title" id="home-marketplace-title">
+        Manage your business. Be discoverable in the <span class="gc-heading-accent">Marketplace.</span>
+      </h2>
+      <div class="gc-home-section__text">
+        <p>
+          GetContractorz's core product is the business workspace. The Marketplace is a separate public discovery
+          layer where visitors can browse registered businesses, review public business information, and contact
+          the business they choose directly.
+        </p>
+        <p>
+          Being listed does not mean GetContractorz has verified, approved, or endorsed the business, and
+          Marketplace visibility does not guarantee leads or service outcomes.
+        </p>
+      </div>
+      <a class="gc-home-link" href="/marketplace/">Explore the Marketplace</a>
+    </div>
+  </div>
+</section>
+
+<section class="gc-home-section gc-home-section--reassurance" aria-labelledby="home-reassurance-title">
+  <div class="gc-home-container">
+    <div class="gc-home-section__header">
+      <p class="gc-home-kicker">Trust & reassurance</p>
+      <h2 class="gc-home-section__title" id="home-reassurance-title">
+        Clear about what GetContractorz does - and <span class="gc-heading-accent">what it doesn't.</span>
+      </h2>
+    </div>
+    <div class="gc-home-reassurance-list">
+      <article>
+        <h3>Currently free</h3>
+        <p>Business registration and platform access are currently free. A future subscription model may be introduced,
+          but no future plans or prices are currently published.</p>
+      </article>
+      <article>
+        <h3>No lead guarantee</h3>
+        <p>Marketplace visibility does not guarantee enquiries, leads, jobs, or business growth.</p>
+      </article>
+      <article>
+        <h3>No provider verification</h3>
+        <p>GetContractorz does not currently independently verify business identity, licensing, credentials, insurance,
+          employee backgrounds, or service quality.</p>
+      </article>
+      <article>
+        <h3>Direct service relationship</h3>
+        <p>Marketplace visitors choose which business to contact, and service arrangements are handled directly between
+          the visitor and that business.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="gc-home-section gc-home-section--faq" id="home-faq" aria-labelledby="home-faq-title">
+  <div class="gc-home-container gc-home-faq">
+    <div class="gc-home-faq__header">
+      <h2 class="gc-home-faq__title" id="home-faq-title">
+        Frequently Asked
+        <span>Questions</span>
+      </h2>
+      <p>Got questions? We've got answers.</p>
+    </div>
+    <div class="gc-home-faq__list">
+      <details open>
+        <summary>Is GetContractorz free for service businesses?</summary>
+        <p>Business registration and platform access are currently free. A subscription model may be introduced later,
+          but no future plan, price, or billing promise is currently published.</p>
+      </details>
+      <details>
+        <summary>What kinds of service businesses can use GetContractorz?</summary>
+        <p>GetContractorz currently supports the service categories listed on the Service Categories page, including
+          construction, cleaning, landscaping, plumbing, electrical, HVAC, roofing, moving services, pest control, and
+          others.</p>
+      </details>
+      <details>
+        <summary>Does GetContractorz verify businesses in the Marketplace?</summary>
+        <p>No. GetContractorz does not currently independently verify business identity, licensing, credentials,
+          insurance, employee backgrounds, service quality, or other business claims.</p>
+      </details>
+      <details>
+        <summary>Does GetContractorz guarantee Marketplace leads?</summary>
+        <p>No. The Marketplace provides public discovery and direct contact, but it does not guarantee enquiries, leads,
+          responses, jobs, earnings, or business growth.</p>
+      </details>
+      <details>
+        <summary>Can clients use GetContractorz too?</summary>
+        <p>Yes. Clients invited by a registered business can access the parts of the platform relevant to their
+          services, including questionnaires and applicable quotes and invoices.</p>
+      </details>
+      <details>
+        <summary>What can employees do?</summary>
+        <p>Employees can view and complete assigned jobs and upload before-and-after images as part of the job workflow.
+        </p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="gc-home-section gc-home-section--final" aria-labelledby="home-final-title">
+  <div class="gc-public-cta">
+    <h2 class="gc-public-cta__title" id="home-final-title">
+      Ready to organize your service business in <span class="gc-heading-accent">one workspace?</span>
+    </h2>
+    <p class="gc-public-cta__copy">
+      Create your account, register your business, and start setting up the services and workflows you use every day.
+    </p>
+    <a class="gc-public-cta__button gc-button gc-button--primary" href="{{ frontend_url }}/register">
+      Get Started Free
+      <span aria-hidden="true">&rarr;</span>
+    </a>
+    <p class="gc-public-cta__note">Registration and platform access are currently free.</p>
+  </div>
+</section>
+{% endblock %}

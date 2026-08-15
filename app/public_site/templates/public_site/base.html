@@ -1,0 +1,31 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ meta_title|default:"GetContractorz" }}</title>
+  <meta name="description" content="{{ meta_description|default:'Run your service business from one organized workspace.' }}">
+  <meta name="robots" content="{{ meta_robots|default:'index,follow' }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="GetContractorz">
+  <meta property="og:title" content="{{ meta_title|default:'GetContractorz' }}">
+  <meta property="og:description" content="{{ meta_description|default:'Run your service business from one organized workspace.' }}">
+  <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <link rel="icon" href="{% static 'public_site/images/favicon.png' %}">
+  <link rel="stylesheet" href="{% static 'public_site/css/public-site.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% include "public_site/components/header.html" %}
+
+  <main id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "public_site/components/footer.html" %}
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

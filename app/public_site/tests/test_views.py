@@ -34,47 +34,50 @@ class PublicSiteViewTests(TestCase):
             answer="It connects the service workflow.",
         )
 
-    def test_home_is_server_rendered_with_seo_and_dynamic_content(self):
+    def test_home_is_server_rendered_with_seo_and_hero_copy(self):
         response = self.client.get(reverse("public_site:home"))
 
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "public_site/home.html")
         self.assertContains(response, "<h1", html=False)
-        self.assertContains(response, "Example Plumbing")
-        self.assertContains(response, "How does GetContractorz work?")
         self.assertContains(response, 'rel="canonical"')
-        self.assertContains(response, 'href="/#faqs"', count=2)
-        self.assertContains(response, 'id="faqs"')
-        self.assertContains(response, 'class="text-base leading-relaxed text-white/80 md:text-lg"')
-        self.assertContains(response, "SERVICE BUSINESS MANAGEMENT SOFTWARE THAT KEEPS WORK CONNECTED")
-        self.assertContains(response, "Start managing service work with GetContractorz")
-        self.assertNotContains(response, "Ready To Design Smarter?")
+        self.assertContains(response, "Service Business Management Software | GetContractorz")
+        self.assertContains(response, "Keep your service business organized in one")
+        self.assertContains(response, "workspace.")
+        self.assertContains(response, "Manage the operational work around your clients and jobs")
+        self.assertContains(response, "Get Started Free")
+        self.assertContains(response, "Explore the Marketplace")
+        self.assertContains(response, "Registration and platform access are currently free.")
+        self.assertContains(response, "Less scatter.")
+        self.assertContains(response, "More clarity")
+        self.assertContains(response, "real service-business workflows.")
+        self.assertContains(response, "From business setup to job documentation")
+        self.assertContains(response, "process connected.")
+        self.assertContains(response, "right role.")
+        self.assertContains(response, "service category")
+        self.assertContains(response, "Manage your business. Be discoverable in the")
+        self.assertContains(response, "Marketplace.")
+        self.assertContains(response, "Clear about what GetContractorz does")
+        self.assertContains(response, "what it doesn't.")
+        self.assertContains(response, "Frequently Asked")
+        self.assertContains(response, "Questions")
+        self.assertContains(response, "Ready to organize your service business in")
+        self.assertContains(response, "one workspace?")
+        self.assertContains(response, '"@type": "Organization"')
+        self.assertContains(response, '"@type": "WebSite"')
+        self.assertContains(response, '"@type": "FAQPage"')
+        self.assertNotContains(response, "Example Plumbing")
+        self.assertNotContains(response, "How does GetContractorz work?")
+        self.assertNotContains(response, "text-white/80")
 
     @override_settings(FRONTEND_URL="http://frontend.test:5173/")
     def test_auth_actions_link_to_the_configured_react_frontend(self):
         response = self.client.get(reverse("public_site:home"))
-        industries_response = self.client.get(reverse("public_site:industries"))
 
         self.assertContains(response, 'href="http://frontend.test:5173/sign-in"', count=2)
-        self.assertContains(
-            response,
-            'href="http://frontend.test:5173/user/profile"',
-        )
-        self.assertContains(
-            response,
-            'href="http://frontend.test:5173/logout"',
-            count=2,
-        )
-        self.assertContains(response, "data-account-toggle")
-        self.assertContains(response, "data-mobile-account")
-        self.assertContains(
-            response,
-            'src="http://frontend.test:5173/session-bridge"',
-        )
-        self.assertContains(
-            industries_response,
-            'href="http://frontend.test:5173/register"',
-        )
-        self.assertContains(response, 'data-frontend-url="http://frontend.test:5173"')
+        self.assertContains(response, 'href="http://frontend.test:5173/register"')
+        self.assertNotContains(response, "data-account-toggle")
+        self.assertNotContains(response, "session-bridge")
 
     def test_public_header_marks_current_page_as_active(self):
         routes = [
