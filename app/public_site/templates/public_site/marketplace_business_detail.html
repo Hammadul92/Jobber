@@ -1,0 +1,125 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="{{ card.name }}, {{ card.primary_category }} business, {{ card.name }} {{ card.location }}, service provider profile, GetContractorz Marketplace business">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Marketplace",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/marketplace/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "{{ card.primary_category|escapejs }}",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/marketplace/?category={{ card.primary_category|urlencode }}"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ card.name|escapejs }}",
+            "item": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+          }
+        ]
+      },
+      {
+        "@type": "LocalBusiness",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}#business",
+        "name": "{{ card.name|escapejs }}",
+        "description": "{{ card.description|escapejs }}",
+        "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}",
+        "telephone": "{{ card.phone|escapejs }}",
+        "email": "{{ card.email|escapejs }}",
+        "address": "{{ card.location|escapejs }}",
+        "knowsAbout": [
+          {% for service in card.service_categories %}
+            "{{ service|escapejs }}"{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ]
+      }
+    ]
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="gc-business-profile-page">
+  <section class="gc-business-profile-hero" aria-labelledby="business-profile-title">
+    <div class="gc-home-container">
+      <nav class="gc-business-profile-breadcrumb" aria-label="Breadcrumb">
+        <a href="/marketplace/">Marketplace</a>
+        <span>/</span>
+        <a href="/marketplace/?category={{ card.primary_category|urlencode }}">{{ card.primary_category }}</a>
+        <span>/</span>
+        <span>{{ card.name }}</span>
+      </nav>
+
+      <div class="gc-business-profile-card gc-business-profile-card--single">
+        <div class="gc-business-profile-card__content">
+          <p class="gc-home-kicker">Marketplace business profile</p>
+          <div class="gc-business-profile-card__heading">
+            {% if card.logo %}
+              <img class="gc-business-profile-card__logo" src="{{ card.logo }}" alt="{{ card.name }} logo">
+            {% else %}
+              <span class="gc-business-profile-card__initials" aria-hidden="true">{{ card.initials }}</span>
+            {% endif %}
+            <h1 class="gc-business-profile-card__title" id="business-profile-title">{{ card.name }}</h1>
+          </div>
+          <p class="gc-business-profile-card__description">{{ card.description }}</p>
+
+          <dl class="gc-business-profile-info">
+            <div><dt>Category</dt><dd>{{ card.primary_category }}</dd></div>
+            <div><dt>Location</dt><dd>{{ card.location }}</dd></div>
+            <div><dt>Phone</dt><dd>{{ card.phone }}</dd></div>
+            <div><dt>Email</dt><dd>{{ card.email }}</dd></div>
+            <div><dt>Website</dt><dd>{% if card.website != "-" %}<a href="{{ card.website }}">{{ card.website }}</a>{% else %}-{% endif %}</dd></div>
+          </dl>
+
+          <div class="gc-business-profile-card__section">
+            <h2>Service categories</h2>
+            <div class="gc-marketplace-card__chips" aria-label="Service categories">
+              {% if card.service_categories %}
+                {% for service in card.service_categories %}
+                  <span>{{ service }}</span>
+                {% endfor %}
+              {% else %}
+                <span>-</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="gc-marketplace-card__actions">
+            {% if card.contact_href %}
+              <a class="gc-button gc-button--primary" href="{{ card.contact_href }}">Contact This Business</a>
+            {% else %}
+              <span class="gc-marketplace-card__unavailable">Contact This Business: -</span>
+            {% endif %}
+            <a class="gc-button gc-button--outline" href="/marketplace/">Back to Marketplace</a>
+          </div>
+
+          <div class="gc-business-profile-card__disclaimer">
+            <p class="gc-home-kicker">Required disclaimer</p>
+            <p>
+              Information is supplied by the business. GetContractorz does not currently independently verify
+              business identity, licensing, credentials, insurance, service quality, or other business claims.
+              Contacting a business through information shown here does not make GetContractorz a party to your
+              service arrangement.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+</article>
+{% endblock %}

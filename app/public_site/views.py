@@ -1,5 +1,6 @@
+from django.db.models import Q
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import TemplateView
 
@@ -72,6 +73,46 @@ PUBLIC_PAGE_METADATA = {
 }
 
 
+def _business_location_label(business):
+    return ", ".join(
+        part
+        for part in [business.city, business.province_state, business.country]
+        if part
+    ) or "-"
+
+
+def _business_contact_href(business):
+    if business.email:
+        return f"mailto:{business.email}"
+    if business.phone:
+        return f"tel:{business.phone}"
+    if business.website:
+        return business.website
+    return ""
+
+
+def _business_public_data(business):
+    service_names = list(business.services_offered.names())
+    primary_category = service_names[0] if service_names else "-"
+    additional_categories = service_names[1:]
+    initials = "".join(part[0] for part in business.name.split()[:2]).upper() or "-"
+    return {
+        "business": business,
+        "name": business.name or "-",
+        "primary_category": primary_category,
+        "additional_categories": additional_categories,
+        "service_categories": service_names,
+        "location": _business_location_label(business),
+        "description": business.business_description or "-",
+        "phone": business.phone or "-",
+        "email": business.email or "-",
+        "website": business.website or "-",
+        "logo": business.logo.url if business.logo else "",
+        "initials": initials,
+        "contact_href": _business_contact_href(business),
+    }
+
+
 def home(request):
     return render(
         request,
@@ -95,19 +136,91 @@ def marketplace(request):
         .order_by("name")
     )
     query = request.GET.get("q", "").strip()
+    category = request.GET.get("category", "").strip()
+    location = request.GET.get("location", "").strip()
+
+    active_businesses = list(businesses)
+    category_options = sorted(
+        {
+            service.name
+            for business in active_businesses
+            for service in business.services_offered.all()
+            if service.name
+        }
+    )
+    location_options = sorted(
+        {
+            ", ".join(
+                part
+                for part in [business.city, business.province_state, business.country]
+                if part
+            )
+            for business in active_businesses
+            if any([business.city, business.province_state, business.country])
+        }
+    )
+
     if query:
-        businesses = businesses.filter(name__icontains=query)
+        businesses = businesses.filter(
+            Q(name__icontains=query)
+            | Q(business_description__icontains=query)
+            | Q(services_offered__name__icontains=query)
+        ).distinct()
+    if category:
+        businesses = businesses.filter(services_offered__name=category).distinct()
+    if location:
+        businesses = [
+            business
+            for business in businesses
+            if ", ".join(
+                part
+                for part in [business.city, business.province_state, business.country]
+                if part
+            )
+            == location
+        ]
+
+    business_cards = []
+    for business in businesses:
+        business_cards.append(_business_public_data(business))
+
     return render(
         request,
         "public_site/marketplace.html",
         {
-            "businesses": businesses,
+            "businesses": business_cards,
             "query": query,
-            "meta_title": "Service Business Marketplace Directory | GetContractorz",
+            "selected_category": category,
+            "selected_location": location,
+            "category_options": category_options,
+            "location_options": location_options,
+            "result_count": len(business_cards),
+            "meta_title": "Service Business Marketplace | GetContractorz",
             "meta_description": (
-                "Browse service businesses registered on GetContractorz by "
-                "business name, location, and service category, then contact "
-                "the business directly about your service requirements."
+                "Browse registered service businesses on GetContractorz, review "
+                "their public information, and contact the business you choose "
+                "directly."
+            ),
+        },
+    )
+
+
+def marketplace_business_detail(request, business_slug):
+    business = get_object_or_404(
+        Business.objects.filter(is_active=True).prefetch_related("services_offered"),
+        slug=business_slug,
+    )
+    card = _business_public_data(business)
+    return render(
+        request,
+        "public_site/marketplace_business_detail.html",
+        {
+            "card": card,
+            "meta_title": f"{card['name']} | GetContractorz Marketplace",
+            "meta_description": (
+                f"View public information for {card['name']}, including service "
+                "categories, location details, and contact information supplied "
+                "through GetContractorz."
             ),
         },
     )
@@ -178,6 +291,14 @@ def sitemap(request):
     urls = []
     for name in route_names:
         location = request.build_absolute_uri(reverse(f"public_site:{name}"))
+        urls.append(f"<url><loc>{location}</loc></url>")
+    for business in Business.objects.filter(is_active=True).order_by("slug"):
+        location = request.build_absolute_uri(
+            reverse(
+                "public_site:marketplace-business-detail",
+                kwargs={"business_slug": business.slug},
+            )
+        )
         urls.append(f"<url><loc>{location}</loc></url>")
     return HttpResponse(
         '<?xml version="1.0" encoding="UTF-8"?>'

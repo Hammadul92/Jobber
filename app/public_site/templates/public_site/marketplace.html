@@ -1,0 +1,372 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="service business marketplace, browse service businesses, find service providers, contractor marketplace, service businesses by category, home service marketplace, registered service businesses">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/marketplace/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Marketplace",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/marketplace/"
+          }
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/marketplace/#webpage",
+        "name": "Service Business Marketplace",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/marketplace/",
+        "description": "Browse registered service businesses on GetContractorz, review their public information, and contact the business you choose directly.",
+        "breadcrumb": {
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/marketplace/#breadcrumb"
+        }
+      }{% if businesses %},
+      {
+        "@type": "ItemList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/marketplace/#business-list",
+        "name": "GetContractorz Marketplace businesses",
+        "numberOfItems": {{ result_count }},
+        "itemListElement": [
+          {% for card in businesses %}
+          {
+            "@type": "ListItem",
+            "position": {{ forloop.counter }},
+            "name": "{{ card.name|escapejs }}",
+            "url": "{{ request.scheme }}://{{ request.get_host }}/marketplace/#business-{{ card.business.slug|slugify }}"
+          }{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ]
+      }
+      {% endif %}
+    ]
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="gc-marketplace-page">
+  <section class="gc-home-hero" aria-labelledby="marketplace-hero-title">
+    <img class="gc-home-hero__shape gc-home-hero__shape--right"
+      src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--left"
+      src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--hexagon" src="{% static 'public_site/images/hexagon.svg' %}"
+      alt="" aria-hidden="true">
+
+    <div class="gc-home-hero__content">
+      <p class="gc-home-hero__eyebrow">Marketplace</p>
+      <h1 class="gc-home-hero__title" id="marketplace-hero-title">
+        Find registered service businesses and
+        <span class="gc-home-hero__title-accent">contact them directly.</span>
+      </h1>
+      <p class="gc-home-hero__copy">
+        Browse businesses listed on GetContractorz, explore the public information they provide, and choose which
+        business you want to contact.
+      </p>
+      <div class="gc-home-hero__actions" aria-label="Marketplace actions">
+        <a class="gc-home-hero__button gc-home-hero__button--secondary" href="#marketplace-results">
+          Browse Businesses
+        </a>
+        <a class="gc-home-hero__button gc-home-hero__button--primary" href="{{ frontend_url }}/register">
+          Get Started Free
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-marketplace-results" id="marketplace-results" aria-labelledby="marketplace-results-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header">
+        <p class="gc-home-kicker">{{ result_count }} businesses</p>
+        <h2 class="gc-home-section__title" id="marketplace-results-title">
+          Businesses matching <span class="gc-heading-accent">your search.</span>
+        </h2>
+      </div>
+
+      <form class="gc-marketplace-filter" action="/marketplace/" method="get" data-marketplace-filter-form>
+        <label>
+          <span>Search businesses</span>
+          <input type="search" name="q" value="{{ query }}" placeholder="Search by business name or service">
+        </label>
+
+        <div class="gc-marketplace-combobox" data-marketplace-combobox>
+          <span class="gc-marketplace-combobox__label">Service category</span>
+          <input type="hidden" name="category" value="{{ selected_category }}">
+          <button class="gc-marketplace-combobox__button" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span data-combobox-label>{% if selected_category %}{{ selected_category }}{% else %}All categories{% endif %}</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="gc-marketplace-combobox__panel" hidden>
+            <input class="gc-marketplace-combobox__search" type="search" placeholder="Search categories" aria-label="Search service categories">
+            <div class="gc-marketplace-combobox__list" role="listbox">
+              <button type="button" role="option" data-value="" {% if not selected_category %}aria-selected="true"{% endif %}>All categories</button>
+              {% for category in category_options %}
+                <button type="button" role="option" data-value="{{ category }}" {% if selected_category == category %}aria-selected="true"{% endif %}>{{ category }}</button>
+              {% endfor %}
+            </div>
+            <p class="gc-marketplace-combobox__empty" hidden>No matches found.</p>
+          </div>
+        </div>
+
+        <div class="gc-marketplace-combobox" data-marketplace-combobox>
+          <span class="gc-marketplace-combobox__label">Location</span>
+          <input type="hidden" name="location" value="{{ selected_location }}">
+          <button class="gc-marketplace-combobox__button" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span data-combobox-label>{% if selected_location %}{{ selected_location }}{% else %}All available locations{% endif %}</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="gc-marketplace-combobox__panel" hidden>
+            <input class="gc-marketplace-combobox__search" type="search" placeholder="Search locations" aria-label="Search locations">
+            <div class="gc-marketplace-combobox__list" role="listbox">
+              <button type="button" role="option" data-value="" {% if not selected_location %}aria-selected="true"{% endif %}>All available locations</button>
+              {% for location in location_options %}
+                <button type="button" role="option" data-value="{{ location }}" {% if selected_location == location %}aria-selected="true"{% endif %}>{{ location }}</button>
+              {% endfor %}
+            </div>
+            <p class="gc-marketplace-combobox__empty" hidden>No matches found.</p>
+          </div>
+        </div>
+
+        <div class="gc-marketplace-filter__actions">
+          <button class="gc-button gc-button--primary" type="submit">Search</button>
+          <a class="gc-button gc-button--outline" href="/marketplace/" data-marketplace-clear-filters>Clear filters</a>
+        </div>
+      </form>
+
+      {% if businesses %}
+        <div class="gc-marketplace-card-grid">
+          {% for card in businesses %}
+            <article class="gc-marketplace-card" id="business-{{ card.business.slug|slugify }}">
+              <div class="gc-marketplace-card__header">
+                {% if card.logo %}
+                  <img class="gc-marketplace-card__logo" src="{{ card.logo }}" alt="{{ card.name }} logo">
+                {% else %}
+                  <span class="gc-marketplace-card__initials" aria-hidden="true">{{ card.initials }}</span>
+                {% endif %}
+                <div>
+                  <h3>{{ card.name }}</h3>
+                  <p>{{ card.primary_category }}</p>
+                </div>
+              </div>
+
+              <dl class="gc-marketplace-card__details">
+                <div><dt>Location</dt><dd>{{ card.location }}</dd></div>
+                <div><dt>Phone</dt><dd>{{ card.phone }}</dd></div>
+                <div><dt>Email</dt><dd>{{ card.email }}</dd></div>
+                <div><dt>Website</dt><dd>{% if card.website != "-" %}<a href="{{ card.website }}">{{ card.website }}</a>{% else %}-{% endif %}</dd></div>
+              </dl>
+
+              <p class="gc-marketplace-card__description">{{ card.description }}</p>
+
+              <div class="gc-marketplace-card__chips" aria-label="Additional service categories">
+                {% if card.additional_categories %}
+                  {% for service in card.additional_categories %}
+                    <span>{{ service }}</span>
+                  {% endfor %}
+                {% else %}
+                  <span>-</span>
+                {% endif %}
+              </div>
+
+              <div class="gc-marketplace-card__actions">
+                <a class="gc-button gc-button--secondary" href="/marketplace/business/{{ card.business.slug }}/">View Business</a>
+                {% if card.contact_href %}
+                  <a class="gc-button gc-button--primary" href="{{ card.contact_href }}">Contact This Business</a>
+                {% else %}
+                  <span class="gc-marketplace-card__unavailable">Contact This Business: -</span>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="gc-marketplace-empty">
+          <h3>No businesses match these filters yet.</h3>
+          <p>Try a different service category or location, or clear your filters to browse the available Marketplace listings.</p>
+          <a class="gc-button gc-button--primary" href="/marketplace/">Clear Filters</a>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-marketplace-disclaimer" aria-labelledby="marketplace-disclaimer-title">
+    <div class="gc-home-container gc-service-team-flow__grid">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Marketplace disclaimer</p>
+        <h2 class="gc-home-section__title" id="marketplace-disclaimer-title">
+          Before you contact a <span class="gc-heading-accent">business.</span>
+        </h2>
+      </div>
+      <div class="gc-home-section__text">
+        <p>
+          Marketplace information is supplied by registered businesses. GetContractorz does not currently
+          independently verify business identity, licensing, credentials, insurance, service quality, or other
+          business claims.
+        </p>
+        <p>
+          You choose which business to contact. Communication, pricing, service terms, and any final service
+          agreement are handled directly between you and the selected business. GetContractorz does not guarantee
+          response, job completion, service quality, or outcome.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--final" aria-labelledby="marketplace-final-title">
+    <div class="gc-public-cta">
+      <h2 class="gc-public-cta__title" id="marketplace-final-title">
+        Run a service <span class="gc-heading-accent">business?</span>
+      </h2>
+      <p class="gc-public-cta__copy">
+        Use GetContractorz to organize your business workflow and make your registered business available for
+        Marketplace discovery.
+      </p>
+      <a class="gc-public-cta__button gc-button gc-button--primary" href="{{ frontend_url }}/register">
+        Get Started Free
+        <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const scrollStorageKey = "getcontractorz.marketplace.scrollY";
+    const filterForm = document.querySelector("[data-marketplace-filter-form]");
+    const clearFilters = document.querySelector("[data-marketplace-clear-filters]");
+    const comboboxes = Array.from(document.querySelectorAll("[data-marketplace-combobox]"));
+    const storedScrollY = sessionStorage.getItem(scrollStorageKey);
+
+    if (storedScrollY !== null) {
+      sessionStorage.removeItem(scrollStorageKey);
+      requestAnimationFrame(() => {
+        window.scrollTo(0, Number(storedScrollY) || 0);
+      });
+    }
+
+    const closeComboboxes = (activeCombobox = null) => {
+      comboboxes.forEach((combobox) => {
+        if (combobox === activeCombobox) return;
+        const button = combobox.querySelector(".gc-marketplace-combobox__button");
+        const panel = combobox.querySelector(".gc-marketplace-combobox__panel");
+        if (!button || !panel) return;
+        button.setAttribute("aria-expanded", "false");
+        panel.hidden = true;
+      });
+    };
+
+    comboboxes.forEach((combobox) => {
+      const hiddenInput = combobox.querySelector('input[type="hidden"]');
+      const button = combobox.querySelector(".gc-marketplace-combobox__button");
+      const panel = combobox.querySelector(".gc-marketplace-combobox__panel");
+      const label = combobox.querySelector("[data-combobox-label]");
+      const search = combobox.querySelector(".gc-marketplace-combobox__search");
+      const options = Array.from(combobox.querySelectorAll('[role="option"]'));
+      const empty = combobox.querySelector(".gc-marketplace-combobox__empty");
+      if (!hiddenInput || !button || !panel || !label || !search || !empty) return;
+
+      const filterOptions = () => {
+        const term = search.value.trim().toLowerCase();
+        let visibleCount = 0;
+        options.forEach((option) => {
+          const isVisible = option.textContent.toLowerCase().includes(term);
+          option.hidden = !isVisible;
+          if (isVisible) visibleCount += 1;
+        });
+        empty.hidden = visibleCount > 0;
+      };
+
+      button.addEventListener("click", () => {
+        const willOpen = panel.hidden;
+        closeComboboxes(combobox);
+        panel.hidden = !willOpen;
+        button.setAttribute("aria-expanded", String(willOpen));
+        if (willOpen) {
+          search.value = "";
+          filterOptions();
+          search.focus();
+        }
+      });
+
+      search.addEventListener("input", filterOptions);
+
+      options.forEach((option) => {
+        option.addEventListener("click", () => {
+          hiddenInput.value = option.dataset.value || "";
+          label.textContent = option.textContent;
+          options.forEach((item) => item.setAttribute("aria-selected", "false"));
+          option.setAttribute("aria-selected", "true");
+          panel.hidden = true;
+          button.setAttribute("aria-expanded", "false");
+          button.focus();
+        });
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest("[data-marketplace-combobox]")) {
+        closeComboboxes();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeComboboxes();
+      }
+    });
+
+    if (filterForm) {
+      filterForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        sessionStorage.setItem(scrollStorageKey, String(window.scrollY));
+        const params = new URLSearchParams();
+        const formData = new FormData(filterForm);
+
+        formData.forEach((value, key) => {
+          const cleanValue = String(value).trim();
+          if (cleanValue) {
+            params.set(key, cleanValue);
+          }
+        });
+
+        const queryString = params.toString();
+        window.location.href = queryString
+          ? `${filterForm.action}?${queryString}`
+          : filterForm.action;
+      });
+    }
+
+    if (clearFilters) {
+      clearFilters.addEventListener("click", () => {
+        sessionStorage.setItem(scrollStorageKey, String(window.scrollY));
+      });
+    }
+  })();
+</script>
+{% endblock %}

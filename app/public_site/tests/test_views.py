@@ -130,14 +130,83 @@ class PublicSiteViewTests(TestCase):
         response = self.client.get(reverse("public_site:marketplace"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Service Business Marketplace Directory")
-        self.assertContains(response, "Browse active service businesses")
+        self.assertTemplateUsed(response, "public_site/marketplace.html")
+        self.assertContains(response, "Service Business Marketplace | GetContractorz")
+        self.assertContains(response, "service business marketplace")
+        self.assertContains(response, "Find registered service businesses and")
+        self.assertContains(response, "contact them directly.")
+        self.assertContains(response, "Browse businesses listed on GetContractorz")
+        self.assertContains(response, "Search businesses")
+        self.assertContains(response, "Search by business name or service")
+        self.assertContains(response, "data-marketplace-filter-form")
+        self.assertContains(response, "Service category")
+        self.assertContains(response, "All categories")
+        self.assertContains(response, "Location")
+        self.assertContains(response, "All available locations")
+        self.assertContains(response, 'name="category" value=""')
+        self.assertContains(response, 'name="location" value=""')
+        self.assertContains(response, "Search categories")
+        self.assertContains(response, "Search locations")
+        self.assertContains(response, "Businesses matching")
+        self.assertContains(response, "your search.")
         self.assertContains(response, "Example Plumbing")
         self.assertContains(response, "Plumbing")
-        self.assertContains(response, "Marketplace listings are published by registered businesses")
-        self.assertContains(response, "Service agreements, availability, pricing, work quality")
-        self.assertContains(response, "Run a service business? Build your workspace with GetContractorz")
-        self.assertContains(response, '"@type":"ItemList"')
+        self.assertContains(response, "Calgary, AB, CA")
+        self.assertContains(response, "Residential plumbing services.")
+        self.assertContains(response, "+1 403-555-0101")
+        self.assertContains(response, "hello@example.com")
+        self.assertContains(response, "<span>-</span>", html=True)
+        self.assertContains(response, "<dd>-</dd>", html=True)
+        self.assertContains(response, "View Business")
+        self.assertContains(response, "/marketplace/business/example-plumbing/")
+        self.assertContains(response, "Contact This Business")
+        self.assertContains(response, 'href="mailto:hello@example.com"')
+        self.assertContains(response, "Before you contact a")
+        self.assertContains(response, "business.")
+        self.assertContains(response, "Marketplace information is supplied by registered businesses.")
+        self.assertContains(response, "Run a service")
+        self.assertContains(response, "business?")
+        self.assertContains(response, '"@type": "BreadcrumbList"')
+        self.assertContains(response, '"@type": "WebPage"')
+        self.assertContains(response, '"@type": "ItemList"')
+        self.assertNotContains(response, "verification badges")
+        self.assertNotContains(response, "top rated")
+        self.assertNotContains(response, "dots-bg.svg")
+
+    def test_marketplace_business_detail_shows_public_business_information(self):
+        response = self.client.get(
+            reverse(
+                "public_site:marketplace-business-detail",
+                kwargs={"business_slug": "example-plumbing"},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "public_site/marketplace_business_detail.html")
+        self.assertContains(response, "Example Plumbing | GetContractorz Marketplace")
+        self.assertContains(response, "Marketplace business profile")
+        self.assertContains(response, "Example Plumbing")
+        self.assertContains(response, "Category")
+        self.assertContains(response, "Plumbing")
+        self.assertContains(response, "Location")
+        self.assertContains(response, "Calgary, AB, CA")
+        self.assertContains(response, "Residential plumbing services.")
+        self.assertContains(response, "Contact This Business")
+        self.assertContains(response, 'href="mailto:hello@example.com"')
+        self.assertContains(response, "Back to Marketplace")
+        self.assertContains(response, "Service")
+        self.assertContains(response, "categories.")
+        self.assertContains(response, "Phone")
+        self.assertContains(response, "+1 403-555-0101")
+        self.assertContains(response, "Email")
+        self.assertContains(response, "hello@example.com")
+        self.assertContains(response, "Website")
+        self.assertContains(response, "<dd>-</dd>", html=True)
+        self.assertContains(response, "Information is supplied by the business.")
+        self.assertContains(response, '"@type": "BreadcrumbList"')
+        self.assertContains(response, '"@type": "LocalBusiness"')
+        self.assertNotContains(response, "recommended")
+        self.assertNotContains(response, "top-rated")
 
     def test_contact_matches_public_content_and_includes_faqs(self):
         response = self.client.get(reverse("public_site:contact"))
@@ -328,8 +397,29 @@ class PublicSiteViewTests(TestCase):
             {"q": "missing"},
         )
 
-        self.assertContains(response, "No businesses found")
+        self.assertContains(response, "No businesses match these filters yet.")
         self.assertNotContains(response, "Residential plumbing services.")
+
+    def test_marketplace_filters_by_real_service_and_location_data(self):
+        response = self.client.get(
+            reverse("public_site:marketplace"),
+            {"category": "Plumbing", "location": "Calgary, AB, CA"},
+        )
+
+        self.assertContains(response, "Example Plumbing")
+        self.assertContains(response, "Residential plumbing services.")
+        self.assertContains(response, 'name="category" value="Plumbing"')
+        self.assertContains(response, 'name="location" value="Calgary, AB, CA"')
+        self.assertContains(response, 'data-value="Plumbing" aria-selected="true"')
+        self.assertContains(response, 'data-value="Calgary, AB, CA" aria-selected="true"')
+
+        response = self.client.get(
+            reverse("public_site:marketplace"),
+            {"category": "Cleaning"},
+        )
+
+        self.assertContains(response, "No businesses match these filters yet.")
+        self.assertNotContains(response, "Example Plumbing")
 
     def test_all_public_routes_render(self):
         route_names = [
@@ -369,6 +459,13 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(robots, "/sitemap.xml")
         self.assertEqual(sitemap["Content-Type"], "application/xml")
         self.assertContains(sitemap, reverse("public_site:marketplace"))
+        self.assertContains(
+            sitemap,
+            reverse(
+                "public_site:marketplace-business-detail",
+                kwargs={"business_slug": "example-plumbing"},
+            ),
+        )
 
     def test_customer_support_is_not_a_separate_public_page(self):
         response = self.client.get("/customer-support/")

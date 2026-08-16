@@ -8,6 +8,11 @@ app_name = "public_site"
 urlpatterns = [
     path("", views.home, name="home"),
     path("marketplace/", views.marketplace, name="marketplace"),
+    path(
+        "marketplace/business/<slug:business_slug>/",
+        views.marketplace_business_detail,
+        name="marketplace-business-detail",
+    ),
     path("faqs/", views.faqs, name="faqs"),
     path("contact/", views.contact, name="contact"),
     path("customer-support/", views.customer_support, name="customer-support"),
