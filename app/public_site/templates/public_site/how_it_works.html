@@ -1,0 +1,330 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="how GetContractorz works, service business workflow, contractor business workflow, client service workflow, job assignment workflow, service business management workflow, contractor job workflow">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/how-it-works/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "How It Works",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/how-it-works/"
+          }
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/how-it-works/#webpage",
+        "name": "How GetContractorz Works for Service Businesses",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/how-it-works/",
+        "description": "See how GetContractorz works for service-business Managers, invited Clients, Employees, and Marketplace visitors from registration through job completion.",
+        "breadcrumb": {
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/how-it-works/#breadcrumb"
+        }
+      },
+      {
+        "@type": "HowTo",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/how-it-works/#manager-workflow",
+        "name": "How Managers set up a GetContractorz business workspace",
+        "description": "Create an account, register the business, configure services, prepare questionnaires and terms, then run client and job workflows.",
+        "step": [
+          {"@type": "HowToStep", "position": 1, "name": "Create your account"},
+          {"@type": "HowToStep", "position": 2, "name": "Register your business"},
+          {"@type": "HowToStep", "position": 3, "name": "Configure your services"},
+          {"@type": "HowToStep", "position": 4, "name": "Prepare your service workflow"},
+          {"@type": "HowToStep", "position": 5, "name": "Run client and job workflows"}
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/how-it-works/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Does a business need manual approval before becoming a Manager?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. There is currently no manual business-approval process. The user completes business registration and the role changes to Manager when the business is created."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why does a client receive a magic link?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "A magic link can be used as part of the service workflow so the client can access and complete the service questionnaire or relevant service action."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Who activates a client service?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The Manager reviews the submitted questionnaire and changes the service from pending to active."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can an Employee manage the full business workspace?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The verified Employee role is limited to assigned-job activity and before-and-after image uploads. The complete business workspace belongs to the Manager role."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does contacting a Marketplace business create an obligation?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "GetContractorz itself does not create the service agreement. Any obligation depends on the terms agreed directly between the visitor and the selected business."
+            }
+          }
+        ]
+      }
+    ]
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="gc-how-page">
+  <section class="gc-home-hero" aria-labelledby="how-hero-title">
+    <img class="gc-home-hero__shape gc-home-hero__shape--right"
+      src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--left"
+      src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--hexagon" src="{% static 'public_site/images/hexagon.svg' %}"
+      alt="" aria-hidden="true">
+
+    <div class="gc-home-hero__content">
+      <p class="gc-home-hero__eyebrow">How it works</p>
+      <h1 class="gc-home-hero__title" id="how-hero-title">
+        See how each role moves through
+        <span class="gc-home-hero__title-accent">GetContractorz.</span>
+      </h1>
+      <p class="gc-home-hero__copy">
+        GetContractorz connects several related workflows, but each role has a different job to do. Here is
+        the standard flow for Managers, Clients, Employees, and Marketplace visitors.
+      </p>
+      <div class="gc-home-hero__actions" aria-label="How it works page actions">
+        <a class="gc-home-hero__button gc-home-hero__button--primary" href="{{ frontend_url }}/register">
+          Get Started Free
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-how-overview" aria-labelledby="how-overview-title">
+    <div class="gc-home-container gc-home-split">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Role overview</p>
+        <h2 class="gc-home-section__title" id="how-overview-title">
+          Each person has a clear place in the <span class="gc-heading-accent">workflow.</span>
+        </h2>
+        <div class="gc-how-role-grid">
+          <article><h3>Manager</h3><p>Runs the complete business workspace.</p></article>
+          <article><h3>Client</h3><p>Accesses service information and completes required actions.</p></article>
+          <article><h3>Employee</h3><p>Views and completes assigned jobs.</p></article>
+          <article><h3>Marketplace visitor</h3><p>Browses public business listings and contacts a chosen business directly.</p></article>
+        </div>
+      </div>
+      <div class="gc-how-overview__visual" aria-hidden="true">
+        <img src="{% static 'public_site/images/generated/how-it-works-workflow.png' %}" alt="">
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--workflow" aria-labelledby="how-manager-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header gc-home-section__header--dark">
+        <p class="gc-home-kicker">Business setup and Manager workflow</p>
+        <h2 class="gc-home-section__title" id="how-manager-title">
+          From new account to <span class="gc-heading-accent">business workspace.</span>
+        </h2>
+      </div>
+      <div class="gc-home-workflow__steps gc-how-workflow-steps">
+        <article class="gc-home-step"><span>01</span><div><h3>Create your account</h3><p>A newly registered account begins with the User role.</p></div></article>
+        <article class="gc-home-step"><span>02</span><div><h3>Register your business</h3><p>Complete the business-registration form in the Business tab. Once the business is created, the account role changes to Manager.</p></div></article>
+        <article class="gc-home-step"><span>03</span><div><h3>Configure your services</h3><p>Select the supported service category or categories that apply to your business and configure the services you provide.</p></div></article>
+        <article class="gc-home-step"><span>04</span><div><h3>Prepare your service workflow</h3><p>Create service questionnaires and terms and conditions, then add clients and team members.</p></div></article>
+        <article class="gc-home-step"><span>05</span><div><h3>Run client and job workflows</h3><p>Create personalized services, collect client questionnaires, activate services, assign employees, manage job completion, and handle related quotes, invoices, payouts, and business information.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-how-client-flow" aria-labelledby="how-client-title">
+    <div class="gc-home-container gc-service-flow">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Client invitation and questionnaire workflow</p>
+        <h2 class="gc-home-section__title" id="how-client-title">
+          From invitation to <span class="gc-heading-accent">active service.</span>
+        </h2>
+      </div>
+      <div class="gc-service-step-list">
+        <article><span>01</span><div><h3>The Manager creates the client</h3><p>The business creates a client record in GetContractorz.</p></div></article>
+        <article><span>02</span><div><h3>The client receives an invitation</h3><p>The client follows the email link to create or access the account.</p></div></article>
+        <article><span>03</span><div><h3>The Manager creates a personalized service</h3><p>The service is prepared for that client and connected to the required questionnaire.</p></div></article>
+        <article><span>04</span><div><h3>The client completes the questionnaire</h3><p>The client receives a service-related magic link, submits the questionnaire, and the Manager reviews it before changing the service from pending to active.</p></div></article>
+        <article><span>05</span><div><h3>The client accesses relevant information</h3><p>The client can access applicable services, quotes, and invoices based on their account and service status.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-how-employee-flow" aria-labelledby="how-employee-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header">
+        <p class="gc-home-kicker">Employee job workflow</p>
+        <h2 class="gc-home-section__title" id="how-employee-title">
+          A focused workflow for the person <span class="gc-heading-accent">completing the job.</span>
+        </h2>
+      </div>
+      <div class="gc-service-records__grid">
+        <article><h3>Receive assigned work</h3><p>The Employee sees the jobs assigned by the Manager.</p></article>
+        <article><h3>Complete the job</h3><p>The Employee completes the assigned work through the available job flow.</p></article>
+        <article><h3>Upload before-and-after images</h3><p>The job can include visual documentation so the Manager can review the before-and-after work images.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-how-admin-flow" aria-labelledby="how-admin-title">
+    <div class="gc-home-container gc-service-team-flow__grid">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Quotes, invoices, payouts, and reporting</p>
+        <h2 class="gc-home-section__title" id="how-admin-title">
+          Keep business administration connected to the <span class="gc-heading-accent">operational record.</span>
+        </h2>
+      </div>
+      <div class="gc-home-section__text">
+        <p>
+          Managers can create and send quotes, manage invoices, review payout information, manage business and
+          banking information, and view general dashboard information and analytics.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-how-marketplace-flow" aria-labelledby="how-marketplace-title">
+    <div class="gc-home-container gc-service-flow">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Marketplace visitor workflow</p>
+        <h2 class="gc-home-section__title" id="how-marketplace-title">
+          Discover a business. <span class="gc-heading-accent">Contact it directly.</span>
+        </h2>
+      </div>
+      <div class="gc-service-step-list">
+        <article><span>01</span><div><h3>Browse registered businesses</h3><p>Use the Marketplace to explore real registered business listings.</p></div></article>
+        <article><span>02</span><div><h3>Review public information</h3><p>View the public details supplied for that business, including category and location information where available.</p></div></article>
+        <article><span>03</span><div><h3>Choose who to contact</h3><p>GetContractorz does not choose a provider for you. You decide which business you want to contact.</p></div></article>
+        <article><span>04</span><div><h3>Arrange service directly</h3><p>Communication, service terms, pricing, and the final service arrangement happen directly between you and the selected business.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--faq" id="how-faq" aria-labelledby="how-faq-title">
+    <div class="gc-home-container gc-home-faq">
+      <div class="gc-home-faq__header">
+        <h2 class="gc-home-faq__title" id="how-faq-title">
+          Frequently Asked
+          <span>Questions</span>
+        </h2>
+        <p>Answers about roles, activation, and service workflows.</p>
+      </div>
+      <div class="gc-home-faq__list">
+        <details open>
+          <summary>Does a business need manual approval before becoming a Manager?</summary>
+          <p>No. There is currently no manual business-approval process. The user completes business registration and the role changes to Manager when the business is created.</p>
+        </details>
+        <details>
+          <summary>Why does a client receive a magic link?</summary>
+          <p>A magic link can be used as part of the service workflow so the client can access and complete the service questionnaire or relevant service action.</p>
+        </details>
+        <details>
+          <summary>Who activates a client service?</summary>
+          <p>The Manager reviews the submitted questionnaire and changes the service from pending to active.</p>
+        </details>
+        <details>
+          <summary>Can an Employee manage the full business workspace?</summary>
+          <p>The verified Employee role is limited to assigned-job activity and before-and-after image uploads. The complete business workspace belongs to the Manager role.</p>
+        </details>
+        <details>
+          <summary>Does contacting a Marketplace business create an obligation?</summary>
+          <p>GetContractorz itself does not create the service agreement. Any obligation depends on the terms agreed directly between the visitor and the selected business.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--final" aria-labelledby="how-final-title">
+    <div class="gc-public-cta">
+      <h2 class="gc-public-cta__title" id="how-final-title">
+        Ready to set up your <span class="gc-heading-accent">business workflow?</span>
+      </h2>
+      <a class="gc-public-cta__button gc-button gc-button--primary" href="{{ frontend_url }}/register">
+        Get Started Free
+        <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const faqItems = document.querySelectorAll(".gc-home-faq details");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return;
+
+    faqItems.forEach((item) => {
+      const summary = item.querySelector("summary");
+      if (!summary) return;
+
+      item.style.height = item.open ? `${item.scrollHeight}px` : `${summary.offsetHeight}px`;
+
+      summary.addEventListener("click", (event) => {
+        event.preventDefault();
+        item.style.overflow = "hidden";
+
+        if (item.open) {
+          item.style.height = `${item.scrollHeight}px`;
+          requestAnimationFrame(() => {
+            item.style.height = `${summary.offsetHeight}px`;
+          });
+          item.addEventListener("transitionend", () => {
+            item.open = false;
+          }, { once: true });
+          return;
+        }
+
+        item.open = true;
+        item.style.height = `${summary.offsetHeight}px`;
+        requestAnimationFrame(() => {
+          item.style.height = `${item.scrollHeight}px`;
+        });
+        item.addEventListener("transitionend", () => {
+          item.style.height = "auto";
+        }, { once: true });
+      });
+    });
+  })();
+</script>
+{% endblock %}

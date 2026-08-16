@@ -191,6 +191,37 @@ class PublicSiteViewTests(TestCase):
         self.assertNotContains(response, 'content="noindex,follow"')
         self.assertNotContains(response, "scheduling and dispatch are included")
 
+    def test_how_it_works_page_uses_role_workflow_copy(self):
+        response = self.client.get(reverse("public_site:how-it-works"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "public_site/how_it_works.html")
+        self.assertContains(response, "How GetContractorz Works for Service Businesses")
+        self.assertContains(response, "how GetContractorz works")
+        self.assertContains(response, "See how each role moves through")
+        self.assertContains(response, "GetContractorz.")
+        self.assertContains(response, "Manager")
+        self.assertContains(response, "Client")
+        self.assertContains(response, "Employee")
+        self.assertContains(response, "Marketplace visitor")
+        self.assertContains(response, "From new account to")
+        self.assertContains(response, "business workspace.")
+        self.assertContains(response, "From invitation to")
+        self.assertContains(response, "active service.")
+        self.assertContains(response, "A focused workflow for the person")
+        self.assertContains(response, "completing the job.")
+        self.assertContains(response, "Keep business administration connected to the")
+        self.assertContains(response, "operational record.")
+        self.assertContains(response, "Discover a business.")
+        self.assertContains(response, "Contact it directly.")
+        self.assertContains(response, "Ready to set up your")
+        self.assertContains(response, "business workflow?")
+        self.assertContains(response, '"@type": "BreadcrumbList"')
+        self.assertContains(response, '"@type": "HowTo"')
+        self.assertContains(response, '"@type": "FAQPage"')
+        self.assertContains(response, "how-it-works-workflow.png")
+        self.assertNotContains(response, "dots-bg.svg")
+
     def test_faq_page_matches_the_react_hero_and_accordion_structure(self):
         response = self.client.get(reverse("public_site:faqs"))
 
@@ -238,6 +269,7 @@ class PublicSiteViewTests(TestCase):
             "about",
             "industries",
             "features",
+            "how-it-works",
             "team",
             "terms-and-conditions",
             "privacy-policy",

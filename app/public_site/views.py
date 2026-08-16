@@ -19,6 +19,12 @@ PUBLIC_PAGE_METADATA = {
         "questionnaires, team jobs, work images, quotes, invoices, payouts, "
         "and business information.",
     ),
+    "how-it-works": (
+        "How GetContractorz Works for Service Businesses",
+        "See how GetContractorz works for service-business Managers, invited "
+        "Clients, Employees, and Marketplace visitors from registration "
+        "through job completion.",
+    ),
     "about": (
         "About GetContractorz Service Business Management Software",
         "Learn why Calgary-based GetContractorz helps service businesses "
@@ -145,6 +151,7 @@ def sitemap(request):
         "home",
         "for-service-businesses",
         "features",
+        "how-it-works",
         "marketplace",
         "industries",
         "about",
@@ -173,6 +180,7 @@ class PublicPageView(TemplateView):
         dedicated_templates = {
             "for-service-businesses": "public_site/for_service_businesses.html",
             "features": "public_site/features.html",
+            "how-it-works": "public_site/how_it_works.html",
             "about": "public_site/about.html",
             "industries": "public_site/industries.html",
             "privacy-policy": "public_site/privacy_policy.html",

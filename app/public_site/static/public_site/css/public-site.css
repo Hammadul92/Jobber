@@ -1005,6 +1005,77 @@ textarea {
   line-height: 1.6;
 }
 
+.gc-how-page {
+  background: var(--gc-page);
+}
+
+.gc-how-overview,
+.gc-how-employee-flow,
+.gc-how-marketplace-flow {
+  background: var(--gc-white);
+}
+
+.gc-how-role-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.gc-how-role-grid article {
+  border: 1px solid var(--gc-border);
+  border-radius: 8px;
+  background: var(--gc-page);
+  padding: 20px;
+}
+
+.gc-how-role-grid h3 {
+  margin: 0;
+  color: var(--gc-ink);
+  font-size: clamp(1.08rem, 1.25vw, 1.3rem);
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.gc-how-role-grid p {
+  margin: 8px 0 0;
+  color: var(--gc-muted);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.gc-how-overview__visual {
+  justify-self: center;
+  width: min(100%, 520px);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.gc-how-overview__visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.gc-how-workflow-steps {
+  max-width: 1160px;
+}
+
+.gc-how-admin-flow {
+  background: var(--gc-navy);
+  color: var(--gc-white);
+}
+
+.gc-how-admin-flow .gc-home-section__title,
+.gc-how-admin-flow .gc-home-section__text,
+.gc-how-admin-flow .gc-home-section__text p {
+  color: var(--gc-white);
+}
+
+.gc-how-admin-flow .gc-home-section__text p {
+  color: rgb(255 255 255 / 0.78);
+}
+
 .gc-home-split,
 .gc-home-categories {
   display: grid;
@@ -1707,7 +1778,8 @@ textarea {
   .gc-service-capability-grid,
   .gc-service-records__grid,
   .gc-service-objections,
-  .gc-feature-detail-list {
+  .gc-feature-detail-list,
+  .gc-how-role-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1900,6 +1972,10 @@ textarea {
   }
 
   .gc-feature-overview__visual {
+    width: min(100%, 430px);
+  }
+
+  .gc-how-overview__visual {
     width: min(100%, 430px);
   }
 
