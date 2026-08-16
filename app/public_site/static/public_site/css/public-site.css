@@ -1076,6 +1076,109 @@ textarea {
   color: rgb(255 255 255 / 0.78);
 }
 
+.gc-client-page {
+  background: var(--gc-page);
+}
+
+.gc-client-invitation,
+.gc-client-process {
+  background: var(--gc-white);
+}
+
+.gc-client-capabilities {
+  background: var(--gc-page);
+}
+
+.gc-client-visual {
+  justify-self: center;
+  width: min(100%, 520px);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.gc-client-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.gc-client-action-grid {
+  display: grid;
+  gap: 22px;
+}
+
+.gc-client-action-grid article {
+  position: relative;
+  min-height: 245px;
+  overflow: hidden;
+  border: 1px solid var(--gc-border);
+  border-radius: 8px;
+  background: var(--gc-white);
+  padding: 28px;
+  box-shadow: var(--gc-shadow-sm);
+}
+
+.gc-client-action-grid article::after {
+  position: absolute;
+  right: -32px;
+  top: -32px;
+  width: 96px;
+  height: 96px;
+  border: 12px solid rgb(255 122 0 / 0.18);
+  border-radius: 28px;
+  content: "";
+}
+
+.gc-client-action-grid h3 {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--gc-ink);
+  font-family: var(--gc-font-display);
+  font-size: clamp(1.35rem, 1.6vw, 1.85rem);
+  font-weight: 400;
+  line-height: 1.18;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.gc-client-action-grid p {
+  position: relative;
+  z-index: 1;
+  margin: 16px 0 0;
+  color: var(--gc-muted);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.gc-client-trust {
+  background: var(--gc-page);
+  color: var(--gc-ink);
+}
+
+.gc-client-trust .gc-home-section__title,
+.gc-client-trust .gc-home-section__text,
+.gc-client-trust .gc-home-section__text p {
+  color: var(--gc-ink);
+}
+
+.gc-client-trust .gc-home-section__text p {
+  color: var(--gc-muted);
+}
+
+.gc-client-final-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 40px;
+}
+
+.gc-client-final-actions .gc-public-cta__button {
+  margin-top: 0;
+}
+
 .gc-home-split,
 .gc-home-categories {
   display: grid;
@@ -1779,7 +1882,8 @@ textarea {
   .gc-service-records__grid,
   .gc-service-objections,
   .gc-feature-detail-list,
-  .gc-how-role-grid {
+  .gc-how-role-grid,
+  .gc-client-action-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1834,6 +1938,10 @@ textarea {
 
   .gc-feature-detail-list {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .gc-client-action-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .gc-footer__inner {
@@ -1976,6 +2084,10 @@ textarea {
   }
 
   .gc-how-overview__visual {
+    width: min(100%, 430px);
+  }
+
+  .gc-client-visual {
     width: min(100%, 430px);
   }
 

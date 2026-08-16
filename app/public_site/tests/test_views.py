@@ -222,6 +222,38 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(response, "how-it-works-workflow.png")
         self.assertNotContains(response, "dots-bg.svg")
 
+    def test_for_clients_page_uses_client_invitation_copy(self):
+        response = self.client.get(reverse("public_site:for-clients"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "public_site/for_clients.html")
+        self.assertContains(response, "GetContractorz for Clients | Invitations, Services, Quotes &amp; Invoices")
+        self.assertContains(response, "GetContractorz for clients")
+        self.assertContains(response, "Your service information, in")
+        self.assertContains(response, "one clear place.")
+        self.assertContains(response, "If a registered service business adds you as a client")
+        self.assertContains(response, "Log In")
+        self.assertContains(response, "Need Help? Contact Us")
+        self.assertContains(response, "Your service business uses GetContractorz to manage part of its")
+        self.assertContains(response, "workflow.")
+        self.assertContains(response, "Access the information that relates to")
+        self.assertContains(response, "your service.")
+        self.assertContains(response, "Complete questionnaires")
+        self.assertContains(response, "Use email and magic-link actions")
+        self.assertContains(response, "From email invitation to")
+        self.assertContains(response, "active service.")
+        self.assertContains(response, "What GetContractorz does - and")
+        self.assertContains(response, "does not - do.")
+        self.assertContains(response, "Client")
+        self.assertContains(response, "FAQ")
+        self.assertContains(response, "Already have an")
+        self.assertContains(response, "account?")
+        self.assertContains(response, '"@type": "BreadcrumbList"')
+        self.assertContains(response, '"@type": "WebPage"')
+        self.assertContains(response, '"@type": "FAQPage"')
+        self.assertContains(response, "for-clients-portal.png")
+        self.assertNotContains(response, "dots-bg.svg")
+
     def test_faq_page_matches_the_react_hero_and_accordion_structure(self):
         response = self.client.get(reverse("public_site:faqs"))
 
@@ -270,6 +302,7 @@ class PublicSiteViewTests(TestCase):
             "industries",
             "features",
             "how-it-works",
+            "for-clients",
             "team",
             "terms-and-conditions",
             "privacy-policy",

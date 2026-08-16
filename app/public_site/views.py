@@ -25,6 +25,12 @@ PUBLIC_PAGE_METADATA = {
         "Clients, Employees, and Marketplace visitors from registration "
         "through job completion.",
     ),
+    "for-clients": (
+        "GetContractorz for Clients | Invitations, Services, Quotes & Invoices",
+        "Learn why you may receive a GetContractorz invitation, how service "
+        "questionnaires and magic links work, and what client information "
+        "you can access.",
+    ),
     "about": (
         "About GetContractorz Service Business Management Software",
         "Learn why Calgary-based GetContractorz helps service businesses "
@@ -152,6 +158,7 @@ def sitemap(request):
         "for-service-businesses",
         "features",
         "how-it-works",
+        "for-clients",
         "marketplace",
         "industries",
         "about",
@@ -181,6 +188,7 @@ class PublicPageView(TemplateView):
             "for-service-businesses": "public_site/for_service_businesses.html",
             "features": "public_site/features.html",
             "how-it-works": "public_site/how_it_works.html",
+            "for-clients": "public_site/for_clients.html",
             "about": "public_site/about.html",
             "industries": "public_site/industries.html",
             "privacy-policy": "public_site/privacy_policy.html",
