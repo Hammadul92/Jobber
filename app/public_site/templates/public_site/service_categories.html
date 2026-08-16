@@ -1,0 +1,172 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="service business software by industry, contractor software by trade, service business categories, home service software by industry, construction business software, cleaning business software, landscaping business software, plumbing business software, electrical business software, HVAC business software, roofing business software">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/service-categories/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Service Categories",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/service-categories/"
+          }
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/service-categories/#webpage",
+        "name": "Service Business Software by Industry",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/service-categories/",
+        "description": "Explore the service-business categories currently supported by GetContractorz and find the right path to business registration or Marketplace discovery.",
+        "breadcrumb": {
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/service-categories/#breadcrumb"
+        }
+      },
+      {
+        "@type": "ItemList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/service-categories/#category-list",
+        "name": "GetContractorz supported service categories",
+        "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": "Construction"},
+          {"@type": "ListItem", "position": 2, "name": "Cleaning"},
+          {"@type": "ListItem", "position": 3, "name": "Landscaping"},
+          {"@type": "ListItem", "position": 4, "name": "Plumbing"},
+          {"@type": "ListItem", "position": 5, "name": "Electrical"},
+          {"@type": "ListItem", "position": 6, "name": "Snow Removal"},
+          {"@type": "ListItem", "position": 7, "name": "HVAC"},
+          {"@type": "ListItem", "position": 8, "name": "Roofing"},
+          {"@type": "ListItem", "position": 9, "name": "Siding"},
+          {"@type": "ListItem", "position": 10, "name": "Handyman Services"},
+          {"@type": "ListItem", "position": 11, "name": "Flooring"},
+          {"@type": "ListItem", "position": 12, "name": "Windows & Doors"},
+          {"@type": "ListItem", "position": 13, "name": "Appliance Repair"},
+          {"@type": "ListItem", "position": 14, "name": "Moving Services"},
+          {"@type": "ListItem", "position": 15, "name": "Carpet Cleaning"},
+          {"@type": "ListItem", "position": 16, "name": "Pest Control"}
+        ]
+      }
+    ]
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="gc-categories-page">
+  <section class="gc-home-hero" aria-labelledby="categories-hero-title">
+    <img class="gc-home-hero__shape gc-home-hero__shape--right"
+      src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--left"
+      src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--hexagon" src="{% static 'public_site/images/hexagon.svg' %}"
+      alt="" aria-hidden="true">
+
+    <div class="gc-home-hero__content">
+      <p class="gc-home-hero__eyebrow">Service categories</p>
+      <h1 class="gc-home-hero__title" id="categories-hero-title">
+        Built for a range of
+        <span class="gc-home-hero__title-accent">service businesses.</span>
+      </h1>
+      <p class="gc-home-hero__copy">
+        GetContractorz currently supports the service categories below. The set may expand over time, so category
+        names and counts should come from the live platform configuration rather than being hard-coded into
+        marketing claims.
+      </p>
+      <div class="gc-home-hero__actions" aria-label="Service categories actions">
+        <a class="gc-home-hero__button gc-home-hero__button--secondary" href="/marketplace/">
+          Explore the Marketplace
+        </a>
+        <a class="gc-home-hero__button gc-home-hero__button--primary" href="{{ frontend_url }}/register">
+          Get Started Free
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-categories-grid-section" aria-labelledby="categories-grid-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header">
+        <p class="gc-home-kicker">Supported service categories</p>
+        <h2 class="gc-home-section__title" id="categories-grid-title">
+          Find the service work that fits your <span class="gc-heading-accent">business.</span>
+        </h2>
+      </div>
+
+      <div class="gc-categories-grid" aria-label="Supported service category list">
+        <article><h3>Construction</h3><p>Organize client requirements, team responsibilities, job records, quotes, invoices, and before-and-after work documentation for construction-related service work.</p></article>
+        <article><h3>Cleaning</h3><p>Keep cleaning-service clients, service requirements, assigned jobs, team members, quotes, invoices, and work records organized in one workspace.</p></article>
+        <article><h3>Landscaping</h3><p>Manage landscaping clients, configured services, team assignments, job documentation, quotes, invoices, and related service information.</p></article>
+        <article><h3>Plumbing</h3><p>Organize plumbing clients, service details, questionnaires, assigned work, before-and-after images, quotes, invoices, and team workflows.</p></article>
+        <article><h3>Electrical</h3><p>Keep electrical-service client details, job requirements, employee assignments, work documentation, quotes, and invoices connected.</p></article>
+        <article><h3>Snow Removal</h3><p>Manage snow-removal clients, services, team assignments, work records, quotes, invoices, and related business information.</p></article>
+        <article><h3>HVAC</h3><p>Organize HVAC clients, service requirements, assigned jobs, employee work images, quotes, invoices, and service-related records.</p></article>
+        <article><h3>Roofing</h3><p>Keep roofing-service clients, requirements, team assignments, before-and-after images, quotes, invoices, and job information in one workspace.</p></article>
+        <article><h3>Siding</h3><p>Manage siding clients, service requirements, assigned work, team members, job images, quotes, and invoices through one business workspace.</p></article>
+        <article><h3>Handyman Services</h3><p>Organize multiple handyman service types, client requirements, team jobs, work documentation, quotes, invoices, and client records.</p></article>
+        <article><h3>Flooring</h3><p>Keep flooring client information, service requirements, job assignments, before-and-after images, quotes, and invoices organized.</p></article>
+        <article><h3>Windows &amp; Doors</h3><p>Manage window-and-door service clients, requirements, assigned jobs, work documentation, quotes, and invoices in one connected workflow.</p></article>
+        <article><h3>Appliance Repair</h3><p>Organize appliance-repair clients, service information, job assignments, work images, quotes, invoices, and related records.</p></article>
+        <article><h3>Moving Services</h3><p>Keep moving-service clients, requirements, team assignments, quotes, invoices, and service-related information organized.</p></article>
+        <article><h3>Carpet Cleaning</h3><p>Manage carpet-cleaning clients, service requirements, assigned jobs, work documentation, quotes, and invoices in one workspace.</p></article>
+        <article><h3>Pest Control</h3><p>Organize pest-control clients, service information, team assignments, questionnaires, quotes, invoices, and job documentation.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-categories-actions" aria-labelledby="categories-actions-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header">
+        <p class="gc-home-kicker">Two ways forward</p>
+        <h2 class="gc-home-section__title" id="categories-actions-title">
+          Choose the path that matches what you need <span class="gc-heading-accent">today.</span>
+        </h2>
+      </div>
+
+      <div class="gc-categories-action-grid">
+        <article>
+          <h3>Run a business in one of these categories?</h3>
+          <p>Create your account, register your business, choose the categories that apply, and configure the services you provide.</p>
+          <a class="gc-button gc-button--primary" href="{{ frontend_url }}/register">
+            Get Started Free
+            <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </article>
+        <article>
+          <h3>Looking for a service provider?</h3>
+          <p>Browse registered businesses in the Marketplace and contact the business you choose directly.</p>
+          <a class="gc-button gc-button--secondary" href="/marketplace/">Explore the Marketplace</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-categories-note" aria-label="Service category availability note">
+    <div class="gc-home-container">
+      <div class="gc-categories-note__box">
+        <p>
+          Supported categories may change as GetContractorz expands. Marketplace availability also depends on the
+          registered businesses currently listed in each category and location.
+        </p>
+      </div>
+    </div>
+  </section>
+</article>
+{% endblock %}

@@ -1179,6 +1179,112 @@ textarea {
   margin-top: 0;
 }
 
+.gc-categories-page {
+  background: var(--gc-page);
+}
+
+.gc-categories-grid-section {
+  background: var(--gc-white);
+}
+
+.gc-categories-grid {
+  display: grid;
+  gap: 22px;
+}
+
+.gc-categories-grid article {
+  position: relative;
+  min-height: 250px;
+  overflow: hidden;
+  border: 1px solid var(--gc-border);
+  border-radius: 8px;
+  background: var(--gc-white);
+  padding: 28px;
+  box-shadow: var(--gc-shadow-sm);
+}
+
+.gc-categories-grid article::after {
+  position: absolute;
+  right: -34px;
+  top: -34px;
+  width: 96px;
+  height: 96px;
+  border: 12px solid rgb(255 122 0 / 0.18);
+  border-radius: 28px;
+  content: "";
+}
+
+.gc-categories-grid h3,
+.gc-categories-action-grid h3 {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--gc-ink);
+  font-family: var(--gc-font-display);
+  font-size: clamp(1.45rem, 1.75vw, 2rem);
+  font-weight: 400;
+  line-height: 1.18;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.gc-categories-grid p,
+.gc-categories-action-grid p {
+  position: relative;
+  z-index: 1;
+  margin: 16px 0 0;
+  color: var(--gc-muted);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.gc-categories-actions,
+.gc-categories-note {
+  background: var(--gc-page);
+}
+
+.gc-categories-action-grid {
+  display: grid;
+  gap: 22px;
+}
+
+.gc-categories-action-grid article {
+  border: 1px solid var(--gc-border);
+  border-radius: 8px;
+  background: var(--gc-white);
+  padding: clamp(28px, 3vw, 44px);
+  box-shadow: var(--gc-shadow-sm);
+}
+
+.gc-categories-action-grid .gc-button {
+  width: fit-content;
+  margin-top: 28px;
+}
+
+.gc-categories-note {
+  padding-top: 0;
+}
+
+.gc-categories-note__box {
+  border: 2px solid var(--gc-orange);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 0%, rgb(255 122 0 / 0.18), rgb(255 122 0 / 0.05) 32%, rgb(245 247 249 / 0) 64%),
+    var(--gc-page);
+  padding: clamp(30px, 4vw, 54px);
+  text-align: center;
+}
+
+.gc-categories-note__box p {
+  max-width: 900px;
+  margin: 0 auto;
+  color: var(--gc-ink);
+  font-size: clamp(1.05rem, 1.35vw, 1.35rem);
+  font-weight: 700;
+  line-height: 1.55;
+}
+
 .gc-home-split,
 .gc-home-categories {
   display: grid;
@@ -1883,7 +1989,9 @@ textarea {
   .gc-service-objections,
   .gc-feature-detail-list,
   .gc-how-role-grid,
-  .gc-client-action-grid {
+  .gc-client-action-grid,
+  .gc-categories-grid,
+  .gc-categories-action-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1942,6 +2050,10 @@ textarea {
 
   .gc-client-action-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .gc-categories-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .gc-footer__inner {

@@ -31,6 +31,12 @@ PUBLIC_PAGE_METADATA = {
         "questionnaires and magic links work, and what client information "
         "you can access.",
     ),
+    "service-categories": (
+        "Service Business Software by Industry",
+        "Explore the service-business categories currently supported by "
+        "GetContractorz and find the right path to business registration or "
+        "Marketplace discovery.",
+    ),
     "about": (
         "About GetContractorz Service Business Management Software",
         "Learn why Calgary-based GetContractorz helps service businesses "
@@ -159,6 +165,7 @@ def sitemap(request):
         "features",
         "how-it-works",
         "for-clients",
+        "service-categories",
         "marketplace",
         "industries",
         "about",
@@ -189,6 +196,7 @@ class PublicPageView(TemplateView):
             "features": "public_site/features.html",
             "how-it-works": "public_site/how_it_works.html",
             "for-clients": "public_site/for_clients.html",
+            "service-categories": "public_site/service_categories.html",
             "about": "public_site/about.html",
             "industries": "public_site/industries.html",
             "privacy-policy": "public_site/privacy_policy.html",

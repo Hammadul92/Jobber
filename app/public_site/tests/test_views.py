@@ -254,6 +254,41 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(response, "for-clients-portal.png")
         self.assertNotContains(response, "dots-bg.svg")
 
+    def test_service_categories_page_uses_supported_category_copy(self):
+        response = self.client.get(reverse("public_site:service-categories"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "public_site/service_categories.html")
+        self.assertContains(response, "Service Business Software by Industry | GetContractorz")
+        self.assertContains(response, "service business software by industry")
+        self.assertContains(response, "Built for a range of")
+        self.assertContains(response, "service businesses.")
+        self.assertContains(response, "GetContractorz currently supports the service categories below.")
+        self.assertContains(response, "Construction")
+        self.assertContains(response, "Cleaning")
+        self.assertContains(response, "Landscaping")
+        self.assertContains(response, "Plumbing")
+        self.assertContains(response, "Electrical")
+        self.assertContains(response, "Snow Removal")
+        self.assertContains(response, "HVAC")
+        self.assertContains(response, "Roofing")
+        self.assertContains(response, "Siding")
+        self.assertContains(response, "Handyman Services")
+        self.assertContains(response, "Flooring")
+        self.assertContains(response, "Windows &amp; Doors")
+        self.assertContains(response, "Appliance Repair")
+        self.assertContains(response, "Moving Services")
+        self.assertContains(response, "Carpet Cleaning")
+        self.assertContains(response, "Pest Control")
+        self.assertContains(response, "Run a business in one of these categories?")
+        self.assertContains(response, "Looking for a service provider?")
+        self.assertContains(response, "Supported categories may change as GetContractorz expands.")
+        self.assertContains(response, '"@type": "BreadcrumbList"')
+        self.assertContains(response, '"@type": "WebPage"')
+        self.assertContains(response, '"@type": "ItemList"')
+        self.assertNotContains(response, "dots-bg.svg")
+        self.assertNotContains(response, "50+ HOME SERVICE INDUSTRIES")
+
     def test_faq_page_matches_the_react_hero_and_accordion_structure(self):
         response = self.client.get(reverse("public_site:faqs"))
 
@@ -303,6 +338,7 @@ class PublicSiteViewTests(TestCase):
             "features",
             "how-it-works",
             "for-clients",
+            "service-categories",
             "team",
             "terms-and-conditions",
             "privacy-policy",
