@@ -13,6 +13,12 @@ PUBLIC_PAGE_METADATA = {
         "quotes, invoices, and payouts from one organized "
         "service-business workspace.",
     ),
+    "features": (
+        "Service Business Software Features",
+        "Explore GetContractorz features for managing clients, services, "
+        "questionnaires, team jobs, work images, quotes, invoices, payouts, "
+        "and business information.",
+    ),
     "about": (
         "About GetContractorz Service Business Management Software",
         "Learn why Calgary-based GetContractorz helps service businesses "
@@ -138,6 +144,7 @@ def sitemap(request):
     route_names = [
         "home",
         "for-service-businesses",
+        "features",
         "marketplace",
         "industries",
         "about",
@@ -165,6 +172,7 @@ class PublicPageView(TemplateView):
     def get_template_names(self):
         dedicated_templates = {
             "for-service-businesses": "public_site/for_service_businesses.html",
+            "features": "public_site/features.html",
             "about": "public_site/about.html",
             "industries": "public_site/industries.html",
             "privacy-policy": "public_site/privacy_policy.html",

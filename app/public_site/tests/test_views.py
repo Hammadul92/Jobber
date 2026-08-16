@@ -112,7 +112,7 @@ class PublicSiteViewTests(TestCase):
         routes = [
             ("home", "Home"),
             ("industries", "Industries"),
-            ("services", "Features"),
+            ("features", "Features"),
             ("marketplace", "Marketplace"),
             ("faqs", "FAQs"),
             ("about", "About Us"),
@@ -169,13 +169,27 @@ class PublicSiteViewTests(TestCase):
         self.assertNotContains(response, "routes planned")
 
     def test_features_page_uses_product_software_positioning(self):
-        response = self.client.get(reverse("public_site:services"))
+        response = self.client.get(reverse("public_site:features"))
 
-        self.assertTemplateUsed(response, "public_site/services.html")
-        self.assertContains(response, "SERVICE BUSINESS MANAGEMENT SOFTWARE FEATURES")
-        self.assertContains(response, "Client Management")
-        self.assertContains(response, 'content="noindex,follow"')
-        self.assertNotContains(response, "Coming Soon")
+        self.assertTemplateUsed(response, "public_site/features.html")
+        self.assertContains(response, "Service Business Software Features")
+        self.assertContains(response, "service business software features")
+        self.assertContains(response, "The workflows behind your service business")
+        self.assertContains(response, "one place.")
+        self.assertContains(response, "Clients &amp; Services")
+        self.assertContains(response, "Collect the information each service requires.")
+        self.assertContains(response, "Give employees a clear job to complete.")
+        self.assertContains(response, "Keep visual job documentation with the work.")
+        self.assertContains(response, "Create and send quotes from the business workspace.")
+        self.assertContains(response, "Manage invoices alongside the service workflow.")
+        self.assertContains(response, "Ready to start using the")
+        self.assertContains(response, "workspace?")
+        self.assertContains(response, '"@type": "BreadcrumbList"')
+        self.assertContains(response, '"@type": "SoftwareApplication"')
+        self.assertContains(response, '"@type": "FAQPage"')
+        self.assertContains(response, "features-workspace-overview.png")
+        self.assertNotContains(response, 'content="noindex,follow"')
+        self.assertNotContains(response, "scheduling and dispatch are included")
 
     def test_faq_page_matches_the_react_hero_and_accordion_structure(self):
         response = self.client.get(reverse("public_site:faqs"))
@@ -223,7 +237,7 @@ class PublicSiteViewTests(TestCase):
         route_names = [
             "about",
             "industries",
-            "services",
+            "features",
             "team",
             "terms-and-conditions",
             "privacy-policy",
