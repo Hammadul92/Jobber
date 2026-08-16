@@ -372,7 +372,7 @@ textarea {
   justify-content: center;
   gap: 24px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 500;
   transform: translateY(8px);
 }
 
@@ -394,6 +394,7 @@ textarea {
   display: inline-flex;
   min-height: 48px;
   align-items: center;
+  gap: 6px;
   color: var(--gc-ink);
   cursor: pointer;
   list-style: none;
@@ -412,10 +413,20 @@ textarea {
 
 .gc-nav__link[aria-current="page"] {
   color: var(--gc-navy);
+  font-weight: 800;
 }
 
 .gc-nav__group {
   position: relative;
+}
+
+.gc-nav__chevron {
+  flex: 0 0 auto;
+  transition: transform 180ms ease;
+}
+
+.gc-nav__group[open] .gc-nav__chevron {
+  transform: rotate(180deg);
 }
 
 .gc-nav__menu {
@@ -425,17 +436,27 @@ textarea {
   z-index: 40;
   display: grid;
   min-width: 240px;
-  gap: 12px;
+  gap: 6px;
   margin-top: 8px;
-  border: 1px solid var(--gc-border);
+  border: 1px solid rgb(10 63 105 / 0.1);
   border-radius: var(--gc-radius-lg);
-  background: var(--gc-white);
-  padding: 24px;
-  box-shadow: var(--gc-shadow-md);
+  background: #f7fafc;
+  padding: 18px;
+  box-shadow: 0 18px 38px rgb(10 63 105 / 0.12);
 }
 
 .gc-nav__menu a {
-  font-weight: 700;
+  border-radius: 10px;
+  color: var(--gc-ink);
+  font-weight: 500;
+  padding: 10px 12px;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.gc-nav__menu a:hover,
+.gc-nav__menu a:focus-visible {
+  background: rgb(255 122 0 / 0.08);
+  color: var(--gc-navy);
 }
 
 .gc-mobile-menu {
@@ -1139,8 +1160,10 @@ textarea {
 }
 
 .gc-home-faq details {
+  overflow: hidden;
   border-bottom: 1px solid rgb(255 255 255 / 0.12);
   padding: 0;
+  transition: height 300ms ease;
 }
 
 .gc-home-faq summary {
@@ -1172,6 +1195,9 @@ textarea {
   border-bottom: 3px solid rgb(255 255 255 / 0.82);
   content: "";
   transform: rotate(45deg);
+  transition:
+    border-color 240ms ease,
+    transform 300ms ease;
 }
 
 .gc-home-faq details[open] summary::after {

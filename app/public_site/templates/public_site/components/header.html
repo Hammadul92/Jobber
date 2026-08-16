@@ -23,7 +23,12 @@
         <a class="gc-nav__link" href="/" {% if current_path == "/" %}aria-current="page"{% endif %}>Home</a>
 
         <details class="gc-nav__group">
-          <summary>Product</summary>
+          <summary>
+            <span>Product</span>
+            <svg class="gc-nav__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </summary>
           <div class="gc-nav__menu" aria-label="Product pages">
             <a href="/for-service-businesses/">For Service Businesses</a>
             <a href="/features/">Features</a>
@@ -36,8 +41,13 @@
         <a class="gc-nav__link" href="/marketplace/" {% if current_path == "/marketplace/" %}aria-current="page"{% endif %}>Marketplace</a>
 
         <details class="gc-nav__group">
-          <summary>Resources</summary>
-          <div class="gc-nav__menu" aria-label="Resources">
+          <summary>
+            <span>Company</span>
+            <svg class="gc-nav__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </summary>
+          <div class="gc-nav__menu" aria-label="Company">
             <a href="/about/">About</a>
             <a href="/faq/">FAQ</a>
             <a href="/contact/">Contact</a>
@@ -66,7 +76,7 @@
             <a href="/for-clients/">For Clients</a>
             <a href="/service-categories/">Service Categories</a>
             <a href="/marketplace/">Marketplace</a>
-            <span class="gc-mobile-menu__label">Resources</span>
+            <span class="gc-mobile-menu__label">Company</span>
             <a href="/about/">About</a>
             <a href="/faq/">FAQ</a>
             <a href="/contact/">Contact</a>
@@ -78,3 +88,38 @@
     {% endwith %}
   </div>
 </header>
+
+<script>
+  (() => {
+    const header = document.querySelector("[data-public-header]");
+    if (!header) return;
+
+    const dropdowns = Array.from(header.querySelectorAll(".gc-nav__group"));
+    const closeDropdowns = (activeDropdown = null) => {
+      dropdowns.forEach((dropdown) => {
+        if (dropdown !== activeDropdown) {
+          dropdown.removeAttribute("open");
+        }
+      });
+    };
+
+    dropdowns.forEach((dropdown) => {
+      dropdown.addEventListener("toggle", () => {
+        if (!dropdown.open) return;
+        closeDropdowns(dropdown);
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest("[data-public-header] .gc-nav__group")) {
+        closeDropdowns();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeDropdowns();
+      }
+    });
+  })();
+</script>

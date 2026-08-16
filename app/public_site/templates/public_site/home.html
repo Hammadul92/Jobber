@@ -430,3 +430,65 @@
   </div>
 </section>
 {% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const faqItems = document.querySelectorAll(".gc-home-faq details");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return;
+
+    faqItems.forEach((item) => {
+      const summary = item.querySelector("summary");
+      if (!summary) return;
+
+      if (item.open) {
+        item.style.height = `${item.scrollHeight}px`;
+      } else {
+        item.style.height = `${summary.offsetHeight}px`;
+      }
+
+      summary.addEventListener("click", (event) => {
+        event.preventDefault();
+        item.style.overflow = "hidden";
+
+        if (item.open) {
+          const startHeight = item.scrollHeight;
+          const endHeight = summary.offsetHeight;
+
+          item.style.height = `${startHeight}px`;
+          requestAnimationFrame(() => {
+            item.style.height = `${endHeight}px`;
+          });
+
+          item.addEventListener(
+            "transitionend",
+            () => {
+              item.open = false;
+            },
+            { once: true },
+          );
+          return;
+        }
+
+        item.open = true;
+        const startHeight = summary.offsetHeight;
+        const endHeight = item.scrollHeight;
+
+        item.style.height = `${startHeight}px`;
+        requestAnimationFrame(() => {
+          item.style.height = `${endHeight}px`;
+        });
+
+        item.addEventListener(
+          "transitionend",
+          () => {
+            item.style.height = "auto";
+          },
+          { once: true },
+        );
+      });
+    });
+  })();
+</script>
+{% endblock %}
