@@ -7,6 +7,12 @@ from core.models import Business, FAQ
 
 
 PUBLIC_PAGE_METADATA = {
+    "for-service-businesses": (
+        "Service Business Management Software for Contractors",
+        "Manage clients, services, team members, questionnaires, jobs, "
+        "quotes, invoices, and payouts from one organized "
+        "service-business workspace.",
+    ),
     "about": (
         "About GetContractorz Service Business Management Software",
         "Learn why Calgary-based GetContractorz helps service businesses "
@@ -131,6 +137,7 @@ def robots(request):
 def sitemap(request):
     route_names = [
         "home",
+        "for-service-businesses",
         "marketplace",
         "industries",
         "about",
@@ -157,6 +164,7 @@ class PublicPageView(TemplateView):
 
     def get_template_names(self):
         dedicated_templates = {
+            "for-service-businesses": "public_site/for_service_businesses.html",
             "about": "public_site/about.html",
             "industries": "public_site/industries.html",
             "privacy-policy": "public_site/privacy_policy.html",

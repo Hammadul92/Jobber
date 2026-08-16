@@ -23,14 +23,14 @@
         <a class="gc-nav__link" href="/" {% if current_path == "/" %}aria-current="page"{% endif %}>Home</a>
 
         <details class="gc-nav__group">
-          <summary>
+          <summary {% if current_path == "/for-service-businesses/" or current_path == "/features/" or current_path == "/how-it-works/" or current_path == "/for-clients/" %}aria-current="page"{% endif %}>
             <span>Product</span>
             <svg class="gc-nav__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </summary>
           <div class="gc-nav__menu" aria-label="Product pages">
-            <a href="/for-service-businesses/">For Service Businesses</a>
+            <a href="/for-service-businesses/" {% if current_path == "/for-service-businesses/" %}aria-current="page"{% endif %}>For Service Businesses</a>
             <a href="/features/">Features</a>
             <a href="/how-it-works/">How It Works</a>
             <a href="/for-clients/">For Clients</a>
@@ -41,7 +41,7 @@
         <a class="gc-nav__link" href="/marketplace/" {% if current_path == "/marketplace/" %}aria-current="page"{% endif %}>Marketplace</a>
 
         <details class="gc-nav__group">
-          <summary>
+          <summary {% if current_path == "/about/" or current_path == "/faq/" or current_path == "/faqs/" or current_path == "/contact/" %}aria-current="page"{% endif %}>
             <span>Company</span>
             <svg class="gc-nav__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
