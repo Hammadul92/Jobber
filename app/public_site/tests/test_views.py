@@ -114,9 +114,10 @@ class PublicSiteViewTests(TestCase):
             ("industries", "Industries"),
             ("features", "Features"),
             ("marketplace", "Marketplace"),
-            ("faqs", "FAQs"),
-            ("about", "About Us"),
-            ("contact", "Contact Us"),
+            ("faq", "FAQ"),
+            ("faqs", "FAQ"),
+            ("about", "About"),
+            ("contact", "Contact"),
         ]
 
         for route_name, label in routes:
@@ -358,25 +359,67 @@ class PublicSiteViewTests(TestCase):
         self.assertNotContains(response, "dots-bg.svg")
         self.assertNotContains(response, "50+ HOME SERVICE INDUSTRIES")
 
-    def test_faq_page_matches_the_react_hero_and_accordion_structure(self):
-        response = self.client.get(reverse("public_site:faqs"))
+    def test_faq_page_uses_approved_standalone_copy_and_seo(self):
+        response = self.client.get(reverse("public_site:faq"))
 
-        self.assertContains(response, "WE'VE GOT YOU COVERED")
-        self.assertContains(response, "rounded-horizontal-rectangle-white.svg")
-        self.assertContains(response, 'transition-[max-height,opacity]')
-        self.assertContains(response, 'style="max-height:500px;opacity:1"')
+        self.assertTemplateUsed(response, "public_site/faqs.html")
+        self.assertContains(response, "GetContractorz FAQ | Business, Clients &amp; Marketplace")
+        self.assertContains(response, "GetContractorz FAQ")
+        self.assertContains(response, "Straight answers about")
+        self.assertContains(response, "GetContractorz.")
+        self.assertContains(response, "Questions by topic")
+        self.assertContains(response, "Platform basics")
+        self.assertContains(response, "Business registration and pricing")
+        self.assertContains(response, "Features and workflows")
+        self.assertContains(response, "Clients")
+        self.assertContains(response, "Marketplace and trust")
+        self.assertContains(response, "Privacy and support")
+        self.assertContains(response, "What is GetContractorz?")
+        self.assertContains(response, "Is GetContractorz free for businesses?")
+        self.assertContains(response, "Does GetContractorz verify Marketplace businesses?")
+        self.assertContains(response, "Does being listed guarantee leads?")
+        self.assertContains(response, "Still need")
+        self.assertContains(response, "help?")
+        self.assertContains(response, '"@type": "BreadcrumbList"')
+        self.assertContains(response, '"@type": "WebPage"')
+        self.assertContains(response, '"@type": "FAQPage"')
+        self.assertContains(response, "gc-faq-accordion")
+        self.assertNotContains(response, "gc-home-faq")
+        self.assertNotContains(response, "WE'VE GOT YOU COVERED")
+        self.assertNotContains(response, "transition-[max-height,opacity]")
+        self.assertNotContains(response, "GetContractorz verified")
+        self.assertNotContains(response, "recommended providers")
 
-    def test_about_renders_all_react_content_sections(self):
+    def test_about_uses_approved_public_copy_and_seo(self):
         response = self.client.get(reverse("public_site:about"))
 
         self.assertTemplateUsed(response, "public_site/about.html")
-        self.assertContains(response, "About GetContractorz Service Business Management Software")
-        self.assertContains(response, "ABOUT GETCONTRACTORZ")
-        self.assertContains(response, "The full service lifecycle in one place.")
-        self.assertContains(response, "Stripe")
-        self.assertContains(response, "Built around real service work.")
+        self.assertContains(response, "About GetContractorz | Service Business Management Platform")
+        self.assertContains(response, "about GetContractorz")
+        self.assertContains(response, "Built around the real work behind service")
+        self.assertContains(response, "businesses.")
+        self.assertContains(response, "Service operations can become")
+        self.assertContains(response, "fragmented fast.")
+        self.assertContains(response, "A platform for service-business operations")
+        self.assertContains(response, "Marketplace discovery as a")
+        self.assertContains(response, "separate layer.")
+        self.assertContains(response, "Clarity before hype")
+        self.assertContains(response, "Structured workflows")
+        self.assertContains(response, "Role-appropriate access")
+        self.assertContains(response, "Direct Marketplace relationships")
+        self.assertContains(response, "Accuracy as a trust signal")
+        self.assertContains(response, "Currently serving Canada and the")
+        self.assertContains(response, "United States.")
+        self.assertContains(response, "Want to see if GetContractorz fits your")
+        self.assertContains(response, "service business?")
+        self.assertContains(response, '"@type": "BreadcrumbList"')
+        self.assertContains(response, '"@type": "WebPage"')
+        self.assertContains(response, '"@type": "SoftwareApplication"')
+        self.assertContains(response, "service business management platform")
         self.assertNotContains(response, "works offline")
         self.assertNotContains(response, "accounting software")
+        self.assertNotContains(response, "founder")
+        self.assertNotContains(response, "investors")
         self.assertNotContains(response, "Ready To Design Smarter?")
 
     def test_team_page_uses_credibility_focused_product_copy(self):
@@ -433,6 +476,7 @@ class PublicSiteViewTests(TestCase):
             "terms-and-conditions",
             "privacy-policy",
             "contact",
+            "faq",
             "faqs",
         ]
 
@@ -459,6 +503,8 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(robots, "/sitemap.xml")
         self.assertEqual(sitemap["Content-Type"], "application/xml")
         self.assertContains(sitemap, reverse("public_site:marketplace"))
+        self.assertContains(sitemap, reverse("public_site:faq"))
+        self.assertNotContains(sitemap, reverse("public_site:faqs"))
         self.assertContains(
             sitemap,
             reverse(
@@ -472,7 +518,7 @@ class PublicSiteViewTests(TestCase):
 
         self.assertRedirects(
             response,
-            reverse("public_site:faqs"),
+            reverse("public_site:faq"),
             status_code=301,
             target_status_code=200,
         )

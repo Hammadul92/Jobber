@@ -1,0 +1,182 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="about GetContractorz, service business management platform, service business operations software, GetContractorz marketplace, contractor business software, service business workflow software">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/about/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "About",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/about/"
+          }
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/about/#webpage",
+        "name": "About GetContractorz | Service Business Management Platform",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/about/",
+        "description": "Learn what GetContractorz is built to organize, how the Marketplace fits the platform, and the principles guiding its public product experience.",
+        "breadcrumb": {
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/about/#breadcrumb"
+        },
+        "about": {
+          "@type": "SoftwareApplication",
+          "name": "GetContractorz",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web"
+        }
+      }
+    ]
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="gc-about-page">
+  <section class="gc-home-hero gc-service-hero--home" aria-labelledby="about-hero-title">
+    <img class="gc-home-hero__shape gc-home-hero__shape--right"
+      src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--left"
+      src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--hexagon" src="{% static 'public_site/images/hexagon.svg' %}"
+      alt="" aria-hidden="true">
+
+    <div class="gc-home-hero__content">
+      <p class="gc-home-hero__eyebrow">About GetContractorz</p>
+      <h1 class="gc-home-hero__title" id="about-hero-title">
+        Built around the real work behind service
+        <span class="gc-home-hero__title-accent">businesses.</span>
+      </h1>
+      <p class="gc-home-hero__copy">
+        The job itself is only one part of running a service business. Clients, requirements, team
+        responsibilities, job documentation, quotes, invoices, payouts, and business information all need to stay
+        organized around it.
+      </p>
+      <p class="gc-home-hero__copy">
+        GetContractorz is built to bring those supported workflows into one connected business workspace.
+      </p>
+      <div class="gc-home-hero__actions" aria-label="About page actions">
+        <a class="gc-home-hero__button gc-home-hero__button--primary" href="{{ frontend_url }}/register">
+          Get Started Free
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a class="gc-home-hero__button gc-home-hero__button--secondary" href="/contact/">Contact Us</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-about-fragmented" aria-labelledby="about-fragmented-title">
+    <div class="gc-home-container gc-about-split">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Why the platform exists</p>
+        <h2 class="gc-home-section__title" id="about-fragmented-title">
+          Service operations can become <span class="gc-heading-accent">fragmented fast.</span>
+        </h2>
+      </div>
+      <div class="gc-home-section__text">
+        <p>
+          A client may begin in one system, service requirements in another, job photos in a message thread,
+          and quotes or invoices somewhere else. The more disconnected the workflow becomes, the harder it is
+          to understand what belongs to which client or job.
+        </p>
+        <p>
+          GetContractorz focuses on operational organization: bringing the supported client, service, team, job,
+          documentation, quote, invoice, payout, and business-information workflows together.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-about-platform" aria-labelledby="about-platform-title">
+    <div class="gc-home-container gc-about-split">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">What GetContractorz is building around</p>
+        <h2 class="gc-home-section__title" id="about-platform-title">
+          A platform for service-business operations - with Marketplace discovery as a
+          <span class="gc-heading-accent">separate layer.</span>
+        </h2>
+      </div>
+      <div class="gc-home-section__text">
+        <p>
+          The business workspace is the core product. Registered service businesses use it to manage their
+          operations.
+        </p>
+        <p>
+          The Marketplace is a complementary public layer that lets visitors discover registered businesses and
+          access public contact information. The visitor chooses who to contact, and the service relationship
+          remains between the visitor and the selected business.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-about-principles" aria-labelledby="about-principles-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header">
+        <p class="gc-home-kicker">Product principles</p>
+        <h2 class="gc-home-section__title" id="about-principles-title">
+          Built for clarity, structure, and <span class="gc-heading-accent">accurate expectations.</span>
+        </h2>
+      </div>
+      <div class="gc-about-principles__grid">
+        <article><h3>Clarity before hype</h3><p>Explain what the product actually does. Do not replace missing proof with exaggerated claims.</p></article>
+        <article><h3>Structured workflows</h3><p>Keep client, service, team, job, quote, invoice, and related information connected where the product supports it.</p></article>
+        <article><h3>Role-appropriate access</h3><p>Managers, Employees, and Clients have different responsibilities and should not be described as if they use the same workspace.</p></article>
+        <article><h3>Direct Marketplace relationships</h3><p>Marketplace discovery supports direct contact without presenting GetContractorz as the provider, employer, verifier, or contracting party.</p></article>
+        <article><h3>Accuracy as a trust signal</h3><p>No fake testimonials. No invented statistics. No verification badges without verification. No guaranteed outcomes.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-about-market" aria-labelledby="about-market-title">
+    <div class="gc-home-container gc-about-split">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Current market</p>
+        <h2 class="gc-home-section__title" id="about-market-title">
+          Currently serving Canada and the <span class="gc-heading-accent">United States.</span>
+        </h2>
+      </div>
+      <p class="gc-about-market__note">
+        Public geographic copy should remain at the country level unless real registered-business data supports a
+        more specific state, province, metro, or city claim.
+      </p>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--final" aria-labelledby="about-final-title">
+    <div class="gc-public-cta">
+      <h2 class="gc-public-cta__title" id="about-final-title">
+        Want to see if GetContractorz fits your <span class="gc-heading-accent">service business?</span>
+      </h2>
+      <p class="gc-public-cta__copy">
+        Create your account, register your business, and start setting up the services and workflows you use every day.
+      </p>
+      <a class="gc-public-cta__button gc-button gc-button--primary" href="{{ frontend_url }}/register">
+        Get Started Free
+        <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <p class="gc-public-cta__note">Registration and platform access are currently free.</p>
+    </div>
+  </section>
+</article>
+{% endblock %}

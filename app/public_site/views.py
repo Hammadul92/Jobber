@@ -39,10 +39,10 @@ PUBLIC_PAGE_METADATA = {
         "Marketplace discovery.",
     ),
     "about": (
-        "About GetContractorz Service Business Management Software",
-        "Learn why Calgary-based GetContractorz helps service businesses "
-        "manage clients, questionnaires, quotations, jobs, teams, invoices, "
-        "Stripe payments, and payment records.",
+        "About GetContractorz | Service Business Management Platform",
+        "Learn what GetContractorz is built to organize, how the Marketplace "
+        "fits the platform, and the principles guiding its public product "
+        "experience.",
     ),
     "industries": (
         "Service Business Management Software for 50+ Industries",
@@ -231,12 +231,11 @@ def faqs(request):
         request,
         "public_site/faqs.html",
         {
-            "faqs": FAQ.objects.filter(is_active=True),
-            "meta_title": "Service Business Management Software FAQs",
+            "meta_title": "GetContractorz FAQ | Business, Clients & Marketplace",
             "meta_description": (
-                "Get answers about GetContractorz features, client portals, "
-                "quotations, job management, team accounts, invoices, Stripe "
-                "payments and free access."
+                "Get answers about GetContractorz business registration, "
+                "features, clients, employees, Marketplace listings, current "
+                "free access, verification, and more."
             ),
         },
     )
@@ -259,7 +258,7 @@ def contact(request):
 
 
 def customer_support(request):
-    return redirect("public_site:faqs", permanent=True)
+    return redirect("public_site:faq", permanent=True)
 
 
 def robots(request):
@@ -284,7 +283,7 @@ def sitemap(request):
         "about",
         "team",
         "contact",
-        "faqs",
+        "faq",
         "terms-and-conditions",
         "privacy-policy",
     ]

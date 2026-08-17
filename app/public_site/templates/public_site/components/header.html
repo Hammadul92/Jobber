@@ -48,9 +48,9 @@
             </svg>
           </summary>
           <div class="gc-nav__menu" aria-label="Company">
-            <a href="/about/">About</a>
-            <a href="/faq/">FAQ</a>
-            <a href="/contact/">Contact</a>
+            <a href="/about/" {% if current_path == "/about/" %}aria-current="page"{% endif %}>About</a>
+            <a href="/faq/" {% if current_path == "/faq/" or current_path == "/faqs/" %}aria-current="page"{% endif %}>FAQ</a>
+            <a href="/contact/" {% if current_path == "/contact/" %}aria-current="page"{% endif %}>Contact</a>
           </div>
         </details>
 
@@ -70,16 +70,16 @@
           </summary>
           <nav class="gc-mobile-menu__panel" aria-label="Mobile navigation">
             <span class="gc-mobile-menu__label">Product</span>
-            <a href="/for-service-businesses/">For Service Businesses</a>
-            <a href="/features/">Features</a>
-            <a href="/how-it-works/">How It Works</a>
-            <a href="/for-clients/">For Clients</a>
-            <a href="/service-categories/">Service Categories</a>
-            <a href="/marketplace/">Marketplace</a>
+            <a href="/for-service-businesses/" {% if current_path == "/for-service-businesses/" %}aria-current="page"{% endif %}>For Service Businesses</a>
+            <a href="/features/" {% if current_path == "/features/" %}aria-current="page"{% endif %}>Features</a>
+            <a href="/how-it-works/" {% if current_path == "/how-it-works/" %}aria-current="page"{% endif %}>How It Works</a>
+            <a href="/for-clients/" {% if current_path == "/for-clients/" %}aria-current="page"{% endif %}>For Clients</a>
+            <a href="/service-categories/" {% if current_path == "/service-categories/" %}aria-current="page"{% endif %}>Service Categories</a>
+            <a href="/marketplace/" {% if current_path == "/marketplace/" %}aria-current="page"{% endif %}>Marketplace</a>
             <span class="gc-mobile-menu__label">Company</span>
-            <a href="/about/">About</a>
-            <a href="/faq/">FAQ</a>
-            <a href="/contact/">Contact</a>
+            <a href="/about/" {% if current_path == "/about/" %}aria-current="page"{% endif %}>About</a>
+            <a href="/faq/" {% if current_path == "/faq/" or current_path == "/faqs/" %}aria-current="page"{% endif %}>FAQ</a>
+            <a href="/contact/" {% if current_path == "/contact/" %}aria-current="page"{% endif %}>Contact</a>
             <a href="{{ frontend_url }}/sign-in">Login</a>
             <a class="gc-button gc-button--primary" href="{{ frontend_url }}/register">Get Started Free</a>
           </nav>

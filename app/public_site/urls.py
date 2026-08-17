@@ -13,6 +13,7 @@ urlpatterns = [
         views.marketplace_business_detail,
         name="marketplace-business-detail",
     ),
+    path("faq/", views.faqs, name="faq"),
     path("faqs/", views.faqs, name="faqs"),
     path("contact/", views.contact, name="contact"),
     path("customer-support/", views.customer_support, name="customer-support"),
