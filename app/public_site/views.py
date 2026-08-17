@@ -246,12 +246,11 @@ def contact(request):
         request,
         "public_site/contact.html",
         {
-            "faqs": FAQ.objects.filter(is_active=True),
-            "meta_title": "Contact GetContractorz | Product and Account Support",
+            "meta_title": "Contact GetContractorz | Product, Account & Marketplace Help",
             "meta_description": (
-                "Contact GetContractorz for product questions, account assistance, "
-                "marketplace enquiries or information about service business "
-                "management software."
+                "Contact GetContractorz with product, account, "
+                "business-registration, client, Marketplace, or general "
+                "questions using the approved contact form."
             ),
         },
     )
