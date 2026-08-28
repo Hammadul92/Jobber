@@ -124,6 +124,10 @@ textarea {
   color: var(--gc-orange);
 }
 
+.gc-mobile-hyphen {
+  display: none;
+}
+
 .gc-button {
   display: inline-flex;
   min-height: 48px;
@@ -341,6 +345,10 @@ textarea {
   background: rgb(0 0 0 / 0.56);
   content: "";
   animation: gcBackdropIn 180ms ease both;
+}
+
+.gc-mobile-menu:has(details[open]) {
+  z-index: 50;
 }
 
 .gc-mobile-menu__trigger {
@@ -3361,6 +3369,244 @@ textarea {
   .gc-public-cta {
     width: min(100%, 860px);
   }
+
+  .gc-service-problem .gc-home-split {
+    grid-template-columns: minmax(0, 0.95fr) minmax(300px, 0.85fr);
+    gap: 42px;
+  }
+
+  .gc-service-problem__visual {
+    width: min(100%, 420px);
+  }
+
+  .gc-service-capability-grid,
+  .gc-service-records__grid,
+  .gc-service-objections {
+    gap: 18px;
+  }
+
+  .gc-service-capability-grid article,
+  .gc-service-records__grid article,
+  .gc-service-objections article {
+    min-height: auto;
+    padding: 24px;
+  }
+
+  .gc-service-flow,
+  .gc-service-team-flow__grid,
+  .gc-service-free__grid {
+    gap: 42px;
+  }
+
+  .gc-service-client-flow .gc-service-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .gc-service-free__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gc-service-free .gc-service-objections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gc-service-categories-fit .gc-home-categories {
+    grid-template-columns: 1fr;
+  }
+
+  .gc-service-step-list article {
+    gap: 18px;
+    padding-block: 20px;
+  }
+
+  .gc-service-step-list span {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+
+  .gc-service-categories-fit .gc-home-categories {
+    gap: 42px;
+  }
+
+  .gc-features-overview .gc-home-split {
+    grid-template-columns: minmax(0, 0.95fr) minmax(300px, 0.85fr);
+    align-items: center;
+    gap: 42px;
+  }
+
+  .gc-features-overview .gc-home-section__copy {
+    display: contents;
+    max-width: none;
+  }
+
+  .gc-features-overview .gc-home-kicker,
+  .gc-features-overview .gc-home-section__title {
+    grid-column: 1 / -1;
+    max-width: 760px;
+  }
+
+  .gc-features-overview .gc-feature-anchor-list {
+    grid-column: 1;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .gc-features-overview .gc-feature-overview__visual {
+    grid-column: 2;
+    width: min(100%, 380px);
+  }
+
+  .gc-features-page .gc-feature-detail-list {
+    gap: 18px;
+  }
+
+  .gc-features-page .gc-feature-detail-list article {
+    min-height: auto;
+    padding: 24px;
+  }
+
+  .gc-features-page .gc-feature-detail-list h3 {
+    font-size: clamp(1.2rem, 2.35vw, 1.5rem);
+  }
+
+  .gc-features-page .gc-feature-detail-list p {
+    font-size: 15px;
+    line-height: 1.58;
+  }
+
+  .gc-how-overview .gc-home-split {
+    grid-template-columns: minmax(0, 0.95fr) minmax(300px, 0.85fr);
+    align-items: center;
+    gap: 42px;
+  }
+
+  .gc-how-overview .gc-home-section__copy {
+    display: contents;
+    max-width: none;
+  }
+
+  .gc-how-overview .gc-home-kicker,
+  .gc-how-overview .gc-home-section__title {
+    grid-column: 1 / -1;
+    max-width: 760px;
+  }
+
+  .gc-how-overview .gc-how-role-grid {
+    grid-column: 1;
+    grid-template-columns: 1fr;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .gc-how-overview .gc-how-overview__visual {
+    grid-column: 2;
+    width: min(100%, 380px);
+  }
+
+  .gc-how-page .gc-how-workflow-steps {
+    width: 100%;
+    max-width: none;
+  }
+
+  .gc-how-client-flow .gc-service-flow,
+  .gc-how-marketplace-flow .gc-service-flow,
+  .gc-how-admin-flow .gc-service-team-flow__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gc-how-client-flow .gc-service-flow,
+  .gc-how-marketplace-flow .gc-service-flow {
+    gap: 34px;
+  }
+
+  .gc-how-admin-flow .gc-service-team-flow__grid {
+    gap: 28px;
+  }
+
+  .gc-how-employee-flow .gc-service-records__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .gc-how-employee-flow .gc-service-records__grid article:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .gc-how-page .gc-service-step-list article,
+  .gc-how-page .gc-service-records__grid article,
+  .gc-how-page .gc-how-role-grid article {
+    min-height: auto;
+  }
+
+  .gc-client-invitation .gc-home-split {
+    grid-template-columns: minmax(0, 0.95fr) minmax(300px, 0.85fr);
+    align-items: center;
+    gap: 42px;
+  }
+
+  .gc-client-invitation .gc-home-section__copy {
+    display: contents;
+    max-width: none;
+  }
+
+  .gc-client-invitation .gc-home-kicker,
+  .gc-client-invitation .gc-home-section__title {
+    grid-column: 1 / -1;
+    max-width: 760px;
+  }
+
+  .gc-client-invitation .gc-home-section__text {
+    grid-column: 1;
+    align-self: start;
+  }
+
+  .gc-client-invitation .gc-client-visual {
+    grid-column: 2;
+    width: min(100%, 380px);
+  }
+
+  .gc-client-page .gc-client-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .gc-client-page .gc-client-action-grid article {
+    min-height: auto;
+    padding: 24px;
+  }
+
+  .gc-client-page .gc-client-action-grid article:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .gc-client-process .gc-service-flow,
+  .gc-client-trust .gc-service-team-flow__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gc-client-process .gc-service-flow {
+    gap: 34px;
+  }
+
+  .gc-client-trust .gc-service-team-flow__grid {
+    gap: 28px;
+  }
+
+  .gc-marketplace-disclaimer .gc-service-team-flow__grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .gc-client-page .gc-service-step-list {
+    width: 100%;
+    max-width: none;
+  }
+
+  .gc-client-page .gc-service-step-list article {
+    min-height: auto;
+  }
 }
 
 @media (min-width: 1026px) and (max-width: 1199px) {
@@ -3389,6 +3635,10 @@ textarea {
 }
 
 @media (max-width: 767px) {
+  .gc-mobile-hyphen {
+    display: inline;
+  }
+
   .gc-announcement {
     padding: 8px 20px;
     font-size: 12px;
@@ -3672,7 +3922,7 @@ textarea {
   }
 
   .gc-service-problem__visual {
-    width: min(100%, 430px);
+    width: min(100%, 360px);
   }
 
   .gc-feature-overview__visual {
@@ -3689,6 +3939,65 @@ textarea {
 
   .gc-service-step-list article {
     grid-template-columns: 1fr;
+  }
+
+  .gc-service-flow,
+  .gc-service-team-flow__grid,
+  .gc-service-free__grid {
+    gap: 34px;
+  }
+
+  .gc-service-capability-grid,
+  .gc-service-records__grid,
+  .gc-service-objections {
+    gap: 16px;
+  }
+
+  .gc-service-capability-grid article,
+  .gc-service-records__grid article,
+  .gc-service-objections article {
+    min-height: auto;
+    padding: 22px;
+  }
+
+  .gc-service-capability-grid article::before {
+    margin-bottom: 18px;
+  }
+
+  .gc-service-capability-grid h3,
+  .gc-service-records__grid h3,
+  .gc-service-objections h3,
+  .gc-service-step-list h3 {
+    font-size: clamp(1.05rem, 4.7vw, 1.24rem);
+  }
+
+  .gc-service-capability-grid p,
+  .gc-service-records__grid p,
+  .gc-service-objections p,
+  .gc-service-step-list p,
+  .gc-service-disclaimer {
+    font-size: 15px;
+    line-height: 1.58;
+  }
+
+  .gc-service-step-list article {
+    gap: 14px;
+    padding-block: 20px;
+  }
+
+  .gc-service-step-list span {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+
+  .gc-service-disclaimer {
+    margin-top: 24px;
+  }
+
+  .gc-service-categories-fit .gc-home-category-cloud {
+    gap: 10px;
   }
 
   .gc-marketplace-filter__actions .gc-button,
