@@ -8,7 +8,7 @@
 
 <header class="gc-header" data-public-header>
   <div class="gc-container-wide gc-header__inner">
-    <a href="/" aria-label="GetContractorz home">
+    <a class="gc-header__brand" href="/" aria-label="GetContractorz home">
       <img
         class="gc-logo"
         src="{% static 'public_site/images/contractorz-logo-horizontal.svg' %}"
@@ -57,7 +57,14 @@
       </nav>
 
       <div class="gc-header__actions">
-        <a class="gc-button gc-button--outline gc-header__login" href="{{ frontend_url }}/sign-in">Login</a>
+        <a class="gc-button gc-button--outline gc-header__login" href="{{ frontend_url }}/sign-in" aria-label="Login">
+          <span class="gc-header__login-text">Login</span>
+          <svg class="gc-header__login-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 17l5-5-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 12H3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
         <a class="gc-button gc-button--primary" href="{{ frontend_url }}/register">Get Started Free</a>
       </div>
 
@@ -69,18 +76,17 @@
             </svg>
           </summary>
           <nav class="gc-mobile-menu__panel" aria-label="Mobile navigation">
-            <span class="gc-mobile-menu__label">Product</span>
+            <span class="gc-mobile-menu__title">Menu</span>
+            <a href="/" {% if current_path == "/" %}aria-current="page"{% endif %}>Home</a>
             <a href="/for-service-businesses/" {% if current_path == "/for-service-businesses/" %}aria-current="page"{% endif %}>For Service Businesses</a>
             <a href="/features/" {% if current_path == "/features/" %}aria-current="page"{% endif %}>Features</a>
             <a href="/how-it-works/" {% if current_path == "/how-it-works/" %}aria-current="page"{% endif %}>How It Works</a>
             <a href="/for-clients/" {% if current_path == "/for-clients/" %}aria-current="page"{% endif %}>For Clients</a>
             <a href="/service-categories/" {% if current_path == "/service-categories/" %}aria-current="page"{% endif %}>Service Categories</a>
             <a href="/marketplace/" {% if current_path == "/marketplace/" %}aria-current="page"{% endif %}>Marketplace</a>
-            <span class="gc-mobile-menu__label">Company</span>
             <a href="/about/" {% if current_path == "/about/" %}aria-current="page"{% endif %}>About</a>
             <a href="/faq/" {% if current_path == "/faq/" or current_path == "/faqs/" %}aria-current="page"{% endif %}>FAQ</a>
             <a href="/contact/" {% if current_path == "/contact/" %}aria-current="page"{% endif %}>Contact</a>
-            <a href="{{ frontend_url }}/sign-in">Login</a>
             <a class="gc-button gc-button--primary" href="{{ frontend_url }}/register">Get Started Free</a>
           </nav>
         </details>
@@ -95,12 +101,16 @@
     if (!header) return;
 
     const dropdowns = Array.from(header.querySelectorAll(".gc-nav__group"));
+    const mobileMenu = header.querySelector(".gc-mobile-menu details");
     const closeDropdowns = (activeDropdown = null) => {
       dropdowns.forEach((dropdown) => {
         if (dropdown !== activeDropdown) {
           dropdown.removeAttribute("open");
         }
       });
+    };
+    const closeMobileMenu = () => {
+      mobileMenu?.removeAttribute("open");
     };
 
     dropdowns.forEach((dropdown) => {
@@ -114,11 +124,20 @@
       if (!event.target.closest("[data-public-header] .gc-nav__group")) {
         closeDropdowns();
       }
+
+      if (mobileMenu?.open && !event.target.closest("[data-public-header] .gc-mobile-menu details")) {
+        closeMobileMenu();
+      }
+
+      if (mobileMenu?.open && event.target === mobileMenu) {
+        closeMobileMenu();
+      }
     });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         closeDropdowns();
+        closeMobileMenu();
       }
     });
   })();

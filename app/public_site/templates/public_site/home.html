@@ -131,17 +131,19 @@
       <h2 class="gc-home-section__title" id="home-clarity-title">
         Less scatter. <span class="gc-heading-accent">More clarity</span> around your day-to-day operations.
       </h2>
-      <div class="gc-home-section__text">
-        <p>
-          Client details in one place. Service requirements somewhere else. Job photos in messages. Quotes and
-          invoices in separate tools. As the work grows, keeping the full picture organized becomes harder.
-        </p>
-        <p>
-          GetContractorz brings the supported parts of your service workflow into one business workspace so you
-          can manage the information around the job with more structure.
-        </p>
+      <div class="gc-home-section__body-copy">
+        <div class="gc-home-section__text">
+          <p>
+            Client details in one place. Service requirements somewhere else. Job photos in messages. Quotes and
+            invoices in separate tools. As the work grows, keeping the full picture organized becomes harder.
+          </p>
+          <p>
+            GetContractorz brings the supported parts of your service workflow into one business workspace so you
+            can manage the information around the job with more structure.
+          </p>
+        </div>
+        <a class="gc-home-link" href="#home-workflow">See How It Works</a>
       </div>
-      <a class="gc-home-link" href="#home-workflow">See How It Works</a>
     </div>
     <div aria-hidden="true">
       <img src="{% static 'public_site/images/generated/home-clarity-workspace.png' %}" alt="">
@@ -279,11 +281,14 @@
 </section>
 
 <section class="gc-home-section gc-home-section--categories" aria-labelledby="home-categories-title">
-  <div class="gc-home-container gc-home-categories">
-    <div class="gc-home-section__copy">
+  <div class="gc-home-container gc-home-section-layout">
+    <div class="gc-home-section__header gc-home-section__header--dark">
       <p class="gc-home-kicker">Built for supported service businesses</p>
       <h2 class="gc-home-section__title" id="home-categories-title">Your <span class="gc-heading-accent">service
           category</span> may already fit.</h2>
+    </div>
+    <div class="gc-home-section-layout__body">
+      <div class="gc-home-section__copy">
       <p>
         GetContractorz currently supports businesses across construction, cleaning, landscaping, plumbing,
         electrical, snow removal, HVAC, roofing, siding, handyman services, flooring, windows and doors,
@@ -294,43 +299,48 @@
         <a class="gc-button gc-button--secondary" href="/industries/">Explore Service Categories</a>
         <a class="gc-button gc-button--outline" href="{{ frontend_url }}/register">Register Your Business</a>
       </div>
-    </div>
-    <div class="gc-home-category-cloud" aria-label="Supported service categories">
-      <span>Construction</span>
-      <span>Cleaning</span>
-      <span>Landscaping</span>
-      <span>Plumbing</span>
-      <span>Electrical</span>
-      <span>HVAC</span>
-      <span>Roofing</span>
-      <span>Moving Services</span>
-      <span>Pest Control</span>
+      </div>
+      <div class="gc-home-category-cloud" aria-label="Supported service categories">
+        <span>Construction</span>
+        <span>Cleaning</span>
+        <span>Landscaping</span>
+        <span>Plumbing</span>
+        <span>Electrical</span>
+        <span>HVAC</span>
+        <span>Roofing</span>
+        <span>Moving Services</span>
+        <span>Pest Control</span>
+      </div>
     </div>
   </div>
 </section>
 
 <section class="gc-home-section gc-home-section--marketplace" aria-labelledby="home-marketplace-title">
-  <div class="gc-home-container gc-home-split gc-home-split--reverse">
-    <div class="gc-home-marketplace-panel">
-      <img src="{% static 'public_site/images/generated/home-marketplace-discovery.png' %}" alt="" aria-hidden="true">
-    </div>
-    <div class="gc-home-section__copy">
+  <div class="gc-home-container gc-home-section-layout">
+    <div class="gc-home-section__header">
       <p class="gc-home-kicker">Marketplace discovery is separate from business management</p>
       <h2 class="gc-home-section__title" id="home-marketplace-title">
         Manage your business. Be discoverable in the <span class="gc-heading-accent">Marketplace.</span>
       </h2>
-      <div class="gc-home-section__text">
-        <p>
-          GetContractorz's core product is the business workspace. The Marketplace is a separate public discovery
-          layer where visitors can browse registered businesses, review public business information, and contact
-          the business they choose directly.
-        </p>
-        <p>
-          Being listed does not mean GetContractorz has verified, approved, or endorsed the business, and
-          Marketplace visibility does not guarantee leads or service outcomes.
-        </p>
+    </div>
+    <div class="gc-home-section-layout__body">
+      <div class="gc-home-section__copy">
+        <div class="gc-home-section__text">
+          <p>
+            GetContractorz's core product is the business workspace. The Marketplace is a separate public discovery
+            layer where visitors can browse registered businesses, review public business information, and contact
+            the business they choose directly.
+          </p>
+          <p>
+            Being listed does not mean GetContractorz has verified, approved, or endorsed the business, and
+            Marketplace visibility does not guarantee leads or service outcomes.
+          </p>
+        </div>
+        <a class="gc-home-link" href="/marketplace/">Explore the Marketplace</a>
       </div>
-      <a class="gc-home-link" href="/marketplace/">Explore the Marketplace</a>
+      <div class="gc-home-marketplace-panel">
+        <img src="{% static 'public_site/images/generated/home-marketplace-discovery.png' %}" alt="" aria-hidden="true">
+      </div>
     </div>
   </div>
 </section>
@@ -340,7 +350,7 @@
     <div class="gc-home-section__header">
       <p class="gc-home-kicker">Trust & reassurance</p>
       <h2 class="gc-home-section__title" id="home-reassurance-title">
-        Clear about what GetContractorz does - and <span class="gc-heading-accent">what it doesn't.</span>
+        Clear about what Get-Contractorz does and <span class="gc-heading-accent">what it doesn't.</span>
       </h2>
     </div>
     <div class="gc-home-reassurance-list">
