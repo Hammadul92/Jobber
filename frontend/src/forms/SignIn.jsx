@@ -83,7 +83,7 @@ export default function SignIn() {
 
       <form
         onSubmit={handleSubmit}
-        className="mt-10 md:w-2xl flex justify-center"
+        className="mt-10 w-full md:w-2xl flex justify-center"
       >
         <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
           {signinError && (
