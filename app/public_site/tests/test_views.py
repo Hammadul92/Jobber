@@ -503,6 +503,8 @@ class PublicSiteViewTests(TestCase):
             "team",
             "terms-and-conditions",
             "privacy-policy",
+            "cookie-policy",
+            "accessibility",
             "contact",
             "faq",
             "faqs",
@@ -533,6 +535,8 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(sitemap, reverse("public_site:marketplace"))
         self.assertContains(sitemap, reverse("public_site:faq"))
         self.assertNotContains(sitemap, reverse("public_site:faqs"))
+        self.assertNotContains(sitemap, reverse("public_site:privacy-policy"))
+        self.assertNotContains(sitemap, reverse("public_site:terms-and-conditions"))
         self.assertContains(
             sitemap,
             reverse(
@@ -556,9 +560,9 @@ class PublicSiteViewTests(TestCase):
     def test_privacy_policy_describes_application_data_and_providers(self):
         response = self.client.get(reverse("public_site:privacy-policy"))
 
-        self.assertTemplateUsed(response, "public_site/privacy_policy.html")
-        self.assertContains(response, "Effective July 11, 2026")
-        self.assertContains(response, "YOUR WORKFLOW. YOUR INFORMATION.")
+        self.assertTemplateUsed(response, "public_site/legal/privacy_policy.html")
+        self.assertContains(response, "Last updated August 29, 2026")
+        self.assertContains(response, "Your workflow. Your information.")
         self.assertContains(response, "Privacy at GetContractorz")
         self.assertContains(response, "questionnaire responses")
         self.assertContains(response, "electronic signature images")
@@ -567,3 +571,32 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(response, "SendGrid")
         self.assertContains(response, "soft deletion")
         self.assertContains(response, "We do not sell personal information")
+
+    def test_legal_pages_are_pending_review_and_not_indexed(self):
+        route_names = [
+            "privacy-policy",
+            "terms-and-conditions",
+            "cookie-policy",
+            "accessibility",
+        ]
+
+        for route_name in route_names:
+            with self.subTest(route_name=route_name):
+                response = self.client.get(reverse(f"public_site:{route_name}"))
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'name="robots" content="noindex,follow"')
+                self.assertContains(response, "Pending final legal review")
+
+    def test_footer_links_every_legal_page(self):
+        response = self.client.get(reverse("public_site:home"))
+        route_names = [
+            "privacy-policy",
+            "terms-and-conditions",
+            "cookie-policy",
+            "accessibility",
+        ]
+
+        for route_name in route_names:
+            with self.subTest(route_name=route_name):
+                route_url = reverse(f"public_site:{route_name}")
+                self.assertContains(response, f'href="{route_url}"')

@@ -1,0 +1,55 @@
+{% extends "public_site/base.html" %}
+
+{% block head %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "{{ request.scheme }}://{{ request.get_host }}/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "{{ page_title|escapejs }}",
+          "item": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+        }
+      ]
+    }
+  </script>
+{% endblock %}
+
+{% block content %}
+  <section class="gc-legal-hero" aria-labelledby="gc-legal-title">
+    <div class="gc-legal-hero__inner">
+      <p class="gc-eyebrow">Legal</p>
+      <h1 id="gc-legal-title">{% block legal_title %}{{ page_title }}{% endblock %}</h1>
+      <p class="gc-legal-hero__intro">{% block legal_intro %}{{ meta_description }}{% endblock %}</p>
+      <div class="gc-legal-hero__meta" aria-label="Document status">
+        <span>Last updated August 29, 2026</span>
+        <span>Pending final legal review</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-legal-content">
+    <div class="gc-legal-layout">
+      <aside class="gc-legal-toc" aria-label="On this page">
+        <p>On this page</p>
+        <nav>{% block legal_toc %}{% endblock %}</nav>
+      </aside>
+
+      <article class="gc-legal-article">
+        <div class="gc-legal-notice" role="note">
+          <strong>Publication status</strong>
+          <p>{% block legal_notice %}This page reflects the currently verified product foundation. Final legal wording must be reviewed against GetContractorz's approved business, data, and regulatory requirements before this page is treated as a final legal document.{% endblock %}</p>
+        </div>
+        {% block legal_body %}{% endblock %}
+      </article>
+    </div>
+  </section>
+{% endblock %}

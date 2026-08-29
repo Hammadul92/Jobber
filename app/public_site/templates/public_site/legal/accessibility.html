@@ -1,0 +1,39 @@
+{% extends "public_site/legal/base_legal.html" %}
+
+{% block legal_title %}Accessibility Statement{% endblock %}
+{% block legal_intro %}GetContractorz is working to provide a public website and platform experience that can be used by a broad range of people and assistive technologies.{% endblock %}
+{% block legal_notice %}The design system targets WCAG 2.2 AA. That target is not presented as a legal guarantee; the final statement must describe actual testing, known limitations, ownership, and remediation commitments.{% endblock %}
+
+{% block legal_toc %}
+  <ol>
+    <li><a href="#accessibility-approach">Our approach</a></li>
+    <li><a href="#accessibility-features">Design practices</a></li>
+    <li><a href="#accessibility-limitations">Known limitations</a></li>
+    <li><a href="#accessibility-contact">Report a barrier</a></li>
+  </ol>
+{% endblock %}
+
+{% block legal_body %}
+  <section id="accessibility-approach">
+    <h2>Our approach</h2>
+    <p>GetContractorz aims to make its public content and core workflows understandable, keyboard accessible, responsive, and compatible with common assistive technologies.</p>
+  </section>
+  <section id="accessibility-features">
+    <h2>Current design practices</h2>
+    <ul>
+      <li>Semantic headings, landmarks, labels, and link text.</li>
+      <li>Visible keyboard focus and controls that do not rely on colour alone.</li>
+      <li>Responsive layouts designed to avoid horizontal overflow.</li>
+      <li>Alternative text for meaningful images and hidden treatment for decorative assets.</li>
+      <li>Accessible accordion, navigation, form, and error-message patterns.</li>
+    </ul>
+  </section>
+  <section id="accessibility-limitations">
+    <h2>Testing and known limitations</h2>
+    <p>The website and platform continue to evolve. Some workflows, third-party services, uploaded content, or legacy interfaces may not yet provide the same level of accessibility. A complete audited conformance claim has not been approved.</p>
+  </section>
+  <section id="accessibility-contact">
+    <h2>Report an accessibility barrier</h2>
+    <p>Use the <a href="/contact/">contact form</a> and describe the page, task, device, browser, and assistive technology involved. Do not include passwords or sensitive account information. GetContractorz will use the information to investigate the issue, but no response-time commitment is currently published.</p>
+  </section>
+{% endblock %}

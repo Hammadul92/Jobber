@@ -70,6 +70,24 @@ PUBLIC_PAGE_METADATA = {
         "How GetContractorz collects, uses, shares, retains, and protects "
         "personal information across its service-business platform.",
     ),
+    "cookie-policy": (
+        "Cookie Policy",
+        "Learn how GetContractorz uses cookies and similar technologies on "
+        "its public website and service-business platform.",
+    ),
+    "accessibility": (
+        "Accessibility Statement",
+        "Read about GetContractorz accessibility goals and how to report an "
+        "accessibility barrier affecting the website or platform.",
+    ),
+}
+
+
+LEGAL_PAGE_TEMPLATES = {
+    "terms-and-conditions": "public_site/legal/terms_of_use.html",
+    "privacy-policy": "public_site/legal/privacy_policy.html",
+    "cookie-policy": "public_site/legal/cookie_policy.html",
+    "accessibility": "public_site/legal/accessibility.html",
 }
 
 
@@ -283,8 +301,6 @@ def sitemap(request):
         "team",
         "contact",
         "faq",
-        "terms-and-conditions",
-        "privacy-policy",
     ]
     urls = []
     for name in route_names:
@@ -318,8 +334,8 @@ class PublicPageView(TemplateView):
             "service-categories": "public_site/service_categories.html",
             "about": "public_site/about.html",
             "industries": "public_site/industries.html",
-            "privacy-policy": "public_site/privacy_policy.html",
             "services": "public_site/services.html",
+            **LEGAL_PAGE_TEMPLATES,
         }
         if template_name := dedicated_templates.get(self.kwargs["page"]):
             return [template_name]
@@ -335,7 +351,7 @@ class PublicPageView(TemplateView):
             meta_title=f"{title} | GetContractorz",
             meta_description=description,
         )
-        if page in {"services", "terms-and-conditions"}:
+        if page == "services" or page in LEGAL_PAGE_TEMPLATES:
             context["meta_robots"] = "noindex,follow"
         if page == "industries":
             context["faqs"] = FAQ.objects.filter(is_active=True)

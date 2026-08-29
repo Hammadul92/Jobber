@@ -42,8 +42,10 @@
 
       <section class="gc-footer__group" aria-labelledby="gc-footer-legal">
         <h3 id="gc-footer-legal">Legal</h3>
-        <a href="/privacy-policy/">Privacy Policy</a>
-        <a href="/terms-and-conditions/">Terms of Use</a>
+        <a href="{% url 'public_site:privacy-policy' %}">Privacy Policy</a>
+        <a href="{% url 'public_site:terms-and-conditions' %}">Terms of Use</a>
+        <a href="{% url 'public_site:cookie-policy' %}">Cookie Policy</a>
+        <a href="{% url 'public_site:accessibility' %}">Accessibility</a>
       </section>
     </nav>
 
