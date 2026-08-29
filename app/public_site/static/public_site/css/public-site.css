@@ -3019,6 +3019,16 @@ textarea {
 }
 
 @media (min-width: 768px) and (max-width: 1025px) {
+  .gc-about-market .gc-about-split {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .gc-contact-form-section .gc-contact-form-shell {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
   .gc-footer__nav {
     grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.75fr) minmax(0, 0.7fr);
     column-gap: 36px;
