@@ -1,0 +1,301 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="GetContractorz for clients, client service portal, service questionnaire, client quotes and invoices, GetContractorz invitation, service magic link, client service information">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/for-clients/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "For Clients",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/for-clients/"
+          }
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/for-clients/#webpage",
+        "name": "GetContractorz for Clients",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/for-clients/",
+        "description": "Learn why you may receive a GetContractorz invitation, how service questionnaires and magic links work, and what client information you can access.",
+        "breadcrumb": {
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/for-clients/#breadcrumb"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/for-clients/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is my service provider employed by GetContractorz?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Marketplace businesses and businesses using the platform are not represented as GetContractorz employees."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does GetContractorz verify my service provider?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. GetContractorz does not currently independently verify business identity, licensing, credentials, insurance, employee backgrounds, service quality, or other business claims."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does GetContractorz guarantee the work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. GetContractorz does not guarantee service quality, job completion, response times, or service satisfaction."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I pay GetContractorz to use my client account?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "There is currently no GetContractorz platform fee for clients. Service pricing and payment arrangements are handled directly with the service business."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What if I received a link I do not recognize?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Use the Contact page to ask GetContractorz for help and contact the service business through a channel you already trust if you need to confirm the invitation."
+            }
+          }
+        ]
+      }
+    ]
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="gc-client-page">
+  <section class="gc-home-hero" aria-labelledby="client-hero-title">
+    <img class="gc-home-hero__shape gc-home-hero__shape--right"
+      src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--left"
+      src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--hexagon" src="{% static 'public_site/images/hexagon.svg' %}"
+      alt="" aria-hidden="true">
+
+    <div class="gc-home-hero__content">
+      <p class="gc-home-hero__eyebrow">For clients</p>
+      <h1 class="gc-home-hero__title" id="client-hero-title">
+        Your service information, in
+        <span class="gc-home-hero__title-accent">one clear place.</span>
+      </h1>
+      <p class="gc-home-hero__copy">
+        If a registered service business adds you as a client, GetContractorz may be used to help you access
+        the information and actions connected to your service - including questionnaires and applicable quotes
+        and invoices.
+      </p>
+      <div class="gc-home-hero__actions" aria-label="For clients page actions">
+        <a class="gc-home-hero__button gc-home-hero__button--secondary" href="{{ frontend_url }}/sign-in">
+          Log In
+        </a>
+        <a class="gc-home-hero__button gc-home-hero__button--primary" href="/contact/">
+          Need Help? Contact Us
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-client-invitation" aria-labelledby="client-invitation-title">
+    <div class="gc-home-container gc-home-split">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Why did I receive a GetContractorz invitation?</p>
+        <h2 class="gc-home-section__title" id="client-invitation-title">
+          Your service business uses Get<span class="gc-mobile-hyphen">-</span>Contractorz to manage part of its <span class="gc-heading-accent">workflow.</span>
+        </h2>
+        <div class="gc-home-section__text">
+          <p>
+            A business Manager can create your client record and send an email invitation so you can create or access
+            your GetContractorz account. That account gives you access to the parts of the platform relevant to your
+            services.
+          </p>
+          <p>
+            Receiving an invitation does not mean GetContractorz employs, verifies, or guarantees the business providing
+            your service.
+          </p>
+        </div>
+      </div>
+      <div class="gc-client-visual" aria-hidden="true">
+        <img src="{% static 'public_site/images/generated/for-clients-portal.png' %}" alt="">
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--features gc-client-capabilities" aria-labelledby="client-capabilities-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header">
+        <p class="gc-home-kicker">What clients can do</p>
+        <h2 class="gc-home-section__title" id="client-capabilities-title">
+          Access the information that relates to <span class="gc-heading-accent">your service.</span>
+        </h2>
+      </div>
+      <div class="gc-client-action-grid">
+        <article><h3>View services</h3><p>See services created for you when they are available in your account.</p></article>
+        <article><h3>Complete questionnaires</h3><p>Submit the service information the business requests through a service-specific questionnaire.</p></article>
+        <article><h3>Use email and magic-link actions</h3><p>Follow service-related links sent as part of the workflow.</p></article>
+        <article><h3>Access quotes</h3><p>View relevant quotes available to your account.</p></article>
+        <article><h3>Access invoices</h3><p>View relevant invoices available to your account.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-client-process" aria-labelledby="client-process-title">
+    <div class="gc-home-container gc-service-flow">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">How the invitation and questionnaire process works</p>
+        <h2 class="gc-home-section__title" id="client-process-title">
+          From email invitation to <span class="gc-heading-accent">active service.</span>
+        </h2>
+      </div>
+      <div class="gc-service-step-list">
+        <article><span>01</span><div><h3>The business creates your client record.</h3><p>You receive an email invitation to create or access your account.</p></div></article>
+        <article><span>02</span><div><h3>The business creates a service for you.</h3><p>The Manager prepares a personalized service connected to the required questionnaire.</p></div></article>
+        <article><span>03</span><div><h3>You receive a service-related magic link.</h3><p>Use the link to complete and submit the questionnaire.</p></div></article>
+        <article><span>04</span><div><h3>The business reviews your submission.</h3><p>The Manager reviews the questionnaire and changes the service from pending to active.</p></div></article>
+        <article><span>05</span><div><h3>You continue through the relevant client area.</h3><p>Depending on your access and service status, you can view applicable services, quotes, and invoices.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-client-trust" aria-labelledby="client-trust-title">
+    <div class="gc-home-container gc-service-team-flow__grid">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Trust & reassurance</p>
+        <h2 class="gc-home-section__title" id="client-trust-title">
+          What Get<span class="gc-mobile-hyphen">-</span>Contractorz does and <span class="gc-heading-accent">does not do.</span>
+        </h2>
+      </div>
+      <div class="gc-home-section__text">
+        <p>
+          GetContractorz provides the platform used by registered businesses and their clients. It does not
+          independently verify the business, guarantee the quality or completion of its work, or become the service
+          provider simply because the business uses the platform.
+        </p>
+        <p>
+          There is currently no GetContractorz platform fee for invited clients. Any service price, payment terms, or
+          service agreement is handled with the service business.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--faq" id="client-faq" aria-labelledby="client-faq-title">
+    <div class="gc-home-container gc-home-faq">
+      <div class="gc-home-faq__header">
+        <h2 class="gc-home-faq__title" id="client-faq-title">
+          Client
+          <span>FAQ</span>
+        </h2>
+        <p>Answers for invited clients using GetContractorz.</p>
+      </div>
+      <div class="gc-home-faq__list">
+        <details open>
+          <summary>Is my service provider employed by GetContractorz?</summary>
+          <p>No. Marketplace businesses and businesses using the platform are not represented as GetContractorz employees.</p>
+        </details>
+        <details>
+          <summary>Does GetContractorz verify my service provider?</summary>
+          <p>No. GetContractorz does not currently independently verify business identity, licensing, credentials, insurance, employee backgrounds, service quality, or other business claims.</p>
+        </details>
+        <details>
+          <summary>Does GetContractorz guarantee the work?</summary>
+          <p>No. GetContractorz does not guarantee service quality, job completion, response times, or service satisfaction.</p>
+        </details>
+        <details>
+          <summary>Do I pay GetContractorz to use my client account?</summary>
+          <p>There is currently no GetContractorz platform fee for clients. Service pricing and payment arrangements are handled directly with the service business.</p>
+        </details>
+        <details>
+          <summary>What if I received a link I do not recognize?</summary>
+          <p>Use the Contact page to ask GetContractorz for help and contact the service business through a channel you already trust if you need to confirm the invitation.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--final" aria-labelledby="client-final-title">
+    <div class="gc-public-cta">
+      <h2 class="gc-public-cta__title" id="client-final-title">
+        Already have an <span class="gc-heading-accent">account?</span>
+      </h2>
+      <div class="gc-client-final-actions">
+        <a class="gc-public-cta__button gc-button gc-button--primary" href="{{ frontend_url }}/sign-in">
+          Log In
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a class="gc-public-cta__button gc-button gc-button--outline" href="/contact/">Contact Us</a>
+      </div>
+    </div>
+  </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const faqItems = document.querySelectorAll(".gc-home-faq details");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return;
+
+    faqItems.forEach((item) => {
+      const summary = item.querySelector("summary");
+      if (!summary) return;
+
+      item.style.height = item.open ? `${item.scrollHeight}px` : `${summary.offsetHeight}px`;
+
+      summary.addEventListener("click", (event) => {
+        event.preventDefault();
+        item.style.overflow = "hidden";
+
+        if (item.open) {
+          item.style.height = `${item.scrollHeight}px`;
+          requestAnimationFrame(() => {
+            item.style.height = `${summary.offsetHeight}px`;
+          });
+          item.addEventListener("transitionend", () => {
+            item.open = false;
+          }, { once: true });
+          return;
+        }
+
+        item.open = true;
+        item.style.height = `${summary.offsetHeight}px`;
+        requestAnimationFrame(() => {
+          item.style.height = `${item.scrollHeight}px`;
+        });
+        item.addEventListener("transitionend", () => {
+          item.style.height = "auto";
+        }, { once: true });
+      });
+    });
+  })();
+</script>
+{% endblock %}

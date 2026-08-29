@@ -9,7 +9,7 @@ import {
   unregisterTopbarActionHandler,
 } from "../../topbarActionRegistry";
 
-export default function TeamMembers({ token, role }) {
+export default function TeamMembers({ token, role, user }) {
   const [showModal, setShowModal] = useState(false);
   const [editTeamMember, setEditTeamMember] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
@@ -79,6 +79,7 @@ export default function TeamMembers({ token, role }) {
         setAlert={setAlert}
         mode={editTeamMember ? "edit" : "create"}
         initialData={editTeamMember}
+        currentUser={user}
       />
 
       <TeamMembersData

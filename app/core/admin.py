@@ -9,6 +9,14 @@ from django.utils.translation import gettext_lazy as _
 from core import models
 
 
+@admin.register(models.ServiceOption)
+class ServiceOptionAdmin(admin.ModelAdmin):
+    list_display = ["name", "slug"]
+    search_fields = ["name", "slug"]
+    ordering = ["name"]
+    prepopulated_fields = {"slug": ("name",)}
+
+
 class SoftDeletableAdminMixin:
     """
     Adds soft deletion info to Django admin:

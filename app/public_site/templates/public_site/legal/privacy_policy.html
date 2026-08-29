@@ -1,0 +1,66 @@
+{% extends "public_site/legal/base_legal.html" %}
+
+{% block legal_title %}Privacy Policy{% endblock %}
+{% block legal_intro %}This Privacy Policy explains how GetContractorz handles personal information in connection with its public website, platform, accounts, Client and Employee workflows, and Marketplace.{% endblock %}
+
+{% block legal_toc %}
+  <ol>
+    <li><a href="#privacy-scope">Scope and roles</a></li>
+    <li><a href="#privacy-collection">Information collected</a></li>
+    <li><a href="#privacy-use">How information is used</a></li>
+    <li><a href="#privacy-sharing">Sharing and providers</a></li>
+    <li><a href="#privacy-retention">Retention and deletion</a></li>
+    <li><a href="#privacy-rights">Choices and requests</a></li>
+  </ol>
+{% endblock %}
+
+{% block legal_body %}
+  <section id="privacy-scope">
+    <p class="gc-legal-kicker">Privacy at GetContractorz</p>
+    <h2>Your workflow. Your information.</h2>
+    <p>This policy applies to the GetContractorz public website, Marketplace, account experience, and business-management platform. GetContractorz operates the platform, while a registered service business also decides why and how it uses information about its clients, employees, properties, services, and jobs.</p>
+    <p>Each registered business is responsible for using the platform lawfully, providing notices it is required to provide, and responding to requests about information it controls.</p>
+  </section>
+
+  <section id="privacy-collection">
+    <h2>Information we collect</h2>
+    <h3>Accounts, profiles, and businesses</h3>
+    <p>This may include names, email addresses, phone numbers, password credentials, account roles, profile images, business names, business descriptions, logos, service categories, addresses, time zones, and team information.</p>
+    <h3>Clients, services, and work records</h3>
+    <p>The platform can contain client contact details, service information, questionnaire responses, terms and conditions, quotes, invoices, job assignments, electronic signature images, and before-and-after job photos.</p>
+    <h3>Payments and communications</h3>
+    <p>GetContractorz may retain limited payment summaries, payout and refund records, Stripe identifiers, contact-form submissions, transactional email records, authentication information, and operational logs. GetContractorz does not store complete card or bank account numbers in its application database.</p>
+  </section>
+
+  <section id="privacy-use">
+    <h2>How information is used</h2>
+    <ul>
+      <li>To create, authenticate, maintain, and protect accounts.</li>
+      <li>To provide Manager, Employee, and Client workflows.</li>
+      <li>To connect clients, services, questionnaires, jobs, quotes, invoices, payments, payouts, and refunds.</li>
+      <li>To send verification, password-reset, questionnaire, quote, invoice, and other operational messages.</li>
+      <li>To display active business-supplied information in the Marketplace.</li>
+      <li>To respond to enquiries, troubleshoot problems, enforce permissions, and meet recordkeeping obligations.</li>
+    </ul>
+  </section>
+
+  <section id="privacy-sharing">
+    <h2>Sharing and service providers</h2>
+    <p>Information may be shared with the registered business and the Managers, Employees, or Clients participating in the relevant workflow according to their roles and permissions.</p>
+    <p>Stripe handles payment-method entry, connected-account onboarding, charges, payouts, and refunds under Stripe's own terms and privacy practices. SendGrid or another configured email provider may deliver transactional and contact emails. Hosting, database, storage, monitoring, professional, or legal providers may receive information only where needed to operate, protect, or comply with requirements affecting the service.</p>
+    <p>We do not sell personal information. GetContractorz also does not independently verify the identity, licensing, credentials, insurance, or service quality of businesses listed in the Marketplace.</p>
+  </section>
+
+  <section id="privacy-retention">
+    <h2>Retention, security, and deletion</h2>
+    <p>Information is retained while reasonably needed to provide accounts and workflows, preserve transaction and business records, maintain security, resolve disputes, and meet applicable obligations.</p>
+    <p>The platform uses soft deletion for many operational records. Removing a record from an active workspace may hide it without immediately erasing every stored copy. Information may also remain for a period in backups, logs, email records, or provider systems.</p>
+    <p>GetContractorz uses account authentication, password hashing, role and ownership checks, expiring signed links, restricted administrative access, and third-party payment processing. No online system can guarantee absolute security.</p>
+  </section>
+
+  <section id="privacy-rights">
+    <h2>Your choices and privacy requests</h2>
+    <p>Depending on applicable law, a person may request access to or correction of personal information, ask about its use or disclosure, withdraw consent where available, or request account closure and deletion. Legal, security, accounting, backup, and operational exceptions may apply.</p>
+    <p>For information controlled by a registered service business, contact that business first. For GetContractorz account or privacy questions, use the <a href="/contact/">contact page</a> and choose the privacy or account-related topic. Do not send passwords, authentication tokens, or complete payment credentials.</p>
+  </section>
+{% endblock %}

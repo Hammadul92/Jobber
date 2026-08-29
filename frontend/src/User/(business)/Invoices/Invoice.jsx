@@ -10,6 +10,7 @@ import SubmitButton from "../../../Components/ui/SubmitButton";
 import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
@@ -21,13 +22,34 @@ const STATUS_STYLES = {
 };
 
 const ACTION_BTN_BASE =
-  "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed! disabled:opacity-60";
 
 const ACTION_BTN_STYLES = {
   send: `${ACTION_BTN_BASE} border border-secondary bg-secondary text-white hover:bg-secondary/95`,
   paid: `${ACTION_BTN_BASE} border border-accent bg-accent text-white hover:bg-[#ff7a1f]`,
   cancel: `${ACTION_BTN_BASE} border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100`,
 };
+
+const CURRENCY_SYMBOLS = {
+  CAD: "$",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+};
+
+function formatMoney(value, currency = "CAD") {
+  const amount = Number.parseFloat(value || 0);
+  const formattedAmount = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(amount) ? amount : 0);
+  const symbol = CURRENCY_SYMBOLS[currency];
+  const currencyLabel = currency || "CAD";
+
+  return symbol
+    ? `${symbol}${formattedAmount} ${currencyLabel}`
+    : `${formattedAmount} ${currencyLabel}`.trim();
+}
 
 export default function Invoice({ token, role }) {
   const { id } = useParams();
@@ -163,15 +185,8 @@ export default function Invoice({ token, role }) {
     return new Date(dueDate) < new Date();
   };
 
-  const formatMoney = (value) =>
-    `${Number.parseFloat(value || 0).toFixed(2)} ${currency || ""}`.trim();
-
   if (isLoading) {
-    return (
-      <div className="py-10 text-center text-sm text-gray-500">
-        Loading invoice...
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
@@ -298,17 +313,19 @@ export default function Invoice({ token, role }) {
               </p>
 
               <div className="mt-5 space-y-3">
-                <AmountRow label="Subtotal" value={formatMoney(subtotal)} />
+                <AmountRow
+                  label="Subtotal"
+                  value={formatMoney(subtotal, currency)}
+                />
                 <AmountRow label="Tax Rate" value={`${taxRate || 0}%`} />
-                <AmountRow label="Tax Amount" value={formatMoney(taxAmount)} />
-                <div className="mt-4 rounded-2xl bg-secondary px-4 py-4 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
-                    Total Amount
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold">
-                    {formatMoney(totalAmount)}
-                  </p>
-                </div>
+                <AmountRow
+                  label="Tax Amount"
+                  value={formatMoney(taxAmount, currency)}
+                />
+                <AmountRow
+                  label="Total Amount"
+                  value={formatMoney(totalAmount, currency)}
+                />
               </div>
             </div>
           </div>
@@ -467,12 +484,13 @@ function CustomerView({
   serviceName,
   dueDate,
 }) {
-  const formattedSubtotal = Number.parseFloat(subtotal || 0).toFixed(2);
-  const formattedTax = (
+  const calculatedTax = (
     (parseFloat(subtotal || 0) * parseFloat(taxRate || 0)) /
     100
-  ).toFixed(2);
-  const formattedTotal = Number.parseFloat(totalAmount || 0).toFixed(2);
+  );
+  const formattedSubtotal = formatMoney(subtotal, currency);
+  const formattedTax = formatMoney(calculatedTax, currency);
+  const formattedTotal = formatMoney(totalAmount, currency);
 
   return (
     <div className="space-y-6">
@@ -494,7 +512,7 @@ function CustomerView({
             Total Due
           </p>
           <p className="mt-2 text-3xl font-semibold tracking-tight">
-            {formattedTotal} {currency}
+            {formattedTotal}
           </p>
         </div>
       </div>
@@ -555,13 +573,13 @@ function CustomerView({
               {serviceName}
             </div>
             <div className="text-right font-medium">
-              {formattedSubtotal} {currency}
+              {formattedSubtotal}
             </div>
             <div className="text-right font-medium">
-              {formattedTax} {currency}
+              {formattedTax}
             </div>
             <div className="text-right text-lg font-semibold text-slate-900">
-              {formattedTotal} {currency}
+              {formattedTotal}
             </div>
           </div>
         </div>
@@ -585,7 +603,7 @@ function CustomerView({
               >
                 {processingPayment
                   ? "Processing..."
-                  : `Pay ${formattedTotal} ${currency}`}
+                  : `Pay ${formattedTotal}`}
               </button>
             ) : (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">

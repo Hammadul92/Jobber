@@ -33,8 +33,19 @@ export default function CreateTeamMemberForm({
   setAlert,
   mode = "create",
   initialData = null,
+  currentUser = null,
 }) {
   const isEditMode = mode === "edit" && Boolean(initialData);
+  const hasCurrentUserIdentity = Boolean(currentUser?.id || currentUser?.email);
+  const currentUserEmail = String(currentUser?.email || "").toLowerCase();
+  const memberEmail = String(initialData?.employee_email || "").toLowerCase();
+  const isEditingCurrentUser =
+    isEditMode &&
+    hasCurrentUserIdentity &&
+    (String(initialData?.employee || "") === String(currentUser?.id || "") ||
+      (currentUserEmail && memberEmail && currentUserEmail === memberEmail));
+  const canEditRole =
+    !isEditMode || (hasCurrentUserIdentity && !isEditingCurrentUser);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -150,11 +161,17 @@ export default function CreateTeamMemberForm({
 
     if (isEditMode) {
       try {
-        await updateTeamMember({
+        const updatePayload = {
           id: initialData.id,
           job_duties: jobDuties,
           expertise,
-        }).unwrap();
+        };
+
+        if (canEditRole) {
+          updatePayload.role = role;
+        }
+
+        await updateTeamMember(updatePayload).unwrap();
 
         setAlert({
           type: "success",
@@ -168,6 +185,8 @@ export default function CreateTeamMemberForm({
           type: "danger",
           message:
             err?.data?.detail ||
+            err?.data?.role?.[0] ||
+            err?.data?.role ||
             "Something went wrong while updating the team member. Please try again.",
         });
       }
@@ -280,7 +299,7 @@ export default function CreateTeamMemberForm({
                   <LuBadgeInfo className="h-4 w-4" />
                   <span>
                     {isEditMode
-                      ? "Only job duties and expertise can be updated here."
+                      ? "Update duties, expertise, and role access for this team member."
                       : "Login credentials will be auto-generated and sent to the member's email"}
                   </span>
                 </div>
@@ -364,11 +383,13 @@ export default function CreateTeamMemberForm({
                           { label: "Manager", value: "MANAGER" },
                         ]}
                         buttonClassName="h-11 text-sm"
-                        disabled={isEditMode}
+                        disabled={!canEditRole}
                       />
                       <p className="mt-1 mb-2 text-xs text-slate-400">
                         {isEditMode
-                          ? "Role is managed separately from this drawer"
+                          ? isEditingCurrentUser
+                            ? "You cannot change your own role."
+                            : "Managers can update this member's role from here."
                           : "Determines access permissions and responsibilities"}
                       </p>
                     </div>

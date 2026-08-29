@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useFetchQuotesQuery, useDeleteQuoteMutation } from "../../../store";
 import Select from "../../../Components/ui/Select";
 import SubmitButton from "../../../Components/ui/SubmitButton";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import {
   LuCalendarDays,
@@ -89,7 +90,7 @@ export default function QuotesData({ token, role, setAlert }) {
     }
   };
 
-  if (isLoading) return <div>Loading quotes...</div>;
+  if (isLoading) return <LoadingScreen />;
 
   const today = new Date();
 
@@ -225,7 +226,7 @@ export default function QuotesData({ token, role, setAlert }) {
                   </div>
                 </div>
 
-                <div className="mt-auto border-t border-gray-200 pt-4">
+                <div className="mt-4 border-t border-gray-200 pt-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <LuCalendarDays className="w-4 h-4 text-slate-500" />

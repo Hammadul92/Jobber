@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   LuArrowDownRight,
   LuArrowUpRight,
@@ -9,6 +9,7 @@ import {
   LuClipboardList,
   LuDollarSign,
   LuFileText,
+  LuInfo,
   LuReceipt,
   LuUsers,
 } from "react-icons/lu";
@@ -699,14 +700,39 @@ function QuestionnaireCard({
 }) {
   return (
     <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
-      <h3 className="text-2xl font-medium tracking-tight text-slate-900">
-        Questionnaires
-      </h3>
+      <div className="flex items-center gap-2">
+        <h3 className="text-2xl font-medium tracking-tight text-slate-900">
+          Questionnaires
+        </h3>
+        <div className="group relative inline-flex">
+          <button
+            type="button"
+            aria-label="Questionnaire stats information"
+            className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition hover:border-accent hover:text-accent focus:border-accent focus:text-accent focus:outline-none"
+          >
+            <LuInfo className="h-4 w-4" />
+          </button>
+          <div className="pointer-events-none absolute left-1/2 top-8 z-20 min-w-72 -translate-x-1/2 rounded-2xl border border-gray-200 bg-white p-4 text-sm text-slate-600 opacity-0 shadow-[0_16px_40px_rgba(15,23,42,0.14)] transition group-hover:opacity-100 group-focus-within:opacity-100">
+            <p>
+              <strong className="text-slate-900">New:</strong> recently submitted
+              client answers.
+            </p>
+            <p className="mt-2">
+              <strong className="text-slate-900">Pending:</strong> submitted
+              answers waiting for review.
+            </p>
+            <p className="mt-2">
+              <strong className="text-slate-900">Done:</strong> submitted answers
+              for active or completed services.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="mt-6 space-y-2">
         <div className="flex items-end justify-between gap-1 px-3 py-2 rounded-2xl bg-blue-50">
           <div>
-            <p className="text-sm text-slate-700">New Submissions</p>
+            <p className="text-sm text-slate-700">New</p>
             <span className="text-2xl font-medium text-blue-700">
               {newSubmissions}
             </span>
@@ -716,7 +742,7 @@ function QuestionnaireCard({
 
         <div className="flex items-end justify-between gap-1 px-4 py-2 rounded-2xl bg-amber-50">
           <div>
-            <p className="text-sm text-slate-700">Pending Review</p>
+            <p className="text-sm text-slate-700">Pending</p>
             <span className="text-2xl font-medium text-amber-600">
               {pendingReview}
             </span>
@@ -726,7 +752,7 @@ function QuestionnaireCard({
 
         <div className="flex items-end justify-between gap-1 px-4 py-3 rounded-2xl bg-emerald-50">
           <div>
-            <p className="text-sm text-slate-700">Completed</p>
+            <p className="text-sm text-slate-700">Done</p>
             <span className="text-2xl font-medium text-emerald-600">
               {completedReviews}
             </span>
@@ -745,34 +771,7 @@ function QuestionnaireCard({
   );
 }
 
-function RecentActivity({ items }) {
-  return (
-    <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
-      <h3 className="text-2xl font-medium trackng-tight text-slate-900">
-        Recent Activity
-      </h3>
-
-      <div className="mt-6 space-y-3">
-        {items.length ? (
-          items.map((item) => (
-            <div key={item.id} className="flex gap-3">
-              <span className="w-2 h-2 mt-2 rounded-full shrink-0 bg-accent" />
-              <div>
-                <p className="text-base font-medium text-slate-900">{item.title}</p>
-                <p className="text-sm text-slate-500">{item.description}</p>
-                <p className="text-sm text-slate-400">{item.time}</p>
-              </div>
-            </div>
-          ))
-        ) : (
-          <EmptyState message="No recent activity yet." />
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default function DashboardHome({ token }) {
+export default function DashboardHome({ token, onRecentActivityChange }) {
   const [chartRange, setChartRange] = useState("Monthly");
   const [recordsTab, setRecordsTab] = useState("quotes");
 
@@ -930,7 +929,6 @@ export default function DashboardHome({ token }) {
             parseApiDate(right.updated_at || right.created_at)?.getTime() || 0;
           return rightDate - leftDate;
         })
-        .slice(0, 4)
         .map((client) => ({
           id: `client-${client.id}`,
           title: "New client added",
@@ -939,7 +937,6 @@ export default function DashboardHome({ token }) {
         })),
       ...quotes
         .filter((quote) => ["SIGNED", "SENT"].includes(quote.status))
-        .slice(0, 4)
         .map((quote) => ({
           id: `quote-${quote.id}`,
           title:
@@ -949,7 +946,6 @@ export default function DashboardHome({ token }) {
         })),
       ...invoices
         .filter((invoice) => ["PAID", "SENT"].includes(invoice.status))
-        .slice(0, 4)
         .map((invoice) => ({
           id: `invoice-${invoice.id}`,
           title:
@@ -960,7 +956,6 @@ export default function DashboardHome({ token }) {
     ]
       .filter((item) => item.date)
       .sort((left, right) => right.date - left.date)
-      .slice(0, 5)
       .map((item) => ({
         ...item,
         time: formatRelativeTime(item.date, now),
@@ -1117,6 +1112,14 @@ export default function DashboardHome({ token }) {
     loadingQuestionnaires ||
     loadingServices;
 
+  useEffect(() => {
+    onRecentActivityChange?.(dashboardData.recentActivity);
+
+    return () => {
+      onRecentActivityChange?.([]);
+    };
+  }, [dashboardData.recentActivity, onRecentActivityChange]);
+
   return (
     <div className="space-y-4">
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-3 2xl:grid-cols-6">
@@ -1140,11 +1143,10 @@ export default function DashboardHome({ token }) {
         />
       </section>
 
-      <section className="grid gap-4 md:grid-cols-[1.25fr_0.9fr] lg:grid-cols-[1.25fr_0.7fr_0.7fr_0.7fr]">
+      <section className="grid gap-4 md:grid-cols-[1.25fr_0.9fr] xl:grid-cols-[1.35fr_0.75fr_0.75fr]">
         <UpcomingJobs jobs={dashboardData.upcomingJobs} />
         <JobsStatusCard stats={dashboardData.jobsStatusStats} />
         <QuestionnaireCard {...dashboardData.questionnairesCard} />
-        <RecentActivity items={dashboardData.recentActivity} />
       </section>
 
       {isLoading && (

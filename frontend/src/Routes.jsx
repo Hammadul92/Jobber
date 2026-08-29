@@ -11,6 +11,7 @@ import {
 import Header from "./Components/Header";
 import Footer from "./Components/Footer";
 import PageNotFound from "./Components/PageNotFound";
+import LoadingScreen from "./Components/ui/LoadingScreen";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Industries from "./pages/Industries";
@@ -21,13 +22,29 @@ import CustomerSupport from "./pages/CustomerSupport";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ContactUs from "./pages/ContactUs";
-
 import SignIn from "./forms/SignIn";
 import Register from "./forms/Register";
 import ForgotPassword from "./forms/ForgotPassword";
 import ResetPassword from "./forms/ResetPassword";
 import MagicLogin from "./pages/MagicLogin";
 import UserDashboard from "./User";
+import { clearPublicSession, syncPublicSession } from "./utils/publicSession";
+
+const contractorzLogo = "/images/contractorz-logo-horizontal.svg";
+
+function getPublicSiteHomeUrl() {
+  const configuredPublicSite = import.meta.env.VITE_PUBLIC_SITE_URL;
+  if (configuredPublicSite) return configuredPublicSite.replace(/\/$/, "") || "/";
+
+  const configuredApiBase = import.meta.env.VITE_API_BASE_URL;
+  const apiBase =
+    configuredApiBase ||
+    (import.meta.env.PROD
+      ? `${window.location.origin}/api`
+      : "http://localhost:8000/api");
+
+  return apiBase.replace(/\/api\/?$/, "");
+}
 
 function AdminRedirect() {
   useEffect(() => {
@@ -43,6 +60,49 @@ function AdminRedirect() {
   }, []);
 
   return <div className="text-center py-5">Redirecting to Django admin...</div>;
+}
+
+function LogoutRedirect() {
+  useEffect(() => {
+    localStorage.removeItem("token");
+    clearPublicSession();
+    window.location.replace("/sign-in");
+  }, []);
+
+  return <div className="text-center py-5">Signing out...</div>;
+}
+
+function PublicSessionBridge({ token, user }) {
+  useEffect(() => {
+    if (!document.referrer) return;
+    const parentOrigin = new URL(document.referrer).origin;
+    window.parent.postMessage(
+      {
+        type: "contractorz:public-session",
+        user:
+          token && user
+            ? { name: user.name, email: user.email, role: user.role }
+            : null,
+      },
+      parentOrigin,
+    );
+  }, [token, user]);
+
+  return null;
+}
+
+function AuthLogoHeader() {
+  return (
+    <div className="flex w-full justify-center px-6 pt-8 -mb-20">
+      <a href={getPublicSiteHomeUrl()} aria-label="GetContractorz home">
+        <img
+          src={contractorzLogo}
+          alt="GetContractorz"
+          className="h-auto w-44 sm:w-52"
+        />
+      </a>
+    </div>
+  );
 }
 
 function App() {
@@ -73,6 +133,7 @@ function MainApp() {
       "/forgot-password",
       "/reset-password",
       "/service-questionnaire",
+      "/session-bridge",
     ].some((path) => window.location.pathname.startsWith(path));
 
     if ((!token || (isError && error?.status === 401)) && !isPublicPage) {
@@ -82,20 +143,39 @@ function MainApp() {
     }
   }, [token, isError, error, navigate]);
 
+  useEffect(() => {
+    if (user) syncPublicSession(user);
+    if (!token || (isError && error?.status === 401)) clearPublicSession();
+  }, [token, user, isError, error]);
+
   if (isFetching) {
-    return <div className="text-center py-5">Loading...</div>;
+    return <LoadingScreen fullScreen />;
   }
 
   const isDashboardRoute = window.location.pathname.startsWith("/user");
+  const isSessionBridge = window.location.pathname === "/session-bridge";
+  const isAuthRoute = [
+    "/sign-in",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+    "/logout",
+  ].includes(window.location.pathname);
 
   return (
     <>
-      {!isDashboardRoute && <Header />}
+      {!isDashboardRoute && !isSessionBridge && !isAuthRoute && <Header />}
+      {isAuthRoute && <AuthLogoHeader />}
 
       {/* <main> */}
       <Routes>
         <Route path="/admin" element={<AdminRedirect />} />
         <Route path="/admin/*" element={<AdminRedirect />} />
+        <Route path="/logout" element={<LogoutRedirect />} />
+        <Route
+          path="/session-bridge"
+          element={<PublicSessionBridge token={token} user={user} />}
+        />
 
         {/* Public routes */}
         <Route path="/" element={<Home />} />
@@ -158,6 +238,10 @@ function MainApp() {
           <Route
             path="clients"
             element={<UserDashboard page="clients" token={token} user={user} />}
+          />
+          <Route
+            path="client/:id"
+            element={<UserDashboard page="client" token={token} user={user} />}
           />
           <Route
             path="client/:id/services"
@@ -284,7 +368,7 @@ function MainApp() {
       </Routes>
       {/* </main> */}
 
-      {!isDashboardRoute && <Footer />}
+      {!isDashboardRoute && !isSessionBridge && !isAuthRoute && <Footer />}
     </>
   );
 }

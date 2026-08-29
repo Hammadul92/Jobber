@@ -5,6 +5,7 @@ import {
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import RichTextContent from "../../../Components/ui/RichTextContent";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import {
   LuCircleAlert,
   LuCircleDashed,
@@ -65,7 +66,7 @@ export default function ServiceTermsData({ token, setAlert, onEdit }) {
     }
   };
 
-  if (isLoading) return <div>Loading service terms...</div>;
+  if (isLoading) return <LoadingScreen />;
 
   const totalCount = templates.length;
   const activeCount = templates.filter((template) => template.is_active).length;

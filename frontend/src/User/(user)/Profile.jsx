@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useUpdateUserMutation, useFetchUserQuery } from "../../store";
 import SubmitButton from "../../Components/ui/SubmitButton";
+import LoadingScreen from "../../Components/ui/LoadingScreen";
 import { formatDate } from "../../utils/formatDate";
 import Input from "../../Components/ui/Input";
 import { LuCamera } from "react-icons/lu";
@@ -72,7 +73,7 @@ export default function Profile({ token, setAlert }) {
     }
   };
 
-  if (isFetching) return <div>Loading profile...</div>;
+  if (isFetching) return <LoadingScreen />;
 
   const inputClass =
     "w-full rounded-xl border border-gray-300 bg-white md:px-5 md:py-3! focus:outline-none";

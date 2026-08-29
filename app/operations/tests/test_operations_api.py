@@ -18,6 +18,7 @@ from django.utils import timezone
 from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
+from taggit.models import Tag
 
 from core.models import (
     BankingInformation,
@@ -39,9 +40,11 @@ from operations.serializers import BusinessSerializer, QuoteSerializer
 
 BUSINESSES_URL = reverse("operations:business-list")
 BUSINESS_MARQUEE_LOGOS_URL = reverse("operations:business-marquee-logos")
+SERVICE_OPTIONS_URL = reverse("operations:business-service-options")
 SERVICES_URL = reverse("operations:service-list")
 QUOTES_URL = reverse("operations:quote-list")
 QUOTE_SIGN_URL = "operations:quote-sign-quote"
+QUOTE_DOWNLOAD_PDF_URL = "operations:quote-download-pdf"
 JOB_PHOTOS_URL = reverse("operations:jobphoto-list")
 SERVICE_TERMS_TEMPLATES_URL = reverse(
     "operations:servicetermstemplate-list"
@@ -60,6 +63,10 @@ def quote_detail_url(quote_id):
 
 def quote_send_url(quote_id):
     return reverse("operations:quote-send-quote", args=[quote_id])
+
+
+def team_member_detail_url(team_member_id):
+    return reverse("operations:teammember-detail", args=[team_member_id])
 
 
 def invoice_make_payment_url(invoice_id):
@@ -202,6 +209,56 @@ class PrivateBusinessApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
+    def _business_payload(self, services):
+        return {
+            "name": "Catalog Services",
+            "slug": "catalog-services",
+            "phone": "+1 403-555-0100",
+            "email": "catalog@example.com",
+            "business_description": "Catalog validation business.",
+            "street_address": "1 Main Street",
+            "city": "Calgary",
+            "country": "CA",
+            "province_state": "AB",
+            "postal_code": "T2P 1J9",
+            "business_number": "CATALOG-1",
+            "tax_rate": "5.00",
+            "services_offered": services,
+            "timezone": "America/Edmonton",
+        }
+
+    def test_service_options_returns_admin_managed_catalog(self):
+        Tag.objects.get_or_create(name="Custom Admin Service")
+
+        res = self.client.get(SERVICE_OPTIONS_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("Custom Admin Service", [option["name"] for option in res.data])
+
+    def test_business_accepts_only_catalog_service_options(self):
+        Tag.objects.get_or_create(name="Window Cleaning")
+
+        res = self.client.post(
+            BUSINESSES_URL,
+            self._business_payload(["Window Cleaning"]),
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        business = Business.objects.get(pk=res.data["id"])
+        self.assertEqual(list(business.services_offered.names()), ["Window Cleaning"])
+
+    def test_business_rejects_unknown_service_without_creating_tag(self):
+        res = self.client.post(
+            BUSINESSES_URL,
+            self._business_payload(["Unconfigured Service"]),
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("services_offered", res.data)
+        self.assertFalse(Tag.objects.filter(name="Unconfigured Service").exists())
+
 
 class QuoteInvoiceAutomationTests(TestCase):
     """Test automatic invoice creation around quote signing."""
@@ -211,6 +268,7 @@ class QuoteInvoiceAutomationTests(TestCase):
         self.owner = get_user_model().objects.create_user(
             "owner@example.com",
             "test123",
+            role="MANAGER",
         )
         self.client_user = get_user_model().objects.create_user(
             "client@example.com",
@@ -282,6 +340,45 @@ class QuoteInvoiceAutomationTests(TestCase):
         self.assertEqual(invoice.subtotal, Decimal("100.00"))
         self.assertEqual(invoice.tax_amount, Decimal("5.00"))
         self.assertEqual(invoice.total_amount, Decimal("105.00"))
+
+    def test_manager_can_download_signed_quote_pdf_with_signature(self):
+        self.quote.status = "SIGNED"
+        self.quote.signed_at = timezone.now()
+
+        with tempfile.TemporaryDirectory() as temp_media_root:
+            with self.settings(MEDIA_ROOT=temp_media_root):
+                self.quote.signature.save(
+                    "signature.png",
+                    create_test_image_file("signature.png"),
+                    save=True,
+                )
+                self.client.force_authenticate(self.owner)
+
+                res = self.client.get(
+                    reverse(QUOTE_DOWNLOAD_PDF_URL, args=[self.quote.id])
+                )
+                content = b"".join(res.streaming_content)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res["Content-Type"], "application/pdf")
+        self.assertIn(
+            f'{self.quote.quote_number}-signed.pdf',
+            res["Content-Disposition"],
+        )
+        self.assertTrue(content.startswith(b"%PDF"))
+
+    def test_unsigned_quote_cannot_be_downloaded_as_pdf(self):
+        self.client.force_authenticate(self.owner)
+
+        res = self.client.get(
+            reverse(QUOTE_DOWNLOAD_PDF_URL, args=[self.quote.id])
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            res.data["detail"],
+            "Only signed quotations can be downloaded as PDF.",
+        )
 
 
 class ServiceTermsTemplateApiTests(TestCase):
@@ -659,6 +756,42 @@ class WorkflowRegressionTests(TestCase):
                     },
                     format="multipart",
                 )
+
+    def test_manager_can_update_employee_role(self):
+        """Test manager can promote or demote another team member."""
+        self.client.force_authenticate(self.manager)
+
+        res = self.client.patch(
+            team_member_detail_url(self.team_member.id),
+            {"role": "MANAGER", "job_duties": "Lead field visits"},
+            format="json",
+        )
+
+        self.employee_user.refresh_from_db()
+        self.team_member.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["role"], "MANAGER")
+        self.assertEqual(self.employee_user.role, "MANAGER")
+        self.assertEqual(self.team_member.job_duties, "Lead field visits")
+
+    def test_manager_cannot_update_own_team_member_role(self):
+        """Test manager cannot change their own role through team members."""
+        manager_member = TeamMember.objects.create(
+            business=self.business,
+            employee=self.manager,
+        )
+        self.client.force_authenticate(self.manager)
+
+        res = self.client.patch(
+            team_member_detail_url(manager_member.id),
+            {"role": "EMPLOYEE"},
+            format="json",
+        )
+
+        self.manager.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("role", res.data)
+        self.assertEqual(self.manager.role, "MANAGER")
 
     @patch("operations.views.emails.send_quote_email")
     @patch("operations.views.emails.send_service_questionnaire_email")

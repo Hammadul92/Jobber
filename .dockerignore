@@ -13,3 +13,11 @@ app/*/*/*/__pycache__/
 .env/
 .venv/
 venv/
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+
+# Runtime data
+app/media/
+app/static/

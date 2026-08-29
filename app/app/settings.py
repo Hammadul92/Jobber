@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "finance",
     "taggit",
     "user",
+    "public_site",
 ]
 
 MIDDLEWARE = [
@@ -76,6 +77,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "public_site.context_processors.public_site_assets",
             ],
         },
     },
@@ -150,6 +152,10 @@ REST_FRAMEWORK = {
 }
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+PUBLIC_SITE_CSS_URL = os.environ.get(
+    "PUBLIC_SITE_CSS_URL",
+    "/static/public_site/css/public-site.css",
+)
 
 ALLOWED_HOSTS_ENV = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver")
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(",")]

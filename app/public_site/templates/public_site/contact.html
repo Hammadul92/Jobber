@@ -1,0 +1,422 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="contact GetContractorz, GetContractorz support, GetContractorz help, GetContractorz contact, service business platform support, business registration help, Marketplace question, client invitation help">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/contact/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Contact",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/contact/"
+          }
+        ]
+      },
+      {
+        "@type": "ContactPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/contact/#webpage",
+        "name": "Contact GetContractorz | Product, Account & Marketplace Help",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/contact/",
+        "description": "Contact GetContractorz with product, account, business-registration, client, Marketplace, or general questions using the approved contact form.",
+        "breadcrumb": {
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/contact/#breadcrumb"
+        },
+        "about": {
+          "@type": "SoftwareApplication",
+          "name": "GetContractorz",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web"
+        }
+      }
+    ]
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="gc-contact-page">
+  <section class="gc-home-hero gc-service-hero--home" aria-labelledby="contact-hero-title">
+    <img class="gc-home-hero__shape gc-home-hero__shape--right"
+      src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--left"
+      src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--hexagon" src="{% static 'public_site/images/hexagon.svg' %}"
+      alt="" aria-hidden="true">
+
+    <div class="gc-home-hero__content">
+      <p class="gc-home-hero__eyebrow">Contact</p>
+      <h1 class="gc-home-hero__title" id="contact-hero-title">
+        How can we
+        <span class="gc-home-hero__title-accent">help?</span>
+      </h1>
+      <p class="gc-home-hero__copy">
+        Have a question about the platform, business registration, a client invitation, your account, or the
+        Marketplace? Send us a message using the form below.
+      </p>
+      <div class="gc-home-hero__actions" aria-label="Contact page actions">
+        <a class="gc-home-hero__button gc-home-hero__button--primary" href="#contact-form">
+          Send Message
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-contact-purpose" aria-labelledby="contact-purpose-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header">
+        <p class="gc-home-kicker">Contact purpose</p>
+        <h2 class="gc-home-section__title" id="contact-purpose-title">
+          Choose the question that matches your <span class="gc-heading-accent">next step.</span>
+        </h2>
+      </div>
+      <div class="gc-contact-purpose__grid">
+        <article>
+          <span>01</span>
+          <h3>Product or business-registration question</h3>
+          <p>Ask about using GetContractorz as a service business, supported categories, or the Manager workflow.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>Client or account question</h3>
+          <p>Ask about an invitation, login/access issue, questionnaire, quote, invoice, or another client-facing workflow.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>Marketplace question</h3>
+          <p>Ask about a business listing, public information, or Marketplace use.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-contact-form-section" id="contact-form" aria-labelledby="contact-form-title">
+    <div class="gc-home-container gc-contact-form-shell">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Contact form</p>
+        <h2 class="gc-home-section__title" id="contact-form-title">
+          Tell us what you need <span class="gc-heading-accent">help with.</span>
+        </h2>
+        <div class="gc-home-section__text">
+          <p>
+            Choose the topic that best matches your question and include enough detail for the team to understand
+            the issue.
+          </p>
+        </div>
+      </div>
+
+      <form class="gc-contact-form" action="/api/user/contact/" method="post" data-contact-form novalidate>
+        <div class="gc-contact-form__status" data-contact-status role="status" aria-live="polite" hidden></div>
+
+        <div class="gc-contact-form__field">
+          <label for="contact-name">Name</label>
+          <input id="contact-name" name="name" type="text" autocomplete="name" minlength="2" placeholder="Your name" required>
+          <p class="gc-contact-form__error" data-error-for="name"></p>
+        </div>
+
+        <div class="gc-contact-form__field">
+          <label for="contact-email">Email</label>
+          <input id="contact-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+          <p class="gc-contact-form__error" data-error-for="email"></p>
+        </div>
+
+        <div class="gc-contact-form__field">
+          <span class="gc-contact-form__label" id="contact-audience-label">I am a...</span>
+          <div class="gc-contact-combobox" data-contact-combobox>
+            <input type="hidden" name="audience" value="" required>
+            <button class="gc-contact-combobox__button" type="button" aria-labelledby="contact-audience-label" aria-haspopup="listbox" aria-expanded="false">
+              <span data-contact-combobox-label>Select one</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="gc-contact-combobox__panel" hidden>
+              <button type="button" role="option" data-value="Service-business owner/Manager">Service-business owner/Manager</button>
+              <button type="button" role="option" data-value="Client">Client</button>
+              <button type="button" role="option" data-value="Employee">Employee</button>
+              <button type="button" role="option" data-value="Marketplace visitor">Marketplace visitor</button>
+              <button type="button" role="option" data-value="Other">Other</button>
+            </div>
+          </div>
+          <p class="gc-contact-form__error" data-error-for="audience"></p>
+        </div>
+
+        <div class="gc-contact-form__field">
+          <span class="gc-contact-form__label" id="contact-topic-label">Topic</span>
+          <div class="gc-contact-combobox" data-contact-combobox>
+            <input type="hidden" name="topic" value="" required>
+            <button class="gc-contact-combobox__button" type="button" aria-labelledby="contact-topic-label" aria-haspopup="listbox" aria-expanded="false">
+              <span data-contact-combobox-label>Select one</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="gc-contact-combobox__panel" hidden>
+              <button type="button" role="option" data-value="Business registration">Business registration</button>
+              <button type="button" role="option" data-value="Product question">Product question</button>
+              <button type="button" role="option" data-value="Account or login">Account or login</button>
+              <button type="button" role="option" data-value="Client invitation/questionnaire">Client invitation/questionnaire</button>
+              <button type="button" role="option" data-value="Marketplace listing">Marketplace listing</button>
+              <button type="button" role="option" data-value="General question">General question</button>
+            </div>
+          </div>
+          <p class="gc-contact-form__error" data-error-for="topic"></p>
+        </div>
+
+        <div class="gc-contact-form__field gc-contact-form__field--full">
+          <label for="contact-message">Message</label>
+          <textarea id="contact-message" name="message" rows="6" minlength="10" maxlength="5000" placeholder="Tell us what happened or what you would like to know." required></textarea>
+          <p class="gc-contact-form__error" data-error-for="message"></p>
+        </div>
+
+        <div class="gc-contact-form__privacy gc-contact-form__field--full">
+          <input id="contact-privacy" name="privacy_agreed" type="checkbox" value="true" required>
+          <label for="contact-privacy">
+            By submitting this form, you agree that GetContractorz may use the information you provide to respond
+            to your enquiry, subject to the current Privacy Policy.
+          </label>
+        </div>
+        <p class="gc-contact-form__error gc-contact-form__field--full" data-error-for="privacy_agreed"></p>
+
+        <button class="gc-contact-form__submit gc-button gc-button--primary gc-contact-form__field--full" type="submit">
+          <span data-submit-label>Send Message</span>
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--final" aria-labelledby="contact-final-title">
+    <div class="gc-public-cta">
+      <h2 class="gc-public-cta__title" id="contact-final-title">
+        Want to start with the <span class="gc-heading-accent">platform instead?</span>
+      </h2>
+      <p class="gc-public-cta__copy">
+        Create your account, register your business, and start setting up the services and workflows you use every day.
+      </p>
+      <a class="gc-public-cta__button gc-button gc-button--primary" href="{{ frontend_url }}/register">
+        Get Started Free
+        <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <p class="gc-public-cta__note">Registration and platform access are currently free.</p>
+    </div>
+  </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const form = document.querySelector("[data-contact-form]");
+    if (!form) return;
+
+    const status = form.querySelector("[data-contact-status]");
+    const submitButton = form.querySelector("button[type='submit']");
+    const submitLabel = form.querySelector("[data-submit-label]");
+    const errors = Array.from(form.querySelectorAll("[data-error-for]"));
+    const comboboxes = Array.from(form.querySelectorAll("[data-contact-combobox]"));
+    const successMessage = "Thanks. Your message has been received.";
+    const errorMessage = "We could not send your message. Please check the highlighted fields and try again.";
+
+    const clearErrors = () => {
+      errors.forEach((error) => {
+        error.textContent = "";
+      });
+      form.querySelectorAll("[aria-invalid='true']").forEach((field) => {
+        field.removeAttribute("aria-invalid");
+      });
+    };
+
+    const setError = (fieldName, message) => {
+      const error = form.querySelector(`[data-error-for="${fieldName}"]`);
+      const field = form.elements[fieldName];
+      const fieldButton = field?.closest("[data-contact-combobox]")?.querySelector(".gc-contact-combobox__button");
+      if (error) error.textContent = message;
+      if (field) field.setAttribute("aria-invalid", "true");
+      if (fieldButton) fieldButton.setAttribute("aria-invalid", "true");
+    };
+
+    const showStatus = (message, type) => {
+      status.hidden = false;
+      status.textContent = message;
+      status.className = `gc-contact-form__status gc-contact-form__status--${type}`;
+    };
+
+    const splitName = (name) => {
+      const parts = name.trim().split(/\s+/).filter(Boolean);
+      return {
+        firstName: parts[0] || "",
+        lastName: parts.slice(1).join(" ") || parts[0] || "",
+      };
+    };
+
+    const validate = (data) => {
+      const nextErrors = {};
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (data.name.trim().length < 2) nextErrors.name = "Name must be at least 2 characters.";
+      if (!data.email.trim()) nextErrors.email = "Email is required.";
+      if (data.email.trim() && !emailPattern.test(data.email.trim())) nextErrors.email = "Enter a valid email address.";
+      if (!data.audience) nextErrors.audience = "Choose the option that describes you.";
+      if (!data.topic) nextErrors.topic = "Choose a topic.";
+      if (data.message.trim().length < 10) nextErrors.message = "Please share at least 10 characters.";
+      if (!data.privacyAgreed) nextErrors.privacy_agreed = "You must agree to the privacy policy before submitting.";
+      return nextErrors;
+    };
+
+    const closeComboboxes = (activeCombobox = null) => {
+      comboboxes.forEach((combobox) => {
+        if (combobox === activeCombobox) return;
+        const button = combobox.querySelector(".gc-contact-combobox__button");
+        const panel = combobox.querySelector(".gc-contact-combobox__panel");
+        if (!button || !panel) return;
+        button.setAttribute("aria-expanded", "false");
+        panel.hidden = true;
+      });
+    };
+
+    comboboxes.forEach((combobox) => {
+      const hiddenInput = combobox.querySelector('input[type="hidden"]');
+      const button = combobox.querySelector(".gc-contact-combobox__button");
+      const label = combobox.querySelector("[data-contact-combobox-label]");
+      const panel = combobox.querySelector(".gc-contact-combobox__panel");
+      const options = Array.from(combobox.querySelectorAll('[role="option"]'));
+      if (!hiddenInput || !button || !label || !panel) return;
+
+      button.addEventListener("click", () => {
+        const willOpen = panel.hidden;
+        closeComboboxes(combobox);
+        panel.hidden = !willOpen;
+        button.setAttribute("aria-expanded", String(willOpen));
+      });
+
+      options.forEach((option) => {
+        option.addEventListener("click", () => {
+          hiddenInput.value = option.dataset.value || "";
+          label.textContent = option.textContent;
+          options.forEach((item) => item.setAttribute("aria-selected", "false"));
+          option.setAttribute("aria-selected", "true");
+          hiddenInput.removeAttribute("aria-invalid");
+          button.removeAttribute("aria-invalid");
+          panel.hidden = true;
+          button.setAttribute("aria-expanded", "false");
+          button.focus();
+        });
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest("[data-contact-combobox]")) {
+        closeComboboxes();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeComboboxes();
+      }
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearErrors();
+      status.hidden = true;
+
+      const formData = new FormData(form);
+      const values = {
+        name: String(formData.get("name") || ""),
+        email: String(formData.get("email") || ""),
+        audience: String(formData.get("audience") || ""),
+        topic: String(formData.get("topic") || ""),
+        message: String(formData.get("message") || ""),
+        privacyAgreed: formData.get("privacy_agreed") === "true",
+      };
+      const validationErrors = validate(values);
+      if (Object.keys(validationErrors).length) {
+        Object.entries(validationErrors).forEach(([field, message]) => setError(field, message));
+        showStatus(errorMessage, "error");
+        return;
+      }
+
+      const nameParts = splitName(values.name);
+      const payload = {
+        first_name: nameParts.firstName,
+        last_name: nameParts.lastName,
+        email: values.email.trim(),
+        company_name: values.audience,
+        message: `Audience: ${values.audience}\nTopic: ${values.topic}\n\n${values.message.trim()}`,
+        privacy_agreed: values.privacyAgreed,
+      };
+
+      submitButton.disabled = true;
+      submitLabel.textContent = "Sending...";
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          let responseData = {};
+          try {
+            responseData = await response.json();
+          } catch (error) {
+            responseData = {};
+          }
+          const fieldMap = {
+            first_name: "name",
+            last_name: "name",
+            company_name: "audience",
+            privacy_agreed: "privacy_agreed",
+          };
+          Object.entries(responseData).forEach(([key, messages]) => {
+            const fieldName = fieldMap[key] || key;
+            const message = Array.isArray(messages) ? messages.join(" ") : String(messages);
+            setError(fieldName, message);
+          });
+          showStatus(responseData.detail || errorMessage, "error");
+          return;
+        }
+
+        form.reset();
+        comboboxes.forEach((combobox) => {
+          const label = combobox.querySelector("[data-contact-combobox-label]");
+          const options = combobox.querySelectorAll('[role="option"]');
+          if (label) label.textContent = "Select one";
+          options.forEach((option) => option.removeAttribute("aria-selected"));
+        });
+        showStatus(successMessage, "success");
+      } catch (error) {
+        showStatus(errorMessage, "error");
+      } finally {
+        submitButton.disabled = false;
+        submitLabel.textContent = "Send Message";
+      }
+    });
+  })();
+</script>
+{% endblock %}

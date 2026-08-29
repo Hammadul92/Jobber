@@ -7,6 +7,7 @@ import {
   useDeleteTeamMemberMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 
 export default function TeamMembersData({ token, setAlert, onEdit }) {
   const [showModal, setShowModal] = useState(false);
@@ -170,11 +171,7 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
   };
 
   if (isLoading)
-    return (
-      <div className="mt-6 text-center text-gray-600">
-        Loading team members...
-      </div>
-    );
+    return <LoadingScreen />;
   if (error)
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">

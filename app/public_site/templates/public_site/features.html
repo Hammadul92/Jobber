@@ -1,0 +1,313 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="service business software features, client management software, contractor job management, quote management software, invoice management software, job photo documentation, service questionnaires, contractor business software features">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/features/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Features",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/features/"
+          }
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/features/#webpage",
+        "name": "Service Business Software Features",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/features/",
+        "description": "Explore GetContractorz features for managing clients, services, questionnaires, team jobs, work images, quotes, invoices, payouts, and business information.",
+        "breadcrumb": {
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/features/#breadcrumb"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/features/#software",
+        "name": "GetContractorz",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "Service business software with features for client management, services, questionnaires, terms, team job assignment, work image documentation, quotes, invoices, payout review, and dashboard information.",
+        "featureList": [
+          "Client management",
+          "Service management",
+          "Service questionnaires",
+          "Terms and conditions",
+          "Team members",
+          "Assigned jobs",
+          "Before-and-after job images",
+          "Quotes",
+          "Invoices",
+          "Business information",
+          "Payout review",
+          "Dashboard information and analytics"
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/features/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is GetContractorz a CRM?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "GetContractorz includes client-management functionality, but the platform is broader than a CRM. It also supports services, questionnaires, terms, team assignments, jobs, work images, quotes, invoices, payouts, and Marketplace visibility."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does GetContractorz include scheduling and dispatch?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Scheduling and dispatch are not verified capabilities in the current public product foundation and should not be advertised as features."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does GetContractorz integrate with accounting software?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No integration is currently approved for public marketing. Do not advertise accounting integrations unless they are separately verified."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does GetContractorz have a mobile app?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Mobile-app functionality is not part of the verified public feature foundation. Public copy should not make a mobile-app claim unless the current product is separately confirmed."
+            }
+          }
+        ]
+      }
+    ]
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="gc-features-page">
+  <section class="gc-home-hero" aria-labelledby="features-hero-title">
+    <img class="gc-home-hero__shape gc-home-hero__shape--right"
+      src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--left"
+      src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--hexagon" src="{% static 'public_site/images/hexagon.svg' %}"
+      alt="" aria-hidden="true">
+
+    <div class="gc-home-hero__content">
+      <p class="gc-home-hero__eyebrow">Features</p>
+      <h1 class="gc-home-hero__title" id="features-hero-title">
+        The workflows behind your service business, organized in
+        <span class="gc-home-hero__title-accent">one place.</span>
+      </h1>
+      <p class="gc-home-hero__copy">
+        Explore the verified GetContractorz capabilities available to Managers, Employees, and Clients - from
+        client onboarding and service requirements to job documentation, quotes, invoices, and payouts.
+      </p>
+      <div class="gc-home-hero__actions" aria-label="Features page actions">
+        <a class="gc-home-hero__button gc-home-hero__button--primary" href="{{ frontend_url }}/register">
+          Get Started Free
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-features-overview" id="features-overview" aria-labelledby="features-overview-title">
+    <div class="gc-home-container gc-home-split">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Verified product capabilities</p>
+        <h2 class="gc-home-section__title" id="features-overview-title">
+          Built around the parts of service work that need to stay <span class="gc-heading-accent">connected.</span>
+        </h2>
+        <div class="gc-feature-anchor-list" aria-label="Feature sections">
+          <a href="#clients-services">Clients &amp; Services</a>
+          <a href="#questionnaires-terms">Questionnaires &amp; Terms</a>
+          <a href="#team-jobs">Team &amp; Jobs</a>
+          <a href="#work-images">Work Images</a>
+          <a href="#quotes">Quotes</a>
+          <a href="#invoices">Invoices</a>
+          <a href="#business-information">Business Information</a>
+          <a href="#payouts">Payouts</a>
+          <a href="#dashboard-information">Dashboard Information</a>
+        </div>
+      </div>
+      <div class="gc-feature-overview__visual" aria-hidden="true">
+        <img src="{% static 'public_site/images/generated/features-workspace-overview.png' %}" alt="">
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--features" aria-labelledby="features-detail-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header">
+        <p class="gc-home-kicker">Feature architecture</p>
+        <h2 class="gc-home-section__title" id="features-detail-title">
+          Service-business software features for the <span class="gc-heading-accent">full workflow.</span>
+        </h2>
+      </div>
+      <div class="gc-feature-detail-list">
+        <article id="clients-services">
+          <span>Manager</span>
+          <h3>Keep clients and the services you provide connected.</h3>
+          <p>Managers can add and manage clients, configure business services, and create personalized services for individual customers. This provides the foundation for the questionnaire, activation, job, quote, and invoice workflow around that client.</p>
+        </article>
+        <article id="questionnaires-terms">
+          <span>Manager; Client submits questionnaire</span>
+          <h3>Collect the information each service requires.</h3>
+          <p>Create questionnaires for specific services instead of relying on the same generic intake for every job. Managers can also create terms and conditions for services, keeping both pieces inside the broader service workflow.</p>
+        </article>
+        <article id="team-jobs">
+          <span>Manager and Employee</span>
+          <h3>Give employees a clear job to complete.</h3>
+          <p>Managers can add team members and assign jobs. Employees can view their assigned work and complete the jobs they are responsible for without being presented as full Manager users.</p>
+        </article>
+        <article id="work-images">
+          <span>Employee uploads; Manager reviews</span>
+          <h3>Keep visual job documentation with the work.</h3>
+          <p>Employees can upload before-and-after images when completing assigned jobs, and Managers can monitor those images as part of the job record.</p>
+        </article>
+        <article id="quotes">
+          <span>Manager; relevant quote access for Client</span>
+          <h3>Create and send quotes from the business workspace.</h3>
+          <p>Managers can create and send quotes, keeping quote activity connected to the broader customer and service process.</p>
+        </article>
+        <article id="invoices">
+          <span>Manager and Client</span>
+          <h3>Manage invoices alongside the service workflow.</h3>
+          <p>Managers can manage invoices, and Clients can access relevant invoices based on their service and account access.</p>
+        </article>
+        <article id="business-information">
+          <span>Manager</span>
+          <h3>Keep core business information in the Manager workspace.</h3>
+          <p>Managers can manage profile information, business information, banking information, and credential information. Public copy must not imply GetContractorz independently verifies business-supplied credentials.</p>
+        </article>
+        <article id="payouts">
+          <span>Manager</span>
+          <h3>Review payout information from the same workspace.</h3>
+          <p>Managers can review payouts as part of the business administration available in GetContractorz.</p>
+        </article>
+        <article id="dashboard-information">
+          <span>Manager</span>
+          <h3>See the business information available in your dashboard.</h3>
+          <p>The Manager dashboard provides general business information and analytics. Until the exact metrics and reporting definitions are approved for public use, public copy should avoid specific charts, forecasts, KPIs, or performance insights that have not been verified.</p>
+        </article>
+        <article id="client-access">
+          <span>Client</span>
+          <h3>Give clients a role-specific place for the information they need.</h3>
+          <p>Clients can access their dashboard, view services created for them, complete service questionnaires, follow service-related email and magic-link actions, and access relevant quotes and invoices.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--faq" id="features-faq" aria-labelledby="features-faq-title">
+    <div class="gc-home-container gc-home-faq">
+      <div class="gc-home-faq__header">
+        <h2 class="gc-home-faq__title" id="features-faq-title">
+          Frequently Asked
+          <span>Questions</span>
+        </h2>
+        <p>Clear answers about verified GetContractorz features.</p>
+      </div>
+      <div class="gc-home-faq__list">
+        <details open>
+          <summary>Is GetContractorz a CRM?</summary>
+          <p>GetContractorz includes client-management functionality, but the platform is broader than a CRM. It also supports services, questionnaires, terms, team assignments, jobs, work images, quotes, invoices, payouts, and Marketplace visibility.</p>
+        </details>
+        <details>
+          <summary>Does GetContractorz include scheduling and dispatch?</summary>
+          <p>Scheduling and dispatch are not verified capabilities in the current public product foundation and should not be advertised as features.</p>
+        </details>
+        <details>
+          <summary>Does GetContractorz integrate with accounting software?</summary>
+          <p>No integration is currently approved for public marketing. Do not advertise accounting integrations unless they are separately verified.</p>
+        </details>
+        <details>
+          <summary>Does GetContractorz have a mobile app?</summary>
+          <p>Mobile-app functionality is not part of the verified public feature foundation. Public copy should not make a mobile-app claim unless the current product is separately confirmed.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--final" aria-labelledby="features-final-title">
+    <div class="gc-public-cta">
+      <h2 class="gc-public-cta__title" id="features-final-title">
+        Ready to start using the <span class="gc-heading-accent">workspace?</span>
+      </h2>
+      <p class="gc-public-cta__copy">
+        Create your account, register your business, and configure the services and workflows that apply to your operation.
+      </p>
+      <a class="gc-public-cta__button gc-button gc-button--primary" href="{{ frontend_url }}/register">
+        Get Started Free
+        <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <p class="gc-public-cta__note">Registration and platform access are currently free.</p>
+    </div>
+  </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const faqItems = document.querySelectorAll(".gc-home-faq details");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return;
+
+    faqItems.forEach((item) => {
+      const summary = item.querySelector("summary");
+      if (!summary) return;
+
+      item.style.height = item.open ? `${item.scrollHeight}px` : `${summary.offsetHeight}px`;
+
+      summary.addEventListener("click", (event) => {
+        event.preventDefault();
+        item.style.overflow = "hidden";
+
+        if (item.open) {
+          item.style.height = `${item.scrollHeight}px`;
+          requestAnimationFrame(() => {
+            item.style.height = `${summary.offsetHeight}px`;
+          });
+          item.addEventListener("transitionend", () => {
+            item.open = false;
+          }, { once: true });
+          return;
+        }
+
+        item.open = true;
+        item.style.height = `${summary.offsetHeight}px`;
+        requestAnimationFrame(() => {
+          item.style.height = `${item.scrollHeight}px`;
+        });
+        item.addEventListener("transitionend", () => {
+          item.style.height = "auto";
+        }, { once: true });
+      });
+    });
+  })();
+</script>
+{% endblock %}

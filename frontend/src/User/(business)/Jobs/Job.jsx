@@ -9,6 +9,7 @@ import {
   useFetchServiceQuery,
 } from "../../../store";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import Select from "../../../Components/ui/Select";
 import Textarea from "../../../Components/ui/Textarea";
@@ -188,7 +189,7 @@ export default function Job({ token, role }) {
     }
   };
 
-  if (isLoading) return <div>Loading job details...</div>;
+  if (isLoading) return <LoadingScreen />;
 
   if (error) {
     return (

@@ -4,6 +4,7 @@ import {
   useDeleteServiceQuestionnaireMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
+import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import {
   LuCircleAlert,
   LuCircleDashed,
@@ -76,7 +77,8 @@ export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
     }
   };
 
-  if (isLoading) return <div>Loading service questionnaires...</div>;
+  if (isLoading)
+    return <LoadingScreen />;
 
   const totalCount = questionnaires.length;
   const activeCount = questionnaires.filter((q) => q.is_active).length;

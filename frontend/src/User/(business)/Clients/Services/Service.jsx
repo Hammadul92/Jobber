@@ -9,6 +9,7 @@ import {
 
 import SubmitButton from "../../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../../Components/ui/AlertDispatcher";
+import LoadingScreen from "../../../../Components/ui/LoadingScreen";
 import Select from "../../../../Components/ui/Select";
 import Input from "../../../../Components/ui/Input";
 import Textarea from "../../../../Components/ui/Textarea";
@@ -53,6 +54,16 @@ export default function Service({ token }) {
     ACTIVE: "bg-green-100 text-green-800",
     COMPLETED: "bg-blue-100 text-blue-800",
     CANCELLED: "bg-red-100 text-red-800",
+  };
+
+  const formatMoney = (value, fallbackCurrency = "CAD") => {
+    const amount = Number.parseFloat(value || 0);
+    const safeAmount = Number.isFinite(amount) ? amount : 0;
+
+    return `$${new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(safeAmount)} ${fallbackCurrency || "CAD"}`;
   };
 
   useEffect(() => {
@@ -133,7 +144,7 @@ export default function Service({ token }) {
     }
   };
 
-  if (isLoading) return <div>Loading service...</div>;
+  if (isLoading) return <LoadingScreen />;
 
   return (
     <>
@@ -165,15 +176,15 @@ export default function Service({ token }) {
               </span>
             </div>
           </div>
-          <div className="flex flex-col gap-2 rounded-xl bg-secondary px-4 py-3 text-white shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
+          <div className="flex flex-col gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-slate-800 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
               Billing
             </p>
-            <p className="text-xl font-medium">
-              {price ? `$${price} ${currency}` : "Price TBD"}{" "}
+            <p className="text-xl font-medium text-slate-900">
+              {price ? formatMoney(price, currency) : "Price TBD"}{" "}
               {billingCycle && `• ${billingCycle}`}
             </p>
-            <p className="text-xs text-white/80">
+            <p className="text-xs text-slate-500">
               {startDate ? `Starts ${startDate}` : "Start date not set"}
               {endDate ? ` • Ends ${endDate}` : ""}
             </p>

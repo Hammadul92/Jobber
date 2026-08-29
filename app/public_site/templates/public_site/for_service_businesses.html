@@ -1,0 +1,398 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="service business management software, contractor business management software, contractor business software, job management software for contractors, home service business software, client management software for service businesses, service workflow management software">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/for-service-businesses/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "For Service Businesses",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/for-service-businesses/"
+          }
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/for-service-businesses/#webpage",
+        "name": "Service Business Management Software for Contractors",
+        "url": "{{ request.scheme }}://{{ request.get_host }}/for-service-businesses/",
+        "description": "Manage clients, services, team members, questionnaires, jobs, quotes, invoices, and payouts from one organized service-business workspace.",
+        "breadcrumb": {
+          "@id": "{{ request.scheme }}://{{ request.get_host }}/for-service-businesses/#breadcrumb"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/for-service-businesses/#software",
+        "name": "GetContractorz",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "Service business management software for organizing clients, services, team members, questionnaires, assigned jobs, quotes, invoices, payouts, and business records.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Business registration and platform access are currently free."
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}/for-service-businesses/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How do I become a Manager?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Create an account, complete the business-registration form in the Business tab, and once the business is created your role changes from User to Manager."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I add more than one service category?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Managers select the applicable supported service category or categories during business setup and configure the services their business provides."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I create different questionnaires for different services?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Managers can create service-specific questionnaires."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I add my own team members?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Managers can add and manage team members and assign jobs to employees."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can employees see the entire business workspace?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The verified employee role is narrower than the Manager role. Employees can view and complete assigned jobs and upload before-and-after images."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can clients see quotes and invoices?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Clients can access relevant quotes and invoices depending on their assigned access and service status."
+            }
+          }
+        ]
+      }
+    ]
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="gc-service-page">
+  <section class="gc-home-hero gc-service-hero--home" aria-labelledby="service-hero-title">
+    <img class="gc-home-hero__shape gc-home-hero__shape--right"
+      src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--left"
+      src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--hexagon" src="{% static 'public_site/images/hexagon.svg' %}"
+      alt="" aria-hidden="true">
+
+    <div class="gc-home-hero__content">
+      <p class="gc-home-hero__eyebrow">For service businesses</p>
+      <h1 class="gc-home-hero__title" id="service-hero-title">
+        Manage the work around your jobs - without the
+        <span class="gc-home-hero__title-accent">scatter.</span>
+      </h1>
+      <p class="gc-home-hero__copy">
+        GetContractorz gives service-business owners and managers one organized workspace for clients,
+        services, team members, requirements, job assignments, work images, quotes, invoices, payouts,
+        and related business information.
+      </p>
+      <div class="gc-home-hero__actions" aria-label="For service businesses page actions">
+        <a class="gc-home-hero__button gc-home-hero__button--primary" href="{{ frontend_url }}/register">
+          Get Started Free
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+      <p class="gc-home-hero__note">Registration and platform access are currently free.</p>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-service-problem" aria-labelledby="service-problem-title">
+    <div class="gc-home-container gc-home-split">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">When the work is organized, the business is easier to see</p>
+        <h2 class="gc-home-section__title" id="service-problem-title">
+          Your operations should not depend on a <span class="gc-heading-accent">patchwork of tools.</span>
+        </h2>
+        <div class="gc-home-section__text">
+          <p>
+            A service job carries more information than the work itself. There are client details, service requirements,
+            team responsibilities, images, quotes, invoices, and payment-related records to keep track of.
+          </p>
+          <p>
+            GetContractorz centralizes the supported parts of that workflow so the Manager can keep the operational
+            picture connected in one place.
+          </p>
+        </div>
+      </div>
+      <div class="gc-service-problem__visual" aria-hidden="true">
+        <img src="{% static 'public_site/images/generated/for-service-businesses-workspace.png' %}" alt="">
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--features" id="service-capabilities" aria-labelledby="service-capabilities-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header">
+        <p class="gc-home-kicker">What you can manage</p>
+        <h2 class="gc-home-section__title" id="service-capabilities-title">
+          One business workspace. <span class="gc-heading-accent">Clear responsibilities.</span>
+        </h2>
+      </div>
+      <div class="gc-service-capability-grid">
+        <article><h3>Client Management</h3><p>Create and manage client records so customer information stays connected to the services you provide.</p></article>
+        <article><h3>Services</h3><p>Configure your business services and create personalized services for individual clients.</p></article>
+        <article><h3>Service Questionnaires</h3><p>Create service-specific questionnaires and collect the information you need from clients before work moves forward.</p></article>
+        <article><h3>Terms and Conditions</h3><p>Create terms and conditions for your services so the relevant service information is organized alongside the workflow.</p></article>
+        <article><h3>Team Members</h3><p>Add employees or team members and assign work to the people responsible for completing it.</p></article>
+        <article><h3>Jobs and Work Images</h3><p>Manage assigned jobs and review before-and-after images uploaded as part of completed work.</p></article>
+        <article><h3>Quotes</h3><p>Create and send quotes from the business workspace.</p></article>
+        <article><h3>Invoices</h3><p>Manage invoices connected to your customer workflow.</p></article>
+        <article><h3>Payouts</h3><p>Review payout information from the Manager workspace.</p></article>
+        <article><h3>Business Information and Analytics</h3><p>Manage profile, business, banking, and credential information and view general business information and analytics available in the dashboard.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-service-client-flow" aria-labelledby="service-client-title">
+    <div class="gc-home-container gc-service-flow">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Build a structured client workflow</p>
+        <h2 class="gc-home-section__title" id="service-client-title">
+          Collect requirements before the <span class="gc-heading-accent">job moves forward.</span>
+        </h2>
+      </div>
+      <div class="gc-service-step-list">
+        <article><span>01</span><div><h3>Add the client</h3><p>Create the client's record. The client receives an email invitation to create or access their account.</p></div></article>
+        <article><span>02</span><div><h3>Create the service</h3><p>Create a personalized service for that client and connect the service to the questionnaire it requires.</p></div></article>
+        <article><span>03</span><div><h3>Review the submission</h3><p>The client receives a magic link, completes the questionnaire, and submits the required information. The Manager reviews the submission and activates the service.</p></div></article>
+        <article><span>04</span><div><h3>Keep service information accessible</h3><p>The client can access the relevant parts of the platform, including applicable services, quotes, and invoices.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-service-team-flow" aria-labelledby="service-team-title">
+    <div class="gc-home-container gc-service-team-flow__grid">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Keep team responsibilities connected to the job</p>
+        <h2 class="gc-home-section__title" id="service-team-title">
+          Assign the work. <span class="gc-heading-accent">Document the result.</span>
+        </h2>
+      </div>
+      <div class="gc-home-section__text">
+        <p>
+          Managers can add team members and assign jobs. Employees have a focused role: they can view the jobs assigned
+          to them, complete those jobs, and upload before-and-after images as part of the work record.
+        </p>
+        <p>
+          This keeps the employee workflow narrower than the full Manager workspace while still connecting field work
+          back to the business process.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-service-records" aria-labelledby="service-records-title">
+    <div class="gc-home-container">
+      <div class="gc-home-section__header">
+        <p class="gc-home-kicker">Quotes, invoices, and payout-related work</p>
+        <h2 class="gc-home-section__title" id="service-records-title">
+          Customer-facing records should not live in <span class="gc-heading-accent">isolation.</span>
+        </h2>
+      </div>
+      <div class="gc-service-records__grid">
+        <article><h3>Quotes</h3><p>Create and send quotes from the same workspace where client and service information is managed.</p></article>
+        <article><h3>Invoices</h3><p>Manage invoices connected to the customer workflow instead of keeping billing records detached from the job.</p></article>
+        <article><h3>Payouts</h3><p>Review payout information from the Manager workspace alongside related business and banking information.</p></article>
+      </div>
+      <p class="gc-service-disclaimer">
+        GetContractorz does not position itself as accounting software, a payment processor, or a replacement for any
+        unverified financial system.
+      </p>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-service-categories-fit" aria-labelledby="service-categories-title">
+    <div class="gc-home-container gc-home-categories">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Built for supported service categories</p>
+        <h2 class="gc-home-section__title" id="service-categories-title">
+          If you run a supported service business, Get<span class="gc-mobile-hyphen">-</span>Contractorz is built around your <span class="gc-heading-accent">type of work.</span>
+        </h2>
+        <p>
+          Current categories include Construction, Cleaning, Landscaping, Plumbing, Electrical, Snow Removal, HVAC,
+          Roofing, Siding, Handyman Services, Flooring, Windows & Doors, Appliance Repair, Moving Services, Carpet
+          Cleaning, and Pest Control.
+        </p>
+        <a class="gc-button gc-button--secondary" href="/industries/">View Supported Service Categories</a>
+      </div>
+      <div class="gc-home-category-cloud" aria-label="Supported service categories">
+        <span>Construction</span>
+        <span>Cleaning</span>
+        <span>Landscaping</span>
+        <span>Plumbing</span>
+        <span>Electrical</span>
+        <span>HVAC</span>
+        <span>Roofing</span>
+        <span>Moving Services</span>
+        <span>Pest Control</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-service-free" aria-labelledby="service-free-title">
+    <div class="gc-home-container gc-service-free__grid">
+      <div class="gc-home-section__copy">
+        <p class="gc-home-kicker">Know what currently free means</p>
+        <h2 class="gc-home-section__title" id="service-free-title">
+          Start without a current platform <span class="gc-heading-accent">subscription.</span>
+        </h2>
+        <div class="gc-home-section__text">
+          <p>
+            Business registration and platform access are currently free. GetContractorz plans to introduce a
+            subscription model in the future, but no public plan structure, pricing, billing cycle, or transition terms
+            are currently approved.
+          </p>
+          <p>That means the website should say currently free, not free forever.</p>
+        </div>
+      </div>
+      <div class="gc-service-objections">
+        <article><h3>Does Marketplace visibility guarantee leads?</h3><p>No. A registered business may be publicly discoverable, but GetContractorz does not guarantee enquiries, leads, jobs, earnings, or growth.</p></article>
+        <article><h3>Is every business manually approved?</h3><p>No. There is currently no manual business-approval process. A user completes business registration and the account role changes to Manager.</p></article>
+        <article><h3>Does GetContractorz verify my license or credentials?</h3><p>No. GetContractorz does not currently independently verify business identity, licenses, credentials, insurance, or other business claims.</p></article>
+        <article><h3>Will I be charged later?</h3><p>A subscription model may be introduced in the future, but no plan, price, billing arrangement, or transition promise is currently published.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--faq" id="service-faq" aria-labelledby="service-faq-title">
+    <div class="gc-home-container gc-home-faq">
+      <div class="gc-home-faq__header">
+        <h2 class="gc-home-faq__title" id="service-faq-title">
+          Frequently Asked
+          <span>Questions</span>
+        </h2>
+        <p>Answers for service-business owners and managers.</p>
+      </div>
+      <div class="gc-home-faq__list">
+        <details open>
+          <summary>How do I become a Manager?</summary>
+          <p>Create an account, complete the business-registration form in the Business tab, and once the business is created your role changes from User to Manager.</p>
+        </details>
+        <details>
+          <summary>Can I add more than one service category?</summary>
+          <p>Managers select the applicable supported service category or categories during business setup and configure the services their business provides.</p>
+        </details>
+        <details>
+          <summary>Can I create different questionnaires for different services?</summary>
+          <p>Yes. Managers can create service-specific questionnaires.</p>
+        </details>
+        <details>
+          <summary>Can I add my own team members?</summary>
+          <p>Yes. Managers can add and manage team members and assign jobs to employees.</p>
+        </details>
+        <details>
+          <summary>Can employees see the entire business workspace?</summary>
+          <p>The verified employee role is narrower than the Manager role. Employees can view and complete assigned jobs and upload before-and-after images.</p>
+        </details>
+        <details>
+          <summary>Can clients see quotes and invoices?</summary>
+          <p>Clients can access relevant quotes and invoices depending on their assigned access and service status.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--final" aria-labelledby="service-final-title">
+    <div class="gc-public-cta">
+      <h2 class="gc-public-cta__title" id="service-final-title">
+        Put your clients, services, team, jobs, and business records into <span class="gc-heading-accent">one organized workspace.</span>
+      </h2>
+      <a class="gc-public-cta__button gc-button gc-button--primary" href="{{ frontend_url }}/register">
+        Get Started Free
+        <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <p class="gc-public-cta__note">Create an account first, then register your business to access the Manager workspace.</p>
+    </div>
+  </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const faqItems = document.querySelectorAll(".gc-home-faq details");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return;
+
+    faqItems.forEach((item) => {
+      const summary = item.querySelector("summary");
+      if (!summary) return;
+
+      item.style.height = item.open ? `${item.scrollHeight}px` : `${summary.offsetHeight}px`;
+
+      summary.addEventListener("click", (event) => {
+        event.preventDefault();
+        item.style.overflow = "hidden";
+
+        if (item.open) {
+          item.style.height = `${item.scrollHeight}px`;
+          requestAnimationFrame(() => {
+            item.style.height = `${summary.offsetHeight}px`;
+          });
+          item.addEventListener("transitionend", () => {
+            item.open = false;
+          }, { once: true });
+          return;
+        }
+
+        item.open = true;
+        item.style.height = `${summary.offsetHeight}px`;
+        requestAnimationFrame(() => {
+          item.style.height = `${item.scrollHeight}px`;
+        });
+        item.addEventListener("transitionend", () => {
+          item.style.height = "auto";
+        }, { once: true });
+      });
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getBaseUrl } from "./baseConfig";
+import { clearPublicSession } from "../../utils/publicSession";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: `${getBaseUrl()}/user`,
@@ -16,6 +17,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
   const result = await rawBaseQuery(args, api, extraOptions);
   if (result?.error?.status === 401) {
     localStorage.removeItem("token");
+    clearPublicSession();
     const currentPath = window.location.pathname + window.location.search;
     window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
   }
@@ -76,6 +78,7 @@ const userApi = createApi({
     logoutUser: builder.mutation({
       queryFn: async () => {
         localStorage.removeItem("token");
+        clearPublicSession();
         return { data: null };
       },
     }),

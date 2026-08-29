@@ -126,6 +126,11 @@ The goal is to protect the full business lifecycle: user signup, business setup,
 
 ## High-Risk Observations From Current Code
 
+- Product intent requires a completed questionnaire and signed quote before a
+  job is scheduled, but `JobSerializer` currently validates only that the
+  assignee and service belong to the same business. `JobViewSet` and the create
+  form also allow any client-linked service. This gate must be enforced on the
+  backend before the UI can safely rely on it.
 - `ServiceQuestionnaire.clean()` appears to reject creating a questionnaire when a `ServiceTermsTemplate` already exists for the same business and service name. Since service creation requires both an active questionnaire and active terms template, setup order should be tested carefully. This may be an unintended conflict.
 - `Payout.status` model choices are `PENDING`, `PAID`, and `FAILED`, but refund code sets status to `REFUNDED`. Test whether this is accepted, displayed correctly, and safe in admin/forms.
 - `Quote.clean()` only excludes `DECLINED`; there is no `EXPIRED` status in model choices even though some frontend logic refers to expired quotes. Test expired quote behavior.

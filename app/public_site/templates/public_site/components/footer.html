@@ -1,0 +1,57 @@
+{% load static %}
+
+<footer class="gc-footer" aria-labelledby="gc-footer-title">
+  <div class="gc-footer__inner">
+    <div class="gc-footer__brand">
+      <a class="gc-footer__logo-link" href="/" aria-label="GetContractorz home">
+        <img
+          class="gc-footer__logo"
+          src="{% static 'public_site/images/contractorz-logo-horizontal.svg' %}"
+          width="198"
+          height="51"
+          alt="GetContractorz"
+        >
+      </a>
+      <h2 class="gc-footer__title" id="gc-footer-title">One workspace for service business operations.</h2>
+      <p>
+        GetContractorz helps service businesses in Canada and the United States organize clients, services,
+        team members, jobs, quotes, invoices, and related workflows in one business workspace. The Marketplace
+        provides a separate way to browse registered businesses and contact them directly.
+      </p>
+    </div>
+
+    <nav class="gc-footer__nav" aria-label="Footer navigation">
+      <section class="gc-footer__group" aria-labelledby="gc-footer-product">
+        <h3 id="gc-footer-product">Product</h3>
+        <a href="/for-service-businesses/">For Service Businesses</a>
+        <a href="/features/">Features</a>
+        <a href="/how-it-works/">How It Works</a>
+        <a href="/for-clients/">For Clients</a>
+        <a href="/marketplace/">Marketplace</a>
+        <a href="/service-categories/">Supported Service Categories</a>
+        <a href="{{ frontend_url }}/register">Get Started Free</a>
+        <a href="{{ frontend_url }}/sign-in">Login</a>
+      </section>
+
+      <section class="gc-footer__group" aria-labelledby="gc-footer-company">
+        <h3 id="gc-footer-company">Company &amp; Help</h3>
+        <a href="/about/">About</a>
+        <a href="/faq/">FAQ</a>
+        <a href="/contact/">Contact</a>
+      </section>
+
+      <section class="gc-footer__group" aria-labelledby="gc-footer-legal">
+        <h3 id="gc-footer-legal">Legal</h3>
+        <a href="{% url 'public_site:privacy-policy' %}">Privacy Policy</a>
+        <a href="{% url 'public_site:terms-and-conditions' %}">Terms of Use</a>
+        <a href="{% url 'public_site:cookie-policy' %}">Cookie Policy</a>
+        <a href="{% url 'public_site:accessibility' %}">Accessibility</a>
+      </section>
+    </nav>
+
+    <div class="gc-footer__bottom">
+      <p>Marketplace listings are provided by registered businesses. GetContractorz does not independently verify or guarantee listed businesses or their services.</p>
+      <p>&copy; {% now "Y" %} GetContractorz. All rights reserved.</p>
+    </div>
+  </div>
+</footer>

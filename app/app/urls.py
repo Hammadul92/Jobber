@@ -34,6 +34,7 @@ urlpatterns = [
     path("api/user/", include("user.urls")),
     path("api/ops/", include("operations.urls")),
     path("api/finance/", include("finance.urls")),
+    path("", include("public_site.urls")),
 ]
 
 if settings.DEBUG:

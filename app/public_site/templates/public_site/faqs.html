@@ -1,0 +1,334 @@
+{% extends "public_site/base.html" %}
+{% load static %}
+
+{% block head %}
+<meta name="keywords"
+  content="GetContractorz FAQ, is GetContractorz free, GetContractorz Marketplace, does GetContractorz verify businesses, how GetContractorz works, service business management platform FAQ, contractor business software questions">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "FAQ",
+            "item": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+          }
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}#webpage",
+        "name": "GetContractorz FAQ | Business, Clients & Marketplace",
+        "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}",
+        "description": "Get answers about GetContractorz business registration, features, clients, employees, Marketplace listings, current free access, verification, and more.",
+        "breadcrumb": {
+          "@id": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}#breadcrumb"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}#faq",
+        "mainEntity": [
+          {"@type":"Question","name":"What is GetContractorz?","acceptedAnswer":{"@type":"Answer","text":"GetContractorz is a business-management platform for service businesses in Canada and the United States. It connects supported workflows around clients, services, team members, questionnaires, terms and conditions, quotes, assigned jobs, before-and-after images, invoices, business information, payouts, and Marketplace visibility."}},
+          {"@type":"Question","name":"Who is GetContractorz for?","acceptedAnswer":{"@type":"Answer","text":"The primary public audience is owners and managers of supported service businesses. The platform also has Employee and Client roles, while the public Marketplace is available to people browsing registered businesses."}},
+          {"@type":"Question","name":"Is GetContractorz just a contractor directory?","acceptedAnswer":{"@type":"Answer","text":"No. The core product is the service-business workspace. The Marketplace is a separate public discovery layer that complements the operations platform."}},
+          {"@type":"Question","name":"Is GetContractorz free for businesses?","acceptedAnswer":{"@type":"Answer","text":"Business registration and platform access are currently free."}},
+          {"@type":"Question","name":"Does GetContractorz verify Marketplace businesses?","acceptedAnswer":{"@type":"Answer","text":"No. GetContractorz does not currently independently verify business identity, licensing, credentials, insurance, employee backgrounds, service quality, or other business claims."}},
+          {"@type":"Question","name":"Does being listed guarantee leads?","acceptedAnswer":{"@type":"Answer","text":"No. Marketplace visibility does not guarantee enquiries, leads, jobs, earnings, savings, or business growth."}}
+        ]
+      }
+    ]
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="gc-faq-page">
+  <section class="gc-home-hero gc-service-hero--home gc-faq-hero" aria-labelledby="faq-hero-title">
+    <img class="gc-home-hero__shape gc-home-hero__shape--right"
+      src="{% static 'public_site/images/rounded-vertical-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--left"
+      src="{% static 'public_site/images/rounded-horizontal-rectangle.svg' %}" alt="" aria-hidden="true">
+    <img class="gc-home-hero__shape gc-home-hero__shape--hexagon" src="{% static 'public_site/images/hexagon.svg' %}"
+      alt="" aria-hidden="true">
+
+    <div class="gc-home-hero__content">
+      <p class="gc-home-hero__eyebrow">FAQ</p>
+      <h1 class="gc-home-hero__title" id="faq-hero-title">
+        Straight answers about
+        <span class="gc-home-hero__title-accent">Get<span class="gc-mobile-hyphen">-</span>Contractorz</span>
+      </h1>
+      <p class="gc-home-hero__copy">
+        Find answers about business registration, features, Client and Employee roles, Marketplace discovery,
+        current free access, and what GetContractorz does not guarantee.
+      </p>
+      <div class="gc-home-hero__actions" aria-label="FAQ page actions">
+        <a class="gc-home-hero__button gc-home-hero__button--primary" href="{{ frontend_url }}/register">
+          Get Started Free
+          <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a class="gc-home-hero__button gc-home-hero__button--secondary" href="/marketplace/">Explore Marketplace</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-faq-directory" aria-labelledby="faq-directory-title">
+    <div class="gc-home-container">
+      <div class="gc-faq-directory__header">
+        <p class="gc-home-kicker">Questions by topic</p>
+        <h2 class="gc-home-section__title" id="faq-directory-title">
+          Practical answers for businesses, clients, employees, and
+          <span class="gc-heading-accent">Marketplace visitors.</span>
+        </h2>
+      </div>
+
+      <div class="gc-faq-layout">
+        <aside class="gc-faq-topics" aria-label="FAQ topics">
+          <a href="#platform-basics">Platform basics</a>
+          <a href="#registration-pricing">Registration and pricing</a>
+          <a href="#features-workflows">Features and workflows</a>
+          <a href="#clients">Clients</a>
+          <a href="#marketplace-trust">Marketplace and trust</a>
+          <a href="#privacy-support">Privacy and support</a>
+        </aside>
+
+        <div class="gc-faq-groups">
+          <section class="gc-faq-group" id="platform-basics" aria-labelledby="platform-basics-title">
+            <p class="gc-home-kicker">Platform basics</p>
+            <h3 id="platform-basics-title">GetContractorz, roles, and availability</h3>
+            <div class="gc-faq-accordion">
+              <details open>
+                <summary>What is GetContractorz?</summary>
+                <p>GetContractorz is a business-management platform for service businesses in Canada and the United States. It connects supported workflows around clients, services, team members, questionnaires, terms and conditions, quotes, assigned jobs, before-and-after images, invoices, business information, payouts, and Marketplace visibility.</p>
+              </details>
+              <details>
+                <summary>Who is GetContractorz for?</summary>
+                <p>The primary public audience is owners and managers of supported service businesses. The platform also has Employee and Client roles, while the public Marketplace is available to people browsing registered businesses.</p>
+              </details>
+              <details>
+                <summary>Is GetContractorz just a contractor directory?</summary>
+                <p>No. The core product is the service-business workspace. The Marketplace is a separate public discovery layer that complements the operations platform.</p>
+              </details>
+              <details>
+                <summary>Where is GetContractorz available?</summary>
+                <p>GetContractorz currently serves businesses in Canada and the United States. More specific geographic coverage should only be claimed when actual registered-business data supports it.</p>
+              </details>
+            </div>
+          </section>
+
+          <section class="gc-faq-group" id="registration-pricing" aria-labelledby="registration-pricing-title">
+            <p class="gc-home-kicker">Business registration and pricing</p>
+            <h3 id="registration-pricing-title">Starting and current free access</h3>
+            <div class="gc-faq-accordion">
+              <details>
+                <summary>How do I register my business?</summary>
+                <p>Create an account, complete the business-registration form in the Business tab, and when the business is created your account role changes from User to Manager.</p>
+              </details>
+              <details>
+                <summary>Does GetContractorz manually approve every business?</summary>
+                <p>No. There is currently no manual business-approval process.</p>
+              </details>
+              <details>
+                <summary>Is GetContractorz free for businesses?</summary>
+                <p>Business registration and platform access are currently free.</p>
+              </details>
+              <details>
+                <summary>Will GetContractorz always be free?</summary>
+                <p>A subscription model may be introduced in the future, but no plan structure, price, billing arrangement, or free-to-paid transition promise is currently published.</p>
+              </details>
+              <details>
+                <summary>Is there a platform fee for clients or Marketplace visitors?</summary>
+                <p>There is currently no GetContractorz platform fee for clients or Marketplace visitors. Any service price or payment arrangement is handled directly with the selected service business.</p>
+              </details>
+            </div>
+          </section>
+
+          <section class="gc-faq-group" id="features-workflows" aria-labelledby="features-workflows-title">
+            <p class="gc-home-kicker">Features and workflows</p>
+            <h3 id="features-workflows-title">Manager and Employee responsibilities</h3>
+            <div class="gc-faq-accordion">
+              <details>
+                <summary>What can a Manager do?</summary>
+                <p>Managers can manage profile, business, banking, and credential information; create service questionnaires and terms and conditions; add clients, services, and team members; create and send quotes; assign jobs; monitor before-and-after images; manage invoices; review payouts; and view general business information and analytics.</p>
+              </details>
+              <details>
+                <summary>Can I create questionnaires for different services?</summary>
+                <p>Yes. Managers can create service-specific questionnaires.</p>
+              </details>
+              <details>
+                <summary>Can I create terms and conditions for services?</summary>
+                <p>Yes. Managers can create service terms and conditions.</p>
+              </details>
+              <details>
+                <summary>Can I add employees or team members?</summary>
+                <p>Yes. Managers can add and manage team members and assign jobs.</p>
+              </details>
+              <details>
+                <summary>What can Employees do?</summary>
+                <p>Employees can view assigned jobs, complete assigned jobs, and upload before-and-after images as part of the job workflow.</p>
+              </details>
+              <details>
+                <summary>Can GetContractorz manage quotes?</summary>
+                <p>Yes. Managers can create and send quotes, and Clients can access relevant quotes depending on their access and service status.</p>
+              </details>
+              <details>
+                <summary>Can GetContractorz manage invoices?</summary>
+                <p>Yes. Managers can manage invoices, and Clients can access relevant invoices where applicable.</p>
+              </details>
+              <details>
+                <summary>Does GetContractorz include scheduling, dispatch, route optimization, or GPS tracking?</summary>
+                <p>Those capabilities are not verified in the current public product foundation and should not be advertised unless separately confirmed.</p>
+              </details>
+              <details>
+                <summary>Does GetContractorz integrate with accounting or other software?</summary>
+                <p>No integration is currently approved for public marketing. Only publish an integration after it has been verified and documented.</p>
+              </details>
+            </div>
+          </section>
+
+          <section class="gc-faq-group" id="clients" aria-labelledby="clients-title">
+            <p class="gc-home-kicker">Clients</p>
+            <h3 id="clients-title">Invitations, questionnaires, and access</h3>
+            <div class="gc-faq-accordion">
+              <details>
+                <summary>Why did I receive a GetContractorz invitation?</summary>
+                <p>A service business using GetContractorz may have created your client record so you can access the parts of the platform relevant to your services.</p>
+              </details>
+              <details>
+                <summary>How does the client questionnaire work?</summary>
+                <p>The Manager creates a personalized service and the Client receives a service-related magic link. The Client completes the questionnaire, and the Manager reviews the submission before activating the service.</p>
+              </details>
+              <details>
+                <summary>What can Clients access?</summary>
+                <p>Depending on their access and service status, Clients can access their dashboard, view services created for them, complete questionnaires, follow service-related email or magic-link actions, and access relevant quotes and invoices.</p>
+              </details>
+            </div>
+          </section>
+
+          <section class="gc-faq-group" id="marketplace-trust" aria-labelledby="marketplace-trust-title">
+            <p class="gc-home-kicker">Marketplace and trust</p>
+            <h3 id="marketplace-trust-title">Discovery, verification, and direct relationships</h3>
+            <div class="gc-faq-accordion">
+              <details>
+                <summary>What is the GetContractorz Marketplace?</summary>
+                <p>The Marketplace is a public discovery layer where visitors can browse registered service businesses and access public business information and contact details.</p>
+              </details>
+              <details>
+                <summary>Does GetContractorz choose a contractor for me?</summary>
+                <p>No. Visitors decide which business they want to contact.</p>
+              </details>
+              <details>
+                <summary>Does GetContractorz verify Marketplace businesses?</summary>
+                <p>No. GetContractorz does not currently independently verify business identity, licensing, credentials, insurance, employee backgrounds, service quality, or other business claims.</p>
+              </details>
+              <details>
+                <summary>Does GetContractorz guarantee the quality of a listed business?</summary>
+                <p>No. GetContractorz does not guarantee business quality, job completion, response times, service satisfaction, or service outcomes.</p>
+              </details>
+              <details>
+                <summary>Does contacting a business make GetContractorz part of the agreement?</summary>
+                <p>No. Communication, pricing, terms, and the service arrangement are handled directly between the visitor and the selected business.</p>
+              </details>
+              <details>
+                <summary>Does being listed guarantee leads?</summary>
+                <p>No. Marketplace visibility does not guarantee enquiries, leads, jobs, earnings, savings, or business growth.</p>
+              </details>
+              <details>
+                <summary>Are listings ranked as "best" or "top rated"?</summary>
+                <p>No such ranking should be presented without objective, approved evidence. The current website should not use unsupported "best," "recommended," "verified," or rating claims.</p>
+              </details>
+            </div>
+          </section>
+
+          <section class="gc-faq-group" id="privacy-support" aria-labelledby="privacy-support-title">
+            <p class="gc-home-kicker">Privacy and support</p>
+            <h3 id="privacy-support-title">Personal information and contact paths</h3>
+            <div class="gc-faq-accordion">
+              <details>
+                <summary>How does GetContractorz handle personal information?</summary>
+                <p>The current Privacy Policy should explain how personal information is collected, used, stored, shared, and handled. Public marketing copy should not make security or privacy claims beyond the approved policy.</p>
+              </details>
+              <details>
+                <summary>How can I contact GetContractorz?</summary>
+                <p>Use the Contact page and the approved contact methods shown there.</p>
+              </details>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-home-section gc-home-section--final" aria-labelledby="faq-final-title">
+    <div class="gc-public-cta">
+      <h2 class="gc-public-cta__title" id="faq-final-title">
+        Still need <span class="gc-heading-accent">help?</span>
+      </h2>
+      <p class="gc-public-cta__copy">
+        Send a product, account, business-registration, client, Marketplace, or general question through the Contact page.
+      </p>
+      <a class="gc-public-cta__button gc-button gc-button--primary" href="/contact/">
+        Contact Us
+        <svg class="gc-button__chevron" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const faqItems = document.querySelectorAll(".gc-faq-accordion details");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return;
+
+    faqItems.forEach((item) => {
+      const summary = item.querySelector("summary");
+      if (!summary) return;
+
+      item.style.height = item.open ? `${item.scrollHeight}px` : `${summary.offsetHeight}px`;
+
+      summary.addEventListener("click", (event) => {
+        event.preventDefault();
+        item.style.overflow = "hidden";
+
+        if (item.open) {
+          item.style.height = `${item.scrollHeight}px`;
+          requestAnimationFrame(() => {
+            item.style.height = `${summary.offsetHeight}px`;
+          });
+          item.addEventListener("transitionend", () => {
+            item.open = false;
+          }, { once: true });
+          return;
+        }
+
+        item.open = true;
+        item.style.height = `${summary.offsetHeight}px`;
+        requestAnimationFrame(() => {
+          item.style.height = `${item.scrollHeight}px`;
+        });
+        item.addEventListener("transitionend", () => {
+          item.style.height = "auto";
+        }, { once: true });
+      });
+    });
+  })();
+</script>
+{% endblock %}

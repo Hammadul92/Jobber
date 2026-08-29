@@ -4,10 +4,12 @@ Serializers for business APIs
 
 import json
 from core.utils import BusinessTimezoneMixin
+from django.contrib.auth import get_user_model
 from django.utils.html import strip_tags
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+from taggit.models import Tag
 
 
 from core.models import (
@@ -43,25 +45,54 @@ class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         return list(obj.services_offered.names()) \
             if obj.services_offered else []
 
-    def create(self, validated_data):
-        tags = self.initial_data.get('services_offered')
-        if isinstance(tags, str):
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        raw_services = self.initial_data.get("services_offered")
+        if raw_services is None and self.instance:
+            self._submitted_services = None
+            return attrs
+        if isinstance(raw_services, str):
             try:
-                tags = json.loads(tags)
-            except json.JSONDecodeError:
-                tags = []
+                raw_services = json.loads(raw_services)
+            except json.JSONDecodeError as exc:
+                raise serializers.ValidationError(
+                    {"services_offered": "Select services from the available options."}
+                ) from exc
+        if not isinstance(raw_services, list) or not raw_services:
+            raise serializers.ValidationError(
+                {"services_offered": "Select at least one service option."}
+            )
+
+        services = [str(name).strip() for name in raw_services if str(name).strip()]
+        if len(services) != len(set(services)):
+            raise serializers.ValidationError(
+                {"services_offered": "Service selections must be unique."}
+            )
+        existing = set(
+            Tag.objects.filter(name__in=services).values_list("name", flat=True)
+        )
+        unknown = sorted(set(services) - existing)
+        if unknown:
+            raise serializers.ValidationError(
+                {
+                    "services_offered": (
+                        "Select only services configured by an administrator. "
+                        f"Unknown: {', '.join(unknown)}"
+                    )
+                }
+            )
+        self._submitted_services = services
+        return attrs
+
+    def create(self, validated_data):
+        tags = self._submitted_services
         validated_data.pop('services_offered', None)
         business = super().create(validated_data)
         business.services_offered.set(tags)
         return business
 
     def update(self, instance, validated_data):
-        tags = self.initial_data.get('services_offered')
-        if isinstance(tags, str):
-            try:
-                tags = json.loads(tags)
-            except json.JSONDecodeError:
-                tags = []
+        tags = self._submitted_services
         validated_data.pop('services_offered', None)
         business = super().update(instance, validated_data)
         if tags is not None:
@@ -93,27 +124,30 @@ class ClientSerializer(serializers.ModelSerializer):
     """ Serializer for clients."""
     client_name = serializers.CharField(
         source="user.name",
-        read_only=True
+        required=False
     )
     client_email = serializers.CharField(
         source="user.email",
-        read_only=True
+        required=False
     )
     client_phone = serializers.CharField(
         source="user.phone",
-        read_only=True
+        required=False
     )
     payment_method = serializers.SerializerMethodField()
-    is_active = serializers.CharField(
+    questionnaires_filled = serializers.SerializerMethodField()
+    questionnaires_total = serializers.SerializerMethodField()
+    is_active = serializers.BooleanField(
         source="user.is_active",
-        read_only=True
+        required=False
     )
 
     class Meta:
         model = Client
         fields = ['id', 'user', 'business', 'client_name',
                   'client_email', 'client_phone', 'is_active',
-                  'payment_method', 'created_at', 'updated_at']
+                  'payment_method', 'questionnaires_filled',
+                  'questionnaires_total', 'created_at', 'updated_at']
 
         read_only_fields = [
             'id', 'user', 'business', 'created_at', 'updated_at'
@@ -130,6 +164,45 @@ class ClientSerializer(serializers.ModelSerializer):
             return "-"
 
         return banking_info.payment_method_type
+
+    def get_questionnaires_filled(self, obj):
+        """Return active client services with submitted questionnaire answers."""
+        return sum(
+            1 for service in obj.client_services.all()
+            if bool(service.filled_questionnaire)
+        )
+
+    def get_questionnaires_total(self, obj):
+        """Return active client services expected to have questionnaires."""
+        return obj.client_services.count()
+
+    def validate(self, attrs):
+        user_data = attrs.get("user", {})
+        email = user_data.get("email")
+
+        if email and self.instance:
+            User = get_user_model()
+            if User.objects.exclude(pk=self.instance.user_id).filter(
+                email__iexact=email
+            ).exists():
+                raise serializers.ValidationError({
+                    "client_email": "A user with this email already exists."
+                })
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop("user", {})
+        instance = super().update(instance, validated_data)
+
+        if user_data:
+            user = instance.user
+            for field in ["name", "email", "phone", "is_active"]:
+                if field in user_data:
+                    setattr(user, field, user_data[field])
+            user.save(update_fields=list(user_data.keys()))
+
+        return instance
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):
@@ -149,7 +222,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         source="employee.is_active",
         read_only=True
     )
-    role = serializers.CharField(source="employee.role", read_only=True)
+    role = serializers.SerializerMethodField()
     business_name = serializers.CharField(
         source="business.name",
         read_only=True
@@ -168,6 +241,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         employee = attrs.get("employee")
+        role = self.initial_data.get("role")
 
         # Prevent adding any business owner as a team member
         if employee and hasattr(employee, "owned_businesses"):
@@ -177,7 +251,45 @@ class TeamMemberSerializer(serializers.ModelSerializer):
                     f"and cannot be added as a team member."
                 )
 
+        if role is not None:
+            normalized_role = str(role).strip().upper()
+            if normalized_role not in {"MANAGER", "EMPLOYEE"}:
+                raise serializers.ValidationError(
+                    {"role": "Role must be Manager or Employee."}
+                )
+
+            request = self.context.get("request")
+            if (
+                self.instance
+                and request
+                and self.instance.employee_id == request.user.id
+            ):
+                raise serializers.ValidationError(
+                    {"role": "You cannot change your own role."}
+                )
+
+            attrs["role"] = normalized_role
+
         return attrs
+
+    def get_role(self, obj):
+        return obj.employee.role
+
+    def create(self, validated_data):
+        role = validated_data.pop("role", None)
+        instance = super().create(validated_data)
+        if role and instance.employee.role != role:
+            instance.employee.role = role
+            instance.employee.save(update_fields=["role"])
+        return instance
+
+    def update(self, instance, validated_data):
+        role = validated_data.pop("role", None)
+        instance = super().update(instance, validated_data)
+        if role and instance.employee.role != role:
+            instance.employee.role = role
+            instance.employee.save(update_fields=["role"])
+        return instance
 
 
 class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):

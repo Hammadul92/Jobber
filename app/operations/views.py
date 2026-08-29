@@ -4,6 +4,7 @@ Views for operations APIs.
 
 from datetime import timedelta
 
+from django.http import FileResponse
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -12,6 +13,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from taggit.models import Tag
 
 from core.models import (
     Business,
@@ -26,6 +28,7 @@ from core.models import (
     Quote,
 )
 from operations import serializers, paginations, emails
+from operations.pdf import build_signed_quote_pdf
 
 
 def get_active_service_terms_template(service):
@@ -97,6 +100,12 @@ class BusinessViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
 
+    @action(detail=False, methods=["get"], url_path="service-options")
+    def service_options(self, request):
+        """Return the admin-managed service catalog."""
+        options = Tag.objects.order_by("name").values("id", "name", "slug")
+        return Response(list(options), status=status.HTTP_200_OK)
+
     @action(
         detail=False,
         methods=["get"],
@@ -128,7 +137,9 @@ class ClientViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.ClientSerializer
-    queryset = Client.objects.filter(is_active=True)
+    queryset = Client.objects.filter(is_active=True).prefetch_related(
+        "client_services"
+    )
     pagination_class = paginations.ClientPagination
 
     def get_queryset(self):
@@ -342,6 +353,23 @@ class QuoteViewSet(viewsets.ModelViewSet):
             )
 
         serializer.save()
+
+    @action(detail=True, methods=["get"], url_path="download-pdf")
+    def download_pdf(self, request, pk=None):
+        """Download the finalized signed quotation as a PDF."""
+        quote = self.get_object()
+        if quote.status != "SIGNED" or not quote.signature:
+            return Response(
+                {"detail": "Only signed quotations can be downloaded as PDF."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return FileResponse(
+            build_signed_quote_pdf(quote),
+            as_attachment=True,
+            filename=f"{quote.quote_number}-signed.pdf",
+            content_type="application/pdf",
+        )
 
     def update(self, request, *args, **kwargs):
         """Prevent updates if quote is already signed."""

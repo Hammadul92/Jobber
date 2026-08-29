@@ -5,6 +5,7 @@ import MobileTopbar from "./MobileTopbar";
 import DashboardTopbar from "./DashboardTopbar";
 import Topbar from "./Topbar";
 import SideNav from "./SideNav";
+import DashboardTodos from "./DashboardTodos";
 
 import Profile from "./(user)/Profile";
 import AlertDispatcher from "../Components/ui/AlertDispatcher";
@@ -14,6 +15,7 @@ import Credentials from "./(user)/Credentials";
 
 import DashboardHome from "./(business)/Home";
 import Clients from "./(business)/Clients";
+import Client from "./(business)/Clients/Client";
 import ClientServices from "./(business)/Clients/Services";
 import Service from "./(business)/Clients/Services/Service";
 import ServiceQuestionnaires from "./(business)/ServiceQuestionnaires";
@@ -33,6 +35,7 @@ import Payout from "./(business)/Payouts/Payout";
 
 export default function UserDashboard({ page, token, user }) {
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const [dashboardNotifications, setDashboardNotifications] = useState([]);
   const navigate = useNavigate();
 
   const businessTabPages = useMemo(
@@ -40,6 +43,7 @@ export default function UserDashboard({ page, token, user }) {
       new Set([
         "home",
         "clients",
+        "client",
         "client-services",
         "service",
         "service-questionnaires",
@@ -142,10 +146,20 @@ export default function UserDashboard({ page, token, user }) {
         return <Credentials token={token} user={user} />;
       case "home":
         // Dashboard home tab
-        return <DashboardHome token={token} user={user} business={business} />;
+        return (
+          <DashboardHome
+            token={token}
+            user={user}
+            business={business}
+            onRecentActivityChange={setDashboardNotifications}
+          />
+        );
       case "clients":
         // Clients tab
         return <Clients token={token} business={business} role={user?.role} />;
+      case "client":
+        // Single client edit tab
+        return <Client token={token} business={business} role={user?.role} />;
       case "client-services":
         // Client services tab
         return (
@@ -183,7 +197,12 @@ export default function UserDashboard({ page, token, user }) {
       case "team-members":
         // Team members tab
         return (
-          <TeamMembers token={token} business={business} role={user?.role} />
+          <TeamMembers
+            token={token}
+            business={business}
+            role={user?.role}
+            user={user}
+          />
         );
       case "team-member":
         // Single team member preview tab
@@ -234,7 +253,7 @@ export default function UserDashboard({ page, token, user }) {
 
       <SideNav user={user} businessRegistered={businessRegistered} />
 
-      <main className="flex-1 max-h-screen overflow-auto pt-15 md:pt-14 lg:pt-0">
+      <main className="flex-1 min-h-screen overflow-auto pt-15 md:pt-14 lg:pt-0">
         {alert.message && (
           <AlertDispatcher
             type={alert.type}
@@ -247,7 +266,10 @@ export default function UserDashboard({ page, token, user }) {
         {showBusinessTopbar && (
           <div>
             {page === "home" ? (
-              <DashboardTopbar user={user} />
+              <DashboardTopbar
+                user={user}
+                notifications={dashboardNotifications}
+              />
             ) : (
               <Topbar businessName={business?.name || "Dashboard"} />
             )}
@@ -257,6 +279,7 @@ export default function UserDashboard({ page, token, user }) {
         <div className="px-4 pt-8 pb-4 md:px-12 md:pt-12 lg:pb-12 lg:p-12 lg:pr-14">
           {renderTab()}
         </div>
+        <DashboardTodos token={token} user={user} business={business} />
       </main>
     </div>
   );
