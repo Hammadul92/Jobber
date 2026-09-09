@@ -50,14 +50,16 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(response, "Registration and platform access are currently free.")
         self.assertContains(response, "Less scatter.")
         self.assertContains(response, "More clarity")
-        self.assertContains(response, "real service-business workflows.")
+        self.assertContains(response, "Built around real service-business")
+        self.assertContains(response, "workflows.")
         self.assertContains(response, "From business setup to job documentation")
         self.assertContains(response, "process connected.")
         self.assertContains(response, "right role.")
-        self.assertContains(response, "service category")
+        self.assertContains(response, "supported category set")
         self.assertContains(response, "Manage your business. Be discoverable in the")
         self.assertContains(response, "Marketplace.")
-        self.assertContains(response, "Clear about what GetContractorz does")
+        self.assertContains(response, "Clear about what Get")
+        self.assertContains(response, "Contractorz does")
         self.assertContains(response, "what it doesn't.")
         self.assertContains(response, "Frequently Asked")
         self.assertContains(response, "Questions")
@@ -111,7 +113,7 @@ class PublicSiteViewTests(TestCase):
     def test_public_header_marks_current_page_as_active(self):
         routes = [
             ("home", "Home"),
-            ("industries", "Industries"),
+            ("service-categories", "Service Categories"),
             ("features", "Features"),
             ("marketplace", "Marketplace"),
             ("faq", "FAQ"),
@@ -196,7 +198,7 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(response, 'href="mailto:hello@example.com"')
         self.assertContains(response, "Back to Marketplace")
         self.assertContains(response, "Service")
-        self.assertContains(response, "categories.")
+        self.assertContains(response, "Service categories")
         self.assertContains(response, "Phone")
         self.assertContains(response, "+1 403-555-0101")
         self.assertContains(response, "Email")
@@ -245,26 +247,22 @@ class PublicSiteViewTests(TestCase):
         self.assertNotContains(response, "demo")
         self.assertNotContains(response, "dots-bg.svg")
 
-    def test_industries_renders_the_service_industries_page(self):
-        response = self.client.get(reverse("public_site:industries"))
+    def test_retired_public_routes_redirect_to_current_pages(self):
+        redirects = {
+            "industries": "service-categories",
+            "services": "features",
+            "team": "about",
+        }
 
-        self.assertTemplateUsed(response, "public_site/industries.html")
-        self.assertContains(response, "Service business management software for")
-        self.assertContains(response, "50+ HOME SERVICE INDUSTRIES")
-        self.assertContains(response, "Plumbing")
-        self.assertContains(response, "Electrical")
-        self.assertContains(response, "HVAC")
-        self.assertContains(response, "Cleaning")
-        self.assertContains(response, "Landscaping")
-        self.assertContains(response, "Features that fit service businesses across industries")
-        self.assertContains(response, "How GetContractorz supports the work from request to payment.")
-        self.assertContains(response, "Capture service requirements")
-        self.assertContains(response, "Invoices and payments")
-        self.assertContains(response, "Start managing service work with GetContractorz")
-        self.assertContains(response, "How does GetContractorz work?")
-        self.assertNotContains(response, "email/SMS")
-        self.assertNotContains(response, "mobile app")
-        self.assertNotContains(response, "routes planned")
+        for old_route, current_route in redirects.items():
+            with self.subTest(old_route=old_route):
+                response = self.client.get(reverse(f"public_site:{old_route}"))
+                self.assertRedirects(
+                    response,
+                    reverse(f"public_site:{current_route}"),
+                    status_code=301,
+                    fetch_redirect_response=False,
+                )
 
     def test_features_page_uses_product_software_positioning(self):
         response = self.client.get(reverse("public_site:features"))
@@ -332,7 +330,8 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(response, "If a registered service business adds you as a client")
         self.assertContains(response, "Log In")
         self.assertContains(response, "Need Help? Contact Us")
-        self.assertContains(response, "Your service business uses GetContractorz to manage part of its")
+        self.assertContains(response, "Your service business uses Get")
+        self.assertContains(response, "Contractorz to manage part of its")
         self.assertContains(response, "workflow.")
         self.assertContains(response, "Access the information that relates to")
         self.assertContains(response, "your service.")
@@ -340,8 +339,9 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(response, "Use email and magic-link actions")
         self.assertContains(response, "From email invitation to")
         self.assertContains(response, "active service.")
-        self.assertContains(response, "What GetContractorz does - and")
-        self.assertContains(response, "does not - do.")
+        self.assertContains(response, "What Get")
+        self.assertContains(response, "Contractorz does and")
+        self.assertContains(response, "does not do.")
         self.assertContains(response, "Client")
         self.assertContains(response, "FAQ")
         self.assertContains(response, "Already have an")
@@ -438,7 +438,8 @@ class PublicSiteViewTests(TestCase):
         self.assertContains(response, "Accuracy as a trust signal")
         self.assertContains(response, "Currently serving Canada and the")
         self.assertContains(response, "United States.")
-        self.assertContains(response, "Want to see if GetContractorz fits your")
+        self.assertContains(response, "Want to see if Get")
+        self.assertContains(response, "Contractorz fits your")
         self.assertContains(response, "service business?")
         self.assertContains(response, '"@type": "BreadcrumbList"')
         self.assertContains(response, '"@type": "WebPage"')
@@ -449,18 +450,6 @@ class PublicSiteViewTests(TestCase):
         self.assertNotContains(response, "founder")
         self.assertNotContains(response, "investors")
         self.assertNotContains(response, "Ready To Design Smarter?")
-
-    def test_team_page_uses_credibility_focused_product_copy(self):
-        response = self.client.get(reverse("public_site:team"))
-
-        self.assertContains(response, "GetContractorz Team")
-        self.assertContains(response, "Based in Calgary")
-        self.assertContains(response, "The team behind GetContractorz is building for real service workflows")
-        self.assertContains(response, "Built around the dependencies service businesses manage every day.")
-        self.assertContains(response, "Client intake")
-        self.assertContains(response, "Quotation approval")
-        self.assertContains(response, "Billing records")
-        self.assertNotContains(response, "Content Being Prepared")
 
     def test_marketplace_search_filters_businesses(self):
         response = self.client.get(
@@ -495,12 +484,10 @@ class PublicSiteViewTests(TestCase):
     def test_all_public_routes_render(self):
         route_names = [
             "about",
-            "industries",
             "features",
             "how-it-works",
             "for-clients",
             "service-categories",
-            "team",
             "terms-and-conditions",
             "privacy-policy",
             "cookie-policy",

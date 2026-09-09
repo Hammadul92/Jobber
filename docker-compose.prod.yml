@@ -1,5 +1,3 @@
-version: "3.9"
-
 volumes:
   prod-db-data:
   static-files:  # only used by backend

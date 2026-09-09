@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import TemplateView
 
-from core.models import Business, FAQ
+from core.models import Business
 
 
 PUBLIC_PAGE_METADATA = {
@@ -43,23 +43,6 @@ PUBLIC_PAGE_METADATA = {
         "Learn what GetContractorz is built to organize, how the Marketplace "
         "fits the platform, and the principles guiding its public product "
         "experience.",
-    ),
-    "industries": (
-        "Service Business Management Software for 50+ Industries",
-        "GetContractorz helps home service businesses manage clients, "
-        "questionnaires, quotations, jobs, invoices, Stripe payments, and teams.",
-    ),
-    "services": (
-        "Service Business Management Software Features",
-        "Explore GetContractorz features for client management, service "
-        "questionnaires, quotations, job management, team access, invoices, "
-        "Stripe payments, and client workspaces.",
-    ),
-    "team": (
-        "GetContractorz Team",
-        "Meet the Calgary team building service business management software "
-        "for client intake, quotations, job management, invoicing, payments, "
-        "and connected service records.",
     ),
     "terms-and-conditions": (
         "Terms and Conditions",
@@ -296,9 +279,7 @@ def sitemap(request):
         "for-clients",
         "service-categories",
         "marketplace",
-        "industries",
         "about",
-        "team",
         "contact",
         "faq",
     ]
@@ -333,8 +314,6 @@ class PublicPageView(TemplateView):
             "for-clients": "public_site/for_clients.html",
             "service-categories": "public_site/service_categories.html",
             "about": "public_site/about.html",
-            "industries": "public_site/industries.html",
-            "services": "public_site/services.html",
             **LEGAL_PAGE_TEMPLATES,
         }
         if template_name := dedicated_templates.get(self.kwargs["page"]):
@@ -351,8 +330,6 @@ class PublicPageView(TemplateView):
             meta_title=f"{title} | GetContractorz",
             meta_description=description,
         )
-        if page == "services" or page in LEGAL_PAGE_TEMPLATES:
+        if page in LEGAL_PAGE_TEMPLATES:
             context["meta_robots"] = "noindex,follow"
-        if page == "industries":
-            context["faqs"] = FAQ.objects.filter(is_active=True)
         return context
