@@ -8,16 +8,21 @@ on:
 
 jobs:
   deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
 
     steps:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          envs: IMAGE_TAG=${{ github.sha }}
+          envs: IMAGE_TAG
           script: |
             set -e
             cd ~/Contractorz/Jobber
@@ -25,7 +30,7 @@ jobs:
             echo "Using IMAGE_TAG=${IMAGE_TAG}"
 
             # 0️⃣ Pull latest repo changes (docker-compose.prod.yml, configs, etc.)
-            git pull origin main
+            git pull --ff-only origin main
 
             # 1️⃣ Pull latest backend/frontend images
             docker compose -f docker-compose.prod.yml pull

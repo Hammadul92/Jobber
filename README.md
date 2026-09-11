@@ -30,10 +30,9 @@ Compose services. Production builds the React application into static assets,
 serves them through Nginx, proxies `/api/` and `/admin/` to Gunicorn, and stores
 uploaded media in a shared Docker volume.
 
-The repository includes a Django public-site implementation for SEO migration
-and parity testing. React remains authoritative for public routes until the
-Django pages pass desktop and mobile visual comparisons. Authentication,
-questionnaire links, and the authenticated `/user/*` workspace remain React.
+The public website is rendered by Django templates for SEO. Authentication,
+questionnaire links, session bridging, and the authenticated `/user/*`
+workspace remain React and are routed to the SPA by Nginx.
 
 ## Technology
 
@@ -236,9 +235,10 @@ Production images are defined by `Dockerfile.prod` and
 backend and frontend images and provides persistent volumes for PostgreSQL,
 static files, and uploaded media.
 
-Nginx terminates TLS, serves the React build, serves static and media files,
-and proxies `/api/*` and `/admin/*` to Django. Public Django routing will be
-enabled only after design-parity verification. Production hosts must provide:
+Nginx terminates TLS, serves React for authentication, questionnaire, session,
+and `/user/*` application routes, serves static and media files, and proxies
+the public website, `/api/*`, and `/admin/*` to Django. Production hosts must
+provide:
 
 - Database and Django environment variables
 - Stripe and SendGrid credentials
