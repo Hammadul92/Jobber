@@ -1,3 +1,6 @@
+import json
+from urllib.parse import quote
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -107,8 +110,43 @@ class PublicSiteViewTests(TestCase):
 
         self.assertContains(response, 'href="http://frontend.test:5173/sign-in"', count=2)
         self.assertContains(response, 'href="http://frontend.test:5173/register"')
-        self.assertNotContains(response, "data-account-toggle")
+        self.assertNotContains(response, 'class="gc-account"')
         self.assertNotContains(response, "session-bridge")
+
+    @override_settings(FRONTEND_URL="http://frontend.test:5173/")
+    def test_signed_in_public_header_uses_account_dropdown(self):
+        session = quote(
+            json.dumps(
+                {
+                    "name": "Ali Ahsan",
+                    "email": "ali@example.com",
+                    "role": "MANAGER",
+                }
+            )
+        )
+        self.client.cookies["contractorz_public_session"] = session
+
+        response = self.client.get(reverse("public_site:home"))
+
+        self.assertContains(response, "Ali Ahsan", count=2)
+        self.assertContains(response, "ali@example.com")
+        self.assertContains(response, "data-account-toggle")
+        self.assertContains(response, 'href="http://frontend.test:5173/user/profile"')
+        self.assertContains(response, 'href="http://frontend.test:5173/user/business"')
+        self.assertContains(response, 'href="http://frontend.test:5173/user/banking"')
+        self.assertContains(response, 'href="http://frontend.test:5173/user/credentials"')
+        self.assertContains(response, 'href="http://frontend.test:5173/logout"')
+        self.assertNotContains(response, 'class="gc-button gc-button--outline gc-header__login"')
+        self.assertContains(response, 'href="http://frontend.test:5173/sign-in"', count=1)
+
+    def test_invalid_public_session_cookie_keeps_auth_actions(self):
+        self.client.cookies["contractorz_public_session"] = "%7Binvalid"
+
+        response = self.client.get(reverse("public_site:home"))
+
+        self.assertContains(response, "Login")
+        self.assertContains(response, "Get Started Free")
+        self.assertNotContains(response, 'class="gc-account"')
 
     def test_public_header_marks_current_page_as_active(self):
         routes = [

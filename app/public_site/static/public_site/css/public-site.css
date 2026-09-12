@@ -255,6 +255,154 @@ textarea {
   display: none;
 }
 
+.gc-account {
+  position: relative;
+  z-index: 41;
+}
+
+.gc-account__trigger {
+  position: relative;
+  z-index: 43;
+  display: inline-flex;
+  min-height: 48px;
+  max-width: 250px;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--gc-ink);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.gc-account__trigger-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gc-account__trigger-icon,
+.gc-account__chevron {
+  flex: 0 0 auto;
+}
+
+.gc-account__chevron {
+  transition: transform 180ms ease;
+}
+
+.gc-account[data-open] .gc-account__chevron {
+  transform: rotate(180deg);
+}
+
+.gc-account__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: none;
+  background: rgb(0 0 0 / 0.48);
+}
+
+.gc-account__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 42;
+  display: none;
+  width: min(350px, calc(100vw - 32px));
+  border: 1px solid rgb(10 63 105 / 0.08);
+  border-radius: 16px;
+  background: var(--gc-white);
+  padding: 18px;
+  box-shadow: 0 22px 52px rgb(0 0 0 / 0.2);
+}
+
+.gc-account[data-open] .gc-account__backdrop,
+.gc-account[data-open] .gc-account__menu {
+  display: block;
+}
+
+.gc-account__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 2px 16px;
+}
+
+.gc-account__avatar {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e9edf3;
+  color: #3e495a;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.gc-account__identity-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.gc-account__identity-copy strong,
+.gc-account__identity-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gc-account__identity-copy strong {
+  color: var(--gc-ink);
+  font-size: 18px;
+}
+
+.gc-account__identity-copy small {
+  color: var(--gc-muted);
+  font-size: 13px;
+}
+
+.gc-account__links {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--gc-border);
+  border-radius: 12px;
+  background: #f7f8fa;
+  padding: 10px;
+}
+
+.gc-account__links a,
+.gc-account__logout {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 12px;
+  border-radius: 9px;
+  color: var(--gc-ink);
+  font-weight: 600;
+  padding: 10px 12px;
+}
+
+.gc-account__links a:hover,
+.gc-account__links a:focus-visible,
+.gc-account__logout:hover,
+.gc-account__logout:focus-visible {
+  background: rgb(10 63 105 / 0.07);
+  color: var(--gc-navy);
+}
+
+.gc-account__logout {
+  justify-content: center;
+  margin-top: 10px;
+  color: var(--gc-muted);
+}
+
 .gc-nav__link,
 .gc-nav summary {
   display: inline-flex;
@@ -3398,6 +3546,10 @@ textarea {
     display: none;
   }
 
+  .gc-account__trigger {
+    max-width: 180px;
+  }
+
   .gc-mobile-menu__trigger {
     min-width: 48px;
     min-height: 48px;
@@ -3900,6 +4052,29 @@ textarea {
     width: 22px;
     height: 22px;
     color: var(--gc-navy);
+  }
+
+  .gc-account__trigger {
+    min-width: 42px;
+    min-height: 42px;
+    justify-content: center;
+  }
+
+  .gc-account__trigger-name,
+  .gc-account__chevron {
+    display: none;
+  }
+
+  .gc-account__trigger-icon {
+    width: 22px;
+    height: 22px;
+    color: var(--gc-navy);
+  }
+
+  .gc-account__menu {
+    right: -6px;
+    top: calc(100% + 8px);
+    padding: 16px;
   }
 
   .gc-legal-hero__inner {

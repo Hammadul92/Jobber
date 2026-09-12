@@ -57,15 +57,68 @@
       </nav>
 
       <div class="gc-header__actions">
-        <a class="gc-button gc-button--outline gc-header__login" href="{{ frontend_url }}/sign-in" aria-label="Login">
-          <span class="gc-header__login-text">Login</span>
-          <svg class="gc-header__login-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M10 17l5-5-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M15 12H3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </a>
-        <a class="gc-button gc-button--primary" href="{{ frontend_url }}/register">Get Started Free</a>
+        {% if public_session_user %}
+          <div class="gc-account" data-public-account>
+            <button class="gc-account__trigger" type="button" data-account-toggle aria-expanded="false" aria-haspopup="true" aria-controls="public-account-menu">
+              <svg class="gc-account__trigger-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="9" r="3" stroke="currentColor" stroke-width="2"/>
+                <path d="M6.8 19c.8-3 2.6-4.5 5.2-4.5s4.4 1.5 5.2 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span class="gc-account__trigger-name">{{ public_session_user.name }}</span>
+              <svg class="gc-account__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <div class="gc-account__backdrop" data-account-backdrop></div>
+            <div class="gc-account__menu" id="public-account-menu" data-account-menu>
+              <div class="gc-account__identity">
+                <span class="gc-account__avatar" aria-hidden="true">{{ public_session_user.name|first|upper }}</span>
+                <span class="gc-account__identity-copy">
+                  <strong>{{ public_session_user.name }}</strong>
+                  {% if public_session_user.email %}<small>{{ public_session_user.email }}</small>{% endif %}
+                </span>
+              </div>
+
+              <nav class="gc-account__links" aria-label="Account navigation">
+                <a href="{{ frontend_url }}/user/profile">
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="2"/><path d="M6.5 20v-2a5.5 5.5 0 0 1 11 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  Profile
+                </a>
+                {% if public_session_user.role == "USER" or public_session_user.role == "MANAGER" %}
+                  <a href="{{ frontend_url }}/user/business">
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 21V7l8-4 8 4v14M8 21v-4h8v4M8 9h1m3 0h1m3 0h1M8 13h1m3 0h1m3 0h1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Business
+                  </a>
+                {% endif %}
+                <a href="{{ frontend_url }}/user/banking">
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 10h18" stroke="currentColor" stroke-width="2"/></svg>
+                  Banking
+                </a>
+                <a href="{{ frontend_url }}/user/credentials">
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="8" cy="15" r="4" stroke="currentColor" stroke-width="2"/><path d="m11 12 8-8m-2 0 3 3m-6 0 3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Credentials
+                </a>
+              </nav>
+
+              <a class="gc-account__logout" href="{{ frontend_url }}/logout">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4m4-4H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Logout Account
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <a class="gc-button gc-button--outline gc-header__login" href="{{ frontend_url }}/sign-in" aria-label="Login">
+            <span class="gc-header__login-text">Login</span>
+            <svg class="gc-header__login-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10 17l5-5-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M15 12H3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a class="gc-button gc-button--primary" href="{{ frontend_url }}/register">Get Started Free</a>
+        {% endif %}
       </div>
 
       <div class="gc-mobile-menu">
@@ -87,7 +140,7 @@
             <a href="/about/" {% if current_path == "/about/" %}aria-current="page"{% endif %}>About</a>
             <a href="/faq/" {% if current_path == "/faq/" or current_path == "/faqs/" %}aria-current="page"{% endif %}>FAQ</a>
             <a href="/contact/" {% if current_path == "/contact/" %}aria-current="page"{% endif %}>Contact</a>
-            <a class="gc-button gc-button--primary" href="{{ frontend_url }}/register">Get Started Free</a>
+            {% if not public_session_user %}<a class="gc-button gc-button--primary" href="{{ frontend_url }}/register">Get Started Free</a>{% endif %}
           </nav>
         </details>
       </div>
@@ -102,6 +155,9 @@
 
     const dropdowns = Array.from(header.querySelectorAll(".gc-nav__group"));
     const mobileMenu = header.querySelector(".gc-mobile-menu details");
+    const account = header.querySelector("[data-public-account]");
+    const accountToggle = account?.querySelector("[data-account-toggle]");
+    const accountBackdrop = account?.querySelector("[data-account-backdrop]");
     const closeDropdowns = (activeDropdown = null) => {
       dropdowns.forEach((dropdown) => {
         if (dropdown !== activeDropdown) {
@@ -112,10 +168,24 @@
     const closeMobileMenu = () => {
       mobileMenu?.removeAttribute("open");
     };
+    const closeAccountMenu = () => {
+      account?.removeAttribute("data-open");
+      accountToggle?.setAttribute("aria-expanded", "false");
+    };
+
+    accountToggle?.addEventListener("click", () => {
+      const willOpen = !account.hasAttribute("data-open");
+      closeDropdowns();
+      closeMobileMenu();
+      account.toggleAttribute("data-open", willOpen);
+      accountToggle.setAttribute("aria-expanded", String(willOpen));
+    });
+    accountBackdrop?.addEventListener("click", closeAccountMenu);
 
     dropdowns.forEach((dropdown) => {
       dropdown.addEventListener("toggle", () => {
         if (!dropdown.open) return;
+        closeAccountMenu();
         closeDropdowns(dropdown);
       });
     });
@@ -132,12 +202,17 @@
       if (mobileMenu?.open && event.target === mobileMenu) {
         closeMobileMenu();
       }
+
+      if (account?.hasAttribute("data-open") && !event.target.closest("[data-public-account]")) {
+        closeAccountMenu();
+      }
     });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         closeDropdowns();
         closeMobileMenu();
+        closeAccountMenu();
       }
     });
   })();
