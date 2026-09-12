@@ -32,23 +32,9 @@ import MagicLogin from "./pages/MagicLogin";
 import StripeOnboardingRefresh from "./pages/StripeOnboardingRefresh";
 import UserDashboard from "./User";
 import { clearPublicSession, syncPublicSession } from "./utils/publicSession";
+import { getPublicSiteHomeUrl } from "./utils/publicSite";
 
 const contractorzLogo = "/images/contractorz-logo-horizontal.svg";
-
-function getPublicSiteHomeUrl() {
-  const configuredPublicSite = import.meta.env.VITE_PUBLIC_SITE_URL;
-  if (configuredPublicSite)
-    return configuredPublicSite.replace(/\/$/, "") || "/";
-
-  const configuredApiBase = import.meta.env.VITE_API_BASE_URL;
-  const apiBase =
-    configuredApiBase ||
-    (import.meta.env.PROD
-      ? `${window.location.origin}/api`
-      : "http://localhost:8000/api");
-
-  return apiBase.replace(/\/api\/?$/, "");
-}
 
 function AdminRedirect() {
   useEffect(() => {
@@ -70,7 +56,11 @@ function LogoutRedirect() {
   useEffect(() => {
     localStorage.removeItem("token");
     clearPublicSession();
-    window.location.replace("/sign-in");
+    const returnToPublicSite =
+      new URLSearchParams(window.location.search).get("return") === "public";
+    window.location.replace(
+      returnToPublicSite ? getPublicSiteHomeUrl() : "/sign-in",
+    );
   }, []);
 
   return <div className="text-center py-5">Signing out...</div>;

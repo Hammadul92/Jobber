@@ -8,6 +8,7 @@ import {
 import SubmitButton from "../Components/ui/SubmitButton";
 import Input from "../Components/ui/Input";
 import { syncPublicSession } from "../utils/publicSession";
+import { getPublicSiteHomeUrl } from "../utils/publicSite";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ export default function SignIn() {
     if (userFetched && userData) {
       if (next === "/") {
         syncPublicSession(userData);
-        window.location.replace("/");
+        window.location.replace(getPublicSiteHomeUrl());
         return;
       }
 

@@ -480,17 +480,20 @@ export default function Header() {
                   {/* Profile Section */}
                   <div className="flex items-center gap-3 mb-6">
                     {/* Profile avatar */}
-                    <div className="flex items-center justify-center w-12 h-12 bg-gray-200 rounded-full">
-                      {user.profilePic ? (
+                    <div className="relative flex items-center justify-center w-12 h-12 overflow-hidden bg-gray-200 rounded-full">
+                      <span className="text-xl font-bold text-gray-700">
+                        {user.name.charAt(0).toUpperCase()}
+                      </span>
+                      {(user.photoUrl || user.photo) && (
                         <img
-                          src={user.profilePic}
+                          key={user.photoUrl || user.photo}
+                          src={user.photoUrl || user.photo}
                           alt="Profile"
-                          className="object-cover w-full h-full rounded-full"
+                          className="absolute inset-0 object-cover w-full h-full"
+                          onError={(event) => {
+                            event.currentTarget.hidden = true;
+                          }}
                         />
-                      ) : (
-                        <span className="text-xl font-bold text-gray-700">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
                       )}
                     </div>
                     <div>

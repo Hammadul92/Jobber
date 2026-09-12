@@ -74,7 +74,12 @@
             <div class="gc-account__backdrop" data-account-backdrop></div>
             <div class="gc-account__menu" id="public-account-menu" data-account-menu>
               <div class="gc-account__identity">
-                <span class="gc-account__avatar" aria-hidden="true">{{ public_session_user.name|first|upper }}</span>
+                <span class="gc-account__avatar" aria-hidden="true">
+                  <span>{{ public_session_user.name|first|upper }}</span>
+                  {% if public_session_user.photo_url %}
+                    <img src="{{ public_session_user.photo_url }}" alt="" onerror="this.hidden=true">
+                  {% endif %}
+                </span>
                 <span class="gc-account__identity-copy">
                   <strong>{{ public_session_user.name }}</strong>
                   {% if public_session_user.email %}<small>{{ public_session_user.email }}</small>{% endif %}
@@ -102,7 +107,7 @@
                 </a>
               </nav>
 
-              <a class="gc-account__logout" href="{{ frontend_url }}/logout">
+              <a class="gc-account__logout" href="{{ frontend_url }}/logout?return=public">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4m4-4H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Logout Account
               </a>

@@ -18,6 +18,7 @@ import {
 } from "react-icons/lu";
 import { RiDashboardLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
+import { getPublicSiteHomeUrl } from "../utils/publicSite";
 
 function MobileTopbar({ role, businessName, user }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -211,7 +212,7 @@ function MobileTopbar({ role, businessName, user }) {
 
       {/* Logo */}
       <div className="mr-6">
-        <a href="/">
+        <a href={getPublicSiteHomeUrl()}>
           <img src={logo} alt="Contractorz" className="w-30 md:w-36" />
         </a>
       </div>
@@ -240,17 +241,20 @@ function MobileTopbar({ role, businessName, user }) {
           </button>
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-gray-200 rounded-full">
-              {user?.profile_picture ? (
+            <div className="relative flex items-center justify-center w-12 h-12 overflow-hidden bg-gray-200 rounded-full">
+              <span className="text-lg font-bold text-gray-500">
+                {displayName.charAt(0).toUpperCase()}
+              </span>
+              {(user?.photoUrl || user?.photo) && (
                 <img
-                  src={user.profile_picture}
+                  key={user.photoUrl || user.photo}
+                  src={user.photoUrl || user.photo}
                   alt="Profile"
-                  className="object-cover w-full h-full rounded-full"
+                  className="absolute inset-0 object-cover w-full h-full"
+                  onError={(event) => {
+                    event.currentTarget.hidden = true;
+                  }}
                 />
-              ) : (
-                <span className="text-lg font-bold text-gray-500">
-                  {displayName.charAt(0).toUpperCase()}
-                </span>
               )}
             </div>
             <div>

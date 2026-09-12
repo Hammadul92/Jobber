@@ -121,6 +121,7 @@ class PublicSiteViewTests(TestCase):
                     "name": "Ali Ahsan",
                     "email": "ali@example.com",
                     "role": "MANAGER",
+                    "photoUrl": "http://testserver/media/uploads/profile_photos/ali.png",
                 }
             )
         )
@@ -130,12 +131,19 @@ class PublicSiteViewTests(TestCase):
 
         self.assertContains(response, "Ali Ahsan", count=2)
         self.assertContains(response, "ali@example.com")
+        self.assertContains(
+            response,
+            'src="http://testserver/media/uploads/profile_photos/ali.png"',
+        )
         self.assertContains(response, "data-account-toggle")
         self.assertContains(response, 'href="http://frontend.test:5173/user/profile"')
         self.assertContains(response, 'href="http://frontend.test:5173/user/business"')
         self.assertContains(response, 'href="http://frontend.test:5173/user/banking"')
         self.assertContains(response, 'href="http://frontend.test:5173/user/credentials"')
-        self.assertContains(response, 'href="http://frontend.test:5173/logout"')
+        self.assertContains(
+            response,
+            'href="http://frontend.test:5173/logout?return=public"',
+        )
         self.assertNotContains(response, 'class="gc-button gc-button--outline gc-header__login"')
         self.assertContains(response, 'href="http://frontend.test:5173/sign-in"', count=1)
 

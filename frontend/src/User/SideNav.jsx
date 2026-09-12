@@ -196,17 +196,20 @@ export default function SideNav({ user, businessRegistered }) {
         {/* Profile Section */}
         <div className="flex items-center gap-3 mb-6">
           {/* Profile avatar */}
-          <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-            {currentUser?.profile_picture ? (
+          <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-gray-200">
+            <span className="text-lg font-bold text-gray-500">
+              {displayName.charAt(0).toUpperCase()}
+            </span>
+            {(currentUser?.photoUrl || currentUser?.photo) && (
               <img
-                src={currentUser.profile_picture}
+                key={currentUser.photoUrl || currentUser.photo}
+                src={currentUser.photoUrl || currentUser.photo}
                 alt="Profile"
-                className="h-full w-full rounded-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover"
+                onError={(event) => {
+                  event.currentTarget.hidden = true;
+                }}
               />
-            ) : (
-              <span className="text-gray-500 text-lg font-bold">
-                {displayName.charAt(0).toUpperCase()}
-              </span>
             )}
           </div>
           <div>

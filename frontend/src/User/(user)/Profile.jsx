@@ -5,6 +5,7 @@ import LoadingScreen from "../../Components/ui/LoadingScreen";
 import { formatDate } from "../../utils/formatDate";
 import Input from "../../Components/ui/Input";
 import { LuCamera } from "react-icons/lu";
+import { syncPublicSession } from "../../utils/publicSession";
 
 export default function Profile({ token, setAlert }) {
   const {
@@ -58,8 +59,9 @@ export default function Profile({ token, setAlert }) {
         formData.append("photo", photo);
       }
 
-      await updateUser(formData).unwrap();
-      refetch();
+      const updatedUser = await updateUser(formData).unwrap();
+      syncPublicSession(updatedUser);
+      await refetch();
       setPhoto(null);
 
       setAlert({ type: "success", message: "Profile updated successfully." });
@@ -77,6 +79,8 @@ export default function Profile({ token, setAlert }) {
 
   const inputClass =
     "w-full rounded-xl border border-gray-300 bg-white md:px-5 md:py-3! focus:outline-none";
+  const profilePhoto = photoPreview || user?.photoUrl || user?.photo;
+  const profileInitial = (user?.name || "User").charAt(0).toUpperCase();
 
   return (
     <div>
@@ -92,15 +96,24 @@ export default function Profile({ token, setAlert }) {
         className="space-y-6 bg-white shadow-md rounded-2xl p-4 md:p-10"
         onSubmit={submitHandler}
       >
-        <div className="relative mx-auto md:mx-0 w-36 h-36">
-          <img
-            src={photoPreview || user?.photoUrl || user?.photo || "/images/user.png"}
-            alt="Profile"
-            className="w-36 h-36 rounded-full object-cover border border-gray-200 shadow-md bg-white"
-          />
+        <div className="relative mx-auto h-36 w-36 md:mx-0">
+          <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-200 text-5xl font-bold text-gray-600 shadow-md">
+            <span aria-hidden="true">{profileInitial}</span>
+            {profilePhoto && (
+              <img
+                key={profilePhoto}
+                src={profilePhoto}
+                alt={`${user?.name || "User"}'s profile`}
+                className="absolute inset-0 h-full w-full object-cover"
+                onError={(event) => {
+                  event.currentTarget.hidden = true;
+                }}
+              />
+            )}
+          </div>
           <label
             htmlFor="photo-upload"
-            className="absolute bottom-0 right-0 cursor-pointer bg-white rounded-full p-2 shadow-md border border-gray-200"
+            className="absolute bottom-0 right-0 z-10 cursor-pointer bg-white rounded-full p-2 shadow-md border border-gray-200"
           >
             <LuCamera className="text-black" size={24} />
             <input

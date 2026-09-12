@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { LuChevronRight, LuPlus, LuUserPlus } from "react-icons/lu";
 import { getTopbarActionHandler } from "./topbarActionRegistry";
+import { getPublicSiteHomeUrl } from "../utils/publicSite";
 
 const SEGMENT_LABELS = {
   user: "User",
@@ -35,6 +36,7 @@ function Topbar({ businessName }) {
   const { title, description, action } = useSelector((state) => state.topbar);
   const location = useLocation();
   const actionHandler = action?.key ? getTopbarActionHandler(action.key) : null;
+  const publicSiteHomeUrl = getPublicSiteHomeUrl();
 
   const TOPBAR_ACTION_ICONS = {
     plus: LuPlus,
@@ -58,10 +60,10 @@ function Topbar({ businessName }) {
     const segments = location.pathname.split("/").filter(Boolean);
 
     if (!segments.length) {
-      return [{ label: "Contractorz", to: "/" }];
+      return [{ label: "Contractorz", href: publicSiteHomeUrl }];
     }
 
-    const items = [{ label: "Contractorz", to: "/" }];
+    const items = [{ label: "Contractorz", href: publicSiteHomeUrl }];
 
     if (segments[0] !== "user") {
       const label =
@@ -103,7 +105,7 @@ function Topbar({ businessName }) {
     }
 
     return items;
-  }, [location.pathname, businessName]);
+  }, [location.pathname, businessName, publicSiteHomeUrl]);
 
   return (
     <div className="bg-white md:p-8 md:pr-12 lg:p-8 lg:pr-14 px-4 py-4 border-b border-gray-300 w-full">
@@ -112,7 +114,14 @@ function Topbar({ businessName }) {
           {breadcrumbItems.map((crumb, idx) => (
             <Fragment key={`${crumb.label}-${idx}`}>
               <li>
-                {crumb.to ? (
+                {crumb.href ? (
+                  <a
+                    href={crumb.href}
+                    className={`font-normal ${idx === 1 || idx === breadcrumbItems.length - 1 ? "text-secondary" : "text-accent hover:text-accentLight"}`}
+                  >
+                    {crumb.label}
+                  </a>
+                ) : crumb.to ? (
                   <Link
                     to={crumb.to}
                     className={`font-normal ${idx === 1 || idx === breadcrumbItems.length - 1 ? "text-secondary" : "text-accent hover:text-accentLight"}`}

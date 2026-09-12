@@ -1,7 +1,20 @@
 import json
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 
 from django.conf import settings
+
+
+def _safe_profile_photo_url(value):
+    if not isinstance(value, str) or len(value) > 2048:
+        return ""
+
+    value = value.strip()
+    parsed = urlsplit(value)
+    if parsed.scheme and parsed.scheme not in {"http", "https"}:
+        return ""
+    if not parsed.path.startswith("/media/"):
+        return ""
+    return value
 
 
 def _public_session_user(request):
@@ -20,6 +33,7 @@ def _public_session_user(request):
     name = session.get("name")
     email = session.get("email")
     role = session.get("role")
+    photo_url = _safe_profile_photo_url(session.get("photoUrl"))
     if not isinstance(name, str) or not name.strip():
         return None
 
@@ -27,6 +41,7 @@ def _public_session_user(request):
         "name": name.strip()[:80],
         "email": email.strip()[:254] if isinstance(email, str) else "",
         "role": role if role in {"USER", "MANAGER", "CLIENT", "EMPLOYEE"} else "",
+        "photo_url": photo_url,
     }
 
 
