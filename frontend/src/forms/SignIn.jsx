@@ -7,6 +7,7 @@ import {
 } from "../store";
 import SubmitButton from "../Components/ui/SubmitButton";
 import Input from "../Components/ui/Input";
+import { syncPublicSession } from "../utils/publicSession";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -37,6 +38,12 @@ export default function SignIn() {
   // ✅ Redirect after login success
   useEffect(() => {
     if (userFetched && userData) {
+      if (next === "/") {
+        syncPublicSession(userData);
+        window.location.replace("/");
+        return;
+      }
+
       navigate(next, { replace: true });
     }
   }, [userFetched, userData, navigate, next]);

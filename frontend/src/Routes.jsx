@@ -6,6 +6,8 @@ import {
   Routes,
   Route,
   useNavigate,
+  useParams,
+  useSearchParams,
 } from "react-router-dom";
 
 import Header from "./Components/Header";
@@ -27,6 +29,7 @@ import Register from "./forms/Register";
 import ForgotPassword from "./forms/ForgotPassword";
 import ResetPassword from "./forms/ResetPassword";
 import MagicLogin from "./pages/MagicLogin";
+import StripeOnboardingRefresh from "./pages/StripeOnboardingRefresh";
 import UserDashboard from "./User";
 import { clearPublicSession, syncPublicSession } from "./utils/publicSession";
 
@@ -34,7 +37,8 @@ const contractorzLogo = "/images/contractorz-logo-horizontal.svg";
 
 function getPublicSiteHomeUrl() {
   const configuredPublicSite = import.meta.env.VITE_PUBLIC_SITE_URL;
-  if (configuredPublicSite) return configuredPublicSite.replace(/\/$/, "") || "/";
+  if (configuredPublicSite)
+    return configuredPublicSite.replace(/\/$/, "") || "/";
 
   const configuredApiBase = import.meta.env.VITE_API_BASE_URL;
   const apiBase =
@@ -105,6 +109,17 @@ function AuthLogoHeader() {
   );
 }
 
+function QuoteSignRoute({ token, user }) {
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+
+  if (searchParams.has("token")) {
+    return <MagicLogin destination={`/user/business/quote/sign/${id}`} />;
+  }
+
+  return <UserDashboard page="sign-quote" token={token} user={user} />;
+}
+
 function App() {
   return (
     <Router>
@@ -154,6 +169,7 @@ function MainApp() {
 
   const isDashboardRoute = window.location.pathname.startsWith("/user");
   const isSessionBridge = window.location.pathname === "/session-bridge";
+  const isStripeRefresh = window.location.pathname === "/reauth";
   const isAuthRoute = [
     "/sign-in",
     "/register",
@@ -164,7 +180,10 @@ function MainApp() {
 
   return (
     <>
-      {!isDashboardRoute && !isSessionBridge && !isAuthRoute && <Header />}
+      {!isDashboardRoute &&
+        !isSessionBridge &&
+        !isStripeRefresh &&
+        !isAuthRoute && <Header />}
       {isAuthRoute && <AuthLogoHeader />}
 
       {/* <main> */}
@@ -176,6 +195,7 @@ function MainApp() {
           path="/session-bridge"
           element={<PublicSessionBridge token={token} user={user} />}
         />
+        <Route path="/reauth" element={<StripeOnboardingRefresh />} />
 
         {/* Public routes */}
         <Route path="/" element={<Home />} />
@@ -319,9 +339,7 @@ function MainApp() {
           />
           <Route
             path="quote/sign/:id"
-            element={
-              <UserDashboard page="sign-quote" token={token} user={user} />
-            }
+            element={<QuoteSignRoute token={token} user={user} />}
           />
           <Route
             path="jobs"
@@ -368,7 +386,10 @@ function MainApp() {
       </Routes>
       {/* </main> */}
 
-      {!isDashboardRoute && !isSessionBridge && !isAuthRoute && <Footer />}
+      {!isDashboardRoute &&
+        !isSessionBridge &&
+        !isStripeRefresh &&
+        !isAuthRoute && <Footer />}
     </>
   );
 }

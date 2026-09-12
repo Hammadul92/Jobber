@@ -1,4 +1,4 @@
-import { NavLink, Link, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { FaBars } from "react-icons/fa";
 import {
@@ -211,9 +211,9 @@ function MobileTopbar({ role, businessName, user }) {
 
       {/* Logo */}
       <div className="mr-6">
-        <Link to="/">
+        <a href="/">
           <img src={logo} alt="Contractorz" className="w-30 md:w-36" />
-        </Link>
+        </a>
       </div>
       {/* Empty placeholder */}
       <div></div>

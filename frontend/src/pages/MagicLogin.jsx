@@ -14,7 +14,7 @@ import { useMagicLoginMutation } from "../store";
  *   3. On success the mutation stores the auth token in localStorage.
  *   4. Redirect the user to the protected questionnaire form.
  */
-export default function MagicLogin() {
+export default function MagicLogin({ destination: destinationOverride }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { questionnaireId, serviceId } = useParams();
@@ -24,7 +24,9 @@ export default function MagicLogin() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const destination = `/user/business/service-questionnaire/${questionnaireId}/form/${serviceId}`;
+    const destination =
+      destinationOverride ||
+      `/user/business/service-questionnaire/${questionnaireId}/form/${serviceId}`;
 
     // No magic token — fall back to existing session (direct navigation)
     if (!magicToken) {
@@ -42,7 +44,8 @@ export default function MagicLogin() {
     // in the browser.
     const login = async () => {
       try {
-        await magicLogin({ token: magicToken }).unwrap();
+        const response = await magicLogin({ token: magicToken }).unwrap();
+        localStorage.setItem("token", response.token);
         // Hard redirect: forces a full page reload so React re-initialises
         // from scratch with the new token. This prevents any stale Redux
         // cache or React state from the previous user flashing on screen.
@@ -55,7 +58,14 @@ export default function MagicLogin() {
     };
 
     login();
-  }, [magicToken, magicLogin, navigate, questionnaireId, serviceId]);
+  }, [
+    destinationOverride,
+    magicToken,
+    magicLogin,
+    navigate,
+    questionnaireId,
+    serviceId,
+  ]);
 
   if (error) {
     return (

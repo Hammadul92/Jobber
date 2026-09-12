@@ -2,13 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import {
     useParams,
     Link,
-    useSearchParams,
-    useNavigate,
 } from "react-router-dom";
 import {
     useFetchQuoteQuery,
     useSignQuoteMutation,
-    useMagicLoginMutation,
 } from "../../../store";
 import AcceptAndSignQuote from "./AcceptAndSignQuote";
 import QuoteSectionPopup from "./QuoteSectionPopup";
@@ -36,26 +33,6 @@ function formatMoney(value, currency = "CAD") {
 
 export default function SignQuote({ token }) {
     const { id } = useParams();
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const magicToken = searchParams.get("token");
-    const [magicLogin] = useMagicLoginMutation();
-
-    useEffect(() => {
-        if (!magicToken) return;
-
-        const login = async () => {
-            try {
-                await magicLogin({ token: magicToken }).unwrap();
-                navigate(`/user/business/quote/sign/${id}`, { replace: true });
-                window.location.reload();
-            } catch {
-                // keep current behavior intact
-            }
-        };
-
-        login();
-    }, [magicToken, magicLogin, navigate, id]);
 
     const {
         data: quote,
