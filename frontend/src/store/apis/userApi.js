@@ -41,12 +41,6 @@ const userApi = createApi({
         method: "GET",
       }),
     }),
-    fetchFaqs: builder.query({
-      query: () => ({
-        url: "/faqs/",
-        method: "GET",
-      }),
-    }),
     signinUser: builder.mutation({
       query: (data) => ({
         url: "/token/",
@@ -118,20 +112,12 @@ const userApi = createApi({
         }
       },
     }),
-    submitContactInquiry: builder.mutation({
-      query: (data) => ({
-        url: "/contact/",
-        method: "POST",
-        body: data,
-      }),
-    }),
   }),
 });
 
 export const {
   useSigninUserMutation,
   useVerifyEmailQuery,
-  useFetchFaqsQuery,
   useFetchUserQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
@@ -140,7 +126,6 @@ export const {
   useResetPasswordMutation,
   useCheckUserExistsMutation,
   useMagicLoginMutation,
-  useSubmitContactInquiryMutation,
 } = userApi;
 
 export { userApi };

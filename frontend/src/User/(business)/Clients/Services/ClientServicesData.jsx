@@ -21,7 +21,6 @@ export default function ClientServicesData({
   role,
   clientId,
   setAlert,
-  onEdit,
 }) {
   const isAllServicesView = !clientId && role === "MANAGER";
   const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();

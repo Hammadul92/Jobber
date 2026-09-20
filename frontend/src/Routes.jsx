@@ -5,25 +5,13 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
+  useLocation,
   useNavigate,
   useParams,
   useSearchParams,
 } from "react-router-dom";
 
-import Header from "./Components/Header";
-import Footer from "./Components/Footer";
-import PageNotFound from "./Components/PageNotFound";
 import LoadingScreen from "./Components/ui/LoadingScreen";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Industries from "./pages/Industries";
-import FAQs from "./pages/FAQs";
-import Services from "./pages/Services";
-import Team from "./pages/Team";
-import CustomerSupport from "./pages/CustomerSupport";
-import TermsAndConditions from "./pages/TermsAndConditions";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import ContactUs from "./pages/ContactUs";
 import SignIn from "./forms/SignIn";
 import Register from "./forms/Register";
 import ForgotPassword from "./forms/ForgotPassword";
@@ -33,8 +21,20 @@ import StripeOnboardingRefresh from "./pages/StripeOnboardingRefresh";
 import UserDashboard from "./User";
 import { clearPublicSession, syncPublicSession } from "./utils/publicSession";
 import { getPublicSiteHomeUrl } from "./utils/publicSite";
+import {
+  getPublicRedirectUrl,
+  isDashboardPath,
+  isMagicQuoteLink,
+} from "./utils/routePolicy";
 
 const contractorzLogo = "/images/contractorz-logo-horizontal.svg";
+const AUTH_ROUTES = [
+  "/sign-in",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/logout",
+];
 
 function AdminRedirect() {
   useEffect(() => {
@@ -66,23 +66,14 @@ function LogoutRedirect() {
   return <div className="text-center py-5">Signing out...</div>;
 }
 
-function PublicSessionBridge({ token, user }) {
+function PublicSiteRedirect() {
   useEffect(() => {
-    if (!document.referrer) return;
-    const parentOrigin = new URL(document.referrer).origin;
-    window.parent.postMessage(
-      {
-        type: "contractorz:public-session",
-        user:
-          token && user
-            ? { name: user.name, email: user.email, role: user.role }
-            : null,
-      },
-      parentOrigin,
+    window.location.replace(
+      getPublicRedirectUrl(getPublicSiteHomeUrl(), window.location.href),
     );
-  }, [token, user]);
+  }, []);
 
-  return null;
+  return <LoadingScreen fullScreen label="Redirecting..." />;
 }
 
 function AuthLogoHeader() {
@@ -120,6 +111,7 @@ function App() {
 
 function MainApp() {
   const navigate = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem("token");
   const {
     data: user,
@@ -127,26 +119,34 @@ function MainApp() {
     isError,
     error,
   } = useFetchUserQuery(undefined, { skip: !token });
+  const isDashboardRoute = isDashboardPath(location.pathname);
+  const isMagicQuoteRoute = isMagicQuoteLink(
+    location.pathname,
+    location.search,
+  );
+  const isAuthRoute = AUTH_ROUTES.includes(location.pathname);
 
   useEffect(() => {
-    const currentPath = window.location.pathname + window.location.search;
-    const isPublicPage = [
-      "/",
-      "/admin",
-      "/sign-in",
-      "/register",
-      "/forgot-password",
-      "/reset-password",
-      "/service-questionnaire",
-      "/session-bridge",
-    ].some((path) => window.location.pathname.startsWith(path));
-
-    if ((!token || (isError && error?.status === 401)) && !isPublicPage) {
+    const currentPath = location.pathname + location.search;
+    if (
+      (!token || (isError && error?.status === 401)) &&
+      isDashboardRoute &&
+      !isMagicQuoteRoute
+    ) {
       navigate(`/sign-in?next=${encodeURIComponent(currentPath)}`, {
         replace: true,
       });
     }
-  }, [token, isError, error, navigate]);
+  }, [
+    token,
+    isError,
+    error,
+    navigate,
+    location.pathname,
+    location.search,
+    isDashboardRoute,
+    isMagicQuoteRoute,
+  ]);
 
   useEffect(() => {
     if (user) syncPublicSession(user);
@@ -157,47 +157,15 @@ function MainApp() {
     return <LoadingScreen fullScreen />;
   }
 
-  const isDashboardRoute = window.location.pathname.startsWith("/user");
-  const isSessionBridge = window.location.pathname === "/session-bridge";
-  const isStripeRefresh = window.location.pathname === "/reauth";
-  const isAuthRoute = [
-    "/sign-in",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
-    "/logout",
-  ].includes(window.location.pathname);
-
   return (
     <>
-      {!isDashboardRoute &&
-        !isSessionBridge &&
-        !isStripeRefresh &&
-        !isAuthRoute && <Header />}
       {isAuthRoute && <AuthLogoHeader />}
 
-      {/* <main> */}
       <Routes>
         <Route path="/admin" element={<AdminRedirect />} />
         <Route path="/admin/*" element={<AdminRedirect />} />
         <Route path="/logout" element={<LogoutRedirect />} />
-        <Route
-          path="/session-bridge"
-          element={<PublicSessionBridge token={token} user={user} />}
-        />
         <Route path="/reauth" element={<StripeOnboardingRefresh />} />
-
-        {/* Public routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<ContactUs />} />
-        <Route path="/industries" element={<Industries />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/team" element={<Team />} />
-        <Route path="/customer-support" element={<CustomerSupport />} />
-        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/faqs" element={<FAQs />} />
 
         {/* Authentication routes */}
         <Route path="/sign-in" element={<SignIn />} />
@@ -371,15 +339,8 @@ function MainApp() {
           />
         </Route>
 
-        {/* Fallback route */}
-        <Route path="*" element={<PageNotFound />} />
+        <Route path="*" element={<PublicSiteRedirect />} />
       </Routes>
-      {/* </main> */}
-
-      {!isDashboardRoute &&
-        !isSessionBridge &&
-        !isStripeRefresh &&
-        !isAuthRoute && <Footer />}
     </>
   );
 }

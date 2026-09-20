@@ -19,14 +19,8 @@
   /* Blue accent */
   --color-background: #f5f7f9;
   /* Main background */
-  --color-card: #131317;
-  --color-cardLight: #22242f;
-  /* Card background (testimonial) */
-  --color-muted: #f2f2f2;
-  /* Muted background (section) */
   --font-heading: "MODERNIZ", sans-serif;
   --font-sans: "Inter", Arial, Helvetica, sans-serif;
-  --font-intro: "Open Sans", sans-serif;
   /* Tailwind breakpoints */
   --breakpoint-md: 768px;
   /* for Tablets */
@@ -41,42 +35,6 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
-
-/* Custom marquee styles */
-.marquee-wrapper {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-}
-
-.marquee-track {
-  display: flex;
-  align-items: center;
-  width: max-content;
-  max-width: none;
-  white-space: nowrap;
-  animation: marquee-scroll 14s linear infinite;
-}
-
-.marquee-track > * {
-  flex: 0 0 auto;
-}
-
-@keyframes marquee-scroll {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none;
-  }
 }
 
 .revenue-chart-grid,
@@ -607,9 +565,4 @@ body {
   .btn.btn-outline-secondary {
     @apply border-gray-200 text-gray-600;
   }
-}
-
-.section-intro,
-.main-heading-intro {
-  font-family: var(--font-intro);
 }

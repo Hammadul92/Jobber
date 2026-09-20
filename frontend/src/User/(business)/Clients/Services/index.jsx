@@ -15,17 +15,10 @@ import {
 export default function ClientServices({ token, role }) {
   const { id: clientId } = useParams();
   const [showModal, setShowModal] = useState(false);
-  const [editingService, setEditingService] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
   const dispatch = useDispatch();
 
   const handleOpenCreate = useCallback(() => {
-    setEditingService(null);
-    setShowModal(true);
-  }, []);
-
-  const handleEditService = useCallback((service) => {
-    setEditingService(service);
     setShowModal(true);
   }, []);
 
@@ -81,12 +74,6 @@ export default function ClientServices({ token, role }) {
       dispatch(resetTopbar());
     };
   }, [dispatch, title, isManagerMode, role, loadingClient, clientError, handleOpenCreate]);
-
-  useEffect(() => {
-    if (!showModal) {
-      setEditingService(null);
-    }
-  }, [showModal]);
 
   const displayError = (error) => {
     const msg = Array.isArray(error?.data)
@@ -157,8 +144,6 @@ export default function ClientServices({ token, role }) {
           loadingOptions={loadingBusiness}
           errorOptions={businessError}
           setAlert={setAlert}
-          mode={editingService ? "edit" : "create"}
-          initialData={editingService}
         />
       )}
 
@@ -167,7 +152,6 @@ export default function ClientServices({ token, role }) {
         role={role}
         clientId={isManagerMode ? clientId : null}
         setAlert={setAlert}
-        onEdit={isManagerMode && role === "MANAGER" ? handleEditService : undefined}
       />
     </>
   );

@@ -76,7 +76,6 @@ export {
   useSigninUserMutation,
   useFetchUserQuery,
   useVerifyEmailQuery,
-  useFetchFaqsQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
   useLogoutUserMutation,
@@ -84,7 +83,6 @@ export {
   useResetPasswordMutation,
   useCheckUserExistsMutation,
   useMagicLoginMutation,
-  useSubmitContactInquiryMutation,
 } from "./apis/userApi";
 
 export {
