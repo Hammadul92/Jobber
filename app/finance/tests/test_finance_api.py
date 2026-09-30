@@ -6,11 +6,12 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from core.models import (
     BankingInformation,
@@ -145,6 +146,9 @@ class InvoicePaymentWorkflowTests(TestCase):
         self.assertFalse(Payout.objects.filter(invoice=self.invoice).exists())
 
     @patch("finance.views.stripe.PaymentIntent.create")
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
     def test_successful_payment_creates_exactly_one_payout(
         self,
         mock_payment_intent_create,
@@ -167,6 +171,9 @@ class InvoicePaymentWorkflowTests(TestCase):
         self.assertEqual(payout.status, "PAID")
         self.assertEqual(payout.amount, self.invoice.total_amount)
         self.assertEqual(payout.stripe_payment_intent_id, "pi_success")
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.manager.email])
+        self.assertIn(self.invoice.invoice_number, mail.outbox[0].subject)
 
     @patch("finance.views.stripe.PaymentIntent.create")
     def test_repaying_already_paid_invoice_is_blocked(

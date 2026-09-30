@@ -9,8 +9,9 @@ from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
@@ -598,6 +599,9 @@ class JobPhotoStatusAutomationTests(TestCase):
         self.assertEqual(self.job.status, "IN_PROGRESS")
         self.assertIsNone(self.job.completed_at)
 
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
     def test_uploading_after_photo_sets_job_completed(self):
         """Test uploading an after photo updates job status to COMPLETED."""
         self.client.force_authenticate(self.employee_user)
@@ -618,6 +622,9 @@ class JobPhotoStatusAutomationTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.job.status, "COMPLETED")
         self.assertIsNotNone(self.job.completed_at)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.owner.email])
+        self.assertIn(self.job.title, mail.outbox[0].subject)
 
     def test_cannot_upload_duplicate_photo_type_for_same_job(self):
         """Test duplicate before/after uploads are rejected for a job."""
@@ -756,6 +763,169 @@ class WorkflowRegressionTests(TestCase):
                     },
                     format="multipart",
                 )
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    @patch("operations.views.emails.send_service_questionnaire_email")
+    def test_service_creation_notifies_client(
+        self,
+        mock_questionnaire_email,
+    ):
+        """Test creating a service sends a separate client notification."""
+        self.create_questionnaire_and_terms()
+        self.client.force_authenticate(self.manager)
+
+        res = self.client.post(SERVICES_URL, self.service_payload())
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        mock_questionnaire_email.assert_called_once()
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.client_user.email])
+        self.assertIn("New service", mail.outbox[0].subject)
+        self.assertIn("Flooring", mail.outbox[0].body)
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    def test_manager_status_change_notifies_client_once(self):
+        """Test only an actual manager status transition emails the client."""
+        service = self.create_service(
+            auto_generate_quote=False,
+            auto_generate_invoices=False,
+            filled_questionnaire={"Room size": "Large"},
+        )
+        self.client.force_authenticate(self.manager)
+
+        status_res = self.client.patch(
+            service_detail_url(service.id),
+            {"status": "ACTIVE"},
+            format="json",
+        )
+        edit_res = self.client.patch(
+            service_detail_url(service.id),
+            {"description": "Updated description"},
+            format="json",
+        )
+
+        self.assertEqual(status_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(edit_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.client_user.email])
+        self.assertIn("Service status updated", mail.outbox[0].subject)
+        self.assertIn("Previous status: Pending", mail.outbox[0].body)
+        self.assertIn("New status: Active", mail.outbox[0].body)
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    def test_questionnaire_submission_notifies_business_owner(self):
+        """Test first questionnaire submission emails the business owner."""
+        self.create_questionnaire_and_terms()
+        service = self.create_service(auto_generate_quote=False)
+        self.client.force_authenticate(self.client_user)
+
+        res = self.client.patch(
+            service_detail_url(service.id),
+            {"filled_questionnaire": {"Room size": "Large"}},
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.manager.email])
+        self.assertIn("Questionnaire submitted", mail.outbox[0].subject)
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    def test_signed_quote_notifies_business_owner_once(self):
+        """Test signing a quote emails the business owner only once."""
+        service = self.create_service(
+            auto_generate_quote=False,
+            auto_generate_invoices=False,
+            filled_questionnaire={"Room size": "Large"},
+        )
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            status="SENT",
+        )
+
+        first_res = self.sign_quote_as_client(quote)
+        second_res = self.sign_quote_as_client(quote)
+
+        self.assertEqual(first_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(second_res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.manager.email])
+        self.assertIn(quote.quote_number, mail.outbox[0].subject)
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    def test_job_creation_notifies_assigned_employee(self):
+        """Test creating an assigned job emails the employee."""
+        service = self.create_service(
+            auto_generate_quote=False,
+            auto_generate_invoices=False,
+            filled_questionnaire={"Room size": "Large"},
+        )
+        self.client.force_authenticate(self.manager)
+
+        res = self.client.post(
+            JOBS_URL,
+            {
+                "service": service.id,
+                "assigned_to": self.team_member.id,
+                "title": "Flooring Visit",
+                "description": "Install flooring",
+                "scheduled_date": timezone.now() + timedelta(days=1),
+                "status": "PENDING",
+            },
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.employee_user.email])
+        self.assertIn("Flooring Visit", mail.outbox[0].subject)
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    def test_job_status_completion_notifies_business_owner_once(self):
+        """Test a direct completed transition emails the business owner once."""
+        service = self.create_service(
+            auto_generate_quote=False,
+            auto_generate_invoices=False,
+            filled_questionnaire={"Room size": "Large"},
+        )
+        job = Job.objects.create(
+            service=service,
+            assigned_to=self.team_member,
+            title="Flooring Visit",
+            scheduled_date=timezone.now() + timedelta(days=1),
+        )
+        self.client.force_authenticate(self.manager)
+        detail_url = reverse("operations:job-detail", args=[job.id])
+
+        first_res = self.client.patch(
+            detail_url,
+            {"status": "COMPLETED"},
+            format="json",
+        )
+        second_res = self.client.patch(
+            detail_url,
+            {"status": "COMPLETED"},
+            format="json",
+        )
+
+        job.refresh_from_db()
+        self.assertEqual(first_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(second_res.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(job.completed_at)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.manager.email])
 
     def test_manager_can_update_employee_role(self):
         """Test manager can promote or demote another team member."""

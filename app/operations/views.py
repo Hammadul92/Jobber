@@ -236,6 +236,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
                     status="DRAFT",
                 )
 
+        if not prev_filled_questionnaire and instance.filled_questionnaire:
+            emails.send_questionnaire_submitted_email(instance)
+
         # If status changed to ACTIVE, and auto_generate_invoices is true,
         # and a quote exists and is signed, create invoice
         if (
@@ -244,6 +247,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
             and instance.auto_generate_invoices
         ):
             create_auto_invoice_for_service(instance)
+
+        if prev_status != instance.status and request.user.role == "MANAGER":
+            emails.send_service_status_changed_email(instance, prev_status)
 
         return response
 
@@ -294,8 +300,10 @@ class ServiceViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        """Create service and send questionnaire email to client."""
+        """Create a service and send the client its workflow emails."""
         service = serializer.save()
+
+        emails.send_service_created_email(service)
 
         questionnaire = service.business.service_questionnaires.filter(
             service_name=service.service_name,
@@ -452,6 +460,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         if new_status == "SIGNED":
             create_auto_invoice_for_service(quote.service)
+            emails.send_quote_signed_email(quote)
 
         return Response(
             {"detail": f"Quote successfully {new_status.lower()}."},
@@ -545,7 +554,19 @@ class JobViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Handle job creation logic."""
         job = serializer.save()
+        emails.send_job_created_email(job)
         return job
+
+    def perform_update(self, serializer):
+        """Notify the business owner on the first completed transition."""
+        previous_status = serializer.instance.status
+        job = serializer.save()
+
+        if previous_status != "COMPLETED" and job.status == "COMPLETED":
+            if not job.completed_at:
+                job.completed_at = timezone.now()
+                job.save(update_fields=["completed_at", "updated_at"])
+            emails.send_job_completed_email(job)
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
@@ -587,6 +608,7 @@ class JobPhotoViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         job_photo = serializer.save()
         job = job_photo.job
+        previous_status = job.status
 
         if job_photo.photo_type == "BEFORE":
             job.status = "IN_PROGRESS"
@@ -596,6 +618,8 @@ class JobPhotoViewSet(viewsets.ModelViewSet):
             job.status = "COMPLETED"
             job.completed_at = timezone.now()
             job.save(update_fields=["status", "completed_at", "updated_at"])
+            if previous_status != "COMPLETED":
+                emails.send_job_completed_email(job)
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)

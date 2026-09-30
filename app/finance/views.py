@@ -443,6 +443,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 processed_at=timezone.now(),
             )
 
+            emails.send_invoice_paid_email(invoice)
+
             return Response(
                 {"detail": "Payment successful and payout recorded."},
                 status=200,
