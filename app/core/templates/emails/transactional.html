@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light only">
+    <title>{{ subject }}</title>
+    <style>
+      @media only screen and (max-width: 640px) {
+        .gc-canvas { padding: 24px 0 !important; }
+        .gc-shell { width: 94% !important; max-width: 94% !important; }
+        .gc-pad { padding-left: 24px !important; padding-right: 24px !important; }
+        .gc-heading { font-size: 30px !important; line-height: 36px !important; }
+        .gc-button { display: block !important; text-align: center !important; }
+        .gc-detail-label, .gc-detail-value { word-break: break-word !important; overflow-wrap: anywhere !important; }
+      }
+    </style>
+  </head>
+  <body style="margin:0; padding:0; background:#f5f7f9; color:#171717; font-family:Inter, Arial, sans-serif;">
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">{{ preheader }}</div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f5f7f9;">
+      <tr>
+        <td class="gc-canvas" align="center" style="padding:32px 12px;">
+          <table class="gc-shell" role="presentation" width="620" cellspacing="0" cellpadding="0" border="0" style="width:620px; max-width:620px; table-layout:fixed; background:#ffffff; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; box-shadow:0 8px 24px rgba(9,53,93,0.08);">
+            <tr><td style="height:7px; background:#ff7a00; font-size:0; line-height:0;">&nbsp;</td></tr>
+            <tr>
+              <td class="gc-pad" style="padding:24px 40px; border-bottom:1px solid #e5e7eb;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td style="padding-right:12px; vertical-align:middle;">
+                      <img src="{{ platform_logo_src }}" width="42" height="42" alt="GetContractorz logo" style="display:block; width:42px; height:42px; border:0;">
+                    </td>
+                    <td style="vertical-align:middle; color:#000012; font-size:22px; line-height:26px; font-weight:800;">CONTRACTORZ</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            {% if brand_name %}
+            <tr>
+              <td class="gc-pad" style="padding:22px 40px 0;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f5f7f9; border-left:4px solid #ff7a00; border-radius:6px;">
+                  <tr>
+                    {% if business_logo_width %}
+                    <td style="width:{{ business_logo_width }}px; padding:14px 0 14px 16px; vertical-align:middle;">
+                      <img src="{{ business_logo_src }}" width="{{ business_logo_width }}" height="{{ business_logo_height }}" alt="{{ brand_name }} logo" style="display:block; width:{{ business_logo_width }}px; height:{{ business_logo_height }}px; border:0; object-fit:contain;">
+                    </td>
+                    {% endif %}
+                    <td style="padding:14px 16px; vertical-align:middle; color:#5f6670; font-size:12px; line-height:17px; text-transform:uppercase;">
+                      From<br><strong style="color:#09355d; font-size:16px; line-height:22px; text-transform:none;">{{ brand_name }}</strong>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td class="gc-pad" style="padding:28px 40px 18px;">
+                <p style="margin:0 0 12px; color:#ff7a00; font-size:12px; line-height:18px; font-weight:800; letter-spacing:1px; text-transform:uppercase;">{{ eyebrow }}</p>
+                <h1 class="gc-heading" style="margin:0; color:#09355d; font-size:38px; line-height:44px; font-weight:800; letter-spacing:0;">{{ heading }}</h1>
+              </td>
+            </tr>
+            <tr>
+              <td class="gc-pad" style="padding:0 40px 8px; color:#5f6670; font-size:16px; line-height:26px;">
+                {% for paragraph in paragraphs %}<p style="margin:0 0 16px; word-break:break-word; overflow-wrap:anywhere;">{{ paragraph|linebreaksbr }}</p>{% endfor %}
+              </td>
+            </tr>
+            {% if details %}
+            <tr>
+              <td class="gc-pad" style="padding:8px 40px 24px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="table-layout:fixed; background:#f5f7f9; border-left:4px solid #ff7a00; border-radius:6px;">
+                  {% for detail in details %}
+                  <tr>
+                    <td class="gc-detail-label" style="padding:{% if forloop.first %}18px{% else %}0{% endif %} 18px {% if forloop.last %}18px{% else %}12px{% endif %}; color:#5f6670; font-size:13px; line-height:19px; font-weight:700; text-transform:uppercase; vertical-align:top; width:34%;">{{ detail.label }}</td>
+                    <td class="gc-detail-value" style="padding:{% if forloop.first %}18px{% else %}0{% endif %} 18px {% if forloop.last %}18px{% else %}12px{% endif %} 0; color:#171717; font-size:15px; line-height:21px; font-weight:600; vertical-align:top; word-break:break-word; overflow-wrap:anywhere;">{{ detail.value }}</td>
+                  </tr>
+                  {% endfor %}
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% if action_url and action_label %}
+            <tr>
+              <td class="gc-pad" style="padding:0 40px 28px;">
+                <a class="gc-button" href="{{ action_url }}" style="display:inline-block; padding:14px 24px; border-radius:8px; background:#ff7a00; color:#ffffff; font-size:16px; line-height:20px; font-weight:700; text-decoration:none; box-shadow:0 8px 16px rgba(255,122,0,0.22);">{{ action_label }} &nbsp;&rarr;</a>
+                <p style="margin:16px 0 0; color:#5f6670; font-size:12px; line-height:19px;">
+                  If the button does not work, open this link:<br>
+                  <a href="{{ action_url }}" style="color:#09355d; text-decoration:underline; word-break:break-all; overflow-wrap:anywhere;">{{ action_url }}</a>
+                </p>
+              </td>
+            </tr>
+            {% endif %}
+            {% if notice %}
+            <tr>
+              <td class="gc-pad" style="padding:0 40px 28px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#fff6ed; border:1px solid #ffe0c2; border-radius:6px;">
+                  <tr><td style="padding:14px 16px; color:#5f6670; font-size:13px; line-height:20px;">{{ notice }}</td></tr>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td class="gc-pad" style="padding:4px 40px 36px; color:#5f6670; font-size:14px; line-height:22px;">
+                Best regards,<br><strong style="color:#171717;">{{ signoff }}</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="gc-pad" style="padding:24px 40px; background:#09355d; color:#ffffff; font-size:12px; line-height:19px;">
+                <strong style="font-size:14px;">GetContractorz</strong><br>
+                One organized workspace for service businesses.<br>
+                <a href="mailto:{{ support_email }}" style="color:#ffffff; text-decoration:underline;">{{ support_email }}</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

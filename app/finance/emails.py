@@ -1,5 +1,6 @@
-from django.core.mail import send_mail
 from django.conf import settings
+
+from core.emails import send_branded_email
 
 
 def send_invoice_email(invoice):
@@ -21,12 +22,30 @@ def send_invoice_email(invoice):
         f"{invoice.business.name}"
     )
 
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_body=message,
         recipient_list=[invoice.client.user.email],
-        fail_silently=False,
+        eyebrow="Invoice ready",
+        heading="You have a new invoice.",
+        paragraphs=[
+            f"Hello {invoice.client.user.name},",
+            f"{invoice.business.name} sent you a new invoice for review and payment.",
+        ],
+        details=[
+            {"label": "Invoice", "value": invoice.invoice_number},
+            {
+                "label": "Amount",
+                "value": f"{invoice.total_amount} {invoice.currency}",
+            },
+            {"label": "Due date", "value": invoice.due_date},
+        ],
+        action_label="View and Pay Invoice",
+        action_url=portal_link,
+        notice="Questions about this invoice should be directed to the business.",
+        signoff=invoice.business.name,
+        brand_name=invoice.business.name,
+        brand_logo=invoice.business.logo,
     )
 
 
@@ -47,10 +66,27 @@ def send_invoice_paid_email(invoice):
         "Contractorz Team"
     )
 
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_body=message,
         recipient_list=[business.owner.email],
-        fail_silently=False,
+        eyebrow="Payment received",
+        heading="An invoice was paid.",
+        paragraphs=[
+            f"Hello {business.owner.name},",
+            f"{client.name} successfully paid an invoice for {business.name}.",
+        ],
+        details=[
+            {"label": "Invoice", "value": invoice.invoice_number},
+            {"label": "Client", "value": client.name},
+            {
+                "label": "Amount",
+                "value": f"{invoice.total_amount} {invoice.currency}",
+            },
+            {"label": "Paid", "value": invoice.paid_at},
+        ],
+        action_label="View Invoice",
+        action_url=invoice_link,
+        brand_name=business.name,
+        brand_logo=business.logo,
     )

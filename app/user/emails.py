@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.core.mail import EmailMessage, send_mail
-from django.conf import settings
+
+from core.emails import send_branded_email
 
 
 def send_registration_email(user, token):
@@ -22,11 +22,22 @@ def send_registration_email(user, token):
         "Contractorz Team"
     )
 
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_body=message,
         recipient_list=[user.email],
+        eyebrow="Welcome to GetContractorz",
+        heading="Verify your email address.",
+        paragraphs=[
+            f"Hello {user.name}, welcome to GetContractorz.",
+            "Confirm your email address to finish securing your account and get started.",
+        ],
+        action_label="Verify Email",
+        action_url=verification_link,
+        notice=(
+            "This verification link expires in 24 hours. If you did not create "
+            "this account, you can safely ignore this email."
+        ),
     )
 
 
@@ -44,11 +55,22 @@ def send_password_reset_email(user, token):
         "Contractorz Team"
     )
 
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_body=message,
         recipient_list=[user.email],
+        eyebrow="Account security",
+        heading="Reset your password.",
+        paragraphs=[
+            f"Hello {user.name}, we received a request to reset your password.",
+            "Use the secure link below to choose a new password for your account.",
+        ],
+        action_label="Reset Password",
+        action_url=reset_link,
+        notice=(
+            "This link expires in 1 hour. If you did not request a password "
+            "reset, you can safely ignore this email."
+        ),
     )
 
 
@@ -79,11 +101,22 @@ def send_contact_submission_email(contact_data):
         f"{contact_data['message']}\n"
     )
 
-    email = EmailMessage(
+    send_branded_email(
         subject=subject,
-        body=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=staff_emails,
+        text_body=message,
+        recipient_list=staff_emails,
+        eyebrow="Website enquiry",
+        heading="A new contact request arrived.",
+        paragraphs=[
+            f"{full_name} submitted the public contact form.",
+            contact_data["message"],
+        ],
+        details=[
+            {"label": "Name", "value": full_name},
+            {"label": "Work email", "value": contact_data["email"]},
+            {"label": "Company", "value": contact_data["company_name"]},
+        ],
+        action_label="Reply by Email",
+        action_url=f"mailto:{contact_data['email']}",
         reply_to=[contact_data["email"]],
     )
-    email.send(fail_silently=False)

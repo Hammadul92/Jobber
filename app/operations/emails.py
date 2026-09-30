@@ -1,6 +1,6 @@
-from django.core.mail import send_mail
 from django.conf import settings
 
+from core.emails import send_branded_email
 from user.utils import generate_magic_login_token
 
 
@@ -22,12 +22,27 @@ def send_quote_email(quote):
         f"Thank you,\n{quote.service.business.name} Team"
     )
 
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [quote.service.client.user.email],
-        fail_silently=False,
+    send_branded_email(
+        subject=subject,
+        text_body=message,
+        recipient_list=[quote.service.client.user.email],
+        eyebrow="Quote ready",
+        heading="Your quote is ready to review.",
+        paragraphs=[
+            f"Hello {quote.service.client.user.name},",
+            f"{quote.service.business.name} sent you a new quote for review and signature.",
+        ],
+        details=[
+            {"label": "Quote", "value": quote.quote_number},
+            {"label": "Service", "value": quote.service.service_name},
+            {"label": "Valid until", "value": quote.valid_until},
+        ],
+        action_label="Review and Sign Quote",
+        action_url=sign_link,
+        notice="This secure link signs you in automatically and expires in 1 hour.",
+        signoff=f"The {quote.service.business.name} Team",
+        brand_name=quote.service.business.name,
+        brand_logo=quote.service.business.logo,
     )
 
 
@@ -53,12 +68,26 @@ def send_service_questionnaire_email(service, questionnaire, magic_token=None):
         f"The {service.business.name} Team"
     )
 
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [service.client.user.email],
-        fail_silently=False,
+    send_branded_email(
+        subject=subject,
+        text_body=message,
+        recipient_list=[service.client.user.email],
+        eyebrow="Action required",
+        heading="Tell us about your service needs.",
+        paragraphs=[
+            f"Hello {service.client.user.name},",
+            f"{service.business.name} needs a few details before moving your service forward.",
+        ],
+        details=[
+            {"label": "Service", "value": service.service_name},
+            {"label": "Business", "value": service.business.name},
+        ],
+        action_label="Complete Questionnaire",
+        action_url=questionnaire_link,
+        notice="This secure link signs you in automatically and expires in 1 hour.",
+        signoff=f"The {service.business.name} Team",
+        brand_name=service.business.name,
+        brand_logo=service.business.logo,
     )
 
 
@@ -81,12 +110,33 @@ def send_service_created_email(service):
         f"Best regards,\nThe {business.name} Team"
     )
 
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_body=message,
         recipient_list=[client.email],
-        fail_silently=False,
+        eyebrow="New service",
+        heading="A service was created for you.",
+        paragraphs=[
+            f"Hello {client.name},",
+            f"{business.name} added a new service to your client workspace.",
+        ],
+        details=[
+            {"label": "Service", "value": service.service_name},
+            {"label": "Status", "value": service.get_status_display()},
+            {"label": "Start date", "value": service.start_date},
+            {
+                "label": "Address",
+                "value": (
+                    f"{service.street_address}, {service.city}, "
+                    f"{service.province_state} {service.postal_code}"
+                ),
+            },
+        ],
+        action_label="View Service",
+        action_url=service_link,
+        signoff=f"The {business.name} Team",
+        brand_name=business.name,
+        brand_logo=business.logo,
     )
 
 
@@ -111,12 +161,25 @@ def send_service_status_changed_email(service, previous_status):
         f"Best regards,\nThe {business.name} Team"
     )
 
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_body=message,
         recipient_list=[client.email],
-        fail_silently=False,
+        eyebrow="Service update",
+        heading="Your service status changed.",
+        paragraphs=[
+            f"Hello {client.name},",
+            f"{business.name} updated your {service.service_name} service.",
+        ],
+        details=[
+            {"label": "Previous status", "value": previous_label},
+            {"label": "New status", "value": service.get_status_display()},
+        ],
+        action_label="View Service",
+        action_url=service_link,
+        signoff=f"The {business.name} Team",
+        brand_name=business.name,
+        brand_logo=business.logo,
     )
 
 
@@ -136,12 +199,24 @@ def send_questionnaire_submitted_email(service):
         "Contractorz Team"
     )
 
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_body=message,
         recipient_list=[business.owner.email],
-        fail_silently=False,
+        eyebrow="Client activity",
+        heading="A questionnaire was submitted.",
+        paragraphs=[
+            f"Hello {business.owner.name},",
+            f"{client.name} completed the requested questionnaire. It is ready for your review.",
+        ],
+        details=[
+            {"label": "Client", "value": client.name},
+            {"label": "Service", "value": service.service_name},
+        ],
+        action_label="Review Submission",
+        action_url=service_link,
+        brand_name=business.name,
+        brand_logo=business.logo,
     )
 
 
@@ -170,12 +245,23 @@ def send_job_created_email(job):
         "Contractorz Team"
     )
 
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_body=message,
         recipient_list=[recipient.email],
-        fail_silently=False,
+        eyebrow="Job assignment",
+        heading="A new job is ready.",
+        paragraphs=[f"Hello {recipient.name},", opening],
+        details=[
+            {"label": "Job", "value": job.title},
+            {"label": "Service", "value": job.service.service_name},
+            {"label": "Client", "value": job.service.client.user.name},
+            {"label": "Scheduled", "value": job.scheduled_date},
+        ],
+        action_label="View Job",
+        action_url=job_link,
+        brand_name=business.name,
+        brand_logo=business.logo,
     )
 
 
@@ -198,12 +284,26 @@ def send_job_completed_email(job):
         "Contractorz Team"
     )
 
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_body=message,
         recipient_list=[business.owner.email],
-        fail_silently=False,
+        eyebrow="Work completed",
+        heading="A job was completed.",
+        paragraphs=[
+            f"Hello {business.owner.name},",
+            f"{completed_by} marked this job complete. The job record is ready for review.",
+        ],
+        details=[
+            {"label": "Job", "value": job.title},
+            {"label": "Service", "value": job.service.service_name},
+            {"label": "Client", "value": job.service.client.user.name},
+            {"label": "Completed", "value": job.completed_at},
+        ],
+        action_label="Review Completed Job",
+        action_url=job_link,
+        brand_name=business.name,
+        brand_logo=business.logo,
     )
 
 
@@ -223,10 +323,23 @@ def send_quote_signed_email(quote):
         "Contractorz Team"
     )
 
-    send_mail(
+    send_branded_email(
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        text_body=message,
         recipient_list=[business.owner.email],
-        fail_silently=False,
+        eyebrow="Quote accepted",
+        heading="Your client signed the quote.",
+        paragraphs=[
+            f"Hello {business.owner.name},",
+            f"{client.name} signed the quote for {quote.service.service_name}.",
+        ],
+        details=[
+            {"label": "Quote", "value": quote.quote_number},
+            {"label": "Client", "value": client.name},
+            {"label": "Service", "value": quote.service.service_name},
+        ],
+        action_label="View Signed Quote",
+        action_url=quote_link,
+        brand_name=business.name,
+        brand_logo=business.logo,
     )
