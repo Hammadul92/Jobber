@@ -1,5 +1,9 @@
 name: Deploy to Droplet
 
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
 on:
   workflow_run:
     workflows: ["Build & Push Docker Images"]
@@ -23,31 +27,16 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           envs: IMAGE_TAG
+          command_timeout: 30m
           script: |
             set -e
             cd ~/Contractorz/Jobber
-
-            echo "Using IMAGE_TAG=${IMAGE_TAG}"
-
-            # 0️⃣ Pull latest repo changes (docker-compose.prod.yml, configs, etc.)
+            # Keep the server lock across both the checkout and deployment.
+            exec 9>/tmp/jobber-production-deploy.lock
+            flock -w 1200 9
             git pull --ff-only origin main
-
-            # 1️⃣ Pull latest backend/frontend images
-            docker compose -f docker-compose.prod.yml pull
-
-            # 2️⃣ Recreate backend (app)
-            docker compose -f docker-compose.prod.yml up -d --pull always --force-recreate --remove-orphans app
-
-            # 3️⃣ Run Django migrations
-            echo "Running Django migrations..."
-            docker compose -f docker-compose.prod.yml exec -T app python manage.py migrate --noinput
-
-            # 4️⃣ Collect static files into shared volume
-            echo "Collecting static files..."
-            docker compose -f docker-compose.prod.yml exec -T app python manage.py collectstatic --noinput
-
-            # 5️⃣ Recreate frontend so it sees populated static volume
-            echo "Restarting frontend to pick up static files..."
-            docker compose -f docker-compose.prod.yml up -d --pull always --force-recreate --remove-orphans frontend
-
-            echo "✅ Deployment completed"
+            if [ "$(git rev-parse HEAD)" != "$IMAGE_TAG" ]; then
+              echo "Skipping superseded release ${IMAGE_TAG}; main has advanced."
+              exit 0
+            fi
+            bash scripts/deploy.sh
