@@ -152,7 +152,10 @@
         </div>
       </div>
       <div class="gc-feature-overview__visual" aria-hidden="true">
-        <img src="{% static 'public_site/images/generated/features-workspace-overview.png' %}" alt="">
+        <picture class="gc-public-picture">
+          <source srcset="{% static 'public_site/images/generated/features-workspace-overview.webp' %}" type="image/webp">
+          <img src="{% static 'public_site/images/generated/features-workspace-overview.png' %}" width="1122" height="1402" loading="lazy" decoding="async" alt="">
+        </picture>
       </div>
     </div>
   </section>

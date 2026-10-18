@@ -213,3 +213,6 @@ app/media/business_logo/*
 
 # Local backups
 backups/
+
+# Local browser verification artifacts
+.playwright-cli/
