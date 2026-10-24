@@ -162,6 +162,7 @@ export {
 
 export {
   useFetchBankingInformationListQuery,
+  useFetchStripeConfigQuery,
   useFetchBankingInformationQuery,
   useCreateBankingInformationMutation,
   useUpdateBankingInformationMutation,

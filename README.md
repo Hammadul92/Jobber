@@ -130,12 +130,26 @@ DB_USER=devuser
 DB_PASS=replace-with-a-local-password
 STRIPE_TEST_SECRET_KEY=
 STRIPE_TEST_PUBLIC_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_PUBLIC_KEY=
 SENDGRID_API_KEY=
 DEFAULT_FROM_EMAIL=support@example.com
 FRONTEND_URL=http://localhost:5173
 ```
 
 Do not commit real Stripe, SendGrid, database, or Django secrets.
+
+With `DEBUG=True`, Stripe uses `STRIPE_TEST_SECRET_KEY` and
+`STRIPE_TEST_PUBLIC_KEY`. Production (`DEBUG=False`) uses `STRIPE_SECRET_KEY`
+and `STRIPE_PUBLIC_KEY`; set these to the matching live keys in the server's
+root `.env`. The card form retrieves only the publishable key through the
+authenticated banking-information `stripe-config` API. No Stripe keys are
+hardcoded in the frontend or supplied at frontend build time.
+
+Deploy the frontend and backend configuration endpoint together before
+recreating the backend to activate live keys. Existing Stripe test customers,
+payment methods, and connected accounts cannot be used in live mode; users
+with test banking records need to set up their payment details again.
 
 Build and start the stack:
 

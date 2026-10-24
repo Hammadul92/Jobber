@@ -27,6 +27,10 @@ const bankingInformationApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["BankingInformation"],
   endpoints: (builder) => ({
+    fetchStripeConfig: builder.query({
+      query: () => "/banking-information/stripe-config/",
+      keepUnusedDataFor: 0,
+    }),
     fetchBankingInformationList: builder.query({
       query: () => "/banking-information/",
       providesTags: ["BankingInformation"],
@@ -100,6 +104,7 @@ const bankingInformationApi = createApi({
 });
 
 export const {
+  useFetchStripeConfigQuery,
   useFetchBankingInformationListQuery,
   useFetchBankingInformationQuery,
   useCreateBankingInformationMutation,

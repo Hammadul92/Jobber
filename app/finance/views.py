@@ -24,6 +24,19 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @action(detail=False, methods=["get"], url_path="stripe-config")
+    def stripe_config(self, request):
+        """Expose only the publishable key selected by server configuration."""
+        key = settings.STRIPE_PUBLIC_KEY
+        if not key or not key.startswith(("pk_test_", "pk_live_")):
+            return Response(
+                {"detail": "Card payments are not configured."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        response = Response({"publishable_key": key})
+        response["Cache-Control"] = "no-store"
+        return response
+
     def get_queryset(self):
         """Return banking information linked to the logged-in user."""
         user = self.request.user

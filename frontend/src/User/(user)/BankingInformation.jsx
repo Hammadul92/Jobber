@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FaPen, FaTrashAlt } from "react-icons/fa";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -9,6 +9,7 @@ import {
   useFetchBankingInformationListQuery,
   useDeleteBankingInformationMutation,
   useCheckBankAccountMutation,
+  useFetchStripeConfigQuery,
 } from "../../store";
 import SubmitButton from "../../Components/ui/SubmitButton";
 import LoadingScreen from "../../Components/ui/LoadingScreen";
@@ -28,15 +29,22 @@ import {
 } from "react-icons/lu";
 import { NavLink } from "react-router-dom";
 
-const stripePromise = loadStripe(
-  "pk_test_51SLr7cRuypPIYSuTPWUFePiiEIVEbhvXQVRYQD75FQgO9Xoc3GwzezuEGBwV7Dgxy2l5r2MY3bXgc3Ou4DkbmNeJ0085c8HpC8",
-);
-
 export default function BankingInformation({ token, setAlert = () => { } }) {
   const [showBankForm, setShowBankForm] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedPaymentId, setSelectedPaymentId] = useState(null);
+  const { data: stripeConfig, isError: stripeConfigError } =
+    useFetchStripeConfigQuery(undefined, {
+      skip: !token || !showCardForm,
+      refetchOnMountOrArgChange: true,
+    });
+  const stripePromise = useMemo(
+    () => stripeConfig?.publishable_key
+      ? loadStripe(stripeConfig.publishable_key)
+      : null,
+    [stripeConfig?.publishable_key],
+  );
 
   const { data: businesses = [], isLoading: businessLoading } =
     useFetchBusinessesQuery(undefined, {
@@ -483,12 +491,18 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
               </button>
             </div>
             <div className="px-6 py-5">
-              <Elements stripe={stripePromise}>
-                <StripeCardForm
-                  onSuccess={() => setShowCardForm(false)}
-                  setAlert={setAlert}
-                />
-              </Elements>
+              {stripeConfigError ? (
+                <p role="alert">Card payments are unavailable. Please try again later.</p>
+              ) : !stripePromise ? (
+                <p role="status">Loading card payments…</p>
+              ) : (
+                <Elements key={stripeConfig.publishable_key} stripe={stripePromise}>
+                  <StripeCardForm
+                    onSuccess={() => setShowCardForm(false)}
+                    setAlert={setAlert}
+                  />
+                </Elements>
+              )}
             </div>
           </div>
         </div>
