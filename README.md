@@ -151,6 +151,36 @@ recreating the backend to activate live keys. Existing Stripe test customers,
 payment methods, and connected accounts cannot be used in live mode; users
 with test banking records need to set up their payment details again.
 
+Stripe Connect uses Accounts v2 merchant accounts with the full Stripe Dashboard,
+`card_payments` requested, and Stripe collecting processing fees and connected
+account losses. This avoids the preview API required for Express Dashboard with
+Managed Risk. New onboarding uses the pinned stable `2026-09-30.endive` API and
+Stripe Python 16. Existing legacy business connections must be disconnected in
+Banking & Payments and connected again; no accounts are automatically deleted
+or converted by the migration.
+
+Client cards are saved on the platform using SetupIntents. For each invoice,
+the saved card is cloned to the business account and used for a direct charge;
+there is no destination transfer or platform application fee. Business accounts
+must have payments and payouts enabled and Stripe responsible for payment
+losses. Stripe manages bank payouts; the app's payout record tracks the invoice
+payment, not confirmation of a bank deposit. Fees follow the business's Stripe
+pricing. Enable/confirm Radar and Managed Risk eligibility in Stripe before
+accepting live payments.
+
+Migration `0024_stripe_direct_charges` records the charge-owning account on new
+payout records. Refunds use that stored account even if the business later
+reconnects. Existing payout records remain platform-scoped for refunds.
+Unsettled PaymentIntents are recorded as pending; retrying checks that original
+charge rather than creating another. Off-session payments requiring customer
+authentication are not marked paid and need follow-up; there is no automatic
+3DS recovery or webhook reconciliation in this flow.
+
+Deploy only after running migrations and checking onboarding, card
+setup, direct payment, and refund in a Stripe sandbox. Test-mode stored customer,
+card, and connected-account IDs remain incompatible with live keys. Never
+replace a live charge's stored account ID with a newly connected account.
+
 Build and start the stack:
 
 ```bash

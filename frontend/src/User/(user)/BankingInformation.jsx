@@ -63,13 +63,15 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
     (i) => i.payment_method_type === "BANK_ACCOUNT",
   );
   const activeCard = bankingInfo.find((i) => i.payment_method_type === "CARD");
-  const isBankConnected = Boolean(activeBank?.account_number_last4);
+  const isBankConnected = Boolean(
+    activeBank?.stripe_charges_enabled && activeBank?.stripe_payouts_enabled,
+  );
 
   const [checkBankAccount, { isLoading: syncingBank }] =
     useCheckBankAccountMutation();
 
   useEffect(() => {
-    if (activeBank && !activeBank.account_number_last4) {
+    if (activeBank?.id) {
       checkBankAccount().catch((err) =>
         setAlert({
           type: "danger",
@@ -77,7 +79,7 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
         }),
       );
     }
-  }, [activeBank, checkBankAccount]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeBank?.id, checkBankAccount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!showCardForm && token) {
@@ -194,10 +196,21 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
             {/* Body */}
             <div className="border-t border-gray-200 p-4 md:px-10 md:py-8">
               {!isBankConnected || showBankForm ? (
-                <BankAccountForm
-                  onSuccess={() => setShowBankForm(false)}
-                  setAlert={setAlert}
-                />
+                <div>
+                  <BankAccountForm
+                    onSuccess={() => setShowBankForm(false)}
+                    setAlert={setAlert}
+                  />
+                  {activeBank && (
+                    <button
+                      type="button"
+                      className="mt-4 text-sm underline"
+                      onClick={() => handleDeleteClick(activeBank.id)}
+                    >
+                      Disconnect previous Stripe connection
+                    </button>
+                  )}
+                </div>
               ) : (
                 <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 md:p-5">
                   <div className="flex flex-col gap-3">
@@ -229,7 +242,9 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
                             <LuLandmark className="text-xl" />
                           </div>
                           <p className="text-base font-semibold uppercase tracking-wide text-slate-700 md:text-lg">
-                            {activeBank.bank_name} •••• {activeBank.account_number_last4}
+                            {activeBank.account_number_last4
+                              ? `${activeBank.bank_name || "Bank account"} •••• ${activeBank.account_number_last4}`
+                              : "Payout details managed in Stripe"}
                           </p>
                         </div>
                       </div>
@@ -326,14 +341,11 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
                 </div>
                 <div>
                   <p className="md:text-xl">
-                    You receive payouts directly to your connected bank account
-                    after Stripe fees of{" "}
-                    <span className="font-semibold">2.9%</span> +{" "}
-                    <span className="font-semibold">$0.30</span> are deducted.
+                    Customer payments are processed on your connected Stripe
+                    account. Stripe deducts fees according to your account's pricing.
                   </p>
                   <p className="md:text-lg mt-1">
-                    For a $100.00 transaction, you'll receive{" "}
-                    <span className="font-semibold">$96.80</span>.
+                    View fees, disputes and bank payout timing in your Stripe Dashboard.
                   </p>
                 </div>
               </div>

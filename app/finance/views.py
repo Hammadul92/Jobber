@@ -1,10 +1,12 @@
 import stripe
+from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils import timezone
 
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -12,8 +14,35 @@ from rest_framework.response import Response
 
 from core.models import BankingInformation, Business, Client, Invoice, Payout
 from finance import serializers, paginations, emails
+from finance.stripe_connect import create_merchant_account, create_onboarding_link
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+def record_payment_result(invoice, payment_intent, account_id, payout=None):
+    """Keep unsettled charges visible and prevent a second charge on retry."""
+    if payout is None:
+        payout = Payout.objects.get(invoice=invoice, stripe_payment_intent_id=payment_intent.id)
+    payout.stripe_payment_intent_id = payment_intent.id
+    payout.save(update_fields=["stripe_payment_intent_id"])
+    if payout.amount != invoice.total_amount or payout.currency != invoice.currency:
+        return Response({"error": "The invoice changed during payment. Please contact support."}, status=409)
+    if payment_intent.status != "succeeded":
+        if payment_intent.status in ("requires_payment_method", "canceled"):
+            payout.status = "FAILED"
+            payout.save(update_fields=["status"])
+        return Response(
+            {"error": "Payment has not completed. Retry to check its status before making another payment."},
+            status=status.HTTP_409_CONFLICT,
+        )
+    invoice.status = "PAID"
+    invoice.paid_at = timezone.now()
+    invoice.save(update_fields=["status", "paid_at"])
+    payout.status = "PAID"
+    payout.processed_at = timezone.now()
+    payout.save(update_fields=["status", "processed_at"])
+    emails.send_invoice_paid_email(invoice)
+    return Response({"detail": "Payment successful and payout recorded."}, status=200)
 
 
 class BankingInformationViewSet(viewsets.ModelViewSet):
@@ -158,7 +187,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
         )
 
         payment_method = stripe.PaymentMethod.retrieve(payment_method_id)
-        card = payment_method.get("card", {})
+        card = payment_method.to_dict().get("card", {})
 
         banking_info.stripe_payment_method_id = payment_method_id
         banking_info.card_brand = card.get("brand")
@@ -183,13 +212,14 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=False, methods=["post"], url_path="add-bank-account")
+    @transaction.atomic
     def add_bank_account(self, request):
         """
-        Create or connect a Stripe Express account for payouts.
+        Create a Managed Risk merchant account for direct payments.
         Stripe handles onboarding, bank account, and identity verification.
         """
         user = request.user
-        business = Business.objects.filter(owner=user).first()
+        business = Business.objects.select_for_update().filter(owner=user).first()
 
         if not business:
             return Response(
@@ -203,45 +233,27 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
         ).first()
 
         try:
-            if not banking_info or not banking_info.stripe_connected_account_id:
-                connected_account = stripe.Account.create(
-                    type="express",
-                    country=business.country.upper(),
-                    email=business.email,
-                    capabilities={"transfers": {"requested": True}},
-                    business_profile={
-                        "name": business.name,
-                        "mcc": "7349",
-                        "url": (
-                            business.website
-                            or f"https://contractorz.com/businesses/{business.slug}"
-                        ),
-                        "product_description": (f"Payouts for {business.name}"),
-                    },
-                    metadata={"business_id": str(business.id)},
-                )
-
+            if banking_info and banking_info.stripe_connected_account_id:
+                if not banking_info.stripe_connect_v2:
+                    return Response(
+                        {"detail": (
+                            "Disconnect your previous Stripe connection and "
+                            "connect again for live direct payments."
+                        )},
+                        status=status.HTTP_409_CONFLICT,
+                    )
+            else:
                 if not banking_info:
                     banking_info = BankingInformation.objects.create(
                         business=business,
-                        stripe_connected_account_id=connected_account.id,
                         payment_method_type="BANK_ACCOUNT",
                     )
-                else:
-                    banking_info.stripe_connected_account_id = connected_account.id
-                    banking_info.save(update_fields=["stripe_connected_account_id"])
+                connected_account = create_merchant_account(business, banking_info)
+                banking_info.stripe_connected_account_id = connected_account.id
+                banking_info.stripe_connect_v2 = True
+                banking_info.save(update_fields=["stripe_connected_account_id", "stripe_connect_v2"])
 
-            else:
-                connected_account = stripe.Account.retrieve(
-                    banking_info.stripe_connected_account_id
-                )
-
-            account_link = stripe.AccountLink.create(
-                account=connected_account.id,
-                refresh_url=(f"{settings.FRONTEND_URL}/reauth"),
-                return_url=(f"{settings.FRONTEND_URL}/user/banking"),
-                type="account_onboarding",
-            )
+            account_link = create_onboarding_link(banking_info.stripe_connected_account_id)
 
             return Response(
                 {
@@ -261,7 +273,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
     def check_bank_account(self, request):
         """
         Retrieve and update bank account info from Stripe for the connected
-        Express account.
+        merchant account.
         """
         user = request.user
         business = Business.objects.filter(owner=user).first()
@@ -289,27 +301,29 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                 expand=["external_accounts"],
             )
 
-            external_accounts = connected_account.external_accounts.data
-            if not external_accounts:
-                return Response(
-                    {"detail": ("No bank account found for this Stripe account.")},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            bank_account = external_accounts[0]
-            banking_info.bank_name = bank_account.bank_name
-            banking_info.account_number_last4 = bank_account.last4
-            banking_info.currency = bank_account.currency
-            banking_info.country = bank_account.country
-            banking_info.account_holder_name = (
-                bank_account.account_holder_name or business.name
+            banking_info.stripe_charges_enabled = connected_account.charges_enabled
+            banking_info.stripe_payouts_enabled = connected_account.payouts_enabled
+            external_accounts = connected_account.to_dict().get("external_accounts", {}).get("data", [])
+            bank_account = next(
+                (account for account in external_accounts if account.get("object") == "bank_account"),
+                None,
             )
-            banking_info.account_holder_type = bank_account.account_holder_type
+            if bank_account:
+                banking_info.bank_name = bank_account.get("bank_name")
+                banking_info.account_number_last4 = bank_account.get("last4")
+                banking_info.currency = bank_account.get("currency")
+                banking_info.country = bank_account.get("country")
+                banking_info.account_holder_name = (
+                    bank_account.get("account_holder_name") or business.name
+                )
+                banking_info.account_holder_type = bank_account.get("account_holder_type")
             banking_info.save()
 
             return Response(
                 {
                     "detail": "Banking information checked successfully.",
+                    "charges_enabled": banking_info.stripe_charges_enabled,
+                    "payouts_enabled": banking_info.stripe_payouts_enabled,
                 },
                 status=status.HTTP_200_OK,
             )
@@ -394,21 +408,36 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         instance.soft_delete(user=self.request.user)
 
     @action(detail=True, methods=["post"], url_path="make-payment")
+    @transaction.atomic
     def make_payment(self, request, pk=None):
-        """Charge client and transfer funds to business."""
+        """Charge the client directly on the business account."""
 
-        invoice = self.get_object()
+        invoice = Invoice.objects.select_for_update().get(pk=self.get_object().pk)
         client = invoice.client
         business = invoice.business
 
-        if invoice.status == "PAID":
+        if invoice.status == "PAID" or Payout.all_objects.filter(invoice=invoice, status="PAID").exists():
             return Response(
                 {"detail": "Invoice already paid."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        pending = Payout.all_objects.filter(invoice=invoice, status="PENDING").first()
+        if pending:
+            if not pending.stripe_payment_intent_id:
+                return Response({"error": "A payment is pending review. Please contact support."}, status=409)
+            try:
+                options = {"stripe_account": pending.stripe_account_id} if pending.stripe_account_id else {}
+                intent = stripe.PaymentIntent.retrieve(pending.stripe_payment_intent_id, **options)
+                return record_payment_result(invoice, intent, pending.stripe_account_id, pending)
+            except stripe.StripeError as exc:
+                return Response({"error": f"Unable to check pending payment: {exc}"}, status=400)
+
         client_bank_info = client.banking_information.filter(is_active=True).first()
-        if not client_bank_info or not client_bank_info.stripe_payment_method_id:
+        if (
+            not client_bank_info or not client_bank_info.stripe_payment_method_id
+            or not client_bank_info.stripe_customer_id
+        ):
             return Response(
                 {"error": "Client does not have an active payment method."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -427,50 +456,60 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
         amount_cents = int(invoice.total_amount * 100)
 
+        attempt = None
         try:
+            account_id = business_bank_info.stripe_connected_account_id
+            connected_account = stripe.Account.retrieve(account_id)
+            if (
+                not connected_account.charges_enabled
+                or not connected_account.payouts_enabled
+                or connected_account.to_dict().get("controller", {}).get("losses", {}).get("payments") != "stripe"
+            ):
+                return Response(
+                    {"error": "Complete Stripe onboarding for managed-risk payments before collecting payment."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            attempt = Payout.objects.create(
+                business=business, invoice=invoice, amount=invoice.total_amount,
+                currency=invoice.currency, stripe_account_id=account_id, status="PENDING",
+            )
+            cloned_method = stripe.PaymentMethod.create(
+                customer=client_bank_info.stripe_customer_id,
+                payment_method=client_bank_info.stripe_payment_method_id,
+                stripe_account=account_id,
+                idempotency_key=f"payout-{attempt.pk}-card",
+            )
             payment_intent = stripe.PaymentIntent.create(
                 amount=amount_cents,
                 currency=invoice.currency.lower(),
-                customer=client_bank_info.stripe_customer_id,
-                payment_method=client_bank_info.stripe_payment_method_id,
+                payment_method=cloned_method.id,
+                payment_method_types=["card"],
                 off_session=True,
                 confirm=True,
-                transfer_data={
-                    "destination": (business_bank_info.stripe_connected_account_id)
-                },
+                stripe_account=account_id,
+                idempotency_key=f"payout-{attempt.pk}-direct",
                 description=(f"Payment for Invoice #{invoice.invoice_number}"),
                 metadata={"invoice_id": str(invoice.id)},
             )
-
-            invoice.status = "PAID"
-            invoice.paid_at = timezone.now()
-            invoice.save(update_fields=["status", "paid_at"])
-
-            Payout.objects.create(
-                business=business,
-                invoice=invoice,
-                amount=invoice.total_amount,
-                currency=invoice.currency,
-                stripe_payment_intent_id=payment_intent.id,
-                status="PAID",
-                processed_at=timezone.now(),
-            )
-
-            emails.send_invoice_paid_email(invoice)
-
-            return Response(
-                {"detail": "Payment successful and payout recorded."},
-                status=200,
-            )
+            return record_payment_result(invoice, payment_intent, account_id, attempt)
 
         except stripe.StripeError as e:
+            if attempt and isinstance(e, (
+                stripe.CardError, stripe.InvalidRequestError,
+                stripe.AuthenticationError, stripe.PermissionError,
+            )):
+                attempt.status = "FAILED"
+                attempt.save(update_fields=["status"])
             return Response({"error": f"Stripe error: {str(e)}"}, status=400)
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
 
-class PayoutViewSet(viewsets.ModelViewSet):
+class PayoutViewSet(
+    mixins.ListModelMixin, mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin, viewsets.GenericViewSet,
+):
     """ViewSet for managing payouts."""
 
     serializer_class = serializers.PayoutSerializer
@@ -498,12 +537,13 @@ class PayoutViewSet(viewsets.ModelViewSet):
         instance.soft_delete(user=self.request.user)
 
     @action(detail=True, methods=["post"], url_path="refund")
+    @transaction.atomic
     def refund_payout(self, request, pk=None):
         """
         Refund a payout through Stripe.
         Supports partial or full refunds.
         """
-        payout = self.get_object()
+        payout = Payout.objects.select_for_update().get(pk=self.get_object().pk)
         amount = request.data.get("amount")
         reason = request.data.get(
             "reason",
@@ -522,15 +562,43 @@ class PayoutViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            refund_params = {"payment_intent": payout.stripe_payment_intent_id}
-            if amount:
-                refund_params["amount"] = int(float(amount) * 100)
+        if payout.status != "PAID":
+            return Response({"error": "Only completed payments can be refunded."}, status=400)
 
-            refund = stripe.Refund.create(**refund_params)
+        try:
+            refund_params = {
+                "payment_intent": payout.stripe_payment_intent_id,
+                "idempotency_key": f"payout-{payout.pk}-refund",
+            }
+            if payout.stripe_account_id:
+                refund_params["stripe_account"] = payout.stripe_account_id
+            if amount not in (None, ""):
+                try:
+                    requested = Decimal(str(amount))
+                    if (
+                        not requested.is_finite() or requested <= 0 or requested > payout.amount
+                        or requested != requested.quantize(Decimal("0.01"))
+                    ):
+                        raise ValueError
+                except (InvalidOperation, ValueError):
+                    return Response({"error": "Enter a valid refund amount up to the payment total."}, status=400)
+                refund_params["amount"] = int(requested * 100)
+
+            if payout.stripe_refund_id:
+                scope = {"stripe_account": payout.stripe_account_id} if payout.stripe_account_id else {}
+                refund = stripe.Refund.retrieve(payout.stripe_refund_id, **scope)
+            else:
+                refund = stripe.Refund.create(**refund_params)
+                payout.stripe_refund_id = refund.id
+                payout.save(update_fields=["stripe_refund_id"])
+            if refund.status != "succeeded":
+                return Response(
+                    {"detail": "Refund is not completed. Retry to check its status."},
+                    status=status.HTTP_202_ACCEPTED,
+                )
 
             payout.is_refunded = True
-            payout.refunded_amount = amount or payout.amount
+            payout.refunded_amount = Decimal(refund.amount) / 100
             payout.refund_reason = reason
             payout.stripe_refund_id = refund.id
             payout.refunded_at = timezone.now()

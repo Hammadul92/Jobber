@@ -53,14 +53,8 @@ export default function PayoutDatatable({ token, role }) {
 
   const getPayoutTotal = (row) => {
     const grossAmount = Number.parseFloat(row?.amount || 0);
-    const stripeFee = grossAmount > 0 ? grossAmount * 0.029 + 0.3 : 0;
-    const netPayout = Math.max(grossAmount - stripeFee, 0);
     const currency = row?.currency || "CAD";
-
-    return `${formatMoney(netPayout, currency)} (after ${formatMoney(
-      stripeFee,
-      currency,
-    )} stripe fee)`;
+    return `${formatMoney(grossAmount, currency)} (before Stripe fees)`;
   };
 
   const filteredRows = useMemo(() => {
@@ -194,7 +188,7 @@ export default function PayoutDatatable({ token, role }) {
       "Invoice",
       "Client",
       "Service",
-      "Payout Total",
+      "Payment Total",
       "Status",
       "Processed At",
     ];
@@ -257,7 +251,7 @@ export default function PayoutDatatable({ token, role }) {
     { name: "invoice_number", title: "Invoice" },
     { name: "client_name", title: "Client" },
     { name: "service_name", title: "Service" },
-    { name: "payout_total", title: "Payout Total" },
+    { name: "payout_total", title: "Payment Total" },
     { name: "status", title: "Status" },
     { name: "processed_at", title: "Processed At" },
     { name: "actions", title: "Actions" },

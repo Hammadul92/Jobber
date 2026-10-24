@@ -24,9 +24,13 @@ class BankingInformationSerializer(serializers.ModelSerializer):
             "card_exp_month",
             "card_exp_year",
             "is_active",
+            "stripe_charges_enabled",
+            "stripe_payouts_enabled",
         ]
 
-        read_only_fields = ["created_at", "updated_at"]
+        read_only_fields = [
+            "created_at", "updated_at", "stripe_charges_enabled", "stripe_payouts_enabled",
+        ]
 
 
 class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
@@ -147,7 +151,4 @@ class PayoutSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         ]
 
     def get_payout_total(self, obj):
-        amt = float(obj.amount)
-        fee = round(amt * 0.029 + 0.30, 2)
-        net = round(amt - fee, 2)
-        return f"{net:.2f} {obj.currency} (after {fee:.2f} stripe fee)"
+        return f"{obj.amount:.2f} {obj.currency} (before Stripe fees)"

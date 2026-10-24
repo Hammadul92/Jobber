@@ -12,6 +12,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 from django.test import TestCase, override_settings
+import stripe
 
 from core.models import (
     BankingInformation,
@@ -49,6 +50,17 @@ class InvoicePaymentWorkflowTests(TestCase):
     """Test payment blocking, payout creation, and refund regressions."""
 
     def setUp(self):
+        account_patch = patch("finance.views.stripe.Account.retrieve")
+        self.mock_account = account_patch.start()
+        self.addCleanup(account_patch.stop)
+        self.mock_account.return_value = stripe.StripeObject.construct_from({
+            "id": "acct_test", "charges_enabled": True, "payouts_enabled": True,
+            "controller": {"losses": {"payments": "stripe"}},
+        }, "sk_test_placeholder")
+        clone_patch = patch("finance.views.stripe.PaymentMethod.create")
+        self.mock_clone = clone_patch.start()
+        self.addCleanup(clone_patch.stop)
+        self.mock_clone.return_value = SimpleNamespace(id="pm_cloned")
         self.client = APIClient()
         self.manager = get_user_model().objects.create_user(
             "finance-manager@example.com",
@@ -156,7 +168,7 @@ class InvoicePaymentWorkflowTests(TestCase):
         """Test successful payment marks invoice paid and records one payout."""
         self.add_client_payment_method()
         self.add_business_bank_account()
-        mock_payment_intent_create.return_value = SimpleNamespace(id="pi_success")
+        mock_payment_intent_create.return_value = SimpleNamespace(id="pi_success", status="succeeded")
         self.client.force_authenticate(self.client_user)
 
         res = self.client.post(self.make_payment_url())
@@ -171,6 +183,16 @@ class InvoicePaymentWorkflowTests(TestCase):
         self.assertEqual(payout.status, "PAID")
         self.assertEqual(payout.amount, self.invoice.total_amount)
         self.assertEqual(payout.stripe_payment_intent_id, "pi_success")
+        self.assertEqual(payout.stripe_account_id, "acct_test")
+        params = mock_payment_intent_create.call_args.kwargs
+        self.assertEqual(params["stripe_account"], "acct_test")
+        self.assertEqual(params["payment_method"], "pm_cloned")
+        self.assertNotIn("transfer_data", params)
+        self.assertNotIn("customer", params)
+        self.mock_clone.assert_called_once_with(
+            customer="cus_test", payment_method="pm_test", stripe_account="acct_test",
+            idempotency_key=f"payout-{payout.pk}-card",
+        )
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, [self.manager.email])
         self.assertIn(self.invoice.invoice_number, mail.outbox[0].subject)
@@ -183,7 +205,7 @@ class InvoicePaymentWorkflowTests(TestCase):
         """Test paying the same invoice twice is rejected safely."""
         self.add_client_payment_method()
         self.add_business_bank_account()
-        mock_payment_intent_create.return_value = SimpleNamespace(id="pi_success")
+        mock_payment_intent_create.return_value = SimpleNamespace(id="pi_success", status="succeeded")
         self.client.force_authenticate(self.client_user)
 
         first_res = self.client.post(self.make_payment_url())
@@ -210,7 +232,7 @@ class InvoicePaymentWorkflowTests(TestCase):
             stripe_payment_intent_id="pi_success",
             processed_at=timezone.now(),
         )
-        mock_refund_create.return_value = SimpleNamespace(id="re_success")
+        mock_refund_create.return_value = SimpleNamespace(id="re_success", status="succeeded", amount=10500)
         self.client.force_authenticate(self.manager)
 
         first_res = self.client.post(

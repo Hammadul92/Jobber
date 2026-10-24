@@ -375,6 +375,9 @@ class BankingInformation(SoftDeletableModel):
         null=True,
         help_text="The Stripe connected account this bank account belongs to.",
     )
+    stripe_connect_v2 = models.BooleanField(default=False)
+    stripe_charges_enabled = models.BooleanField(default=False)
+    stripe_payouts_enabled = models.BooleanField(default=False)
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -879,6 +882,12 @@ class Payout(SoftDeletableModel):
         blank=True,
         null=True,
         help_text=("ID of the Stripe Refund if this payout was refunded."),
+    )
+    stripe_account_id = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Account owning the direct charge; blank for legacy platform charges.",
     )
 
     # Refund tracking

@@ -67,10 +67,10 @@ export default function Payout({ token, role }) {
   const handleRefund = async (e) => {
     e.preventDefault();
     try {
-      await refundPayout({ id, amount, reason }).unwrap();
+      const response = await refundPayout({ id, amount, reason }).unwrap();
       setAlert({
         type: "success",
-        message: "Refund request submitted successfully.",
+        message: response?.detail || "Refund request submitted successfully.",
       });
       setAmount("");
       setReason("");
@@ -99,8 +99,6 @@ export default function Payout({ token, role }) {
 
   const badgeClass = STATUS_STYLES[payoutData?.status] || STATUS_STYLES.PENDING;
   const grossAmount = Number.parseFloat(payoutData?.amount || 0);
-  const stripeFee = grossAmount > 0 ? grossAmount * 0.029 + 0.3 : 0;
-  const netPayout = Math.max(grossAmount - stripeFee, 0);
   const payoutCurrency = payoutData?.currency || "CAD";
   const canRefund =
     role === "MANAGER" &&
@@ -169,7 +167,7 @@ export default function Payout({ token, role }) {
               />
               <SummaryRow
                 label="Stripe Fee"
-                value={formatMoney(stripeFee, payoutCurrency)}
+                value="View Stripe Dashboard"
               />
               {payoutData?.refunded_amount && (
                 <SummaryRow
@@ -181,8 +179,8 @@ export default function Payout({ token, role }) {
                 />
               )}
               <SummaryRow
-                label="Payout Total"
-                value={formatMoney(netPayout, payoutCurrency)}
+                label="Payment Total (before fees)"
+                value={formatMoney(grossAmount, payoutCurrency)}
               />
             </div>
           </div>

@@ -8,6 +8,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import patch
+import stripe
 
 from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
@@ -965,16 +966,25 @@ class WorkflowRegressionTests(TestCase):
 
     @patch("operations.views.emails.send_quote_email")
     @patch("operations.views.emails.send_service_questionnaire_email")
+    @patch("finance.views.stripe.Account.retrieve")
+    @patch("finance.views.stripe.PaymentMethod.create")
     @patch("finance.views.stripe.PaymentIntent.create")
     def test_full_happy_path_creates_quote_invoice_payment_payout_and_job(
         self,
         mock_payment_intent_create,
+        mock_clone,
+        mock_account,
         mock_questionnaire_email,
         mock_quote_email,
     ):
         """Test manager/client flow from service setup through paid payout."""
         self.create_questionnaire_and_terms()
-        mock_payment_intent_create.return_value = SimpleNamespace(id="pi_success")
+        mock_payment_intent_create.return_value = SimpleNamespace(id="pi_success", status="succeeded")
+        mock_clone.return_value = SimpleNamespace(id="pm_cloned")
+        mock_account.return_value = stripe.StripeObject.construct_from({
+            "id": "acct_test", "charges_enabled": True, "payouts_enabled": True,
+            "controller": {"losses": {"payments": "stripe"}},
+        }, "sk_test_placeholder")
         self.client.force_authenticate(self.manager)
 
         service_res = self.client.post(SERVICES_URL, self.service_payload())
