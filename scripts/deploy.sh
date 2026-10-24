@@ -23,11 +23,18 @@ assert urllib.request.urlopen(request, timeout=5).status == 200
 
 check_site() {
     # Test this server directly, including TLS and the Nginx upstream mapping.
-    local code
-    code=$(curl --silent --show-error --max-time 15 \
-        --resolve getcontractorz.com:443:127.0.0.1 \
-        --output /dev/null --write-out '%{http_code}' https://getcontractorz.com/)
-    [[ "$code" == 200 ]]
+    local code attempt
+    for attempt in {1..30}; do
+        if code=$(curl --silent --show-error --connect-timeout 2 --max-time 5 \
+            --resolve getcontractorz.com:443:127.0.0.1 \
+            --output /dev/null --write-out '%{http_code}' https://getcontractorz.com/); then
+            if [[ "$code" == 200 ]]; then
+                return 0
+            fi
+        fi
+        sleep 2
+    done
+    return 1
 }
 
 finish() {
