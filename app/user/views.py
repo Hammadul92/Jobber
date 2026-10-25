@@ -182,6 +182,9 @@ class CheckUserExistsView(generics.GenericAPIView):
 class MagicLoginView(APIView):
     """Log in a user via a magic link token and return their auth token."""
 
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
     def post(self, request):
         token = request.data.get("token")
         if not token:
@@ -191,7 +194,7 @@ class MagicLoginView(APIView):
             )
 
         user = verify_magic_login_token(token)
-        if not user:
+        if not user or not user.is_active:
             return Response(
                 {"detail": "Invalid or expired magic link."},
                 status=status.HTTP_400_BAD_REQUEST,

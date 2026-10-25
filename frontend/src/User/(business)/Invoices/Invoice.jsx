@@ -5,6 +5,7 @@ import {
   useFetchInvoiceQuery,
   useUpdateInvoiceMutation,
   useMakePaymentMutation,
+  useSendInvoiceMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Input from "../../../Components/ui/Input";
@@ -60,11 +61,12 @@ export default function Invoice({ token, role }) {
     data: invoiceData,
     isLoading,
     error,
-  } = useFetchInvoiceQuery(id, { skip: !token });
+  } = useFetchInvoiceQuery(id, { skip: !token, refetchOnMountOrArgChange: true });
   const [updateInvoice, { isLoading: updatingInvoice }] =
     useUpdateInvoiceMutation();
   const [makePayment, { isLoading: processingPayment }] =
     useMakePaymentMutation();
+  const [sendInvoice, { isLoading: sendingInvoice }] = useSendInvoiceMutation();
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [status, setStatus] = useState("");
@@ -82,6 +84,7 @@ export default function Invoice({ token, role }) {
   const [alert, setAlert] = useState({ type: "", message: "" });
 
   const isLocked = status === "PAID" || invoiceData?.has_paid_payout;
+  const canManage = invoiceData?.can_manage ?? role === "MANAGER";
 
   useEffect(() => {
     if (invoiceData) {
@@ -164,18 +167,33 @@ export default function Invoice({ token, role }) {
   };
 
   const handlePayment = async () => {
+    if (processingPayment || status !== "SENT" || isLocked) return;
     try {
       const res = await makePayment(invoiceData.id).unwrap();
       setAlert({
         type: "success",
-        message: res?.message || "Payment successful!",
+        message: res?.detail || res?.message || "Payment successful!",
       });
       setStatus("PAID");
       if (res?.paid_at) setPaidAt(res.paid_at);
     } catch (err) {
       setAlert({
         type: "danger",
-        message: err?.data?.detail || "Payment failed. Please try again.",
+        message:
+          err?.data?.detail || err?.data?.error ||
+          "Payment failed. Please try again.",
+      });
+    }
+  };
+
+  const handleSendInvoice = async () => {
+    try {
+      const response = await sendInvoice(id).unwrap();
+      setAlert({type: "success", message: response.detail});
+    } catch (err) {
+      setAlert({
+        type: "danger",
+        message: err?.data?.detail || "Invoice email could not be sent. Please try again.",
       });
     }
   };
@@ -185,22 +203,28 @@ export default function Invoice({ token, role }) {
     return new Date(dueDate) < new Date();
   };
 
-  if (isLoading) {
+  if (isLoading || (!invoiceData && !error)) {
     return <LoadingScreen />;
   }
 
   if (error) {
     return (
-      <AlertDispatcher
-        type="danger"
-        message={error?.data?.detail || "Failed to load invoice."}
-        onClose={() => setAlert({ type: "", message: "" })}
-      />
+      <div role="alert" className="space-y-3 py-6">
+        <h2 className="text-xl font-semibold">Invoice unavailable</h2>
+        <p>
+          {error?.status === 404
+            ? "This invoice is unavailable for this account."
+            : error?.data?.detail || "Failed to load invoice. Please try again."}
+        </p>
+        <Link to="/user/business/invoices" className="text-secondary underline">
+          View your invoices
+        </Link>
+      </div>
     );
   }
 
   const badgeClass = STATUS_STYLES[status] || STATUS_STYLES.DRAFT;
-  const disableSend = status === "SENT" || isLocked;
+  const disableSend = status === "CANCELLED" || isLocked || sendingInvoice;
   const disableMarkPaid = status === "PAID" || isLocked;
   const disableCancel = status === "CANCELLED" || isLocked;
 
@@ -210,11 +234,12 @@ export default function Invoice({ token, role }) {
         <AlertDispatcher
           type={alert.type}
           message={alert.message}
+          autoDismiss={0}
           onClose={() => setAlert({ type: "", message: "" })}
         />
       )}
 
-      {invoiceData?.has_paid_payout && role === "MANAGER" && (
+      {invoiceData?.has_paid_payout && canManage && (
         <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
           Payout has already been processed for this invoice.{" "}
           <Link
@@ -243,15 +268,15 @@ export default function Invoice({ token, role }) {
           )}
         </div>
 
-        {role === "MANAGER" && (
+        {canManage && (
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               className={ACTION_BTN_STYLES.send}
               disabled={disableSend}
-              onClick={() => handleStatusChange("SENT")}
+              onClick={handleSendInvoice}
             >
-              Send
+              {sendingInvoice ? "Sending..." : status === "SENT" ? "Resend" : "Send"}
             </button>
             <button
               type="button"
@@ -274,7 +299,7 @@ export default function Invoice({ token, role }) {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-12">
-        {role === "MANAGER" && (
+        {canManage && (
           <div className="space-y-4 lg:col-span-4">
             <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <p className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-500">
@@ -331,9 +356,9 @@ export default function Invoice({ token, role }) {
           </div>
         )}
 
-        <div className={role === "MANAGER" ? "lg:col-span-8" : "lg:col-span-12"}>
+        <div className={`min-w-0 ${canManage ? "lg:col-span-8" : "lg:col-span-12"}`}>
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            {role === "MANAGER" ? (
+            {canManage ? (
               <form onSubmit={handleSubmit}>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Input
@@ -415,7 +440,7 @@ export default function Invoice({ token, role }) {
                     isLoading={updatingInvoice}
                     btnClass="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#ff7a1f]"
                     btnName="Save Changes"
-                    disabled={isLocked}
+                    isDisabled={isLocked}
                   />
                 </div>
               </form>
@@ -561,25 +586,32 @@ function CustomerView({
       </div>
 
       <div className="px-6 pb-6">
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="grid grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] gap-4 bg-slate-50 px-5 py-4 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-            <div>Service</div>
-            <div className="text-right">Subtotal</div>
-            <div className="text-right">Tax ({taxRate}%)</div>
-            <div className="text-right">Total</div>
-          </div>
-          <div className="grid grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] gap-4 px-5 py-5 text-sm text-slate-700">
-            <div className="text-lg font-semibold text-slate-900">
-              {serviceName}
+        <div
+          className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm"
+          role="region"
+          aria-label="Invoice amounts"
+          tabIndex={0}
+        >
+          <div className="min-w-[520px]">
+            <div className="grid grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] gap-4 bg-slate-50 px-5 py-4 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+              <div>Service</div>
+              <div className="text-right">Subtotal</div>
+              <div className="text-right">Tax ({taxRate}%)</div>
+              <div className="text-right">Total</div>
             </div>
-            <div className="text-right font-medium">
-              {formattedSubtotal}
-            </div>
-            <div className="text-right font-medium">
-              {formattedTax}
-            </div>
-            <div className="text-right text-lg font-semibold text-slate-900">
-              {formattedTotal}
+            <div className="grid grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] gap-4 px-5 py-5 text-sm text-slate-700">
+              <div className="text-lg font-semibold text-slate-900">
+                {serviceName}
+              </div>
+              <div className="text-right font-medium">
+                {formattedSubtotal}
+              </div>
+              <div className="text-right font-medium">
+                {formattedTax}
+              </div>
+              <div className="text-right text-lg font-semibold text-slate-900">
+                {formattedTotal}
+              </div>
             </div>
           </div>
         </div>
@@ -593,7 +625,7 @@ function CustomerView({
           </div>
         )}
 
-        {status !== "PAID" && (
+        {status === "SENT" && !invoiceData?.has_paid_payout && (
           <div className={`${notes ? "mt-5" : ""} flex justify-end`}>
             {invoiceData?.has_payment_method ? (
               <button

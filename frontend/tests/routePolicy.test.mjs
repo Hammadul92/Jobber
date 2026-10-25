@@ -5,6 +5,7 @@ import {
   getPublicRedirectUrl,
   isDashboardPath,
   isMagicQuoteLink,
+  isMagicInvoiceLink,
 } from "../src/utils/routePolicy.js";
 
 test("only account and dashboard paths require React authentication", () => {
@@ -33,6 +34,14 @@ test("local React public paths retain their path when handed to Django", () => {
     ),
     "http://localhost:8000/about?source=legacy#details",
   );
+});
+
+test("invoice email links allow magic login without making normal invoices public", () => {
+  assert.equal(isMagicInvoiceLink("/user/business/invoice/42", "?token=secure"), true);
+  assert.equal(isMagicInvoiceLink("/user/business/invoice/42/", "?token=secure"), true);
+  assert.equal(isMagicInvoiceLink("/user/business/invoice/42", ""), false);
+  assert.equal(isMagicInvoiceLink("/user/business/invoices", "?token=secure"), false);
+  assert.equal(isMagicInvoiceLink("/user/business/invoice/42/edit", "?token=secure"), false);
 });
 
 test("same-origin fallback returns home instead of causing a redirect loop", () => {

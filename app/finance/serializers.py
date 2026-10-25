@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from core.utils import BusinessTimezoneMixin
 from core.models import BankingInformation, Invoice, Payout
+from finance.payment_methods import get_client_payment_method
 
 
 class BankingInformationSerializer(serializers.ModelSerializer):
@@ -60,6 +61,7 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     )
     invoice_total = serializers.SerializerMethodField()
     has_payment_method = serializers.SerializerMethodField()
+    can_manage = serializers.SerializerMethodField()
     has_paid_payout = serializers.SerializerMethodField()
     payout_id = serializers.SerializerMethodField()
 
@@ -78,6 +80,7 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             "notes",
             "paid_at",
             "has_payment_method",
+            "can_manage",
             "has_paid_payout",
             "payout_id",
             "client_name",
@@ -96,7 +99,11 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         return f"{obj.total_amount} {obj.currency}"
 
     def get_has_payment_method(self, obj):
-        return bool(obj.client.banking_information.filter(is_active=True).first())
+        return get_client_payment_method(obj.client) is not None
+
+    def get_can_manage(self, obj):
+        request = self.context.get("request")
+        return bool(request and obj.business.owner_id == request.user.pk)
 
     def get_has_paid_payout(self, obj):
         """

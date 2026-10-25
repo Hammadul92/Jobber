@@ -5,17 +5,20 @@ from decimal import Decimal, InvalidOperation
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from rest_framework import status, viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from core.models import BankingInformation, Business, Client, Invoice, Payout
 from finance import serializers, paginations, emails
 from finance.stripe_connect import create_merchant_account, create_onboarding_link
+from finance.payment_methods import get_client_payment_method
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
@@ -71,16 +74,9 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Return banking information linked to the logged-in user."""
         user = self.request.user
-
-        business = Business.objects.filter(owner=user).first()
-        if business:
-            return self.queryset.filter(business=business).order_by("-id")
-
-        client = Client.objects.filter(user=user).first()
-        if client:
-            return self.queryset.filter(client=client).order_by("-id")
-
-        return self.queryset.none()
+        return self.queryset.filter(
+            Q(business__owner=user) | Q(client__user=user, client__is_active=True)
+        ).order_by("-id")
 
     def perform_create(self, serializer):
         """Attach the correct business or client before saving."""
@@ -360,23 +356,13 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Return invoices linked to the logged-in user."""
         user = self.request.user
-
-        business = Business.objects.filter(owner=user).first()
-        if business:
-            return self.queryset.filter(
-                business=business,
-                is_active=True,
-            ).order_by("-id")
-
-        client = Client.objects.filter(user=user).first()
-        if client:
-            return (
-                self.queryset.filter(client=client, is_active=True)
-                .exclude(status="DRAFT")
-                .order_by("-id")
-            )
-
-        return self.queryset.none()
+        invoices = self.queryset.filter(is_active=True)
+        if self.action == "list" and Business.objects.filter(owner=user).exists():
+            return invoices.filter(business__owner=user).order_by("-id")
+        return invoices.filter(
+            Q(business__owner=user)
+            | (Q(client__user=user, client__is_active=True, client__is_deleted=False) & ~Q(status="DRAFT"))
+        ).order_by("-id")
 
     def perform_create(self, serializer):
         """Attach business/client/service properly before saving."""
@@ -385,6 +371,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         business = validated_data.get("business")
         client = validated_data.get("client")
         service = validated_data.get("service")
+
+        if business.owner_id != self.request.user.pk:
+            raise PermissionDenied("Only the business owner can create invoices.")
 
         if client.business != business:
             raise ValidationError("Client does not belong to your business.")
@@ -405,6 +394,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         """Trigger email when invoice is sent."""
 
         instance = serializer.instance
+        if instance.business.owner_id != self.request.user.pk:
+            raise PermissionDenied("Only the business owner can update invoices.")
         previous_status = instance.status
         updated_instance = serializer.save()
 
@@ -418,7 +409,35 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         """Soft delete the record."""
 
+        if instance.business.owner_id != self.request.user.pk:
+            raise PermissionDenied("Only the business owner can delete invoices.")
         instance.soft_delete(user=self.request.user)
+
+    @action(detail=True, methods=["post"], url_path="send-invoice")
+    def send_invoice(self, request, pk=None):
+        """Send or resend a payable invoice with a fresh client login link."""
+        invoice = self.get_object()
+        if invoice.business.owner_id != request.user.pk:
+            raise PermissionDenied("Only the business owner can send invoices.")
+        if invoice.status not in ("DRAFT", "SENT") or Payout.all_objects.filter(
+            invoice=invoice, status="PAID",
+        ).exists():
+            return Response(
+                {"detail": "Only draft or sent unpaid invoices can be emailed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            emails.send_invoice_email(invoice)
+        except Exception:
+            logger.exception("Unable to email invoice %s", invoice.pk)
+            return Response(
+                {"detail": "Invoice email could not be sent. Please try again."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        if invoice.status == "DRAFT":
+            invoice.status = "SENT"
+            invoice.save(update_fields=["status"])
+        return Response({"detail": "Invoice email sent successfully."})
 
     @action(detail=True, methods=["post"], url_path="make-payment")
     @transaction.atomic
@@ -429,9 +448,18 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         client = invoice.client
         business = invoice.business
 
+        if client.user_id != request.user.pk:
+            raise PermissionDenied("Only the invoiced customer can make this payment.")
+
         if invoice.status == "PAID" or Payout.all_objects.filter(invoice=invoice, status="PAID").exists():
             return Response(
                 {"detail": "Invoice already paid."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if invoice.status != "SENT":
+            return Response(
+                {"detail": "Only sent invoices can be paid."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -446,11 +474,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             except stripe.StripeError as exc:
                 return Response({"error": f"Unable to check pending payment: {exc}"}, status=400)
 
-        client_bank_info = client.banking_information.filter(is_active=True).first()
-        if (
-            not client_bank_info or not client_bank_info.stripe_payment_method_id
-            or not client_bank_info.stripe_customer_id
-        ):
+        client_bank_info = get_client_payment_method(client)
+        if not client_bank_info:
             return Response(
                 {"error": "Client does not have an active payment method."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -468,6 +493,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             )
 
         amount_cents = int(invoice.total_amount * 100)
+        if amount_cents <= 0:
+            return Response(
+                {"detail": "Invoice amount must be greater than zero."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         attempt = None
         try:

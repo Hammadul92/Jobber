@@ -25,6 +25,7 @@ import {
   getPublicRedirectUrl,
   isDashboardPath,
   isMagicQuoteLink,
+  isMagicInvoiceLink,
 } from "./utils/routePolicy";
 
 const contractorzLogo = "/images/contractorz-logo-horizontal.svg";
@@ -101,6 +102,17 @@ function QuoteSignRoute({ token, user }) {
   return <UserDashboard page="sign-quote" token={token} user={user} />;
 }
 
+function InvoiceRoute({ token, user }) {
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+
+  if (searchParams.has("token")) {
+    return <MagicLogin destination={`/user/business/invoice/${id}`} />;
+  }
+
+  return <UserDashboard page="invoice" token={token} user={user} />;
+}
+
 function App() {
   return (
     <Router>
@@ -113,17 +125,17 @@ function MainApp() {
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem("token");
+  const isMagicRoute =
+    isMagicQuoteLink(location.pathname, location.search) ||
+    isMagicInvoiceLink(location.pathname, location.search) ||
+    location.pathname.startsWith("/service-questionnaire/");
   const {
     data: user,
     isLoading,
     isError,
     error,
-  } = useFetchUserQuery(undefined, { skip: !token });
+  } = useFetchUserQuery(undefined, { skip: !token || isMagicRoute });
   const isDashboardRoute = isDashboardPath(location.pathname);
-  const isMagicQuoteRoute = isMagicQuoteLink(
-    location.pathname,
-    location.search,
-  );
   const isAuthRoute = AUTH_ROUTES.includes(location.pathname);
 
   useEffect(() => {
@@ -131,7 +143,7 @@ function MainApp() {
     if (
       (!token || (isError && error?.status === 401)) &&
       isDashboardRoute &&
-      !isMagicQuoteRoute
+      !isMagicRoute
     ) {
       navigate(`/sign-in?next=${encodeURIComponent(currentPath)}`, {
         replace: true,
@@ -145,7 +157,7 @@ function MainApp() {
     location.pathname,
     location.search,
     isDashboardRoute,
-    isMagicQuoteRoute,
+    isMagicRoute,
   ]);
 
   useEffect(() => {
@@ -315,7 +327,7 @@ function MainApp() {
           />
           <Route
             path="invoice/:id"
-            element={<UserDashboard page="invoice" token={token} user={user} />}
+            element={<InvoiceRoute token={token} user={user} />}
           />
           <Route
             path="payouts"
