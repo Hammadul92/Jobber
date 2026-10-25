@@ -401,7 +401,7 @@ export default function DashboardTodos({ token, user, business }) {
   return (
     <div
       ref={containerRef}
-      className="fixed bottom-5 right-5 z-50 flex flex-col items-end md:bottom-7 md:right-7"
+      className="fixed bottom-5 right-5 z-10 flex flex-col items-end md:bottom-7 md:right-7"
     >
       {isOpen && (
         <div className="mb-4 w-[calc(100vw-2.5rem)] max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15 sm:w-[28rem]">
