@@ -302,7 +302,7 @@ export default function ClientServicesData({
                     </Link>
                   ) : (
                     <span className="inline-flex items-center rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800">
-                      No Questionnaire
+                      {service.bypass_questionnaire ? "Questionnaire bypassed" : "No Questionnaire"}
                     </span>
                   )}
 

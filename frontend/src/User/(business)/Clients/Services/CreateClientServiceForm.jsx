@@ -35,6 +35,7 @@ export default function CreateClientServiceForm({
   const [provinceState, setProvinceState] = useState("");
   const [postalCode, setPostalCode] = useState("");
 
+  const [bypassQuestionnaire, setBypassQuestionnaire] = useState(false);
   const [autoGenerateQuote, setAutoGenerateQuote] = useState(false);
   const [autoGenerateInvoices, setAutoGenerateInvoices] = useState(false);
   const [status, setStatus] = useState("PENDING");
@@ -57,6 +58,7 @@ export default function CreateClientServiceForm({
     setCountry("CA");
     setProvinceState("");
     setPostalCode("");
+    setBypassQuestionnaire(false);
     setAutoGenerateQuote(false);
     setAutoGenerateInvoices(false);
     setStatus("PENDING");
@@ -89,6 +91,7 @@ export default function CreateClientServiceForm({
         province_state: provinceState,
         postal_code: postalCode,
         status,
+        bypass_questionnaire: isEditMode ? initialData.bypass_questionnaire : bypassQuestionnaire,
         auto_generate_quote: autoGenerateQuote,
         auto_generate_invoices: autoGenerateInvoices,
       };
@@ -332,6 +335,24 @@ export default function CreateClientServiceForm({
                     )}
 
                     <div className="space-y-6 pt-1">
+                      {!isEditMode && (
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                            <input
+                              id="bypass_questionnaire"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent"
+                              checked={bypassQuestionnaire}
+                              onChange={(event) => setBypassQuestionnaire(event.target.checked)}
+                            />
+                            Bypass questionnaire
+                          </label>
+                          <p className="text-xs text-slate-500">
+                            Add this service without requiring or sending a client questionnaire.
+                            Terms and conditions still apply.
+                          </p>
+                        </div>
+                      )}
                       <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                         <input
                           id="generate_quote"

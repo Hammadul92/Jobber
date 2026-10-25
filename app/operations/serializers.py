@@ -169,12 +169,12 @@ class ClientSerializer(serializers.ModelSerializer):
         """Return active client services with submitted questionnaire answers."""
         return sum(
             1 for service in obj.client_services.all()
-            if bool(service.filled_questionnaire)
+            if not service.bypass_questionnaire and bool(service.filled_questionnaire)
         )
 
     def get_questionnaires_total(self, obj):
         """Return active client services expected to have questionnaires."""
-        return obj.client_services.count()
+        return obj.client_services.filter(bypass_questionnaire=False).count()
 
     def validate(self, attrs):
         user_data = attrs.get("user", {})
@@ -308,7 +308,7 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         fields = [
             "id", "client", "client_name", "business", "quotations",
             "service_name", "service_questionnaires", "service_terms_template",
-            "filled_questionnaire",
+            "filled_questionnaire", "bypass_questionnaire",
             "description", "start_date", "end_date", "service_type",
             "price", "currency", "billing_cycle", "status", "tax_rate",
             "auto_generate_quote", "auto_generate_invoices",
@@ -325,6 +325,8 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
     def get_service_questionnaires(self, obj):
         """Return the active questionnaire for this service if exists."""
+        if obj.bypass_questionnaire:
+            return {}
         questionnaire = obj.business.service_questionnaires.filter(
             service_name=obj.service_name,
             is_active=True
@@ -358,8 +360,8 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         Validates:
         - client belongs to business
         - service_name is offered by business
-        - questionnaire existence on creation
-        - cannot activate until questionnaire is filled
+        - questionnaire existence unless explicitly bypassed by the business
+        - cannot activate until questionnaire is filled or bypassed
         - no duplicate address for same service_name within a business
         """
         business = (
@@ -373,6 +375,19 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         )
 
         errors = {}
+
+        bypass = data.get("bypass_questionnaire", getattr(self.instance, "bypass_questionnaire", False))
+        previous_bypass = getattr(self.instance, "bypass_questionnaire", False)
+        if bypass != previous_bypass:
+            user = getattr(self.context.get("request"), "user", None)
+            if not user or not (
+                user.role == "ADMIN" or (user.role == "MANAGER" and business and business.owner_id == user.pk)
+            ):
+                errors["bypass_questionnaire"] = "Only the business owner can change questionnaire requirements."
+            if self.instance and self.instance.status != "PENDING":
+                errors["bypass_questionnaire"] = (
+                    "Questionnaire bypass can only be changed while the service is pending."
+                )
 
         if business and service_name:
             allowed_services = {
@@ -397,7 +412,7 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         )
 
         # Only require service templates on create or when service_name changes
-        if should_require_service_templates:
+        if not bypass and (should_require_service_templates or previous_bypass):
             has_questionnaire = business.service_questionnaires.filter(
                 service_name=service_name,
                 is_active=True
@@ -408,6 +423,7 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                     "questionnaire for the selected service name."
                 )
 
+        if should_require_service_templates:
             has_terms_template = business.service_terms_templates.filter(
                 service_name=service_name,
                 is_active=True,
@@ -417,6 +433,22 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                     "Cannot create this service because there is no active "
                     "terms and conditions template for the selected service name."
                 )
+
+        will_auto_quote = data.get("auto_generate_quote", getattr(self.instance, "auto_generate_quote", False))
+        if bypass and will_auto_quote:
+            has_quote = self.instance and self.instance.service_quotes.filter(is_active=True).exclude(
+                status="DECLINED",
+            ).exists()
+            if not has_quote and not business.service_terms_templates.filter(
+                service_name=service_name, is_active=True,
+            ).exists():
+                errors["bypass_questionnaire"] = "An active terms template is required to generate a quote."
+
+        if not self.instance and data.get("status") == "ACTIVE" and not bypass and not data.get("filled_questionnaire"):
+            errors["status"] = "Cannot activate this service until the questionnaire is completed or bypassed."
+
+        if bypass and data.get("filled_questionnaire"):
+            errors["filled_questionnaire"] = "This service bypasses the questionnaire."
 
         # Prevent activation before questionnaire is filled
         if self.instance:
@@ -431,13 +463,15 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                 and not getattr(self.instance, "filled_questionnaire", None)
             )
 
-            if new_status == "ACTIVE" and not filled_questionnaire:
+            if new_status == "ACTIVE" and not filled_questionnaire and not bypass:
                 errors["status"] = (
                     "Cannot mark this service as active until the client "
                     "has filled out the questionnaire."
                 )
 
-            if is_submitting_questionnaire:
+            if is_submitting_questionnaire and bypass:
+                errors["filled_questionnaire"] = "This service bypasses the questionnaire."
+            elif is_submitting_questionnaire:
                 has_questionnaire = business.service_questionnaires.filter(
                     service_name=service_name,
                     is_active=True,

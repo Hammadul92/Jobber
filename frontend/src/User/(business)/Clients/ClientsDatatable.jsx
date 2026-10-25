@@ -114,7 +114,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
   const questionnaireCountsByClient = useMemo(() => {
     return servicesData.reduce((counts, service) => {
       const clientId = String(service.client || "");
-      if (!clientId) return counts;
+      if (!clientId || service.bypass_questionnaire) return counts;
 
       const current = counts.get(clientId) || { filled: 0, total: 0 };
       const filledQuestionnaire = service.filled_questionnaire;

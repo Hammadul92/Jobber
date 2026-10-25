@@ -750,7 +750,106 @@ class WorkflowRegressionTests(TestCase):
             province_state=payload["province_state"],
             postal_code=payload["postal_code"],
             filled_questionnaire=payload.get("filled_questionnaire"),
+            bypass_questionnaire=payload.get("bypass_questionnaire", False),
         )
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    @patch("operations.views.emails.send_service_questionnaire_email")
+    def test_bypass_creates_without_questionnaire_and_generates_draft(self, questionnaire_email):
+        questionnaire, _ = self.create_questionnaire_and_terms()
+        questionnaire.delete()
+        self.client.force_authenticate(self.manager)
+
+        res = self.client.post(SERVICES_URL, self.service_payload(bypass_questionnaire=True))
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+        service = Service.objects.get(id=res.data["id"])
+        self.assertTrue(service.bypass_questionnaire)
+        self.assertIsNone(service.filled_questionnaire)
+        self.assertEqual(service.status, "PENDING")
+        self.assertEqual(res.data["service_questionnaires"], {})
+        quote = service.service_quotes.get()
+        self.assertEqual(quote.status, "DRAFT")
+        self.assertEqual(quote.general_terms_conditions, "General flooring terms.")
+        questionnaire_email.assert_not_called()
+
+        res = self.client.patch(service_detail_url(service.id), {"status": "ACTIVE"}, format="json")
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+        self.assertEqual(service.service_quotes.count(), 1)
+        self.assertFalse(Invoice.objects.filter(service=service).exists())
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    @patch("operations.views.emails.send_service_questionnaire_email")
+    def test_bypass_skips_existing_questionnaire_and_blocks_resend_and_answers(self, questionnaire_email):
+        self.create_questionnaire_and_terms()
+        self.client.force_authenticate(self.manager)
+        res = self.client.post(
+            SERVICES_URL, self.service_payload(bypass_questionnaire=True, auto_generate_quote=False),
+        )
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+        service = Service.objects.get(id=res.data["id"])
+        self.assertFalse(service.service_quotes.exists())
+        questionnaire_email.assert_not_called()
+        res = self.client.post(reverse("operations:service-resend-questionnaire", args=[service.id]))
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        res = self.client.patch(
+            service_detail_url(service.id), {"filled_questionnaire": {"Room size": "Large"}}, format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_bypass_does_not_skip_terms_requirement(self):
+        self.client.force_authenticate(self.manager)
+        res = self.client.post(
+            SERVICES_URL, self.service_payload(bypass_questionnaire=True, auto_generate_quote=False),
+        )
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("terms and conditions", str(res.data))
+        self.assertFalse(Service.objects.exists())
+
+    def test_questionnaire_remains_required_by_default(self):
+        questionnaire, _ = self.create_questionnaire_and_terms()
+        questionnaire.delete()
+        self.client.force_authenticate(self.manager)
+        res = self.client.post(SERVICES_URL, self.service_payload())
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("questionnaire", str(res.data))
+
+    def test_client_cannot_bypass_questionnaire(self):
+        self.create_questionnaire_and_terms()
+        service = self.create_service()
+        self.client.force_authenticate(self.client_user)
+        res = self.client.patch(
+            service_detail_url(service.id), {"bypass_questionnaire": True}, format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        service.refresh_from_db()
+        self.assertFalse(service.bypass_questionnaire)
+
+    def test_cannot_remove_bypass_without_questionnaire_or_change_after_activation(self):
+        service = self.create_service(bypass_questionnaire=True, auto_generate_quote=False)
+        self.client.force_authenticate(self.manager)
+        res = self.client.patch(
+            service_detail_url(service.id), {"bypass_questionnaire": False}, format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.create_questionnaire_and_terms()
+        service.status = "ACTIVE"
+        service.save()
+        res = self.client.patch(
+            service_detail_url(service.id), {"bypass_questionnaire": False}, format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_pending_service_can_enable_bypass_and_generate_quote_once(self):
+        self.create_questionnaire_and_terms()
+        service = self.create_service()
+        self.client.force_authenticate(self.manager)
+        for _ in range(2):
+            res = self.client.patch(
+                service_detail_url(service.id), {"bypass_questionnaire": True}, format="json",
+            )
+            self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+        self.assertEqual(service.service_quotes.count(), 1)
 
     def sign_quote_as_client(self, quote):
         self.client.force_authenticate(self.client_user)

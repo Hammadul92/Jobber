@@ -239,7 +239,7 @@ export default function DashboardTodos({ token, user, business }) {
         ? `/user/business/client/${service.client}/services`
         : "/user/business/services";
 
-      if (!hasFilledQuestionnaire(service)) {
+      if (!service.bypass_questionnaire && !hasFilledQuestionnaire(service)) {
         nextTodos.push(
           createTodo({
             id: `service-questionnaire-response:${serviceId}`,
@@ -253,7 +253,7 @@ export default function DashboardTodos({ token, user, business }) {
       }
 
       if (
-        hasFilledQuestionnaire(service) &&
+        (service.bypass_questionnaire || hasFilledQuestionnaire(service)) &&
         service.auto_generate_quote &&
         !activeQuoteServiceIds.has(serviceId)
       ) {
@@ -261,7 +261,7 @@ export default function DashboardTodos({ token, user, business }) {
           createTodo({
             id: `quote-missing:${serviceId}`,
             title: `Create quote for ${serviceName}`,
-            description: `${clientName}'s questionnaire is complete, but no active quote exists yet.`,
+            description: `${clientName} is ready for a quote, but no active quote exists yet.`,
             to: clientLink,
             type: "Quote",
             priority: "high",

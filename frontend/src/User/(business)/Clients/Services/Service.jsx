@@ -283,8 +283,10 @@ export default function Service({ token }) {
           </label>
           {autoGenerateQuote && (
             <p className="flex items-start gap-2 text-sm text-slate-500">
-              <LuInfo className="mt-0.5 h-4 w-4 text-slate-400" />A quote will
-              be generated automatically after the questionnaire is completed.
+              <LuInfo className="mt-0.5 h-4 w-4 text-slate-400" />
+              {serviceData?.bypass_questionnaire
+                ? "A draft quote is generated automatically when this service is created."
+                : "A quote will be generated automatically after the questionnaire is completed."}
             </p>
           )}
 
@@ -301,8 +303,7 @@ export default function Service({ token }) {
           {autoGenerateInvoices && (
             <p className="flex items-start gap-2 text-sm text-slate-500">
               <LuInfo className="mt-0.5 h-4 w-4 text-slate-400" />
-              Invoices will be created automatically once the questionnaire is
-              completed and the quote is signed.
+              Invoices will be created automatically once the service is active and the quote is signed.
             </p>
           )}
         </div>

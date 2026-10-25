@@ -559,6 +559,7 @@ class Service(SoftDeletableModel):
     postal_code = models.CharField(max_length=20)
 
     # Save filled questionnaire form
+    bypass_questionnaire = models.BooleanField(default=False)
     filled_questionnaire = models.JSONField(
         blank=True,
         null=True,

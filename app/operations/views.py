@@ -39,6 +39,25 @@ def get_active_service_terms_template(service):
     ).first()
 
 
+def create_auto_quote_for_service(service):
+    """Create the draft once questionnaire requirements are satisfied or waived."""
+    if not service.auto_generate_quote or not (service.bypass_questionnaire or service.filled_questionnaire):
+        return
+    if service.service_quotes.filter(is_active=True).exclude(status="DECLINED").exists():
+        return
+    terms_template = get_active_service_terms_template(service)
+    if not terms_template:
+        raise ValidationError({"service_name": "No active terms and conditions template exists for this service."})
+    Quote.objects.create(
+        service=service,
+        valid_until=timezone.now().date() + timedelta(days=2),
+        general_terms_conditions=terms_template.content,
+        terms_conditions="",
+        notes="Auto-generated.",
+        status="DRAFT",
+    )
+
+
 def create_auto_invoice_for_service(service):
     """Create an invoice when a service is invoice-eligible."""
     if (
@@ -210,31 +229,19 @@ class ServiceViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         prev_filled_questionnaire = instance.filled_questionnaire
+        was_ready = bool(prev_filled_questionnaire) or instance.bypass_questionnaire
+        previous_auto_quote = instance.auto_generate_quote
         prev_status = instance.status
 
         response = super().update(request, *args, **kwargs)
         instance.refresh_from_db()
 
-        # Auto-generate quote as soon as questionnaire is filled and auto_generate_quote is true
+        # Generate a quote when intake becomes ready, including an explicit bypass.
         if (
-            not prev_filled_questionnaire
-            and instance.filled_questionnaire
-            and instance.auto_generate_quote
+            (not was_ready and (instance.filled_questionnaire or instance.bypass_questionnaire))
+            or (instance.bypass_questionnaire and not previous_auto_quote and instance.auto_generate_quote)
         ):
-            if not (
-                instance.service_quotes.filter(is_active=True)
-                .exclude(status="DECLINED")
-                .exists()
-            ):
-                terms_template = get_active_service_terms_template(instance)
-                Quote.objects.create(
-                    service=instance,
-                    valid_until=timezone.now().date() + timedelta(days=2),
-                    general_terms_conditions=terms_template.content if terms_template else "",
-                    terms_conditions="",
-                    notes="Auto-generated.",
-                    status="DRAFT",
-                )
+            create_auto_quote_for_service(instance)
 
         if not prev_filled_questionnaire and instance.filled_questionnaire:
             emails.send_questionnaire_submitted_email(instance)
@@ -251,12 +258,18 @@ class ServiceViewSet(viewsets.ModelViewSet):
         if prev_status != instance.status and request.user.role == "MANAGER":
             emails.send_service_status_changed_email(instance, prev_status)
 
+        response.data = self.get_serializer(instance).data
         return response
 
     @action(detail=True, methods=["post"], url_path="resend-questionnaire")
     def resend_questionnaire(self, request, pk=None):
         """Resend the questionnaire email to the client if not filled."""
         service = self.get_object()
+        if service.bypass_questionnaire:
+            return Response(
+                {"detail": "The questionnaire is bypassed for this service."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         # Check if questionnaire is already filled
         if service.filled_questionnaire:
             return Response(
@@ -302,6 +315,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Create a service and send the client its workflow emails."""
         service = serializer.save()
+        create_auto_quote_for_service(service)
 
         emails.send_service_created_email(service)
 
@@ -310,7 +324,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
             is_active=True,
         ).first()
 
-        if questionnaire:
+        if questionnaire and not service.bypass_questionnaire:
             emails.send_service_questionnaire_email(
                 service=service,
                 questionnaire=questionnaire,
