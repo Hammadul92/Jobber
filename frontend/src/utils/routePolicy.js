@@ -9,6 +9,13 @@ export function isMagicQuoteLink(pathname, search) {
   );
 }
 
+export function isMagicInvoiceLink(pathname, search) {
+  return (
+    /^\/user\/business\/invoice\/[^/]+\/?$/.test(pathname) &&
+    new URLSearchParams(search).has("token")
+  );
+}
+
 export function getPublicRedirectUrl(publicSiteHomeUrl, currentUrl) {
   const current = new URL(currentUrl);
   const publicUrl = new URL(publicSiteHomeUrl, current.origin);

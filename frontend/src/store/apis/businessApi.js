@@ -1,5 +1,15 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getBaseUrl } from "./baseConfig";
+import { userApi } from "./userApi";
+
+const refreshUserAfterBusinessSave = async (_arg, { dispatch, queryFulfilled }) => {
+  try {
+    await queryFulfilled;
+    dispatch(userApi.util.invalidateTags(["CurrentUser"]));
+  } catch {
+    // Failed saves must not change the cached user's permissions.
+  }
+};
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: `${getBaseUrl()}/ops`,
@@ -54,6 +64,7 @@ const businessApi = createApi({
         body: data,
       }),
       invalidatesTags: ["Business"],
+      onQueryStarted: refreshUserAfterBusinessSave,
     }),
 
     updateBusiness: builder.mutation({
@@ -66,6 +77,7 @@ const businessApi = createApi({
         "Business",
         { type: "Business", id: arg.id },
       ],
+      onQueryStarted: refreshUserAfterBusinessSave,
     }),
 
     deleteBusiness: builder.mutation({

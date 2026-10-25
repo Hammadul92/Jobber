@@ -137,6 +137,54 @@ class DirectChargeTests(workflows.InvoicePaymentWorkflowTests):
         self.assertEqual(self.invoice.status, "SENT")
         self.assertEqual(Payout.objects.get(invoice=self.invoice).status, "PENDING")
 
+    @patch("finance.views.emails.send_invoice_paid_email")
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_declined_or_authentication_required_card_is_never_marked_paid(self, create, email):
+        self.add_client_payment_method()
+        self.add_business_bank_account()
+        self.client.force_authenticate(self.client_user)
+        for code in ("card_declined", "authentication_required"):
+            with self.subTest(code=code):
+                create.side_effect = stripe.CardError("Card requires attention", "payment_method", code)
+                response = self.client.post(self.make_payment_url())
+                self.assertEqual(response.status_code, 400)
+                self.assertIn("Card requires attention", response.data["error"])
+                self.invoice.refresh_from_db()
+                self.assertEqual(self.invoice.status, "SENT")
+        self.assertFalse(Payout.objects.filter(invoice=self.invoice, status="PAID").exists())
+        email.assert_not_called()
+
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_ambiguous_network_failure_cannot_create_a_second_charge(self, create):
+        self.add_client_payment_method()
+        self.add_business_bank_account()
+        create.side_effect = stripe.APIConnectionError("Connection interrupted")
+        self.client.force_authenticate(self.client_user)
+        first = self.client.post(self.make_payment_url())
+        second = self.client.post(self.make_payment_url())
+        self.assertEqual(first.status_code, 400)
+        self.assertEqual(second.status_code, 409)
+        self.assertIn("pending review", second.data["error"])
+        create.assert_called_once()
+        self.assertEqual(Payout.objects.filter(invoice=self.invoice).count(), 1)
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, "SENT")
+
+    @patch("finance.views.stripe.PaymentIntent.retrieve")
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_changed_invoice_during_pending_payment_is_not_marked_paid(self, create, retrieve):
+        Payout.objects.create(
+            business=self.business, invoice=self.invoice, amount="100.00", currency="CAD",
+            status="PENDING", stripe_payment_intent_id="pi_pending", stripe_account_id="acct_original",
+        )
+        retrieve.return_value = SimpleNamespace(id="pi_pending", status="succeeded")
+        self.client.force_authenticate(self.client_user)
+        response = self.client.post(self.make_payment_url())
+        self.assertEqual(response.status_code, 409)
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, "SENT")
+        create.assert_not_called()
+
     @patch("finance.views.stripe.PaymentIntent.retrieve")
     @patch("finance.views.stripe.PaymentIntent.create")
     def test_retry_checks_pending_charge_without_charging_new_account(self, create, retrieve):

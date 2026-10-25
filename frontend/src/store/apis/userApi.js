@@ -27,6 +27,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: baseQueryWithReauth,
+  tagTypes: ["CurrentUser"],
   endpoints: (builder) => ({
     createUser: builder.mutation({
       query: (data) => ({
@@ -68,6 +69,7 @@ const userApi = createApi({
         url: "/me",
         method: "GET",
       }),
+      providesTags: ["CurrentUser"],
     }),
     logoutUser: builder.mutation({
       queryFn: async () => {

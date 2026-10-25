@@ -255,9 +255,6 @@ class ServiceViewSet(viewsets.ModelViewSet):
         ):
             create_auto_invoice_for_service(instance)
 
-        if prev_status != instance.status and request.user.role == "MANAGER":
-            emails.send_service_status_changed_email(instance, prev_status)
-
         response.data = self.get_serializer(instance).data
         return response
 
@@ -461,6 +458,12 @@ class QuoteViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+            signature_serializer = self.get_serializer(
+                quote, data={"signature": signature}, partial=True,
+            )
+            signature_serializer.is_valid(raise_exception=True)
+            signature = signature_serializer.validated_data["signature"]
+
             quote.signed_at = timezone.now()
             quote.status = "SIGNED"
             quote.signature = signature
@@ -475,6 +478,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
         if new_status == "SIGNED":
             create_auto_invoice_for_service(quote.service)
             emails.send_quote_signed_email(quote)
+            emails.send_signed_quote_copy_email(quote)
 
         return Response(
             {"detail": f"Quote successfully {new_status.lower()}."},

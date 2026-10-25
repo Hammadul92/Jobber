@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlsplit
 
 from django.contrib.auth import get_user_model
 from django.core import mail
@@ -12,6 +13,8 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 from django.test import TestCase, override_settings
+from finance.emails import send_invoice_email
+from user.utils import generate_magic_login_token
 import stripe
 
 from core.models import (
@@ -142,6 +145,298 @@ class InvoicePaymentWorkflowTests(TestCase):
             "Client does not have an active payment method.",
         )
         self.assertFalse(Payout.objects.filter(invoice=self.invoice).exists())
+
+    def test_customer_can_view_invoices_for_all_their_business_relationships(self):
+        other_manager = get_user_model().objects.create_user(
+            "other-finance-manager@example.com", "test123", role="MANAGER",
+        )
+        other_business = create_business(other_manager, slug="other-business")
+        other_client = Client.objects.create(business=other_business, user=self.client_user)
+        other_invoice = Invoice.objects.create(
+            business=other_business, client=other_client,
+            due_date=date.today(), status="SENT", subtotal=10,
+            tax_rate=0, tax_amount=0, total_amount=10,
+        )
+        self.client.force_authenticate(self.client_user)
+        for invoice in (self.invoice, other_invoice):
+            res = self.client.get(reverse("finance:invoice-detail", args=[invoice.pk]))
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+        listing = self.client.get(reverse("finance:invoice-list"))
+        self.assertEqual(
+            {item["id"] for item in listing.data["results"]},
+            {self.invoice.pk, other_invoice.pk},
+        )
+
+    def test_business_owner_invoice_list_excludes_their_customer_bills(self):
+        self.client_user.role = "MANAGER"
+        self.client_user.save(update_fields=["role"])
+        own_business = create_business(self.client_user, slug="invoice-customer-business")
+        own_client = Client.objects.create(business=own_business, user=self.manager)
+        own_invoice = Invoice.objects.create(
+            business=own_business, client=own_client, due_date=date.today(),
+            status="SENT", subtotal=10, tax_rate=0, tax_amount=0, total_amount=10,
+        )
+        self.client.force_authenticate(self.client_user)
+
+        listing = self.client.get(reverse("finance:invoice-list"))
+
+        self.assertEqual(listing.status_code, 200)
+        self.assertEqual(
+            {item["id"] for item in listing.data["results"]}, {own_invoice.pk},
+        )
+        self.assertEqual(
+            self.client.get(reverse("finance:invoice-detail", args=[self.invoice.pk])).status_code,
+            200,
+        )
+
+    def test_empty_payment_record_is_not_reported_as_a_saved_card(self):
+        BankingInformation.objects.create(client=self.client_record, payment_method_type="CARD")
+        self.client.force_authenticate(self.client_user)
+        res = self.client.get(reverse("finance:invoice-detail", args=[self.invoice.pk]))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertFalse(res.data["has_payment_method"])
+
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_customer_can_use_their_saved_card_from_another_business_relationship(self, create):
+        manager = get_user_model().objects.create_user("second-owner@example.com", "test123", role="MANAGER")
+        business = create_business(manager, slug="second-business")
+        client_record = Client.objects.create(business=business, user=self.client_user)
+        BankingInformation.objects.create(
+            client=client_record, payment_method_type="CARD",
+            stripe_customer_id="cus_shared", stripe_payment_method_id="pm_shared",
+        )
+        self.add_business_bank_account()
+        create.return_value = SimpleNamespace(id="pi_success", status="succeeded")
+        self.client.force_authenticate(self.client_user)
+        detail = self.client.get(reverse("finance:invoice-detail", args=[self.invoice.pk]))
+        self.assertTrue(detail.data["has_payment_method"])
+        self.assertEqual(self.client.post(self.make_payment_url()).status_code, 200)
+        self.assertEqual(self.mock_clone.call_args.kwargs["payment_method"], "pm_shared")
+        self.assertEqual(self.mock_clone.call_args.kwargs["customer"], "cus_shared")
+
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_another_customers_card_is_never_used(self, create):
+        other = get_user_model().objects.create_user("card-owner@example.com", "test123", role="CLIENT")
+        other_client = Client.objects.create(business=self.business, user=other)
+        BankingInformation.objects.create(
+            client=other_client, payment_method_type="CARD",
+            stripe_customer_id="cus_other", stripe_payment_method_id="pm_other",
+        )
+        self.add_business_bank_account()
+        self.client.force_authenticate(self.client_user)
+        detail = self.client.get(reverse("finance:invoice-detail", args=[self.invoice.pk]))
+        self.assertFalse(detail.data["has_payment_method"])
+        self.assertEqual(self.client.post(self.make_payment_url()).status_code, 400)
+        create.assert_not_called()
+        self.mock_clone.assert_not_called()
+
+    def test_inactive_or_incomplete_cards_are_not_payable(self):
+        card = self.add_client_payment_method()
+        self.client.force_authenticate(self.client_user)
+        for changes in (
+            {"is_active": False},
+            {"is_active": True, "stripe_customer_id": ""},
+            {"stripe_customer_id": "cus_test", "stripe_payment_method_id": None},
+        ):
+            for field, value in changes.items():
+                setattr(card, field, value)
+            card.save(update_fields=list(changes))
+            detail = self.client.get(reverse("finance:invoice-detail", args=[self.invoice.pk]))
+            self.assertFalse(detail.data["has_payment_method"])
+
+    def test_draft_and_deleted_invoices_are_not_visible_to_customers(self):
+        self.client.force_authenticate(self.client_user)
+        url = reverse("finance:invoice-detail", args=[self.invoice.pk])
+        self.invoice.status = "DRAFT"
+        self.invoice.save(update_fields=["status"])
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.invoice.status = "SENT"
+        self.invoice.soft_delete(user=self.manager)
+        self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_customer_cannot_delete_invoice(self):
+        self.client.force_authenticate(self.client_user)
+        res = self.client.delete(reverse("finance:invoice-detail", args=[self.invoice.pk]))
+        self.assertEqual(res.status_code, 403)
+        self.assertTrue(Invoice.objects.filter(pk=self.invoice.pk).exists())
+
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_non_positive_invoice_amount_is_not_charged(self, create):
+        self.add_client_payment_method()
+        self.add_business_bank_account()
+        self.client.force_authenticate(self.client_user)
+        for amount in (Decimal("0.00"), Decimal("-1.00")):
+            self.invoice.total_amount = amount
+            self.invoice.save(update_fields=["total_amount"])
+            self.assertEqual(self.client.post(self.make_payment_url()).status_code, 400)
+        create.assert_not_called()
+        self.mock_clone.assert_not_called()
+
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_payment_uses_valid_card_instead_of_earlier_incomplete_record(self, create):
+        BankingInformation.objects.create(client=self.client_record, payment_method_type="CARD")
+        self.add_client_payment_method()
+        self.add_business_bank_account()
+        create.return_value = SimpleNamespace(id="pi_success", status="succeeded")
+        self.client.force_authenticate(self.client_user)
+        self.assertEqual(self.client.post(self.make_payment_url()).status_code, 200)
+        create.assert_called_once()
+
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_customer_cannot_pay_cancelled_invoice(self, create):
+        self.add_client_payment_method()
+        self.add_business_bank_account()
+        self.invoice.status = "CANCELLED"
+        self.invoice.save(update_fields=["status"])
+        self.client.force_authenticate(self.client_user)
+        self.assertEqual(self.client.post(self.make_payment_url()).status_code, 400)
+        create.assert_not_called()
+        self.mock_clone.assert_not_called()
+
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_business_owner_cannot_charge_customer_via_customer_pay_action(self, create):
+        self.add_client_payment_method()
+        self.add_business_bank_account()
+        self.client.force_authenticate(self.manager)
+        self.assertEqual(self.client.post(self.make_payment_url()).status_code, 403)
+        create.assert_not_called()
+
+    def test_customer_cannot_mark_invoice_paid_without_payment(self):
+        self.client.force_authenticate(self.client_user)
+        res = self.client.patch(
+            reverse("finance:invoice-detail", args=[self.invoice.pk]),
+            {"status": "PAID"}, format="json",
+        )
+        self.assertEqual(res.status_code, 403)
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, "SENT")
+
+    def test_business_owner_is_customer_when_viewing_another_business_invoice(self):
+        self.client_user.role = "MANAGER"
+        self.client_user.save(update_fields=["role"])
+        create_business(self.client_user, slug="customers-own-business")
+        self.client.force_authenticate(self.client_user)
+        url = reverse("finance:invoice-detail", args=[self.invoice.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.data["can_manage"])
+        self.client.force_authenticate(self.manager)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["can_manage"])
+
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_business_owner_as_customer_can_use_their_own_linked_card(self, create):
+        own_business = create_business(self.client_user, slug="customers-own-business")
+        card = self.add_client_payment_method()
+        card.business = own_business
+        card.save(update_fields=["business"])
+        self.add_business_bank_account()
+        create.return_value = SimpleNamespace(id="pi_dual_role", status="succeeded")
+        self.client.force_authenticate(self.client_user)
+        detail = self.client.get(reverse("finance:invoice-detail", args=[self.invoice.pk]))
+        self.assertTrue(detail.data["has_payment_method"])
+        self.assertFalse(detail.data["can_manage"])
+        self.assertEqual(self.client.post(self.make_payment_url()).status_code, 200)
+        create.assert_called_once()
+
+    def test_other_customer_cannot_view_or_pay_invoice(self):
+        other = get_user_model().objects.create_user("other-client@example.com", "test123", role="CLIENT")
+        self.client.force_authenticate(other)
+        self.assertEqual(
+            self.client.get(reverse("finance:invoice-detail", args=[self.invoice.pk])).status_code, 404,
+        )
+        self.assertEqual(self.client.post(self.make_payment_url()).status_code, 404)
+
+    def test_signed_out_customer_cannot_access_invoice_without_login(self):
+        self.assertEqual(
+            self.client.get(reverse("finance:invoice-detail", args=[self.invoice.pk])).status_code, 401,
+        )
+        self.assertEqual(self.client.post(self.make_payment_url()).status_code, 401)
+
+    @patch("finance.emails.send_branded_email")
+    @patch("finance.views.stripe.PaymentIntent.create")
+    def test_invoice_email_link_logs_in_customer_then_views_and_pays(self, create, send):
+        self.add_client_payment_method()
+        self.add_business_bank_account()
+        create.return_value = SimpleNamespace(id="pi_from_email", status="succeeded")
+        send_invoice_email(self.invoice)
+        values = send.call_args.kwargs
+        link = values["action_url"]
+        self.assertIn(link, values["text_body"])
+        self.assertEqual(values["recipient_list"], [self.client_user.email])
+        self.assertEqual(urlsplit(link).path, f"/user/business/invoice/{self.invoice.pk}")
+        magic_token = parse_qs(urlsplit(link).query)["token"][0]
+        login = self.client.post(reverse("user:magic-login"), {"token": magic_token}, format="json")
+        self.assertEqual(login.status_code, 200)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {login.data['token']}")
+        self.assertEqual(
+            self.client.get(reverse("finance:invoice-detail", args=[self.invoice.pk])).status_code, 200,
+        )
+        self.assertEqual(self.client.post(self.make_payment_url()).status_code, 200)
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, "PAID")
+
+    def test_expired_or_tampered_invoice_login_links_are_rejected(self):
+        with patch("django.core.signing.time.time", return_value=0):
+            expired = generate_magic_login_token(self.client_user)
+        for token in (expired, generate_magic_login_token(self.client_user) + "tampered", ""):
+            with self.subTest(token_type="empty" if not token else "invalid"):
+                response = self.client.post(reverse("user:magic-login"), {"token": token}, format="json")
+                self.assertEqual(response.status_code, 400)
+                self.assertNotIn("token", response.data)
+
+    def test_inactive_customer_cannot_use_invoice_magic_link(self):
+        token = generate_magic_login_token(self.client_user)
+        self.client_user.is_active = False
+        self.client_user.save(update_fields=["is_active"])
+        response = self.client.post(reverse("user:magic-login"), {"token": token}, format="json")
+        self.assertEqual(response.status_code, 400)
+
+    @patch("finance.emails.send_branded_email")
+    def test_owner_can_resend_existing_invoice_with_secure_link(self, send):
+        self.client.force_authenticate(self.manager)
+        response = self.client.post(reverse("finance:invoice-send-invoice", args=[self.invoice.pk]))
+        self.assertEqual(response.status_code, 200)
+        send.assert_called_once()
+        self.assertIn("?token=", send.call_args.kwargs["action_url"])
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, "SENT")
+        self.assertFalse(Payout.objects.filter(invoice=self.invoice).exists())
+
+    @patch("finance.views.emails.send_invoice_email")
+    def test_customer_cannot_resend_invoice_and_paid_or_cancelled_are_blocked(self, send):
+        url = reverse("finance:invoice-send-invoice", args=[self.invoice.pk])
+        self.client.force_authenticate(self.client_user)
+        self.assertEqual(self.client.post(url).status_code, 403)
+        self.client.force_authenticate(self.manager)
+        for value in ("PAID", "CANCELLED"):
+            self.invoice.status = value
+            self.invoice.save(update_fields=["status"])
+            self.assertEqual(self.client.post(url).status_code, 400)
+        send.assert_not_called()
+
+    @patch("finance.views.emails.send_invoice_email")
+    def test_sending_draft_invoice_marks_it_sent(self, send):
+        self.invoice.status = "DRAFT"
+        self.invoice.save(update_fields=["status"])
+        self.client.force_authenticate(self.manager)
+        response = self.client.post(reverse("finance:invoice-send-invoice", args=[self.invoice.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, "SENT")
+        send.assert_called_once()
+
+    @patch("finance.views.logger.exception")
+    @patch("finance.views.emails.send_invoice_email", side_effect=RuntimeError("Email provider unavailable"))
+    def test_email_failure_keeps_draft_invoice_unsent(self, send, log):
+        self.invoice.status = "DRAFT"
+        self.invoice.save(update_fields=["status"])
+        self.client.force_authenticate(self.manager)
+        response = self.client.post(reverse("finance:invoice-send-invoice", args=[self.invoice.pk]))
+        self.assertEqual(response.status_code, 503)
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, "DRAFT")
 
     def test_payment_blocked_when_business_has_no_connected_bank_account(self):
         """Test invoice payment fails clearly without business Stripe account."""

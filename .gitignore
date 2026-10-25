@@ -216,3 +216,4 @@ backups/
 
 # Local browser verification artifacts
 .playwright-cli/
+output/

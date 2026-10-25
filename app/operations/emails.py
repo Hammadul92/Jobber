@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from core.emails import send_branded_email
+from operations.pdf import build_signed_quote_pdf
 from user.utils import generate_magic_login_token
 
 
@@ -131,49 +132,6 @@ def send_service_created_email(service):
                     f"{service.province_state} {service.postal_code}"
                 ),
             },
-        ],
-        action_label="View Service",
-        action_url=service_link,
-        signoff=f"The {business.name} Team",
-        brand_name=business.name,
-        brand_logo=business.logo,
-    )
-
-
-def send_service_status_changed_email(service, previous_status):
-    """Notify a client that their service status changed."""
-    client = service.client.user
-    business = service.business
-    service_link = f"{settings.FRONTEND_URL}/user/business/service/{service.id}"
-    previous_label = dict(service._meta.get_field("status").choices).get(
-        previous_status,
-        previous_status.replace("_", " ").title(),
-    )
-
-    subject = f"Service status updated: {service.service_name}"
-    message = (
-        f"Hello {client.name},\n\n"
-        f"{business.name} updated the status of your "
-        f"{service.service_name} service.\n\n"
-        f"Previous status: {previous_label}\n"
-        f"New status: {service.get_status_display()}\n\n"
-        f"View the service here:\n{service_link}\n\n"
-        f"Best regards,\nThe {business.name} Team"
-    )
-
-    send_branded_email(
-        subject=subject,
-        text_body=message,
-        recipient_list=[client.email],
-        eyebrow="Service update",
-        heading="Your service status changed.",
-        paragraphs=[
-            f"Hello {client.name},",
-            f"{business.name} updated your {service.service_name} service.",
-        ],
-        details=[
-            {"label": "Previous status", "value": previous_label},
-            {"label": "New status", "value": service.get_status_display()},
         ],
         action_label="View Service",
         action_url=service_link,
@@ -343,3 +301,46 @@ def send_quote_signed_email(quote):
         brand_name=business.name,
         brand_logo=business.logo,
     )
+
+
+def send_signed_quote_copy_email(quote):
+    """Send the signing client a PDF copy of their finalized quote."""
+    business = quote.service.business
+    client = quote.service.client.user
+    quote_link = f"{settings.FRONTEND_URL}/user/business/quote/{quote.id}"
+    subject = f"Your signed quote: {quote.quote_number}"
+    message = (
+        f"Hello {client.name},\n\n"
+        f"You signed quote {quote.quote_number} from {business.name} for "
+        f"{quote.service.service_name}.\n\n"
+        "A PDF copy of your signed quote is attached for your records.\n\n"
+        f"View your signed quote here:\n{quote_link}\n\n"
+        f"Best regards,\nThe {business.name} Team"
+    )
+
+    with build_signed_quote_pdf(quote) as pdf:
+        send_branded_email(
+            subject=subject,
+            text_body=message,
+            recipient_list=[client.email],
+            eyebrow="Signed quote",
+            heading="Your signed quote, for your records.",
+            paragraphs=[
+                f"Hello {client.name},",
+                f"You signed the quote from {business.name} for {quote.service.service_name}.",
+                "A PDF copy of your signed quote is attached for your records.",
+            ],
+            details=[
+                {"label": "Quote", "value": quote.quote_number},
+                {"label": "Service", "value": quote.service.service_name},
+                {"label": "Signed", "value": quote.signed_at},
+            ],
+            action_label="View Signed Quote",
+            action_url=quote_link,
+            signoff=f"The {business.name} Team",
+            brand_name=business.name,
+            brand_logo=business.logo,
+            attachments=[
+                (f"{quote.quote_number}-signed.pdf", pdf.read(), "application/pdf"),
+            ],
+        )

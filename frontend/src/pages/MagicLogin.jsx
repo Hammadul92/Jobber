@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams, useParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { useMagicLoginMutation } from "../store";
 
 /**
@@ -19,15 +19,14 @@ export default function MagicLogin({ destination: destinationOverride }) {
   const [searchParams] = useSearchParams();
   const { questionnaireId, serviceId } = useParams();
   const magicToken = searchParams.get("token");
+  const destination =
+    destinationOverride ||
+    `/user/business/service-questionnaire/${questionnaireId}/form/${serviceId}`;
 
   const [magicLogin] = useMagicLoginMutation();
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const destination =
-      destinationOverride ||
-      `/user/business/service-questionnaire/${questionnaireId}/form/${serviceId}`;
-
     // No magic token — fall back to existing session (direct navigation)
     if (!magicToken) {
       const existingToken = localStorage.getItem("token");
@@ -60,6 +59,7 @@ export default function MagicLogin({ destination: destinationOverride }) {
     login();
   }, [
     destinationOverride,
+    destination,
     magicToken,
     magicLogin,
     navigate,
@@ -75,6 +75,12 @@ export default function MagicLogin({ destination: destinationOverride }) {
             Link Expired
           </h2>
           <p className="text-sm text-red-600">{error}</p>
+          <Link
+            to={`/sign-in?next=${encodeURIComponent(destination)}`}
+            className="mt-4 inline-block font-medium text-secondary underline"
+          >
+            Sign in to continue
+          </Link>
         </div>
       </div>
     );

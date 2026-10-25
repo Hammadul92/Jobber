@@ -74,7 +74,7 @@ function MobileTopbar({ role, businessName, user }) {
         name: "Services",
         path: "/user/business/services",
         icon: LuFileText,
-        is_visible: role === "CLIENT",
+        is_visible: role === "CLIENT" || role === "MANAGER",
       },
       {
         name: "Payouts",

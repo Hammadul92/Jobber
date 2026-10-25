@@ -1,12 +1,17 @@
 from django.conf import settings
 
 from core.emails import send_branded_email
+from user.utils import generate_magic_login_token
 
 
 def send_invoice_email(invoice):
     """Send invoice notification email to client with portal link."""
 
-    portal_link = f"{settings.FRONTEND_URL}/user/business/invoice/{invoice.id}"
+    magic_token = generate_magic_login_token(invoice.client.user)
+    portal_link = (
+        f"{settings.FRONTEND_URL}/user/business/invoice/{invoice.id}"
+        f"?token={magic_token}"
+    )
 
     subject = f"Invoice #{invoice.invoice_number} from {invoice.business.name}"
     message = (
@@ -15,8 +20,10 @@ def send_invoice_email(invoice):
         f"Invoice Number: {invoice.invoice_number}\n"
         f"Amount: {invoice.total_amount} {invoice.currency}\n"
         f"Due Date: {invoice.due_date}\n\n"
-        f"You can log in to your client portal to view and pay this invoice:\n"
+        f"Use this secure link to view and pay this invoice:\n"
         f"{portal_link}\n\n"
+        "This secure link signs you in automatically and expires in 1 hour.\n"
+        "If it expires, sign in to your client portal to view the invoice.\n\n"
         "If you have any questions, please contact the business directly.\n\n"
         f"Best regards,\n"
         f"{invoice.business.name}"
@@ -42,7 +49,11 @@ def send_invoice_email(invoice):
         ],
         action_label="View and Pay Invoice",
         action_url=portal_link,
-        notice="Questions about this invoice should be directed to the business.",
+        notice=(
+            "This secure link signs you in automatically and expires in 1 hour. "
+            "If it expires, sign in to view your invoice. "
+            "Questions about this invoice should be directed to the business."
+        ),
         signoff=invoice.business.name,
         brand_name=invoice.business.name,
         brand_logo=invoice.business.logo,

@@ -15,6 +15,7 @@ import Dropdown from "../../Components/ui/Dropdown";
 import Textarea from "../../Components/ui/Textarea";
 import { useFetchUserQuery } from "../../store";
 import { NavLink } from "react-router-dom";
+import { generateBusinessSlug } from "../../utils/businessSlug";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
@@ -68,7 +69,6 @@ export default function Business({ token, setAlert }) {
   const {
     data: businessData,
     isLoading,
-    refetch,
   } = useFetchBusinessesQuery(undefined, { skip: !token });
   const {
     data: serviceOptions = [],
@@ -79,12 +79,6 @@ export default function Business({ token, setAlert }) {
     useCreateBusinessMutation();
   const [updateBusiness, { isLoading: isUpdating }] =
     useUpdateBusinessMutation();
-
-  const generateSlug = (text) => text.toLowerCase().trim().replace(/\s+/g, "-");
-
-  useEffect(() => {
-    setSlug(generateSlug(name));
-  }, [name]);
 
   useEffect(() => {
     if (businessData?.length > 0) {
@@ -173,6 +167,14 @@ export default function Business({ token, setAlert }) {
   const setFieldValue = (setter, fieldName) => (value) => {
     setter(value);
     setFieldErrors((prev) => ({ ...prev, [fieldName]: "" }));
+  };
+
+  const handleNameChange = (value) => {
+    // Existing businesses and manually edited slugs keep their saved URL.
+    if (!businessId && (!slug || slug === generateBusinessSlug(name))) {
+      setFieldValue(setSlug, "slug")(generateBusinessSlug(value));
+    }
+    setFieldValue(setName, "name")(value);
   };
 
   const handleLogoSelection = (file) => {
@@ -419,7 +421,6 @@ export default function Business({ token, setAlert }) {
           message: "Business created successfully!",
         });
       }
-      refetch();
     } catch {
       setAlert({
         type: "danger",
@@ -534,7 +535,7 @@ export default function Business({ token, setAlert }) {
                     label={"Business Name"}
                     value={name}
                     isRequired={true}
-                    onChange={setFieldValue(setName, "name")}
+                    onChange={handleNameChange}
                     fieldClass={inputClass}
                   />
                   <ErrorText field="name" />
