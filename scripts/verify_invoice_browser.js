@@ -219,4 +219,3 @@ async (page) => {
   }
   return {passed: results.length, results};
 }
-
