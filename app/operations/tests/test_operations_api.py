@@ -986,8 +986,8 @@ class WorkflowRegressionTests(TestCase):
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
     )
-    def test_manager_status_change_notifies_client_once(self):
-        """Test only an actual manager status transition emails the client."""
+    def test_manager_status_changes_do_not_email_client(self):
+        """Service status changes save without sending customer notifications."""
         service = self.create_service(
             auto_generate_quote=False,
             auto_generate_invoices=False,
@@ -995,24 +995,26 @@ class WorkflowRegressionTests(TestCase):
         )
         self.client.force_authenticate(self.manager)
 
-        status_res = self.client.patch(
-            service_detail_url(service.id),
-            {"status": "ACTIVE"},
-            format="json",
-        )
+        for new_status in ("ACTIVE", "ACTIVE", "COMPLETED", "CANCELLED", "PENDING"):
+            with self.subTest(status=new_status):
+                res = self.client.patch(
+                    service_detail_url(service.id),
+                    {"status": new_status},
+                    format="json",
+                )
+                self.assertEqual(res.status_code, status.HTTP_200_OK)
+                service.refresh_from_db()
+                self.assertEqual(service.status, new_status)
+                self.assertEqual(len(mail.outbox), 0)
+
         edit_res = self.client.patch(
             service_detail_url(service.id),
             {"description": "Updated description"},
             format="json",
         )
 
-        self.assertEqual(status_res.status_code, status.HTTP_200_OK)
         self.assertEqual(edit_res.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [self.client_user.email])
-        self.assertIn("Service status updated", mail.outbox[0].subject)
-        self.assertIn("Previous status: Pending", mail.outbox[0].body)
-        self.assertIn("New status: Active", mail.outbox[0].body)
+        self.assertEqual(len(mail.outbox), 0)
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"

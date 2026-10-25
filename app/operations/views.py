@@ -255,9 +255,6 @@ class ServiceViewSet(viewsets.ModelViewSet):
         ):
             create_auto_invoice_for_service(instance)
 
-        if prev_status != instance.status and request.user.role == "MANAGER":
-            emails.send_service_status_changed_email(instance, prev_status)
-
         response.data = self.get_serializer(instance).data
         return response
 
