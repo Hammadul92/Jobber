@@ -85,8 +85,9 @@ def send_branded_email(
     reply_to=None,
     brand_name=None,
     brand_logo=None,
+    attachments=None,
 ):
-    """Send a responsive branded HTML email with a plain-text fallback."""
+    """Send branded HTML and plain text with optional file attachments."""
     platform_logo = _read_platform_logo()
     business_logo = _read_business_logo(brand_logo)
 
@@ -115,6 +116,7 @@ def send_branded_email(
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=recipient_list,
         reply_to=reply_to,
+        attachments=attachments,
     )
     email.attach_alternative(html_body, "text/html")
 
@@ -134,7 +136,7 @@ def send_branded_email(
             BUSINESS_LOGO_CONTENT_ID,
             "business-logo",
         )
-    if platform_logo or business_logo:
+    if (platform_logo or business_logo) and not attachments:
         email.mixed_subtype = "related"
 
     return email.send(fail_silently=False)

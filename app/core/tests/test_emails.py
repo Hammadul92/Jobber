@@ -1,9 +1,12 @@
 """Tests for the shared branded email layout."""
 
+from base64 import b64decode
+
 from django.contrib.staticfiles import finders
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, override_settings
+from sendgrid_backend.mail import SendgridBackend
 
 from core.emails import send_branded_email
 
@@ -75,3 +78,47 @@ class BrandedEmailTests(SimpleTestCase):
         self.assertIn("cid:contractorz-mark", html)
         self.assertIn("cid:business-logo", html)
         self.assertEqual(len(mail.outbox[0].attachments), 2)
+
+    def test_email_supports_pdf_attachments_with_inline_branding(self):
+        pdf_content = b"%PDF-1.4\nTest attachment\n%%EOF"
+        logo_path = finders.find("public_site/images/favicon.png")
+        with open(logo_path, "rb") as logo_file:
+            business_logo = SimpleUploadedFile(
+                "business-logo.png", logo_file.read(), content_type="image/png",
+            )
+        send_branded_email(
+            subject="Your signed quote",
+            text_body="Your signed quote is attached.",
+            recipient_list=["client@example.com"],
+            eyebrow="Signed quote",
+            heading="Your signed quote, for your records.",
+            paragraphs=["Your signed quote is attached."],
+            brand_name="Test Business",
+            brand_logo=business_logo,
+            attachments=[("Q-123-signed.pdf", pdf_content, "application/pdf")],
+        )
+
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0].message()
+        self.assertEqual(message.get_content_type(), "multipart/mixed")
+        pdf_parts = [
+            part for part in message.walk()
+            if part.get_content_type() == "application/pdf"
+        ]
+        self.assertEqual(len(pdf_parts), 1)
+        self.assertEqual(pdf_parts[0].get_filename(), "Q-123-signed.pdf")
+        self.assertEqual(pdf_parts[0].get_content_disposition(), "attachment")
+        self.assertEqual(pdf_parts[0].get_payload(decode=True), pdf_content)
+        self.assertTrue(any(
+            part.get("Content-ID") == "<contractorz-mark>"
+            and part.get_content_disposition() == "inline"
+            for part in message.walk()
+        ))
+
+        payload = SendgridBackend(api_key="SG.test-key")._build_sg_mail(mail.outbox[0])
+        attachments = {item["filename"]: item for item in payload["attachments"]}
+        pdf_attachment = attachments["Q-123-signed.pdf"]
+        self.assertEqual(pdf_attachment["type"], "application/pdf")
+        self.assertEqual(b64decode(pdf_attachment["content"]), pdf_content)
+        self.assertEqual(attachments["getcontractorz-logo.png"]["disposition"], "inline")
+        self.assertEqual(attachments["business-logo.png"]["disposition"], "inline")

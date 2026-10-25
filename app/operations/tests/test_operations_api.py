@@ -373,11 +373,7 @@ class QuoteInvoiceAutomationTests(TestCase):
     def test_signing_quote_creates_invoice_for_active_service(self):
         """Test signing a quote auto-creates an invoice for eligible services."""
         self.client.force_authenticate(self.client_user)
-        signature = SimpleUploadedFile(
-            "signature.png",
-            b"signature-bytes",
-            content_type="image/png",
-        )
+        signature = create_test_image_file("signature.png")
 
         with tempfile.TemporaryDirectory() as temp_media_root:
             with self.settings(MEDIA_ROOT=temp_media_root):
@@ -1057,9 +1053,135 @@ class WorkflowRegressionTests(TestCase):
 
         self.assertEqual(first_res.status_code, status.HTTP_200_OK)
         self.assertEqual(second_res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [self.manager.email])
-        self.assertIn(quote.quote_number, mail.outbox[0].subject)
+        self.assertEqual(len(mail.outbox), 2)
+        owner_emails = [email for email in mail.outbox if email.to == [self.manager.email]]
+        self.assertEqual(len(owner_emails), 1)
+        self.assertIn(quote.quote_number, owner_emails[0].subject)
+        client_emails = [email for email in mail.outbox if email.to == [self.client_user.email]]
+        self.assertEqual(len(client_emails), 1)
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    def test_signed_quote_emails_client_pdf_with_stored_signature(self):
+        service = self.create_service(
+            auto_generate_quote=False,
+            auto_generate_invoices=False,
+            filled_questionnaire={"Room size": "Large"},
+        )
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            general_terms_conditions="Original agreed terms.",
+            terms_conditions="Additional agreed terms.",
+            status="SENT",
+        )
+
+        res = self.sign_quote_as_client(quote)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        quote.refresh_from_db()
+        self.assertEqual(quote.status, "SIGNED")
+        self.assertIsNotNone(quote.signed_at)
+        self.assertTrue(quote.signature)
+        client_email = next(
+            email for email in mail.outbox if email.to == [self.client_user.email]
+        )
+        self.assertIn(quote.quote_number, client_email.subject)
+        self.assertIn("PDF copy of your signed quote is attached", client_email.body)
+        self.assertIn(f"/user/business/quote/{quote.id}", client_email.body)
+        self.assertEqual(client_email.alternatives[0][1], "text/html")
+        pdf_attachments = [
+            part for part in client_email.message().walk()
+            if part.get_content_type() == "application/pdf"
+        ]
+        self.assertEqual(len(pdf_attachments), 1)
+        attachment = pdf_attachments[0]
+        self.assertEqual(attachment.get_filename(), f"{quote.quote_number}-signed.pdf")
+        self.assertEqual(attachment.get_content_disposition(), "attachment")
+        pdf_content = attachment.get_payload(decode=True)
+        self.assertTrue(pdf_content.startswith(b"%PDF"))
+        self.assertTrue(pdf_content.rstrip().endswith(b"%%EOF"))
+        self.assertIn(b"/Subtype /Image", pdf_content)
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    def test_declined_quote_does_not_email_signed_copy(self):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            status="SENT",
+        )
+        self.client.force_authenticate(self.client_user)
+
+        res = self.client.post(
+            reverse(QUOTE_SIGN_URL, args=[quote.id]),
+            {"status": "DECLINED"},
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 0)
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    def test_missing_signature_or_wrong_user_does_not_email_signed_copy(self):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            status="SENT",
+        )
+        self.client.force_authenticate(self.client_user)
+        missing_signature_res = self.client.post(
+            reverse(QUOTE_SIGN_URL, args=[quote.id]),
+            {"status": "SIGNED"},
+            format="json",
+        )
+        self.client.force_authenticate(self.manager)
+        wrong_user_res = self.client.post(
+            reverse(QUOTE_SIGN_URL, args=[quote.id]),
+            {"status": "SIGNED"},
+            format="json",
+        )
+
+        self.assertEqual(missing_signature_res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(wrong_user_res.status_code, status.HTTP_403_FORBIDDEN)
+        quote.refresh_from_db()
+        self.assertEqual(quote.status, "SENT")
+        self.assertEqual(len(mail.outbox), 0)
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    def test_invalid_signature_does_not_sign_quote_or_send_email(self):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            status="SENT",
+        )
+        self.client.force_authenticate(self.client_user)
+        res = self.client.post(
+            reverse(QUOTE_SIGN_URL, args=[quote.id]),
+            {
+                "status": "SIGNED",
+                "signature": SimpleUploadedFile(
+                    "signature.png", b"not-an-image", content_type="image/png",
+                ),
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("signature", res.data)
+        quote.refresh_from_db()
+        self.assertEqual(quote.status, "SENT")
+        self.assertIsNone(quote.signed_at)
+        self.assertEqual(len(mail.outbox), 0)
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
