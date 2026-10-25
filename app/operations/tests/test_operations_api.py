@@ -851,6 +851,50 @@ class WorkflowRegressionTests(TestCase):
             self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
         self.assertEqual(service.service_quotes.count(), 1)
 
+    def test_questionnaire_can_be_created_after_terms_template(self):
+        ServiceTermsTemplate.objects.create(
+            business=self.business, service_name="Flooring", content="Flooring terms.",
+        )
+        self.client.force_authenticate(self.manager)
+        res = self.client.post(
+            SERVICE_QUESTIONNAIRES_URL,
+            {
+                "business": self.business.id,
+                "service_name": "Flooring",
+                "additional_questions_form": [{"text": "Room size", "type": "input", "required": True}],
+            },
+            format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+        res = self.client.patch(
+            reverse("operations:servicequestionnaire-detail", args=[res.data["id"]]),
+            {"additional_questions_form": [{"text": "Room count", "type": "input"}]},
+            format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+
+    def test_duplicate_questionnaire_returns_field_error(self):
+        self.create_questionnaire_and_terms()
+        self.client.force_authenticate(self.manager)
+        res = self.client.post(
+            SERVICE_QUESTIONNAIRES_URL,
+            {"business": self.business.id, "service_name": "Flooring", "additional_questions_form": []},
+            format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("service_name", res.data)
+        self.assertEqual(ServiceQuestionnaire.objects.count(), 1)
+
+    def test_questionnaire_for_unoffered_service_returns_field_error(self):
+        self.client.force_authenticate(self.manager)
+        res = self.client.post(
+            SERVICE_QUESTIONNAIRES_URL,
+            {"business": self.business.id, "service_name": "Not offered", "additional_questions_form": []},
+            format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("service_name", res.data)
+
     def sign_quote_as_client(self, quote):
         self.client.force_authenticate(self.client_user)
         with tempfile.TemporaryDirectory() as temp_media_root:

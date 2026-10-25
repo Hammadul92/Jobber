@@ -5,6 +5,7 @@ Serializers for business APIs
 import json
 from core.utils import BusinessTimezoneMixin
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.html import strip_tags
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
@@ -712,6 +713,18 @@ class ServiceQuestionnaireSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
+
+    def create(self, validated_data):
+        try:
+            return super().create(validated_data)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(exc.message_dict) from exc
+
+    def update(self, instance, validated_data):
+        try:
+            return super().update(instance, validated_data)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(exc.message_dict) from exc
 
     def get_no_of_questions(self, obj):
         """Return the count of questions in the questionnaire."""

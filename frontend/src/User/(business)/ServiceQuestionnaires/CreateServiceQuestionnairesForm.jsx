@@ -157,7 +157,10 @@ export default function CreateServiceQuestionnairesForm({
       console.error("Error creating/updating questionnaire:", err);
       setAlert?.({
         type: "danger",
-        message: "Something went wrong. Please try again.",
+        message:
+          typeof err?.data === "object" && err.data !== null
+            ? Object.values(err.data).flat().join(" ")
+            : err?.message || "Unable to save the questionnaire. Please try again.",
       });
     }
   };

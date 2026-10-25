@@ -438,16 +438,15 @@ class ServiceQuestionnaire(SoftDeletableModel):
                 }
             )
 
-        existing_templates = ServiceTermsTemplate.objects.filter(
+        existing_questionnaires = ServiceQuestionnaire.objects.filter(
             business=self.business,
             service_name=self.service_name,
         ).exclude(id=self.id)
-        if existing_templates.exists():
+        if existing_questionnaires.exists():
             raise ValidationError(
                 {
                     "service_name": (
-                        "A terms and conditions template already exists for "
-                        "this service."
+                        "A questionnaire already exists for this service."
                     )
                 }
             )
