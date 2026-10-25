@@ -1,4 +1,5 @@
 import stripe
+import logging
 from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
@@ -17,6 +18,7 @@ from finance import serializers, paginations, emails
 from finance.stripe_connect import create_merchant_account, create_onboarding_link
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+logger = logging.getLogger(__name__)
 
 
 def record_payment_result(invoice, payment_intent, account_id, payout=None):
@@ -263,7 +265,18 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_200_OK,
             )
 
+        except stripe.APIConnectionError:
+            logger.warning("Stripe onboarding connection failed for business %s", business.pk)
+            return Response(
+                {"detail": "Stripe did not respond in time. Please try connecting again."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         except stripe.StripeError as e:
+            logger.warning(
+                "Stripe onboarding rejected for business %s: status=%s code=%s request_id=%s",
+                business.pk, getattr(e, "http_status", None),
+                getattr(e, "code", None), getattr(e, "request_id", None),
+            )
             return Response(
                 {"detail": f"Stripe error: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST,

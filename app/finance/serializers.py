@@ -5,6 +5,17 @@ from core.models import BankingInformation, Invoice, Payout
 
 
 class BankingInformationSerializer(serializers.ModelSerializer):
+    stripe_connection_status = serializers.SerializerMethodField()
+
+    def get_stripe_connection_status(self, obj):
+        if not obj.stripe_connected_account_id:
+            return "not_connected"
+        if not obj.stripe_connect_v2:
+            return "reconnect_required"
+        if obj.stripe_charges_enabled and obj.stripe_payouts_enabled:
+            return "connected"
+        return "onboarding"
+
     class Meta:
         model = BankingInformation
         fields = [
@@ -26,6 +37,7 @@ class BankingInformationSerializer(serializers.ModelSerializer):
             "is_active",
             "stripe_charges_enabled",
             "stripe_payouts_enabled",
+            "stripe_connection_status",
         ]
 
         read_only_fields = [

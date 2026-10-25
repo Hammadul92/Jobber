@@ -63,16 +63,15 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
     (i) => i.payment_method_type === "BANK_ACCOUNT",
   );
   const activeCard = bankingInfo.find((i) => i.payment_method_type === "CARD");
-  const isBankConnected = Boolean(
-    activeBank?.stripe_charges_enabled && activeBank?.stripe_payouts_enabled,
-  );
+  const connectionStatus = activeBank?.stripe_connection_status || "not_connected";
+  const isBankConnected = connectionStatus === "connected";
 
   const [checkBankAccount, { isLoading: syncingBank }] =
     useCheckBankAccountMutation();
 
   useEffect(() => {
-    if (activeBank?.id) {
-      checkBankAccount().catch((err) =>
+    if (["onboarding", "connected"].includes(connectionStatus)) {
+      checkBankAccount().unwrap().catch((err) =>
         setAlert({
           type: "danger",
           message: err?.data?.detail || "Bank account sync failed.",
@@ -178,7 +177,7 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
                     Bank Account (Payouts)
                   </h3>
                   <p className="text-gray-400">
-                    Recieve funds directly to your connected bank account.
+                    Receive funds directly to your connected bank account.
                   </p>
                 </div>
               </div>
@@ -189,27 +188,33 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
                   className={`w-2 h-2 rounded-full inline-flex mr-2 ${!isBankConnected ? "bg-gray-400" : "bg-green-500"}`}
                 />
                 <p className="text-xs font-bold uppercase inline-flex text-gray-400">
-                  {!isBankConnected ? "Not Connected" : "Active"}
+                  {isBankConnected ? "Active" : connectionStatus === "onboarding" ? "Setup incomplete" : "Not Connected"}
                 </p>
               </div>
             </div>
             {/* Body */}
             <div className="border-t border-gray-200 p-4 md:px-10 md:py-8">
               {!isBankConnected || showBankForm ? (
-                <div>
+                <div className="flex flex-col items-center rounded-2xl border border-gray-100 bg-gray-50/60 px-5 py-8 text-center md:py-10">
+                  <div className="mb-4 rounded-2xl bg-white p-3 text-secondary shadow-sm">
+                    <LuLandmark className="text-2xl" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">
+                    {connectionStatus === "reconnect_required" ? "Reconnect your Stripe account" : connectionStatus === "onboarding" ? "Finish connecting Stripe" : "Connect your Stripe account"}
+                  </h4>
+                  <p className="mt-2 max-w-md text-sm leading-6 text-gray-500">
+                    {connectionStatus === "reconnect_required"
+                      ? "Update your previous connection to start accepting payments directly through Stripe."
+                      : connectionStatus === "onboarding"
+                        ? "Continue your setup on Stripe to enable payments and bank payouts."
+                        : "Set up your business and payout details securely on Stripe to start receiving customer payments."}
+                  </p>
                   <BankAccountForm
                     onSuccess={() => setShowBankForm(false)}
                     setAlert={setAlert}
+                    connection={activeBank}
+                    onDisconnect={() => handleDeleteClick(activeBank.id)}
                   />
-                  {activeBank && (
-                    <button
-                      type="button"
-                      className="mt-4 text-sm underline"
-                      onClick={() => handleDeleteClick(activeBank.id)}
-                    >
-                      Disconnect previous Stripe connection
-                    </button>
-                  )}
                 </div>
               ) : (
                 <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 md:p-5">

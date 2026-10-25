@@ -8,6 +8,8 @@ def connect_client():
     return stripe.StripeClient(
         settings.STRIPE_SECRET_KEY,
         stripe_version="2026-09-30.endive",
+        http_client=stripe.RequestsClient(timeout=10),
+        max_network_retries=0,
     )
 
 

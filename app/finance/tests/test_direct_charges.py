@@ -11,10 +11,24 @@ import stripe
 from core.models import BankingInformation, Payout
 from finance.stripe_connect import create_merchant_account, create_onboarding_link
 from finance.tests import test_finance_api as workflows
+from finance.serializers import BankingInformationSerializer
 
 
 @override_settings(STRIPE_SECRET_KEY="sk_test_placeholder", FRONTEND_URL="https://example.com")
 class ManagedRiskRequestTests(SimpleTestCase):
+    def test_connection_states_do_not_treat_an_empty_record_as_a_previous_account(self):
+        cases = [
+            ({}, "not_connected"),
+            ({"stripe_connected_account_id": "acct_old"}, "reconnect_required"),
+            ({"stripe_connected_account_id": "acct_new", "stripe_connect_v2": True}, "onboarding"),
+            ({"stripe_connected_account_id": "acct_new", "stripe_connect_v2": True,
+              "stripe_charges_enabled": True, "stripe_payouts_enabled": True}, "connected"),
+        ]
+        for attributes, expected in cases:
+            with self.subTest(expected=expected):
+                bank = BankingInformation(**attributes)
+                self.assertEqual(BankingInformationSerializer(bank).data["stripe_connection_status"], expected)
+
     @patch("finance.stripe_connect.connect_client")
     def test_creates_full_dashboard_merchant_with_stripe_responsibility(self, client):
         business = SimpleNamespace(id=12, email="owner@example.com", name="Example", country="ca")
@@ -40,6 +54,17 @@ class ManagedRiskRequestTests(SimpleTestCase):
 
 
 class DirectChargeTests(workflows.InvoicePaymentWorkflowTests):
+    @patch("finance.views.create_merchant_account")
+    def test_stripe_timeout_returns_a_retryable_error_without_duplicate_records(self, create):
+        create.side_effect = stripe.APIConnectionError("Connection timed out")
+        self.client.force_authenticate(self.manager)
+        url = reverse("finance:bankinginformation-add-bank-account")
+        for _ in range(2):
+            response = self.client.post(url)
+            self.assertEqual(response.status_code, 503)
+            self.assertIn("Please try connecting again", response.data["detail"])
+        self.assertEqual(BankingInformation.objects.filter(business=self.business).count(), 1)
+
     def direct_payout(self):
         return Payout.objects.create(
             business=self.business, invoice=self.invoice, amount=self.invoice.total_amount,
