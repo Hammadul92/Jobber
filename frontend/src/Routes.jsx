@@ -115,7 +115,7 @@ function MainApp() {
   const token = localStorage.getItem("token");
   const {
     data: user,
-    isFetching,
+    isLoading,
     isError,
     error,
   } = useFetchUserQuery(undefined, { skip: !token });
@@ -153,7 +153,7 @@ function MainApp() {
     if (!token || (isError && error?.status === 401)) clearPublicSession();
   }, [token, user, isError, error]);
 
-  if (isFetching) {
+  if (isLoading) {
     return <LoadingScreen fullScreen />;
   }
 

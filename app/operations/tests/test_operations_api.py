@@ -261,6 +261,60 @@ class PrivateBusinessApiTests(TestCase):
         self.assertIn("services_offered", res.data)
         self.assertFalse(Tag.objects.filter(name="Unconfigured Service").exists())
 
+    def test_registration_refresh_exposes_manager_role_and_team_membership(self):
+        """A post-save user refresh immediately reflects business ownership."""
+        Tag.objects.get_or_create(name="Cleaning")
+        me_url = reverse("user:me")
+        self.assertEqual(self.client.get(me_url).data["role"], "USER")
+
+        res = self.client.post(
+            BUSINESSES_URL,
+            self._business_payload(["Cleaning"]),
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.role, "MANAGER")
+        self.assertEqual(self.client.get(me_url).data["role"], "MANAGER")
+        self.assertTrue(TeamMember.objects.filter(
+            business_id=res.data["id"], employee=self.user,
+        ).exists())
+
+    def test_failed_registration_does_not_grant_manager_role(self):
+        """Invalid business details leave account permissions unchanged."""
+        res = self.client.post(
+            BUSINESSES_URL,
+            self._business_payload(["Not in the catalog"]),
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.user.refresh_from_db()
+        self.assertEqual(self.client.get(reverse("user:me")).data["role"], "USER")
+        self.assertFalse(Business.objects.filter(owner=self.user).exists())
+        self.assertFalse(TeamMember.objects.filter(employee=self.user).exists())
+
+    def test_business_update_preserves_manager_role(self):
+        """Editing a registered business keeps manager access available."""
+        Tag.objects.get_or_create(name="Cleaning")
+        res = self.client.post(
+            BUSINESSES_URL,
+            self._business_payload(["Cleaning"]),
+            format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        updated = self.client.patch(
+            reverse("operations:business-detail", args=[res.data["id"]]),
+            {"name": "Updated Business"},
+            format="json",
+        )
+
+        self.assertEqual(updated.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.client.get(reverse("user:me")).data["role"], "MANAGER")
+
 
 class QuoteInvoiceAutomationTests(TestCase):
     """Test automatic invoice creation around quote signing."""
