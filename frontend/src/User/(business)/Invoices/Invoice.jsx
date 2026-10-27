@@ -14,6 +14,9 @@ import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
+import { formatAddress } from "../../../utils/formatAddress";
+import LineItemsTable from "../../../Components/ui/LineItemsTable";
+import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerNotification";
 
 const STATUS_STYLES = {
   DRAFT: "bg-slate-100 text-slate-600",
@@ -82,6 +85,7 @@ export default function Invoice({ token, role }) {
   const [serviceName, setServiceName] = useState("");
   const [paidAt, setPaidAt] = useState("");
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const isLocked = status === "PAID" || invoiceData?.has_paid_payout;
   const canManage = invoiceData?.can_manage ?? role === "MANAGER";
@@ -130,19 +134,9 @@ export default function Invoice({ token, role }) {
     setTotalAmount((sub + tax).toFixed(2));
   }, [subtotal, taxRate]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const saveInvoice = async (payload) => {
     try {
-      await updateInvoice({
-        id,
-        status,
-        due_date: dueDate,
-        subtotal,
-        tax_rate: taxRate,
-        tax_amount: taxAmount,
-        total_amount: totalAmount,
-        notes,
-      }).unwrap();
+      await updateInvoice(payload).unwrap();
       setAlert({ type: "success", message: "Invoice updated successfully." });
     } catch (err) {
       setAlert({
@@ -150,6 +144,18 @@ export default function Invoice({ token, role }) {
         message:
           err?.data?.detail || "Failed to update invoice. Please try again.",
       });
+    } finally {
+      setConfirmAction(null);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const payload = { id, status, due_date: dueDate, subtotal, tax_rate: taxRate, tax_amount: taxAmount, total_amount: totalAmount, notes };
+    if (invoiceData.status !== "SENT" && status === "SENT") {
+      setConfirmAction({ type: "save", payload });
+    } else {
+      saveInvoice(payload);
     }
   };
 
@@ -187,6 +193,7 @@ export default function Invoice({ token, role }) {
   };
 
   const handleSendInvoice = async () => {
+    if (sendingInvoice) return;
     try {
       const response = await sendInvoice(id).unwrap();
       setAlert({type: "success", message: response.detail});
@@ -195,6 +202,8 @@ export default function Invoice({ token, role }) {
         type: "danger",
         message: err?.data?.detail || "Invoice email could not be sent. Please try again.",
       });
+    } finally {
+      setConfirmAction(null);
     }
   };
 
@@ -238,6 +247,16 @@ export default function Invoice({ token, role }) {
           onClose={() => setAlert({ type: "", message: "" })}
         />
       )}
+      <ConfirmCustomerNotification
+        open={Boolean(confirmAction)}
+        detail={`Send invoice ${invoiceNumber || ""} to ${clientName || "the customer"}.`}
+        onYes={() => {
+          if (confirmAction?.type === "save") saveInvoice(confirmAction.payload);
+          else if (confirmAction?.type === "send") handleSendInvoice();
+        }}
+        onNo={() => setConfirmAction(null)}
+        isLoading={sendingInvoice || updatingInvoice}
+      />
 
       {invoiceData?.has_paid_payout && canManage && (
         <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
@@ -274,7 +293,7 @@ export default function Invoice({ token, role }) {
               type="button"
               className={ACTION_BTN_STYLES.send}
               disabled={disableSend}
-              onClick={handleSendInvoice}
+              onClick={() => setConfirmAction({ type: "send" })}
             >
               {sendingInvoice ? "Sending..." : status === "SENT" ? "Resend" : "Send"}
             </button>
@@ -296,6 +315,20 @@ export default function Invoice({ token, role }) {
             </button>
           </div>
         )}
+      </div>
+
+      <div className="mb-5 grid gap-4 md:grid-cols-2">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Bill To</p>
+          <p className="mt-2 font-semibold text-slate-900">{invoiceData.client_company_name || clientName}</p>
+          {invoiceData.client_company_name && <p className="text-sm text-slate-600">{clientName}</p>}
+          <p className="mt-2 text-sm text-slate-700">Billing Address: {formatAddress(invoiceData, "billing")}</p>
+        </div>
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Service Location</p>
+          <p className="mt-2 font-semibold text-slate-900">{serviceName}</p>
+          <p className="mt-2 text-sm text-slate-700">Service Address: {formatAddress(invoiceData, "service")}</p>
+        </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-12">
@@ -360,6 +393,7 @@ export default function Invoice({ token, role }) {
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             {canManage ? (
               <form onSubmit={handleSubmit}>
+                <div className="mb-6"><LineItemsTable items={invoiceData?.line_items || []} currency={currency} subtotal={subtotal} taxRate={taxRate} taxAmount={taxAmount} total={totalAmount} /></div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Input
                     type="date"
@@ -378,7 +412,7 @@ export default function Invoice({ token, role }) {
                     value={subtotal}
                     onChange={setSubtotal}
                     isRequired={true}
-                    isDisabled={isLocked}
+                    isDisabled={isLocked || invoiceData?.line_items_locked}
                     label="Subtotal"
                     id="invoice-subtotal"
                   />
@@ -513,8 +547,6 @@ function CustomerView({
     (parseFloat(subtotal || 0) * parseFloat(taxRate || 0)) /
     100
   );
-  const formattedSubtotal = formatMoney(subtotal, currency);
-  const formattedTax = formatMoney(calculatedTax, currency);
   const formattedTotal = formatMoney(totalAmount, currency);
 
   return (
@@ -586,35 +618,7 @@ function CustomerView({
       </div>
 
       <div className="px-6 pb-6">
-        <div
-          className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm"
-          role="region"
-          aria-label="Invoice amounts"
-          tabIndex={0}
-        >
-          <div className="min-w-[520px]">
-            <div className="grid grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] gap-4 bg-slate-50 px-5 py-4 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-              <div>Service</div>
-              <div className="text-right">Subtotal</div>
-              <div className="text-right">Tax ({taxRate}%)</div>
-              <div className="text-right">Total</div>
-            </div>
-            <div className="grid grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] gap-4 px-5 py-5 text-sm text-slate-700">
-              <div className="text-lg font-semibold text-slate-900">
-                {serviceName}
-              </div>
-              <div className="text-right font-medium">
-                {formattedSubtotal}
-              </div>
-              <div className="text-right font-medium">
-                {formattedTax}
-              </div>
-              <div className="text-right text-lg font-semibold text-slate-900">
-                {formattedTotal}
-              </div>
-            </div>
-          </div>
-        </div>
+        <LineItemsTable items={invoiceData?.line_items || []} currency={currency} subtotal={subtotal} taxRate={taxRate} taxAmount={calculatedTax} total={totalAmount} />
       </div>
 
       <div className="border-t border-slate-100 px-6 py-6">

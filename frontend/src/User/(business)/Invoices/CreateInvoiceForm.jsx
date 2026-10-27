@@ -4,6 +4,7 @@ import Dropdown from "../../../Components/ui/Dropdown";
 import Input from "../../../Components/ui/Input";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Textarea from "../../../Components/ui/Textarea";
+import LineItemsTable from "../../../Components/ui/LineItemsTable";
 import {
   useCreateInvoiceMutation,
   useFetchClientsQuery,
@@ -37,6 +38,8 @@ export default function CreateInvoiceForm({
   const [taxAmount, setTaxAmount] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
   const [notes, setNotes] = useState("");
+  const [previewItems, setPreviewItems] = useState([]);
+  const [quoteTaxLocked, setQuoteTaxLocked] = useState(false);
 
   const {
     data: clients = [],
@@ -74,8 +77,13 @@ export default function CreateInvoiceForm({
         (service) => service.id === Number(serviceId),
       );
       if (selectedService) {
-        const taxRatePercent = (selectedService.tax_rate || 0) * 100;
-        const price = parseFloat(selectedService.price) || 0;
+        const signedQuote = selectedService.quotations?.find((quote) => quote.status === "SIGNED");
+        setQuoteTaxLocked(signedQuote?.quoted_tax_rate != null);
+        const items = signedQuote?.line_items || (selectedService.items?.length ? selectedService.items : [{ title: selectedService.service_name, description: selectedService.description || "", price: selectedService.price }]);
+        const taxRatePercent = signedQuote?.quoted_tax_rate != null
+          ? Number(signedQuote.quoted_tax_rate)
+          : (selectedService.tax_rate || 0) * 100;
+        const price = parseFloat(signedQuote?.quoted_subtotal || selectedService.price) || 0;
         const tax = ((price * taxRatePercent) / 100).toFixed(2);
         const total = (price + parseFloat(tax)).toFixed(2);
 
@@ -83,7 +91,8 @@ export default function CreateInvoiceForm({
         setTaxRate(taxRatePercent);
         setTaxAmount(tax);
         setTotalAmount(total);
-        setCurrency(selectedService.currency || "CAD");
+        setCurrency(signedQuote?.quoted_currency || selectedService.currency || "CAD");
+        setPreviewItems(items);
       }
     }
   }, [serviceId, services]);
@@ -106,6 +115,8 @@ export default function CreateInvoiceForm({
       setTaxAmount("");
       setTotalAmount("");
       setCurrency("CAD");
+      setPreviewItems([]);
+      setQuoteTaxLocked(false);
     }
   }, [serviceId]);
 
@@ -136,6 +147,7 @@ export default function CreateInvoiceForm({
       setTotalAmount("");
       setCurrency("CAD");
       setNotes("");
+      setPreviewItems([]);
       setShowModal(false);
     } catch (err) {
       const message =
@@ -289,6 +301,7 @@ export default function CreateInvoiceForm({
                         label="Subtotal"
                         id="invoice-subtotal"
                         fieldClass="h-11 text-sm"
+                        isDisabled={Boolean(serviceId)}
                       />
                     </div>
 
@@ -300,7 +313,9 @@ export default function CreateInvoiceForm({
                       label="Tax Rate (%)"
                       id="invoice-tax-rate"
                       fieldClass="h-11 text-sm"
+                      isDisabled={quoteTaxLocked}
                     />
+                    {quoteTaxLocked && <p className="text-xs text-slate-500">Tax rate agreed in the signed quote.</p>}
 
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Input
@@ -336,6 +351,7 @@ export default function CreateInvoiceForm({
                       rows={5}
                       placeholder="Optional notes or invoice description......"
                     />
+                    {previewItems.length > 0 && <LineItemsTable items={previewItems} currency={currency} subtotal={subtotal} taxRate={taxRate} taxAmount={taxAmount} total={totalAmount} />}
                   </div>
                 </section>
               </div>

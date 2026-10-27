@@ -140,6 +140,7 @@ export default function ClientServices({ token, role }) {
           clientId={client?.id}
           businessId={client?.business}
           clientName={client?.client_name}
+          clientBillingAddress={client}
           serviceOptions={business?.services_offered || []}
           loadingOptions={loadingBusiness}
           errorOptions={businessError}

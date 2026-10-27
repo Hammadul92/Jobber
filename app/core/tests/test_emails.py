@@ -42,11 +42,12 @@ class BrandedEmailTests(SimpleTestCase):
         self.assertIn("#ff7a00", html)
         self.assertIn("Your service status changed.", html)
         self.assertIn("View Service", html)
-        self.assertIn("If the button does not work, open this link:", html)
-        self.assertIn(
+        self.assertNotIn("If the button does not work, open this link:", html)
+        self.assertNotIn(
             ">https://getcontractorz.com/user/business/service/1</a>",
             html,
         )
+        self.assertIn('href="https://getcontractorz.com/user/business/service/1"', html)
         self.assertIn("cid:contractorz-mark", html)
         self.assertEqual(len(email.attachments), 1)
         self.assertEqual(email.attachments[0]["Content-ID"], "<contractorz-mark>")

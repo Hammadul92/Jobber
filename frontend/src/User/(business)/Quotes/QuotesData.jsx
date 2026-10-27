@@ -14,6 +14,15 @@ import {
   LuUser,
 } from "react-icons/lu";
 
+const QUOTE_STATUS_OPTIONS = ["DRAFT", "SENT", "SIGNED", "DECLINED", "EXPIRED"];
+
+const getDisplayStatus = (quote) =>
+  quote.status !== "SIGNED" &&
+  quote.valid_until &&
+  new Date(quote.valid_until) < new Date()
+    ? "EXPIRED"
+    : quote.status;
+
 export default function QuotesData({ token, role, setAlert }) {
   const {
     data: quoteData,
@@ -40,19 +49,12 @@ export default function QuotesData({ token, role, setAlert }) {
     () => [...new Set(quotes.map((q) => q.client_name).filter(Boolean))],
     [quotes],
   );
-  const uniqueStatuses = useMemo(
-    () => [...new Set(quotes.map((q) => q.status).filter(Boolean))],
-    [quotes],
-  );
-
-  const filteredQuotes = useMemo(() => {
-    return quotes.filter((q) => {
-      const matchService = !serviceFilter || q.service_name === serviceFilter;
-      const matchClient = !clientFilter || q.client_name === clientFilter;
-      const matchStatus = !statusFilter || q.status === statusFilter;
-      return matchService && matchClient && matchStatus;
-    });
-  }, [quotes, serviceFilter, clientFilter, statusFilter]);
+  const filteredQuotes = quotes.filter((q) => {
+    const matchService = !serviceFilter || q.service_name === serviceFilter;
+    const matchClient = !clientFilter || q.client_name === clientFilter;
+    const matchStatus = !statusFilter || getDisplayStatus(q) === statusFilter;
+    return matchService && matchClient && matchStatus;
+  });
 
   useEffect(() => {
     if (error) {
@@ -92,8 +94,6 @@ export default function QuotesData({ token, role, setAlert }) {
 
   if (isLoading) return <LoadingScreen />;
 
-  const today = new Date();
-
   return (
     <>
       <div className="p-5 mb-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
@@ -129,7 +129,7 @@ export default function QuotesData({ token, role, setAlert }) {
             onChange={setStatusFilter}
             options={[
               { value: "", label: "All Statuses" },
-              ...uniqueStatuses.map((status) => ({ value: status, label: status })),
+              ...QUOTE_STATUS_OPTIONS.map((status) => ({ value: status, label: status })),
             ]}
             fieldClass="h-11 rounded-lg border-gray-200 bg-white px-3 text-sm text-slate-700"
           />
@@ -150,17 +150,13 @@ export default function QuotesData({ token, role, setAlert }) {
       ) : (
         <div className="grid gap-5 md:grid-cols-2">
           {filteredQuotes.map((quote) => {
-            const validUntilDate = quote.valid_until
-              ? new Date(quote.valid_until)
-              : null;
-            const isExpired = validUntilDate && validUntilDate < today;
+            const displayStatus = getDisplayStatus(quote);
+            const isExpired = displayStatus === "EXPIRED";
 
             let badgeClass = "bg-slate-100 text-slate-500";
-            let badgeText = quote.status;
 
-            if (isExpired && quote.status !== "SIGNED") {
+            if (isExpired) {
               badgeClass = "bg-rose-100 text-rose-700";
-              badgeText = "EXPIRED";
             } else if (quote.status === "SIGNED") {
               badgeClass = "bg-emerald-100 text-emerald-700";
             } else if (quote.status === "DECLINED") {
@@ -193,7 +189,7 @@ export default function QuotesData({ token, role, setAlert }) {
                   <span
                     className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold uppercase tracking-[0.04em] ${badgeClass}`}
                   >
-                    {badgeText}
+                    {displayStatus}
                   </span>
                 </div>
 
@@ -227,17 +223,27 @@ export default function QuotesData({ token, role, setAlert }) {
                 </div>
 
                 <div className="mt-4 border-t border-gray-200 pt-4">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <LuCalendarDays className="w-4 h-4 text-slate-500" />
                       <span>
-                        {isExpired && quote.status !== "SIGNED"
+                        {isExpired
                           ? `Expired on ${formatDate(quote.valid_until)}`
                           : `Valid until ${formatDate(quote.valid_until)}`}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {!isSigned && (
+                        <Link
+                          to={`/user/business/quote/${quote.id}/preview`}
+                          className="inline-flex items-center gap-2 rounded-xl border border-accent bg-white px-4 py-2 text-sm font-medium text-[#ff6a00] transition hover:bg-[#fff4ec]"
+                          title={`Preview quote ${quote.quote_number} as the client sees it`}
+                        >
+                          <LuEye className="h-4 w-4" aria-hidden="true" />
+                          Preview
+                        </Link>
+                      )}
                       {role === "CLIENT" && (
                         <Link
                           to={`/user/business/quote/sign/${quote.id}`}

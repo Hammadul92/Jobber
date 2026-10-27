@@ -1,7 +1,10 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from core.utils import BusinessTimezoneMixin
 from core.models import BankingInformation, Invoice, Payout
+from core.pricing import invoice_line_items, line_items_total, quote_line_items, service_line_items, tax_amount_for
 from finance.payment_methods import get_client_payment_method
 
 
@@ -47,6 +50,8 @@ class BankingInformationSerializer(serializers.ModelSerializer):
 
 
 class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
+    line_items = serializers.SerializerMethodField()
+    line_items_locked = serializers.SerializerMethodField()
     business_name = serializers.CharField(
         source="business.name",
         read_only=True,
@@ -55,6 +60,17 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         source="client.user.name",
         read_only=True,
     )
+    client_company_name = serializers.CharField(source="client.company_name", read_only=True)
+    billing_street_address = serializers.CharField(source="client.billing_street_address", read_only=True)
+    billing_city = serializers.CharField(source="client.billing_city", read_only=True)
+    billing_province_state = serializers.CharField(source="client.billing_province_state", read_only=True)
+    billing_country = serializers.CharField(source="client.billing_country", read_only=True)
+    billing_postal_code = serializers.CharField(source="client.billing_postal_code", read_only=True)
+    service_street_address = serializers.CharField(source="service.street_address", read_only=True)
+    service_city = serializers.CharField(source="service.city", read_only=True)
+    service_province_state = serializers.CharField(source="service.province_state", read_only=True)
+    service_country = serializers.CharField(source="service.country", read_only=True)
+    service_postal_code = serializers.CharField(source="service.postal_code", read_only=True)
     service_name = serializers.CharField(
         source="service.service_name",
         read_only=True,
@@ -77,6 +93,8 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             "tax_rate",
             "tax_amount",
             "total_amount",
+            "line_items",
+            "line_items_locked",
             "notes",
             "paid_at",
             "has_payment_method",
@@ -84,6 +102,11 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             "has_paid_payout",
             "payout_id",
             "client_name",
+            "client_company_name",
+            "billing_street_address", "billing_city", "billing_province_state",
+            "billing_country", "billing_postal_code",
+            "service_street_address", "service_city", "service_province_state",
+            "service_country", "service_postal_code",
             "service_name",
             "currency",
             "invoice_total",
@@ -97,6 +120,35 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
     def get_invoice_total(self, obj):
         return f"{obj.total_amount} {obj.currency}"
+
+    def get_line_items(self, obj):
+        return invoice_line_items(obj)
+
+    def get_line_items_locked(self, obj):
+        return obj.line_items is not None
+
+    def validate(self, attrs):
+        """Keep invoice amounts aligned with the saved item breakdown."""
+        service = attrs.get("service") or getattr(self.instance, "service", None)
+        if self.instance and self.instance.line_items is not None:
+            items = self.instance.line_items
+        elif service and not self.instance:
+            quote = service.service_quotes.filter(status="SIGNED", is_active=True).first()
+            items = quote_line_items(quote) if quote else service_line_items(service)
+            attrs["line_items"] = items
+            attrs["currency"] = (quote.currency if quote else None) or service.currency
+            if quote and quote.tax_rate is not None:
+                attrs["tax_rate"] = quote.tax_rate
+        else:
+            return attrs
+
+        subtotal = line_items_total(items)
+        rate = attrs.get("tax_rate", getattr(self.instance, "tax_rate", Decimal("0")))
+        tax = tax_amount_for(subtotal, rate)
+        attrs["subtotal"] = subtotal
+        attrs["tax_amount"] = tax
+        attrs["total_amount"] = subtotal + tax
+        return attrs
 
     def get_has_payment_method(self, obj):
         return get_client_payment_method(obj.client) is not None

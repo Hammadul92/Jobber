@@ -1,4 +1,5 @@
 from io import BytesIO
+from decimal import Decimal
 from xml.sax.saxutils import escape
 
 from PIL import Image as PillowImage, ImageChops, ImageOps
@@ -7,9 +8,10 @@ from reportlab.lib.enums import TA_RIGHT
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import (
-    Image, KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
+    CondPageBreak, Image, KeepTogether, LongTable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
 )
 
+from core.pricing import quote_line_items, quote_tax_details
 from operations.pdf_content import parse_pdf_content
 
 
@@ -31,6 +33,14 @@ def _address(record):
     return ", ".join(filter(None, [
         record.street_address, record.city, record.province_state,
         record.country, record.postal_code,
+    ]))
+
+
+def _billing_address(client):
+    return ", ".join(filter(None, [
+        client.billing_street_address, client.billing_city,
+        client.billing_province_state, client.billing_country,
+        client.billing_postal_code,
     ]))
 
 
@@ -69,7 +79,7 @@ def _styles():
         "section": ParagraphStyle(
             "quote_section", parent=body, fontName="Helvetica-Bold",
             fontSize=10, leading=14, textColor=NAVY,
-            spaceBefore=10, spaceAfter=6, keepWithNext=True,
+            spaceBefore=6, spaceAfter=4, keepWithNext=True,
         ),
         "rich_heading": ParagraphStyle(
             "quote_rich_heading", parent=body, fontName="Helvetica-Bold",
@@ -138,11 +148,12 @@ def build_signed_quote_pdf(quote):
     output = BytesIO()
     document = SimpleDocTemplate(
         output, pagesize=LETTER, rightMargin=42, leftMargin=42,
-        topMargin=42, bottomMargin=54,
+        topMargin=34, bottomMargin=40,
         title=f"Signed quotation {quote.quote_number}", author="GetContractorz",
     )
     styles = _styles()
     service = quote.service
+    quoted_currency = getattr(quote, "currency", None) or service.currency
     business = service.business
     client = service.client.user
     # SimpleDocTemplate's content frame has 6pt inner padding on each side.
@@ -200,8 +211,10 @@ def build_signed_quote_pdf(quote):
     client_details = [
         _paragraph("PREPARED FOR", styles["label"]),
         _paragraph(client.name, styles["name"]),
+        *([_paragraph(service.client.company_name, styles["body"])] if service.client.company_name else []),
         _paragraph(client.email, styles["body"]),
         _paragraph(client.phone, styles["body"]),
+        _paragraph(f"Billing address: {_text(_billing_address(service.client))}", styles["body"]),
     ]
     contacts = Table([[business_details, client_details]], colWidths=[width / 2] * 2)
     contacts.setStyle(TableStyle([
@@ -221,26 +234,65 @@ def build_signed_quote_pdf(quote):
         service_details.append(_paragraph(
             service_type.replace("_", " ").title(), styles["small"],
         ))
-    summary = Table([
-        [_paragraph("SERVICE SUMMARY", styles["label"]),
-         _paragraph("QUOTED AMOUNT", styles["label_right"])],
-        [service_details, _paragraph(
-            f"${service.price:,.2f} {service.currency}", styles["amount"],
-        )],
-    ], colWidths=[width * 0.68, width * 0.32])
+    summary = Table([[service_details]], colWidths=[width])
     summary.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("BACKGROUND", (0, 0), (-1, -1), PAPER),
         ("BOX", (0, 0), (-1, -1), 0.6, LINE),
-        ("LINEBELOW", (0, 0), (-1, 0), 0.5, LINE),
         ("LEFTPADDING", (0, 0), (-1, -1), 12),
         ("RIGHTPADDING", (0, 0), (-1, -1), 12),
-        ("TOPPADDING", (0, 0), (-1, -1), 9),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
     ]))
 
-    story = [header, Spacer(1, 15), contacts, Spacer(1, 15), summary, Spacer(1, 4)]
-    if service.description:
+    items = quote_line_items(quote)
+    rows = [[
+        _paragraph("SERVICE ITEMS", styles["label"]),
+        _paragraph("PRICE", styles["label_right"]),
+    ]]
+    for item in items:
+        detail = [_paragraph(item["title"], styles["name"])]
+        if item.get("description"):
+            detail.append(_paragraph(item["description"], styles["body"]))
+        rows.append([
+            detail,
+            _paragraph(f"${Decimal(str(item['price'])):,.2f} {quoted_currency}", styles["label_right"]),
+        ])
+    subtotal, tax_label, tax_amount, total = quote_tax_details(quote)
+    if tax_amount is not None:
+        rows.append([
+            _paragraph("SUBTOTAL", styles["label"]),
+            _paragraph(f"${subtotal:,.2f} {quoted_currency}", styles["label_right"]),
+        ])
+        rows.append([
+            _paragraph(f"{tax_label.upper()} ({quote.tax_rate}%)", styles["label"]),
+            _paragraph(f"${tax_amount:,.2f} {quoted_currency}", styles["label_right"]),
+        ])
+    billing_cycle = getattr(service, "billing_cycle", "")
+    period = " / month" if billing_cycle == "MONTHLY" else ""
+    rows.append([
+        _paragraph("QUOTED TOTAL" + period.upper(), styles["label"]),
+        _paragraph(f"${total:,.2f} {quoted_currency}", styles["amount"]),
+    ])
+    pricing = LongTable(rows, colWidths=[width * 0.72, width * 0.28], repeatRows=1)
+    pricing.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("BACKGROUND", (0, 0), (-1, 0), PAPER),
+        ("BACKGROUND", (0, -1), (-1, -1), PAPER),
+        ("BOX", (0, 0), (-1, -1), 0.6, LINE),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.5, LINE),
+        ("LINEABOVE", (0, -1), (-1, -1), 0.8, LINE),
+        ("LINEBELOW", (0, 1), (-1, -2), 0.3, LINE),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+
+    story = [header, Spacer(1, 15), contacts, Spacer(1, 15), summary, Spacer(1, 12), pricing, Spacer(1, 4)]
+    if len(items) > 1:
+        story.append(CondPageBreak(260))
+    if service.description and getattr(service, "items", None):
         story.extend(_section("Service Description", service.description, styles))
     story.extend(_section(
         "General terms and conditions",
@@ -275,7 +327,7 @@ def build_signed_quote_pdf(quote):
         ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
     ]))
     story.append(KeepTogether([
-        Spacer(1, 14), acceptance, Spacer(1, 7),
+        Spacer(1, 7), acceptance, Spacer(1, 5),
         Paragraph(
             "This document is a finalized copy of the electronically signed "
             "quotation stored by Contractorz.", styles["small"],

@@ -112,6 +112,7 @@ export default function SideNav({ user, businessRegistered }) {
       { name: "Clients", path: "/user/business/clients", icon: LuCircleUser },
       { name: "Services", path: "/user/business/services", icon: LuFileText },
       { name: "Quotes", path: "/user/business/quotes", icon: LuFileText },
+      { name: "Invoices", path: "/user/business/invoices", icon: LuReceipt },
       {
         name: "Team Members",
         path: "/user/business/team-members",
@@ -119,13 +120,12 @@ export default function SideNav({ user, businessRegistered }) {
       },
       { name: "Jobs", path: "/user/business/jobs", icon: LuBriefcase },
       { name: "Payouts", path: "/user/business/payouts", icon: LuArrowUpRight },
-      { name: "Invoices", path: "/user/business/invoices", icon: LuReceipt },
     ],
     CLIENT: [
       { name: "Services", path: "/user/business/services", icon: LuFileText },
       { name: "Quotes", path: "/user/business/quotes", icon: LuFileText },
-      { name: "Jobs", path: "/user/business/jobs", icon: LuBriefcase },
       { name: "Invoices", path: "/user/business/invoices", icon: LuFileText },
+      { name: "Jobs", path: "/user/business/jobs", icon: LuBriefcase },
     ],
     EMPLOYEE: [
       { name: "Jobs", path: "/user/business/jobs", icon: LuBriefcase },

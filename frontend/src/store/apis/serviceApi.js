@@ -1,5 +1,17 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getBaseUrl } from "./baseConfig";
+import { quoteApi } from "./quoteApi";
+import { invoiceApi } from "./invoiceApi";
+
+const refreshGeneratedDocuments = async ({ dispatch, queryFulfilled }) => {
+  try {
+    await queryFulfilled;
+    dispatch(quoteApi.util.invalidateTags(["Quote"]));
+    dispatch(invoiceApi.util.invalidateTags(["Invoice"]));
+  } catch {
+    // A failed service mutation did not change generated documents.
+  }
+};
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: `${getBaseUrl()}/ops`,
@@ -48,6 +60,7 @@ const serviceApi = createApi({
         body: data,
       }),
       invalidatesTags: ["Service"],
+      onQueryStarted: (arg, api) => refreshGeneratedDocuments(api),
     }),
     updateService: builder.mutation({
       query: (data) => ({
@@ -59,6 +72,7 @@ const serviceApi = createApi({
         "Service",
         { type: "Service", id: arg.id },
       ],
+      onQueryStarted: (arg, api) => refreshGeneratedDocuments(api),
     }),
     deleteService: builder.mutation({
       query: (id) => ({

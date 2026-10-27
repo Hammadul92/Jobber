@@ -10,6 +10,8 @@ import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import Input from "../../../Components/ui/Input";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import PhoneInputField from "../../../Components/ui/PhoneInput";
+import Dropdown from "../../../Components/ui/Dropdown";
+import { countries, provinces } from "../../../constants/locations";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import { resetTopbar, setTopbar } from "../../../store/topbarSlice";
 
@@ -25,6 +27,12 @@ export default function Client({ token }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [billingStreet, setBillingStreet] = useState("");
+  const [billingCity, setBillingCity] = useState("");
+  const [billingCountry, setBillingCountry] = useState("CA");
+  const [billingProvince, setBillingProvince] = useState("");
+  const [billingPostalCode, setBillingPostalCode] = useState("");
   const [isActive, setIsActive] = useState(true);
 
   const {
@@ -54,6 +62,12 @@ export default function Client({ token }) {
     setName(client.client_name || "");
     setEmail(client.client_email || "");
     setPhone(client.client_phone || "");
+    setCompanyName(client.company_name || "");
+    setBillingStreet(client.billing_street_address || "");
+    setBillingCity(client.billing_city || "");
+    setBillingCountry(client.billing_country || "CA");
+    setBillingProvince(client.billing_province_state || "");
+    setBillingPostalCode(client.billing_postal_code || "");
     setIsActive(client.is_active === true || client.is_active === "True");
   }, [client]);
 
@@ -84,6 +98,12 @@ export default function Client({ token }) {
         client_name: name.trim(),
         client_email: email.trim(),
         client_phone: phone.trim(),
+        company_name: companyName.trim(),
+        billing_street_address: billingStreet.trim(),
+        billing_city: billingCity.trim(),
+        billing_country: billingCountry,
+        billing_province_state: billingProvince,
+        billing_postal_code: billingPostalCode.trim(),
         is_active: isActive,
       }).unwrap();
 
@@ -210,6 +230,8 @@ export default function Client({ token }) {
             fieldClass="h-12"
           />
           <PhoneInputField value={phone} setValue={setPhone} optional={false} />
+          <Input id="edit-client-company" type="text" label="Company Name (optional)"
+            value={companyName} onChange={setCompanyName} fieldClass="h-12" />
 
           <div className="mb-6">
             <p className="mb-1 block text-sm font-semibold uppercase text-gray-500">
@@ -239,6 +261,24 @@ export default function Client({ token }) {
                 Inactive
               </button>
             </div>
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-gray-100 pt-6">
+          <h4 className="text-lg font-semibold text-primary">Billing Address</h4>
+          <p className="mt-1 text-sm text-slate-500">Shown on quotes and invoices for this client.</p>
+          <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <Input id="edit-client-billing-street" type="text" label="Street Address" value={billingStreet} onChange={setBillingStreet} fieldClass="h-12" />
+            <Input id="edit-client-billing-city" type="text" label="City" value={billingCity} onChange={setBillingCity} fieldClass="h-12" />
+            <div>
+              <label htmlFor="edit-client-billing-country" className="mb-1 block text-sm font-semibold uppercase text-gray-500">Country</label>
+              <Dropdown id="edit-client-billing-country" value={billingCountry} onChange={(value) => { setBillingCountry(value); setBillingProvince(""); }} options={countries} />
+            </div>
+            <div>
+              <label htmlFor="edit-client-billing-province" className="mb-1 block text-sm font-semibold uppercase text-gray-500">Province/State</label>
+              <Dropdown id="edit-client-billing-province" value={billingProvince} onChange={setBillingProvince} options={provinces[billingCountry] || []} disabled={!billingCountry} />
+            </div>
+            <Input id="edit-client-billing-postal" type="text" label="Postal/Zip Code" value={billingPostalCode} onChange={setBillingPostalCode} fieldClass="h-12" />
           </div>
         </div>
 

@@ -264,6 +264,7 @@ class Business(SoftDeletableModel):
     # Business registration info
     business_number = models.CharField(max_length=20, null=False)
     tax_rate = models.DecimalField(max_digits=4, default=0, decimal_places=2)
+    tax_label = models.CharField(max_length=30, blank=True, default="")
 
     services_offered = TaggableManager(
         blank=True,
@@ -295,6 +296,13 @@ class Client(SoftDeletableModel):
         related_name="users",
         on_delete=models.CASCADE,
     )
+
+    company_name = models.CharField(max_length=255, blank=True, default="")
+    billing_street_address = models.CharField(max_length=255, blank=True, default="")
+    billing_city = models.CharField(max_length=100, blank=True, default="")
+    billing_province_state = models.CharField(max_length=100, blank=True, default="")
+    billing_country = models.CharField(max_length=2, blank=True, default="")
+    billing_postal_code = models.CharField(max_length=20, blank=True, default="")
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -521,6 +529,7 @@ class Service(SoftDeletableModel):
     )
     service_name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
+    items = models.JSONField(default=list, blank=True)
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
 
@@ -687,6 +696,10 @@ class Quote(SoftDeletableModel):
     general_terms_conditions = models.TextField(blank=True, null=True)
     terms_conditions = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
+    line_items = models.JSONField(blank=True, null=True)
+    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, blank=True, null=True)
+    tax_rate = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    tax_label = models.CharField(max_length=30, blank=True, default="")
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -809,6 +822,7 @@ class Invoice(SoftDeletableModel):
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     notes = models.TextField(blank=True, null=True)
+    line_items = models.JSONField(blank=True, null=True)
 
     paid_at = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)

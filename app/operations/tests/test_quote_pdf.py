@@ -29,10 +29,16 @@ class SignedQuotePdfTests(SimpleTestCase):
         )
         self.service = SimpleNamespace(
             business=self.business,
-            client=SimpleNamespace(user=SimpleNamespace(
-                name="Example Client", email="client@example.test",
-                phone="+1 403-555-0145",
-            )),
+            client=SimpleNamespace(
+                company_name="Example Construction Ltd.",
+                billing_street_address="45 Billing Road", billing_city="Calgary",
+                billing_province_state="AB", billing_country="CA",
+                billing_postal_code="T2P 9Z9",
+                user=SimpleNamespace(
+                    name="Example Client", email="client@example.test",
+                    phone="+1 403-555-0145",
+                ),
+            ),
             service_name="Flooring", price=Decimal("2300.00"), currency="CAD",
             street_address="123 Client Street", city="Calgary",
             province_state="AB", country="CA", postal_code="T2P 1J9",
@@ -72,10 +78,53 @@ class SignedQuotePdfTests(SimpleTestCase):
         self.assertIn("Phone: +1 780-555-0123", text)
         self.assertIn("Email: office@example.test", text)
         self.assertIn("123 Client Street, Calgary, AB, CA, T2P 1J9", text)
+        self.assertIn("Example Construction Ltd.", text)
+        self.assertIn("Billing address: 45 Billing Road, Calgary, AB, CA, T2P 9Z9", text)
         self.assertIn("client@example.test", text)
         self.assertIn("Original agreed general terms.", text)
         self.assertIn("SIGNED AND ACCEPTED", text)
         self.assertIn(b"/Subtype /Image", pdf.getvalue())
+
+    def test_no_items_uses_service_as_single_priced_line(self):
+        self.service.items = []
+        self.quote.line_items = None
+        _, text = self.render()
+        self.assertIn("Flooring", text)
+        self.assertIn("Install agreed flooring materials.", text)
+        self.assertIn("$2,300.00 CAD", text)
+        self.assertIn("QUOTED TOTAL", text)
+
+    def test_signed_pdf_displays_saved_tax_and_total(self):
+        self.quote.tax_rate = Decimal("5.00")
+        self.quote.tax_label = "GST"
+        self.service.billing_cycle = "MONTHLY"
+        _, text = self.render()
+        self.assertIn("SUBTOTAL", text)
+        self.assertIn("GST (5.00%)", text)
+        self.assertIn("$115.00 CAD", text)
+        self.assertIn("$2,415.00 CAD", text)
+        self.assertIn("QUOTED TOTAL / MONTH", text)
+
+    def test_one_explicit_item_uses_item_description_and_price(self):
+        self.service.items = [{"title": "Snow plowing", "description": "Parking lot", "price": "125.00"}]
+        self.quote.line_items = list(self.service.items)
+        _, text = self.render()
+        self.assertIn("Snow plowing", text)
+        self.assertIn("Parking lot", text)
+        self.assertIn("$125.00 CAD", text)
+        self.assertNotIn("$2,300.00 CAD", text)
+
+    def test_multiple_items_keep_separate_prices_and_total(self):
+        self.quote.line_items = [
+            {"title": "Snow plowing", "description": "Parking lot", "price": "125.00"},
+            {"title": "Walkways", "description": "Sidewalk clearing", "price": "45.00"},
+            {"title": "Snow hauling", "description": "Remove piles", "price": "80.00"},
+        ]
+        _, text = self.render()
+        for title, amount in (("Snow plowing", "125.00"), ("Walkways", "45.00"), ("Snow hauling", "80.00")):
+            self.assertIn(title, text)
+            self.assertIn(f"${amount} CAD", text)
+        self.assertIn("$250.00 CAD", text)
 
     def test_missing_business_details_have_readable_fallbacks(self):
         for field in (
@@ -91,6 +140,22 @@ class SignedQuotePdfTests(SimpleTestCase):
         self.assertIn("Phone: -", text)
         self.assertIn("Email: -", text)
         self.assertNotIn("None", text)
+
+    def test_legacy_client_without_billing_address_has_readable_fallback(self):
+        client = self.service.client
+        client.company_name = ""
+        for field in (
+            "billing_street_address", "billing_city", "billing_province_state",
+            "billing_country", "billing_postal_code",
+        ):
+            setattr(client, field, "")
+
+        pdf, text = self.render()
+
+        self.assertTrue(pdf.getvalue().startswith(b"%PDF"))
+        self.assertIn("Billing address: -", text)
+        self.assertIn("Service address: 123 Client Street", text)
+        self.assertNotIn("Example Construction Ltd.", text)
 
     def test_long_business_details_and_markup_characters_render(self):
         self.business.name = "Northstar & Sons <Services>"
