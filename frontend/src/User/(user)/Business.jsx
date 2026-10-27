@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { LuCheck, LuImage } from "react-icons/lu";
 import { provinces, countries } from "../../constants/locations";
@@ -34,6 +34,7 @@ const STEP_FIELDS = {
     "timezone",
     "businessNumber",
     "taxRate",
+    "taxLabel",
     "businessDescription",
   ],
   2: ["country", "provinceState", "streetAddress", "city", "postalCode"],
@@ -59,11 +60,13 @@ export default function Business({ token, setAlert }) {
   const [postalCode, setPostalCode] = useState("");
   const [businessNumber, setBusinessNumber] = useState("");
   const [taxRate, setTaxRate] = useState(0);
+  const [taxLabel, setTaxLabel] = useState("");
   const [timezone, setTimezone] = useState("America/Edmonton");
   const [selectedServices, setSelectedServices] = useState([]);
   const [logo, setLogo] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [_dragActive, setDragActive] = useState(false);
+  const hydratedBusinessId = useRef(null);
 
   const { data: user } = useFetchUserQuery(undefined, { skip: !token });
   const {
@@ -83,6 +86,8 @@ export default function Business({ token, setAlert }) {
   useEffect(() => {
     if (businessData?.length > 0) {
       const b = businessData[0];
+      if (hydratedBusinessId.current === b.id) return;
+      hydratedBusinessId.current = b.id;
       setBusinessId(b.id);
       setName(b.name || "");
       setSlug(b.slug || "");
@@ -97,6 +102,7 @@ export default function Business({ token, setAlert }) {
       setPostalCode(b.postal_code || "");
       setBusinessNumber(b.business_number || "");
       setTaxRate(b.tax_rate || 0);
+      setTaxLabel(b.tax_label || "");
       setTimezone(b.timezone || "America/Edmonton");
       setSelectedServices(b.services_offered || []);
       setLogo(b.logo || null);
@@ -243,6 +249,9 @@ export default function Business({ token, setAlert }) {
       } else if (taxRateValue < 0 || taxRateValue > 99.99) {
         errors.taxRate = "Tax rate must be between 0 and 99.99.";
       }
+      if (trimValue(taxLabel).length > 30) {
+        errors.taxLabel = "Tax label cannot exceed 30 characters.";
+      }
 
       if (!trimValue(businessDescription)) {
         errors.businessDescription = "Business description is required.";
@@ -354,17 +363,104 @@ export default function Business({ token, setAlert }) {
     return true;
   };
 
-  const nextStep = () => {
-    if (validateStep()) {
-      const next = Math.min(step + 1, totalSteps);
-      setStep(next);
-    }
+  const nextStep = async () => {
+    if (businessId) {
+      if (!(await saveStep(step, false))) return;
+    } else if (!validateStep()) return;
+    setStep((current) => Math.min(current + 1, totalSteps));
   };
 
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
+  const buildFullBusinessData = () => {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("slug", slug);
+    formData.append("phone", phone);
+    formData.append("website", getNormalizedWebsite());
+    formData.append("email", email);
+    formData.append("business_description", businessDescription);
+    formData.append("street_address", streetAddress);
+    formData.append("city", city);
+    formData.append("country", country);
+    formData.append("province_state", provinceState);
+    formData.append("postal_code", postalCode);
+    formData.append("business_number", businessNumber);
+    formData.append("tax_rate", parseFloat(taxRate));
+    formData.append("tax_label", taxLabel.trim());
+    formData.append("timezone", timezone);
+    formData.append("services_offered", JSON.stringify(selectedServices));
+    if (logo && typeof logo !== "string") formData.append("logo", logo);
+    if (businessId && logo === null && businessData?.[0]?.logo) {
+      formData.append("logo", "");
+    }
+    return formData;
+  };
+
+  const saveStep = async (stepNum, showSuccess = true) => {
+    if (stepNum === totalSteps) {
+      const allStepErrors = [1, 2, 3, 4].reduce(
+        (errors, currentStep) => ({ ...errors, ...validateStepFields(currentStep) }),
+        {},
+      );
+      if (Object.keys(allStepErrors).length > 0) {
+        setFieldErrors(allStepErrors);
+        setAlert({ type: "danger", message: getFirstErrorMessage(allStepErrors) });
+        setStep(
+          [1, 2, 3, 4].find((currentStep) =>
+            Object.keys(validateStepFields(currentStep)).length > 0,
+          ),
+        );
+        return false;
+      }
+    } else if (!validateStep(stepNum)) return false;
+
+    const formData = stepNum === totalSteps
+      ? buildFullBusinessData()
+      : new FormData();
+    if (stepNum === 1) {
+      formData.append("name", name);
+      formData.append("slug", slug);
+      formData.append("phone", phone);
+      formData.append("website", getNormalizedWebsite());
+      formData.append("email", email);
+      formData.append("business_description", businessDescription);
+      formData.append("business_number", businessNumber);
+      formData.append("tax_rate", parseFloat(taxRate));
+      formData.append("tax_label", taxLabel.trim());
+      formData.append("timezone", timezone);
+    } else if (stepNum === 2) {
+      formData.append("street_address", streetAddress);
+      formData.append("city", city);
+      formData.append("country", country);
+      formData.append("province_state", provinceState);
+      formData.append("postal_code", postalCode);
+    } else if (stepNum === 3) {
+      formData.append("services_offered", JSON.stringify(selectedServices));
+    }
+
+    try {
+      await updateBusiness({ id: businessId, data: formData }).unwrap();
+      if (showSuccess) {
+        setAlert({ type: "success", message: "Business updated successfully!" });
+      }
+      return true;
+    } catch {
+      setAlert({
+        type: "danger",
+        message: "Failed to save business. Please try again.",
+      });
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (businessId) {
+      await saveStep(step);
+      return;
+    }
+
     const allStepErrors = [1, 2, 3, 4].reduce(
       (errors, stepNum) => ({ ...errors, ...validateStepFields(stepNum) }),
       {},
@@ -385,42 +481,11 @@ export default function Business({ token, setAlert }) {
     }
 
     try {
-      // Normalize website to include scheme because Django URLField rejects bare domains
-      const normalizedWebsite = getNormalizedWebsite();
-
-      const formData = new FormData();
-      formData.append("name", name);
-      formData.append("slug", slug);
-      formData.append("phone", phone);
-      if (normalizedWebsite) {
-        formData.append("website", normalizedWebsite);
-      }
-      formData.append("email", email);
-      formData.append("business_description", businessDescription);
-      formData.append("street_address", streetAddress);
-      formData.append("city", city);
-      formData.append("country", country);
-      formData.append("province_state", provinceState);
-      formData.append("postal_code", postalCode);
-      formData.append("business_number", businessNumber);
-      formData.append("tax_rate", parseFloat(taxRate));
-      formData.append("timezone", timezone);
-      formData.append("services_offered", JSON.stringify(selectedServices));
-      if (logo && typeof logo !== "string") formData.append("logo", logo);
-
-      if (businessId) {
-        await updateBusiness({ id: businessId, data: formData }).unwrap();
-        setAlert({
-          type: "success",
-          message: "Business updated successfully!",
-        });
-      } else {
-        await createBusiness(formData).unwrap();
-        setAlert({
-          type: "success",
-          message: "Business created successfully!",
-        });
-      }
+      await createBusiness(buildFullBusinessData()).unwrap();
+      setAlert({
+        type: "success",
+        message: "Business created successfully!",
+      });
     } catch {
       setAlert({
         type: "danger",
@@ -635,13 +700,24 @@ export default function Business({ token, setAlert }) {
                     step={0.01}
                     type="number"
                     id="tax_rate"
-                    label={"Tax Rate"}
+                    label="Tax rate (%)"
                     value={taxRate}
                     isRequired={true}
                     onChange={setFieldValue(setTaxRate, "taxRate")}
                     fieldClass={inputClass}
                   />
                   <ErrorText field="taxRate" />
+                </div>
+                <div>
+                  <Input
+                    id="tax_label"
+                    label="Tax label (optional)"
+                    value={taxLabel}
+                    onChange={setFieldValue(setTaxLabel, "taxLabel")}
+                    fieldClass={inputClass}
+                  />
+                  <p className="mt-1 text-xs text-slate-500">Shown with the tax rate on quotes. Leave blank to use a regional default.</p>
+                  <ErrorText field="taxLabel" />
                 </div>
               </div>
 
@@ -915,23 +991,30 @@ export default function Business({ token, setAlert }) {
           )}
 
           <div className="flex items-center justify-between gap-3 pt-2">
-            {step > 1 && (
-              <button type="button" className="secondary" onClick={prevStep}>
-                <FaChevronLeft className="inline mb-0.5 mr-2" />
-                Back
-              </button>
-            )}
-            {step < totalSteps ? (
-              <button type="button" className="primary" onClick={nextStep}>
-                Next
-                <FaChevronRight className="inline mb-0.5 ml-2" />
-              </button>
-            ) : (
+            <div className="flex items-center gap-3">
+              {step > 1 && (
+                <button type="button" className="secondary" onClick={prevStep}>
+                  <FaChevronLeft className="inline mb-0.5 mr-2" />
+                  Back
+                </button>
+              )}
+              {step < totalSteps && (
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={nextStep}
+                  disabled={isCreating || isUpdating}
+                >
+                  Next
+                  <FaChevronRight className="inline mb-0.5 ml-2" />
+                </button>
+              )}
+            </div>
+            {(businessId || step === totalSteps) && (
               <SubmitButton
                 isLoading={isCreating || isUpdating}
-                btnClass="ml-auto inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2 font-semibold text-white shadow hover:bg-accent/90 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
+                btnClass="inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2 font-semibold text-white shadow hover:bg-accent/90 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
                 btnName="Save Changes"
-                isDisabled={Object.keys(validateStepFields(step)).length > 0}
               />
             )}
           </div>

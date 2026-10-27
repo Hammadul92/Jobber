@@ -59,6 +59,12 @@ function MobileTopbar({ role, businessName, user }) {
         is_visible: role === "CLIENT" || role === "MANAGER",
       },
       {
+        name: "Invoices",
+        path: "/user/business/invoices",
+        icon: LuReceipt,
+        is_visible: role === "CLIENT" || role === "MANAGER",
+      },
+      {
         name: "Team Members",
         path: "/user/business/team-members",
         icon: LuUsers,
@@ -81,12 +87,6 @@ function MobileTopbar({ role, businessName, user }) {
         path: "/user/business/payouts",
         icon: LuArrowUpRight,
         is_visible: role === "MANAGER",
-      },
-      {
-        name: "Invoices",
-        path: "/user/business/invoices",
-        icon: LuReceipt,
-        is_visible: role === "CLIENT" || role === "MANAGER",
       },
     ],
     [role],
