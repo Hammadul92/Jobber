@@ -38,6 +38,7 @@ from core.models import (
 )
 
 from operations.serializers import BusinessSerializer, QuoteSerializer
+from finance.serializers import InvoiceSerializer
 
 
 BUSINESSES_URL = reverse("operations:business-list")
@@ -368,6 +369,8 @@ class QuoteInvoiceAutomationTests(TestCase):
             terms_conditions="Test terms",
             notes="Test notes",
             status="SENT",
+            tax_rate=Decimal("5.00"),
+            tax_label="GST",
         )
 
     def test_signing_quote_creates_invoice_for_active_service(self):
@@ -392,6 +395,80 @@ class QuoteInvoiceAutomationTests(TestCase):
         self.assertEqual(invoice.subtotal, Decimal("100.00"))
         self.assertEqual(invoice.tax_amount, Decimal("5.00"))
         self.assertEqual(invoice.total_amount, Decimal("105.00"))
+
+    @patch("operations.views.emails.send_quote_email")
+    def test_sending_quote_snapshots_tax_and_exposes_payable_total(self, send_email):
+        self.quote.tax_rate = None
+        self.quote.save(update_fields=["tax_rate"])
+        self.client.force_authenticate(self.owner)
+
+        response = self.client.post(quote_send_url(self.quote.id))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        send_email.assert_called_once()
+        self.quote.refresh_from_db()
+        self.assertEqual(self.quote.tax_rate, Decimal("5.00"))
+        self.assertEqual(self.quote.tax_label, "GST")
+        detail = self.client.get(quote_detail_url(self.quote.id)).data
+        self.assertEqual(detail["quoted_subtotal"], "100.00")
+        self.assertEqual(detail["quoted_tax_amount"], "5.00")
+        self.assertEqual(detail["quoted_total"], "105.00")
+
+    def test_invoice_keeps_tax_rate_accepted_on_quote(self):
+        self.business.tax_rate = Decimal("8.00")
+        self.business.save(update_fields=["tax_rate"])
+        self.client.force_authenticate(self.client_user)
+
+        with tempfile.TemporaryDirectory() as temp_media_root:
+            with self.settings(MEDIA_ROOT=temp_media_root):
+                response = self.client.post(
+                    reverse(QUOTE_SIGN_URL, args=[self.quote.id]),
+                    {"status": "SIGNED", "signature": create_test_image_file("signature.png")},
+                    format="multipart",
+                )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        invoice = Invoice.objects.get(service=self.service)
+        self.assertEqual(invoice.tax_rate, Decimal("5.00"))
+        self.assertEqual(invoice.total_amount, Decimal("105.00"))
+
+    def test_older_sent_quote_requires_resend_before_signing(self):
+        self.quote.tax_rate = None
+        self.quote.save(update_fields=["tax_rate"])
+        self.client.force_authenticate(self.client_user)
+        response = self.client.post(
+            reverse(QUOTE_SIGN_URL, args=[self.quote.id]),
+            {"status": "SIGNED", "signature": create_test_image_file("signature.png")},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("resend", response.data["detail"])
+        self.assertFalse(Invoice.objects.filter(service=self.service).exists())
+
+    def test_invoice_uses_signed_quote_item_snapshot(self):
+        self.quote.line_items = [
+            {"title": "Plowing", "description": "Parking lot", "price": "120.00"},
+            {"title": "Walkways", "description": "Entrances", "price": "30.00"},
+        ]
+        self.quote.save(update_fields=["line_items"])
+        self.service.price = Decimal("999.00")
+        self.service.save(update_fields=["price"])
+        self.client.force_authenticate(self.client_user)
+
+        with tempfile.TemporaryDirectory() as temp_media_root:
+            with self.settings(MEDIA_ROOT=temp_media_root):
+                response = self.client.post(
+                    reverse(QUOTE_SIGN_URL, args=[self.quote.id]),
+                    {"status": "SIGNED", "signature": create_test_image_file("signature.png")},
+                    format="multipart",
+                )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        invoice = Invoice.objects.get(service=self.service)
+        self.assertEqual(invoice.line_items, self.quote.line_items)
+        self.assertEqual(invoice.subtotal, Decimal("150.00"))
+        self.assertEqual(invoice.tax_amount, Decimal("7.50"))
+        self.assertEqual(invoice.total_amount, Decimal("157.50"))
 
     def test_manager_can_download_signed_quote_pdf_with_signature(self):
         self.quote.status = "SIGNED"
@@ -739,6 +816,57 @@ class WorkflowRegressionTests(TestCase):
             employee=self.employee_user,
         )
 
+    def test_client_billing_address_and_company_can_be_created_and_edited(self):
+        self.client.force_authenticate(self.manager)
+        new_user = get_user_model().objects.create_user(
+            "billing-client@example.com", "test123", role="CLIENT",
+        )
+        url = reverse("operations:client-list")
+        created = self.client.post(url, {
+            "user": new_user.id,
+            "company_name": "Northstar Projects",
+            "billing_street_address": "10 Billing Lane",
+            "billing_city": "Calgary",
+            "billing_province_state": "AB",
+            "billing_country": "CA",
+            "billing_postal_code": "T2P 1J9",
+        }, format="json")
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED, created.data)
+        self.assertEqual(created.data["company_name"], "Northstar Projects")
+        self.assertEqual(created.data["billing_street_address"], "10 Billing Lane")
+
+        edited = self.client.patch(
+            reverse("operations:client-detail", args=[created.data["id"]]),
+            {"company_name": "", "billing_street_address": "20 Updated Road"},
+            format="json",
+        )
+        self.assertEqual(edited.status_code, status.HTTP_200_OK, edited.data)
+        self.assertEqual(edited.data["company_name"], "")
+        self.assertEqual(edited.data["billing_street_address"], "20 Updated Road")
+        self.assertEqual(edited.data["billing_city"], "Calgary")
+
+    def test_invoice_exposes_separate_billing_and_service_addresses(self):
+        self.client_record.company_name = "Northstar Projects"
+        self.client_record.billing_street_address = "10 Billing Lane"
+        self.client_record.billing_city = "Calgary"
+        self.client_record.billing_province_state = "AB"
+        self.client_record.billing_country = "CA"
+        self.client_record.billing_postal_code = "T2P 1J9"
+        self.client_record.save()
+        service = self.create_service(auto_generate_quote=False)
+        invoice = Invoice.objects.create(
+            business=self.business, client=self.client_record, service=service,
+            due_date=date.today() + timedelta(days=2), currency="CAD",
+            subtotal=Decimal("100.00"), tax_rate=Decimal("5.00"),
+            tax_amount=Decimal("5.00"), total_amount=Decimal("105.00"),
+        )
+
+        data = InvoiceSerializer(invoice).data
+        self.assertEqual(data["client_company_name"], "Northstar Projects")
+        self.assertEqual(data["billing_street_address"], "10 Billing Lane")
+        self.assertEqual(data["service_street_address"], "123 Workflow Street")
+        self.assertNotEqual(data["billing_street_address"], data["service_street_address"])
+
     def create_questionnaire_and_terms(self, terms="General flooring terms."):
         questionnaire = ServiceQuestionnaire.objects.create(
             business=self.business,
@@ -777,6 +905,33 @@ class WorkflowRegressionTests(TestCase):
         }
         payload.update(overrides)
         return payload
+
+    def test_service_items_are_optional_and_sum_when_present(self):
+        self.create_questionnaire_and_terms()
+        self.client.force_authenticate(self.manager)
+        items = [
+            {"title": "Plowing", "description": "Parking lot", "price": "120.00"},
+            {"title": "Walkways", "description": "Entrances", "price": "30.00"},
+        ]
+        response = self.client.post(
+            SERVICES_URL,
+            self.service_payload(items=items, price="999.00", auto_generate_quote=False),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertEqual(Decimal(response.data["price"]), Decimal("150.00"))
+        self.assertEqual(response.data["items"], items)
+
+    def test_invalid_service_item_price_is_rejected(self):
+        self.create_questionnaire_and_terms()
+        self.client.force_authenticate(self.manager)
+        response = self.client.post(
+            SERVICES_URL,
+            self.service_payload(items=[{"title": "Plowing", "price": "-1.00"}]),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("items", response.data)
 
     def create_service(self, **overrides):
         payload = self.service_payload(**overrides)
@@ -821,6 +976,7 @@ class WorkflowRegressionTests(TestCase):
         self.assertEqual(quote.status, "DRAFT")
         self.assertEqual(quote.general_terms_conditions, "General flooring terms.")
         questionnaire_email.assert_not_called()
+        self.assertEqual(len(mail.outbox), 0)
 
         res = self.client.patch(service_detail_url(service.id), {"status": "ACTIVE"}, format="json")
         self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
@@ -901,6 +1057,35 @@ class WorkflowRegressionTests(TestCase):
             self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
         self.assertEqual(service.service_quotes.count(), 1)
 
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_activating_bypassed_service_repairs_missing_draft_once(self):
+        self.create_questionnaire_and_terms()
+        self.client_user.is_active = False
+        self.client_user.save(update_fields=["is_active"])
+        self.client.force_authenticate(self.manager)
+        client_res = self.client.patch(
+            reverse("operations:client-detail", args=[self.client_record.id]),
+            {"is_active": True},
+            format="json",
+        )
+        self.assertEqual(client_res.status_code, status.HTTP_200_OK, client_res.data)
+        self.client_user.refresh_from_db()
+        self.assertTrue(self.client_user.is_active)
+
+        service = self.create_service(bypass_questionnaire=True)
+
+        for _ in range(2):
+            res = self.client.patch(
+                service_detail_url(service.id), {"status": "ACTIVE"}, format="json",
+            )
+            self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+
+        quote = service.service_quotes.get()
+        self.assertEqual(quote.status, "DRAFT")
+        self.assertEqual(quote.general_terms_conditions, "General flooring terms.")
+        self.assertEqual(len(res.data["quotations"]), 1)
+        self.assertFalse(Invoice.objects.filter(service=service).exists())
+
     def test_questionnaire_can_be_created_after_terms_template(self):
         ServiceTermsTemplate.objects.create(
             business=self.business, service_name="Flooring", content="Flooring terms.",
@@ -962,11 +1147,11 @@ class WorkflowRegressionTests(TestCase):
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
     )
     @patch("operations.views.emails.send_service_questionnaire_email")
-    def test_service_creation_notifies_client(
+    def test_service_creation_only_sends_questionnaire_email(
         self,
         mock_questionnaire_email,
     ):
-        """Test creating a service sends a separate client notification."""
+        """Creating a service does not send a service-created notification."""
         self.create_questionnaire_and_terms()
         self.client.force_authenticate(self.manager)
 
@@ -974,10 +1159,7 @@ class WorkflowRegressionTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         mock_questionnaire_email.assert_called_once()
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [self.client_user.email])
-        self.assertIn("New service", mail.outbox[0].subject)
-        self.assertIn("Flooring", mail.outbox[0].body)
+        self.assertEqual(len(mail.outbox), 0)
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
@@ -1046,6 +1228,8 @@ class WorkflowRegressionTests(TestCase):
             service=service,
             valid_until=date.today() + timedelta(days=2),
             status="SENT",
+            tax_rate=Decimal("5.00"),
+            tax_label="GST",
         )
 
         first_res = self.sign_quote_as_client(quote)
@@ -1075,6 +1259,8 @@ class WorkflowRegressionTests(TestCase):
             general_terms_conditions="Original agreed terms.",
             terms_conditions="Additional agreed terms.",
             status="SENT",
+            tax_rate=Decimal("5.00"),
+            tax_label="GST",
         )
 
         res = self.sign_quote_as_client(quote)
@@ -1163,6 +1349,8 @@ class WorkflowRegressionTests(TestCase):
             service=service,
             valid_until=date.today() + timedelta(days=2),
             status="SENT",
+            tax_rate=Decimal("5.00"),
+            tax_label="GST",
         )
         self.client.force_authenticate(self.client_user)
         res = self.client.post(
@@ -1479,7 +1667,9 @@ class WorkflowRegressionTests(TestCase):
         quote = Quote.objects.get(id=quote_res.data["id"])
 
         quote.status = "SENT"
-        quote.save(update_fields=["status"])
+        quote.tax_rate = self.business.tax_rate
+        quote.tax_label = "GST"
+        quote.save(update_fields=["status", "tax_rate", "tax_label"])
 
         terms_template.content = "Version two general terms."
         terms_template.save(update_fields=["content", "updated_at"])
@@ -1511,6 +1701,8 @@ class WorkflowRegressionTests(TestCase):
             general_terms_conditions="General terms.",
             terms_conditions="Additional terms.",
             status="SENT",
+            tax_rate=Decimal("5.00"),
+            tax_label="GST",
         )
 
         sign_res = self.sign_quote_as_client(quote)
@@ -1680,7 +1872,9 @@ class WorkflowRegressionTests(TestCase):
 
         quote = Quote.objects.get(id=quote_res.data["id"])
         quote.status = "SENT"
-        quote.save(update_fields=["status"])
+        quote.tax_rate = self.business.tax_rate
+        quote.tax_label = "GST"
+        quote.save(update_fields=["status", "tax_rate", "tax_label"])
         first_sign_res = self.sign_quote_as_client(quote)
         self.assertEqual(first_sign_res.status_code, status.HTTP_200_OK)
         second_sign_res = self.sign_quote_as_client(quote)

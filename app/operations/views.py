@@ -27,6 +27,7 @@ from core.models import (
     Service,
     Quote,
 )
+from core.pricing import business_tax_label, line_items_total, quote_line_items, service_line_items, tax_amount_for
 from operations import serializers, paginations, emails
 from operations.pdf import build_signed_quote_pdf
 
@@ -50,6 +51,8 @@ def create_auto_quote_for_service(service):
         raise ValidationError({"service_name": "No active terms and conditions template exists for this service."})
     Quote.objects.create(
         service=service,
+        line_items=service_line_items(service),
+        currency=service.currency,
         valid_until=timezone.now().date() + timedelta(days=2),
         general_terms_conditions=terms_template.content,
         terms_conditions="",
@@ -75,17 +78,21 @@ def create_auto_invoice_for_service(service):
     if not quote or quote.status != "SIGNED":
         return None
 
-    tax_amount = service.price * service.business.tax_rate / 100
+    items = quote_line_items(quote)
+    subtotal = line_items_total(items)
+    tax_rate = quote.tax_rate if quote.tax_rate is not None else service.business.tax_rate
+    tax_amount = tax_amount_for(subtotal, tax_rate)
     return Invoice.objects.create(
         business=service.business,
         client=service.client,
         service=service,
         due_date=timezone.now().date() + timedelta(days=2),
-        currency=service.currency,
-        subtotal=service.price,
-        tax_rate=service.business.tax_rate,
+        currency=quote.currency or service.currency,
+        subtotal=subtotal,
+        tax_rate=tax_rate,
         tax_amount=tax_amount,
-        total_amount=service.price + tax_amount,
+        total_amount=subtotal + tax_amount,
+        line_items=items,
         notes="Auto-generated invoice.",
     )
 
@@ -229,19 +236,19 @@ class ServiceViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         prev_filled_questionnaire = instance.filled_questionnaire
-        was_ready = bool(prev_filled_questionnaire) or instance.bypass_questionnaire
-        previous_auto_quote = instance.auto_generate_quote
         prev_status = instance.status
 
         response = super().update(request, *args, **kwargs)
         instance.refresh_from_db()
 
-        # Generate a quote when intake becomes ready, including an explicit bypass.
-        if (
-            (not was_ready and (instance.filled_questionnaire or instance.bypass_questionnaire))
-            or (instance.bypass_questionnaire and not previous_auto_quote and instance.auto_generate_quote)
-        ):
-            create_auto_quote_for_service(instance)
+        # Drafts follow service edits until they are sent to a client.
+        for draft in instance.service_quotes.filter(status="DRAFT", is_active=True):
+            draft.line_items = service_line_items(instance)
+            draft.currency = instance.currency
+            draft.save(update_fields=["line_items", "currency"])
+
+        # This is idempotent and also repairs a missing draft on later updates.
+        create_auto_quote_for_service(instance)
 
         if not prev_filled_questionnaire and instance.filled_questionnaire:
             emails.send_questionnaire_submitted_email(instance)
@@ -310,11 +317,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        """Create a service and send the client its workflow emails."""
+        """Create a service and send a questionnaire when one is required."""
         service = serializer.save()
         create_auto_quote_for_service(service)
-
-        emails.send_service_created_email(service)
 
         questionnaire = service.business.service_questionnaires.filter(
             service_name=service.service_name,
@@ -404,7 +409,19 @@ class QuoteViewSet(viewsets.ModelViewSet):
     def send_quote(self, request, pk=None):
         """Send quote details and signing link to the client."""
         quote = self.get_object()
+        if quote.status == "SIGNED":
+            return Response(
+                {"detail": "A signed quote cannot be resent or repriced."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
+            if quote.line_items is None:
+                quote.line_items = service_line_items(quote.service)
+            if not quote.currency:
+                quote.currency = quote.service.currency
+            quote.tax_rate = quote.service.business.tax_rate
+            quote.tax_label = business_tax_label(quote.service.business)
+            quote.save(update_fields=["line_items", "currency", "tax_rate", "tax_label"])
             emails.send_quote_email(quote)
             quote.status = "SENT"
             quote.save(update_fields=["status"])
@@ -452,6 +469,15 @@ class QuoteViewSet(viewsets.ModelViewSet):
             )
 
         if new_status == "SIGNED":
+            if quote.tax_rate is None:
+                return Response(
+                    {"detail": "This quote predates the tax breakdown. Ask the business to resend it before signing."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if quote.line_items is None:
+                quote.line_items = service_line_items(quote.service)
+            if not quote.currency:
+                quote.currency = quote.service.currency
             if not signature:
                 return Response(
                     {"detail": "Signature is required."},
@@ -473,7 +499,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
             quote.signed_at = timezone.now()
             quote.signature = None
 
-        quote.save(update_fields=["status", "signed_at", "signature"])
+        quote.save(update_fields=["status", "signed_at", "signature", "line_items", "currency"])
 
         if new_status == "SIGNED":
             create_auto_invoice_for_service(quote.service)

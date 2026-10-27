@@ -3,7 +3,12 @@ Serializers for business APIs
 """
 
 import json
+from decimal import Decimal, InvalidOperation
 from core.utils import BusinessTimezoneMixin
+from core.pricing import (
+    line_items_total, quote_effective_tax_rate, quote_line_items,
+    quote_tax_details, service_line_items,
+)
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.html import strip_tags
@@ -35,7 +40,7 @@ class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         fields = ['id', 'owner', 'name', 'slug', 'phone', 'website', 'email',
                   'business_description', 'logo', 'street_address',
                   'city', 'country', 'province_state',
-                  'postal_code', 'business_number', 'tax_rate',
+                  'postal_code', 'business_number', 'tax_rate', 'tax_label',
                   'services_offered', 'timezone', 'created_at', 'updated_at']
 
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at']
@@ -146,7 +151,10 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = ['id', 'user', 'business', 'client_name',
-                  'client_email', 'client_phone', 'is_active',
+                  'client_email', 'client_phone', 'is_active', 'company_name',
+                  'billing_street_address', 'billing_city',
+                  'billing_province_state', 'billing_country',
+                  'billing_postal_code',
                   'payment_method', 'questionnaires_filled',
                   'questionnaires_total', 'created_at', 'updated_at']
 
@@ -310,19 +318,59 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             "id", "client", "client_name", "business", "quotations",
             "service_name", "service_questionnaires", "service_terms_template",
             "filled_questionnaire", "bypass_questionnaire",
-            "description", "start_date", "end_date", "service_type",
+            "description", "items", "start_date", "end_date", "service_type",
             "price", "currency", "billing_cycle", "status", "tax_rate",
             "auto_generate_quote", "auto_generate_invoices",
             "street_address", "city", "country", "province_state",
             "postal_code", "created_at", "updated_at",
         ]
         read_only_fields = ["created_at", "updated_at"]
+        extra_kwargs = {"price": {"required": False}}
+
+    def validate_items(self, value):
+        if not isinstance(value, list) or len(value) > 50:
+            raise serializers.ValidationError("Provide up to 50 service items.")
+        normalized = []
+        for number, item in enumerate(value, 1):
+            if not isinstance(item, dict):
+                raise serializers.ValidationError(f"Item {number} must be an object.")
+            title = item.get("title")
+            description = item.get("description", "")
+            if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
+                raise serializers.ValidationError(f"Item {number} needs a title of up to 100 characters.")
+            if not isinstance(description, str):
+                raise serializers.ValidationError(f"Item {number} description must be text.")
+            try:
+                price = Decimal(str(item["price"]))
+            except (KeyError, InvalidOperation, TypeError, ValueError):
+                raise serializers.ValidationError(f"Item {number} needs a valid price.")
+            if not price.is_finite() or price < 0 or price.as_tuple().exponent < -2 or price > Decimal("99999999.99"):
+                raise serializers.ValidationError(f"Item {number} needs a nonnegative price with two decimal places.")
+            normalized.append({"title": title.strip(), "description": description.strip(), "price": f"{price:.2f}"})
+        if line_items_total(normalized) > Decimal("99999999.99"):
+            raise serializers.ValidationError("The service total is too large.")
+        return normalized
 
     def get_quotations(self, obj):
         """Return related active quotes."""
-        return list(obj.service_quotes.filter(is_active=True).values(
-            "id", "quote_number", "status", "valid_until", "created_at"
-        ))
+        return [
+            {
+                "id": quote.id,
+                "quote_number": quote.quote_number,
+                "status": quote.status,
+                "valid_until": quote.valid_until,
+                "created_at": quote.created_at,
+                "line_items": quote_line_items(quote),
+                "quoted_subtotal": str(quote_tax_details(quote)[0]),
+                "quoted_tax_rate": (
+                    str(quote_effective_tax_rate(quote))
+                    if quote_effective_tax_rate(quote) is not None else None
+                ),
+                "quoted_total": str(quote_tax_details(quote)[3]),
+                "quoted_currency": quote.currency or obj.currency,
+            }
+            for quote in obj.service_quotes.filter(is_active=True)
+        ]
 
     def get_service_questionnaires(self, obj):
         """Return the active questionnaire for this service if exists."""
@@ -341,7 +389,7 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
     def get_tax_rate(self, obj):
         """Return the business tax rate associated with this service."""
-        return round(float(obj.business.tax_rate/100), 2)
+        return float(obj.business.tax_rate / 100)
 
     def get_service_terms_template(self, obj):
         """Return the active general terms template for this service if exists."""
@@ -365,6 +413,12 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         - cannot activate until questionnaire is filled or bypassed
         - no duplicate address for same service_name within a business
         """
+        items = data.get("items", getattr(self.instance, "items", []))
+        if items:
+            data["price"] = line_items_total(items)
+        elif not self.instance and "price" not in data:
+            raise serializers.ValidationError({"price": "Enter a service price when no items are added."})
+
         business = (
             data.get("business") or
             getattr(self.instance, "business", None)
@@ -563,6 +617,13 @@ class QuoteSerializer(serializers.ModelSerializer):
     service_data = ServiceSerializer(source="service", read_only=True)
     client = ClientSerializer(source="service.client", read_only=True)
     combined_terms_conditions = serializers.SerializerMethodField()
+    line_items = serializers.SerializerMethodField()
+    quoted_total = serializers.SerializerMethodField()
+    quoted_subtotal = serializers.SerializerMethodField()
+    quoted_tax_rate = serializers.SerializerMethodField()
+    quoted_tax_label = serializers.SerializerMethodField()
+    quoted_tax_amount = serializers.SerializerMethodField()
+    quoted_currency = serializers.SerializerMethodField()
     service_name = serializers.CharField(
         source="service.service_name",
         read_only=True
@@ -583,7 +644,8 @@ class QuoteSerializer(serializers.ModelSerializer):
             "service_name", "client_name", "business_name", "valid_until",
             "status", "signed_at", "signature", "general_terms_conditions",
             "terms_conditions", "combined_terms_conditions",
-            "notes", "is_active", "created_at", "updated_at",
+            "notes", "line_items", "quoted_subtotal", "quoted_tax_rate", "quoted_tax_label",
+            "quoted_tax_amount", "quoted_total", "quoted_currency", "is_active", "created_at", "updated_at",
         ]
         read_only_fields = [
             "id", "quote_number", "status", "general_terms_conditions",
@@ -629,6 +691,29 @@ class QuoteSerializer(serializers.ModelSerializer):
             return f"{general_terms}\n\nAdditional Terms:\n{additional_terms}"
         return general_terms or additional_terms
 
+    def get_line_items(self, obj):
+        return quote_line_items(obj)
+
+    def get_quoted_total(self, obj):
+        return str(quote_tax_details(obj)[3])
+
+    def get_quoted_subtotal(self, obj):
+        return str(quote_tax_details(obj)[0])
+
+    def get_quoted_tax_rate(self, obj):
+        rate = quote_effective_tax_rate(obj)
+        return str(rate) if rate is not None else None
+
+    def get_quoted_tax_label(self, obj):
+        return quote_tax_details(obj)[1]
+
+    def get_quoted_tax_amount(self, obj):
+        amount = quote_tax_details(obj)[2]
+        return str(amount) if amount is not None else None
+
+    def get_quoted_currency(self, obj):
+        return obj.currency or obj.service.currency
+
     def create(self, validated_data):
         service = validated_data["service"]
         template = service.business.service_terms_templates.filter(
@@ -646,6 +731,8 @@ class QuoteSerializer(serializers.ModelSerializer):
             )
 
         validated_data["general_terms_conditions"] = template.content
+        validated_data["line_items"] = service_line_items(service)
+        validated_data["currency"] = service.currency
         return super().create(validated_data)
 
 

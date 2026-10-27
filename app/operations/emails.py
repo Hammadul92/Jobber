@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from core.emails import send_branded_email
+from core.pricing import quote_tax_details
 from operations.pdf import build_signed_quote_pdf
 from user.utils import generate_magic_login_token
 
@@ -9,6 +10,9 @@ def send_quote_email(quote):
     """Send quotation email to client."""
     magic_token = generate_magic_login_token(quote.service.client.user)
     sign_link = f"{settings.FRONTEND_URL}/user/business/quote/sign/{quote.id}/?token={magic_token}"
+    subtotal, tax_label, tax_amount, total = quote_tax_details(quote)
+    currency = quote.currency or quote.service.currency
+    period = " per month" if quote.service.billing_cycle == "MONTHLY" else ""
 
     subject = f"Quote {quote.quote_number} - {quote.service.service_name}"
     message = (
@@ -18,6 +22,9 @@ def send_quote_email(quote):
         f"Quote Number: {quote.quote_number}\n"
         f"Service: {quote.service.service_name}\n"
         f"Valid Until: {quote.valid_until}\n"
+        f"Subtotal: ${subtotal:,.2f} {currency}\n"
+        f"{tax_label} ({quote.tax_rate}%): ${tax_amount:,.2f} {currency}\n"
+        f"Total{period}: ${total:,.2f} {currency}\n"
         f"To view and sign this quote, please click the link below:\n"
         f"{sign_link}\n\n"
         f"Thank you,\n{quote.service.business.name} Team"
@@ -37,6 +44,7 @@ def send_quote_email(quote):
             {"label": "Quote", "value": quote.quote_number},
             {"label": "Service", "value": quote.service.service_name},
             {"label": "Valid until", "value": quote.valid_until},
+            {"label": f"Total{period}", "value": f"${total:,.2f} {currency}"},
         ],
         action_label="Review and Sign Quote",
         action_url=sign_link,
@@ -89,55 +97,6 @@ def send_service_questionnaire_email(service, questionnaire, magic_token=None):
         signoff=f"The {service.business.name} Team",
         brand_name=service.business.name,
         brand_logo=service.business.logo,
-    )
-
-
-def send_service_created_email(service):
-    """Notify a client that a service was created for them."""
-    client = service.client.user
-    business = service.business
-    service_link = f"{settings.FRONTEND_URL}/user/business/service/{service.id}"
-
-    subject = f"New service from {business.name}: {service.service_name}"
-    message = (
-        f"Hello {client.name},\n\n"
-        f"{business.name} created a new service for you.\n\n"
-        f"Service: {service.service_name}\n"
-        f"Status: {service.get_status_display()}\n"
-        f"Start date: {service.start_date}\n"
-        f"Address: {service.street_address}, {service.city}, "
-        f"{service.province_state} {service.postal_code}\n\n"
-        f"View the service here:\n{service_link}\n\n"
-        f"Best regards,\nThe {business.name} Team"
-    )
-
-    send_branded_email(
-        subject=subject,
-        text_body=message,
-        recipient_list=[client.email],
-        eyebrow="New service",
-        heading="A service was created for you.",
-        paragraphs=[
-            f"Hello {client.name},",
-            f"{business.name} added a new service to your client workspace.",
-        ],
-        details=[
-            {"label": "Service", "value": service.service_name},
-            {"label": "Status", "value": service.get_status_display()},
-            {"label": "Start date", "value": service.start_date},
-            {
-                "label": "Address",
-                "value": (
-                    f"{service.street_address}, {service.city}, "
-                    f"{service.province_state} {service.postal_code}"
-                ),
-            },
-        ],
-        action_label="View Service",
-        action_url=service_link,
-        signoff=f"The {business.name} Team",
-        brand_name=business.name,
-        brand_logo=business.logo,
     )
 
 
