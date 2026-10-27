@@ -9,6 +9,7 @@ import SubmitButton from "../../../Components/ui/SubmitButton";
 import Select from "../../../Components/ui/Select";
 import Input from "../../../Components/ui/Input";
 import { LuX } from "react-icons/lu";
+import { PAYMENT_TERMS_OPTIONS } from "../../../utils/paymentTerms";
 
 export default function CreateQuoteForm({
   token,
@@ -18,6 +19,7 @@ export default function CreateQuoteForm({
 }) {
   const [serviceId, setServiceId] = useState("");
   const [validUntil, setValidUntil] = useState("");
+  const [paymentTerms, setPaymentTerms] = useState("");
   const [termsConditions, setTermsConditions] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -41,10 +43,16 @@ export default function CreateQuoteForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!paymentTerms) {
+      setAlert({ type: "danger", message: "Choose payment terms before creating the quote." });
+      return;
+    }
+
     try {
       await createQuote({
         service: serviceId,
         valid_until: validUntil,
+        payment_terms: paymentTerms,
         terms_conditions: termsConditions,
         notes,
       }).unwrap();
@@ -52,6 +60,7 @@ export default function CreateQuoteForm({
       setAlert({ type: "success", message: "Quote created successfully!" });
       setServiceId("");
       setValidUntil("");
+      setPaymentTerms("");
       setTermsConditions("");
       setNotes("");
       setShowModal(false);
@@ -146,6 +155,19 @@ export default function CreateQuoteForm({
                     label="Valid Until"
                     id="quote-valid-until"
                     fieldClass="h-10 rounded-lg border border-gray-200 px-3 text-base text-slate-700"
+                  />
+
+                  <Select
+                    id="quote-payment-terms"
+                    label="Payment Terms"
+                    value={paymentTerms}
+                    onChange={setPaymentTerms}
+                    isRequired={true}
+                    options={[
+                      { value: "", label: "Select Payment Terms" },
+                      ...PAYMENT_TERMS_OPTIONS,
+                    ]}
+                    fieldClass="rounded-lg border-gray-200 bg-white px-3 text-sm text-slate-700"
                   />
 
                   <Textarea

@@ -5,6 +5,7 @@ import Input from "../../../Components/ui/Input";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Textarea from "../../../Components/ui/Textarea";
 import LineItemsTable from "../../../Components/ui/LineItemsTable";
+import { PAYMENT_TERMS_OPTIONS } from "../../../utils/paymentTerms";
 import {
   useCreateInvoiceMutation,
   useFetchClientsQuery,
@@ -32,6 +33,8 @@ export default function CreateInvoiceForm({
   const [clientId, setClientId] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [paymentTerms, setPaymentTerms] = useState("");
+  const [termsLocked, setTermsLocked] = useState(false);
   const [currency, setCurrency] = useState("CAD");
   const [subtotal, setSubtotal] = useState("");
   const [taxRate, setTaxRate] = useState("");
@@ -78,6 +81,8 @@ export default function CreateInvoiceForm({
       );
       if (selectedService) {
         const signedQuote = selectedService.quotations?.find((quote) => quote.status === "SIGNED");
+        setPaymentTerms(signedQuote?.payment_terms || "");
+        setTermsLocked(Boolean(signedQuote?.payment_terms));
         setQuoteTaxLocked(signedQuote?.quoted_tax_rate != null);
         const items = signedQuote?.line_items || (selectedService.items?.length ? selectedService.items : [{ title: selectedService.service_name, description: selectedService.description || "", price: selectedService.price }]);
         const taxRatePercent = signedQuote?.quoted_tax_rate != null
@@ -117,18 +122,26 @@ export default function CreateInvoiceForm({
       setCurrency("CAD");
       setPreviewItems([]);
       setQuoteTaxLocked(false);
+      setPaymentTerms("");
+      setTermsLocked(false);
     }
   }, [serviceId]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (!paymentTerms) {
+      setAlert({ type: "danger", message: "Choose payment terms before creating the invoice." });
+      return;
+    }
+
     try {
       await createInvoice({
         business: business?.id,
         client: clientId,
-        service: serviceId,
-        due_date: dueDate,
+        service: serviceId || null,
+        payment_terms: paymentTerms,
+        due_date: dueDate || null,
         currency,
         subtotal,
         tax_rate: taxRate,
@@ -141,6 +154,8 @@ export default function CreateInvoiceForm({
       setClientId("");
       setServiceId("");
       setDueDate("");
+      setPaymentTerms("");
+      setTermsLocked(false);
       setSubtotal("");
       setTaxRate("");
       setTaxAmount("");
@@ -151,6 +166,8 @@ export default function CreateInvoiceForm({
       setShowModal(false);
     } catch (err) {
       const message =
+        err?.data?.payment_terms?.[0] ||
+        err?.data?.due_date?.[0] ||
         err?.data?.error ||
         err?.data?.detail ||
         "Failed to create invoice. Please try again.";
@@ -241,6 +258,7 @@ export default function CreateInvoiceForm({
                         onChange={(value) => {
                           setClientId(value);
                           setServiceId("");
+                          setPaymentTerms("");
                         }}
                         placeholder="Select Client"
                         options={clientOptions}
@@ -265,15 +283,36 @@ export default function CreateInvoiceForm({
                       />
                     </div>
 
-                    <Input
-                      type="date"
-                      value={dueDate}
-                      onChange={setDueDate}
-                      isRequired={true}
-                      label="Due Date"
-                      id="invoice-due-date"
-                      fieldClass="h-11 text-sm"
-                    />
+                    <div>
+                      <FieldLabel htmlFor="invoice-payment-terms">Payment Terms</FieldLabel>
+                      <Dropdown
+                        id="invoice-payment-terms"
+                        value={paymentTerms}
+                        onChange={setPaymentTerms}
+                        disabled={termsLocked}
+                        placeholder="Select Payment Terms"
+                        options={PAYMENT_TERMS_OPTIONS}
+                        buttonClassName="border-gray-200 bg-white text-sm text-slate-700"
+                        menuClassName="z-50"
+                      />
+                      <p className="mt-1 text-xs text-slate-500">
+                        If no due date is entered, it is calculated when the invoice is first sent.
+                      </p>
+                    </div>
+
+                    <div>
+                      <Input
+                        type="date"
+                        value={dueDate}
+                        onChange={setDueDate}
+                        label="Due Date (optional)"
+                        id="invoice-due-date"
+                        fieldClass="h-11 text-sm"
+                      />
+                      <p className="mt-1 text-xs text-slate-500">
+                        A date entered here takes precedence over the automatic payment term date.
+                      </p>
+                    </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>

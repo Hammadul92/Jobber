@@ -17,6 +17,7 @@ import {
   useFetchServicesQuery,
   useFetchServiceTermsTemplatesQuery,
 } from "../store";
+import { isInvoicePastDue } from "../utils/paymentTerms";
 
 const ACTIVE_SERVICE_STATUSES = new Set(["PENDING", "ACTIVE", "IN_PROGRESS"]);
 const CLOSED_STATUSES = new Set(["CANCELLED", "COMPLETED"]);
@@ -52,18 +53,6 @@ function hasFilledQuestionnaire(service) {
     return Object.keys(questionnaire).length > 0;
   }
   return Boolean(String(questionnaire).trim());
-}
-
-function isPastDate(dateValue) {
-  if (!dateValue) return false;
-
-  const dueDate = new Date(`${dateValue}T00:00:00`);
-  if (Number.isNaN(dueDate.getTime())) return false;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  return dueDate < today;
 }
 
 function createTodo({ id, title, description, to, type = "Setup", priority = "normal" }) {
@@ -325,7 +314,7 @@ export default function DashboardTodos({ token, user, business }) {
         return;
       }
 
-      if (isPastDate(invoice.due_date)) {
+      if (isInvoicePastDue(invoice)) {
         nextTodos.push(
           createTodo({
             id: `invoice-overdue:${invoice.id}`,
