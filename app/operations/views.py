@@ -54,6 +54,7 @@ def create_auto_quote_for_service(service):
         line_items=service_line_items(service),
         currency=service.currency,
         valid_until=timezone.now().date() + timedelta(days=2),
+        payment_terms=service.business.default_payment_terms,
         general_terms_conditions=terms_template.content,
         terms_conditions="",
         notes="Auto-generated.",
@@ -86,7 +87,8 @@ def create_auto_invoice_for_service(service):
         business=service.business,
         client=service.client,
         service=service,
-        due_date=timezone.now().date() + timedelta(days=2),
+        due_date=None if quote.payment_terms else timezone.now().date() + timedelta(days=2),
+        payment_terms=quote.payment_terms,
         currency=quote.currency or service.currency,
         subtotal=subtotal,
         tax_rate=tax_rate,
@@ -215,6 +217,12 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
         if user.role == "MANAGER":
             return qs.filter(business__owner=user).order_by("-id")
         return qs.none()
+
+    def perform_create(self, serializer):
+        business = serializer.validated_data["business"]
+        if self.request.user.role != "ADMIN" and business.owner_id != self.request.user.pk:
+            raise PermissionDenied("Only the business owner can add team members.")
+        serializer.save()
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
@@ -412,6 +420,11 @@ class QuoteViewSet(viewsets.ModelViewSet):
         if quote.status == "SIGNED":
             return Response(
                 {"detail": "A signed quote cannot be resent or repriced."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not quote.payment_terms:
+            return Response(
+                {"payment_terms": ["Choose payment terms before sending this quote."]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:

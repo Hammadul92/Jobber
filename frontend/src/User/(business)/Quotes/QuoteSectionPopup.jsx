@@ -9,8 +9,8 @@ export default function QuoteSectionPopup({ open, title, children, onClose }) {
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full md:w-1/2 lg:w-4/7 max-w-2xl max-h-[90dvh] overflow-hidden rounded-3xl bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)]">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
+      <div className="flex w-full max-h-[90dvh] max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] md:w-1/2 lg:w-4/7">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
           <div>
             <h5 className="text-2xl font-semibold tracking-tight text-slate-900">
               {title}
@@ -27,7 +27,7 @@ export default function QuoteSectionPopup({ open, title, children, onClose }) {
           </button>
         </div>
 
-        <div className="px-6 py-6">{children}</div>
+        <div className="min-h-0 overflow-y-auto overscroll-contain px-6 py-6">{children}</div>
       </div>
     </div>
   );

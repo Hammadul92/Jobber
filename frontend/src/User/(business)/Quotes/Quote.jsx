@@ -24,9 +24,10 @@ import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import { getBaseUrl } from "../../../store/apis/baseConfig";
 import { formatAddress } from "../../../utils/formatAddress";
 import LineItemsTable from "../../../Components/ui/LineItemsTable";
+import { PAYMENT_TERMS_OPTIONS, paymentTermsLabel } from "../../../utils/paymentTerms";
 import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerNotification";
 
-export default function Quote({ token }) {
+export default function Quote({ token, role }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -40,6 +41,7 @@ export default function Quote({ token }) {
   const [sendQuote, { isLoading: sending }] = useSendQuoteMutation();
 
   const [validUntil, setValidUntil] = useState("");
+  const [paymentTerms, setPaymentTerms] = useState("");
   const [termsConditions, setTermsConditions] = useState("");
   const [notes, setNotes] = useState("");
   const [alert, setAlert] = useState({ type: "", message: "" });
@@ -49,6 +51,7 @@ export default function Quote({ token }) {
   useEffect(() => {
     if (quoteData) {
       setValidUntil(quoteData.valid_until || "");
+      setPaymentTerms(quoteData.payment_terms || "");
       setTermsConditions(quoteData.terms_conditions || "");
       setNotes(quoteData.notes || "");
     }
@@ -80,6 +83,7 @@ export default function Quote({ token }) {
       await updateQuote({
         id,
         valid_until: validUntil,
+        payment_terms: paymentTerms,
         terms_conditions: termsConditions,
         notes,
       }).unwrap();
@@ -97,7 +101,10 @@ export default function Quote({ token }) {
     if (sending) return;
     try {
       await sendQuote(id).unwrap();
-      setAlert({ type: "success", message: "Quote email sent successfully!" });
+      navigate("/user/business/quotes", {
+        replace: true,
+        state: { quoteSent: true },
+      });
     } catch (err) {
       setAlert({
         type: "danger",
@@ -162,7 +169,7 @@ export default function Quote({ token }) {
   const isInactiveClient =
     client.is_active === false || client.is_active === "False";
   const isServiceInactive = serviceData.status !== "ACTIVE";
-  const isRequiredFieldsMissing = !validUntil;
+  const isRequiredFieldsMissing = !validUntil || !quoteData.payment_terms;
   const isExpired = new Date(validUntil) < new Date();
 
   const disableSendBtn =
@@ -175,7 +182,7 @@ export default function Quote({ token }) {
   if (isInactiveClient) disableReasons.push("The client is inactive. Reactivate the client before sending.");
   if (isServiceInactive) disableReasons.push("The linked service is inactive. Please ensure it is active.");
   if (isRequiredFieldsMissing)
-    disableReasons.push("Please fill in all required fields (Valid Until).");
+    disableReasons.push("Save the Valid Until date and Payment Terms before sending.");
 
   const statusColor =
     quoteData.status === "SIGNED"
@@ -204,7 +211,7 @@ export default function Quote({ token }) {
         />
       )}
       <ConfirmCustomerNotification
-        open={confirmSend}
+        open={role === "MANAGER" && confirmSend}
         detail={`Send quote ${quoteData.quote_number} to ${client.client_email || quoteData.client_name || "the customer"}.`}
         onYes={handleSendQuote}
         onNo={() => setConfirmSend(false)}
@@ -236,7 +243,7 @@ export default function Quote({ token }) {
             )}
             {downloading ? "Preparing PDF..." : "Download Signed PDF"}
           </button>
-        ) : (
+        ) : role === "MANAGER" ? (
           <button
             type="button"
             className={`${btnPrimary} min-w-43 justify-center`}
@@ -251,7 +258,7 @@ export default function Quote({ token }) {
             )}
             {sending ? "Sending Quote..." : "Send Quote"}
           </button>
-        )}
+        ) : null}
       </div>
 
       {disableSendBtn && !isSigned && (
@@ -432,6 +439,29 @@ export default function Quote({ token }) {
                 label="Valid Until"
                 id="quote-valid-until"
               />
+              <div>
+                <label htmlFor="quote-payment-terms" className="mb-1 block text-sm font-semibold uppercase text-gray-500">
+                  Payment Terms
+                </label>
+                {isSigned ? (
+                  <p id="quote-payment-terms" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 text-sm text-gray-800">
+                    {paymentTermsLabel(paymentTerms)}
+                  </p>
+                ) : (
+                  <select
+                    id="quote-payment-terms"
+                    className="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800"
+                    value={paymentTerms}
+                    onChange={(event) => setPaymentTerms(event.target.value)}
+                    required
+                  >
+                    <option value="">Select Payment Terms</option>
+                    {PAYMENT_TERMS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
 
             <div className="mt-5">

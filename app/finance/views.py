@@ -12,16 +12,22 @@ from rest_framework import status, viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.response import Response
 
 from core.models import BankingInformation, Business, Client, Invoice, Payout
+from core.payment_terms import business_local_date, prepare_first_send
 from finance import serializers, paginations, emails
 from finance.stripe_connect import create_merchant_account, create_onboarding_link
 from finance.payment_methods import get_client_payment_method
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
+
+
+class InvoiceDeliveryError(APIException):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = "Invoice email could not be sent. Please try again."
 
 
 def record_payment_result(invoice, payment_intent, account_id, payout=None):
@@ -357,12 +363,18 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         """Return invoices linked to the logged-in user."""
         user = self.request.user
         invoices = self.queryset.filter(is_active=True)
+        if self.action in ("update", "partial_update"):
+            invoices = invoices.select_for_update()
         if self.action == "list" and Business.objects.filter(owner=user).exists():
             return invoices.filter(business__owner=user).order_by("-id")
         return invoices.filter(
             Q(business__owner=user)
             | (Q(client__user=user, client__is_active=True, client__is_deleted=False) & ~Q(status="DRAFT"))
         ).order_by("-id")
+
+    def update(self, request, *args, **kwargs):
+        with transaction.atomic():
+            return super().update(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         """Attach business/client/service properly before saving."""
@@ -396,15 +408,21 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         instance = serializer.instance
         if instance.business.owner_id != self.request.user.pk:
             raise PermissionDenied("Only the business owner can update invoices.")
-        previous_status = instance.status
-        updated_instance = serializer.save()
+        with transaction.atomic():
+            previous_status = instance.status
+            updated_instance = serializer.save()
+            if previous_status != "SENT" and updated_instance.status == "SENT":
+                if prepare_first_send(updated_instance):
+                    updated_instance.save(update_fields=["sent_at", "due_date"])
+                try:
+                    emails.send_invoice_email(updated_instance)
+                except Exception as exc:
+                    logger.exception("Unable to email invoice %s", updated_instance.pk)
+                    raise InvoiceDeliveryError() from exc
 
-        if previous_status != "SENT" and updated_instance.status == "SENT":
-            emails.send_invoice_email(updated_instance)
-
-        if previous_status != "PAID" and updated_instance.status == "PAID":
-            updated_instance.paid_at = timezone.now()
-            updated_instance.save(update_fields=["paid_at"])
+            if previous_status != "PAID" and updated_instance.status == "PAID":
+                updated_instance.paid_at = timezone.now()
+                updated_instance.save(update_fields=["paid_at"])
 
     def perform_destroy(self, instance):
         """Soft delete the record."""
@@ -426,17 +444,37 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 {"detail": "Only draft or sent unpaid invoices can be emailed."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        try:
-            emails.send_invoice_email(invoice)
-        except Exception:
-            logger.exception("Unable to email invoice %s", invoice.pk)
-            return Response(
-                {"detail": "Invoice email could not be sent. Please try again."},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-        if invoice.status == "DRAFT":
-            invoice.status = "SENT"
-            invoice.save(update_fields=["status"])
+        with transaction.atomic():
+            invoice = Invoice.objects.select_for_update().get(pk=invoice.pk)
+            if invoice.status not in ("DRAFT", "SENT") or Payout.all_objects.filter(
+                invoice=invoice, status="PAID",
+            ).exists():
+                return Response(
+                    {"detail": "Only draft or sent unpaid invoices can be emailed."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            prepared = prepare_first_send(invoice)
+            if invoice.due_date and invoice.due_date < business_local_date(invoice.business):
+                return Response(
+                    {"due_date": ["Update the past due date before sending."]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            try:
+                emails.send_invoice_email(invoice)
+            except Exception:
+                logger.exception("Unable to email invoice %s", invoice.pk)
+                return Response(
+                    {"detail": "Invoice email could not be sent. Please try again."},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            update_fields = []
+            if invoice.status == "DRAFT":
+                invoice.status = "SENT"
+                update_fields.append("status")
+            if prepared:
+                update_fields.extend(["sent_at", "due_date"])
+            if update_fields:
+                invoice.save(update_fields=update_fields)
         return Response({"detail": "Invoice email sent successfully."})
 
     @action(detail=True, methods=["post"], url_path="make-payment")

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import SignaturePad from "react-signature-pad-wrapper";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import { LuPenTool, LuSignature, LuShieldCheck, LuX } from "react-icons/lu";
-import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerNotification";
 
 export default function AcceptAndSignQuote({
   setShowSignModal,
@@ -10,7 +9,6 @@ export default function AcceptAndSignQuote({
   signing,
 }) {
   const [signatureData, setSignatureData] = useState(null);
-  const [confirmSigning, setConfirmSigning] = useState(false);
   const sigPadRef = useRef(null);
 
   useEffect(() => {
@@ -41,24 +39,12 @@ export default function AcceptAndSignQuote({
       alert("Please save your signature before submitting.");
       return;
     }
-    setConfirmSigning(true);
+    if (!signing) handleSignSubmit({ signature: signatureData });
   };
 
   const isSubmitDisabled = !signatureData;
 
   return (
-    <>
-    <ConfirmCustomerNotification
-      open={confirmSigning}
-      detail="Signing this quote will email you a copy of the signed quote."
-      onYes={async () => {
-        if (signing) return;
-        await handleSignSubmit({ signature: signatureData });
-        setConfirmSigning(false);
-      }}
-      onNo={() => setConfirmSigning(false)}
-      isLoading={signing}
-    />
     <div
       className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-contain bg-black/50 p-3 sm:p-6"
       role="dialog"
@@ -213,6 +199,5 @@ export default function AcceptAndSignQuote({
         </form>
       </div>
     </div>
-    </>
   );
 }

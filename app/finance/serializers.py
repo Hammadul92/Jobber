@@ -5,6 +5,7 @@ from rest_framework import serializers
 from core.utils import BusinessTimezoneMixin
 from core.models import BankingInformation, Invoice, Payout
 from core.pricing import invoice_line_items, line_items_total, quote_line_items, service_line_items, tax_amount_for
+from core.payment_terms import business_local_date
 from finance.payment_methods import get_client_payment_method
 
 
@@ -56,6 +57,7 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         source="business.name",
         read_only=True,
     )
+    business_timezone = serializers.CharField(source="business.timezone", read_only=True)
     client_name = serializers.CharField(
         source="client.user.name",
         read_only=True,
@@ -88,7 +90,10 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             "invoice_number",
             "status",
             "due_date",
+            "payment_terms",
+            "sent_at",
             "business_name",
+            "business_timezone",
             "subtotal",
             "tax_rate",
             "tax_amount",
@@ -116,7 +121,7 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["invoice_number", "created_at", "updated_at"]
+        read_only_fields = ["invoice_number", "sent_at", "created_at", "updated_at"]
 
     def get_invoice_total(self, obj):
         return f"{obj.total_amount} {obj.currency}"
@@ -130,6 +135,38 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     def validate(self, attrs):
         """Keep invoice amounts aligned with the saved item breakdown."""
         service = attrs.get("service") or getattr(self.instance, "service", None)
+        business = attrs.get("business") or getattr(self.instance, "business", None)
+        if self.instance is None:
+            if attrs.get("status", "DRAFT") != "DRAFT":
+                raise serializers.ValidationError({"status": "Create a draft before sending an invoice."})
+            quote = (service.service_quotes.filter(status="SIGNED", is_active=True).first()
+                     if service else None)
+            agreed_terms = quote.payment_terms if quote else None
+            chosen_terms = attrs.get("payment_terms")
+            if agreed_terms and chosen_terms and chosen_terms != agreed_terms:
+                raise serializers.ValidationError({"payment_terms": "Must match the signed quote."})
+            attrs["payment_terms"] = agreed_terms or chosen_terms
+            if not attrs["payment_terms"]:
+                raise serializers.ValidationError({"payment_terms": "Choose payment terms."})
+            attrs.setdefault("due_date", None)
+        elif "payment_terms" in attrs and attrs["payment_terms"] != self.instance.payment_terms:
+            raise serializers.ValidationError({"payment_terms": "Payment terms cannot be changed after creation."})
+        if self.instance and self.instance.payment_terms and "due_date" in attrs:
+            if self.instance.status != "DRAFT" or self.instance.sent_at is not None:
+                if attrs["due_date"] != self.instance.due_date:
+                    raise serializers.ValidationError({"due_date": "A sent invoice's due date cannot be changed."})
+        if business and (self.instance is None or self.instance.payment_terms) and (
+            attrs.get("due_date") is not None and attrs["due_date"] < business_local_date(business)
+        ):
+            raise serializers.ValidationError({"due_date": "The due date cannot be in the past."})
+        if self.instance and attrs.get("status") == "SENT" and self.instance.payment_terms:
+            due_date = attrs.get("due_date", self.instance.due_date)
+            if due_date is not None and due_date < business_local_date(business):
+                raise serializers.ValidationError({"due_date": "Update the past due date before sending."})
+        if self.instance and (self.instance.status in ("PAID", "CANCELLED") or
+                              self.instance.payouts.filter(status="PAID").exists()):
+            if any(key in attrs for key in ("payment_terms", "due_date")):
+                raise serializers.ValidationError("Payment terms and due date are locked for this invoice.")
         if self.instance and self.instance.line_items is not None:
             items = self.instance.line_items
         elif service and not self.instance:

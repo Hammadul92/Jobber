@@ -133,7 +133,7 @@ export default function ClientServices({ token, role }) {
         />
       )}
 
-      {isManagerMode && (
+      {isManagerMode && role === "MANAGER" && (
         <CreateClientServiceForm
           showModal={showModal}
           setShowModal={setShowModal}

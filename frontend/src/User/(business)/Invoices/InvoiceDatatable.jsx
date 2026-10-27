@@ -8,6 +8,7 @@ import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
+import { isInvoicePastDue } from "../../../utils/paymentTerms";
 import Select from "../../../Components/ui/Select";
 import {
   LuCalendarDays,
@@ -23,14 +24,7 @@ import {
 } from "react-icons/lu";
 
 function isInvoiceOverdue(row) {
-  if (!row?.due_date || row.status === "PAID" || row.status === "CANCELLED") {
-    return false;
-  }
-
-  const dueDate = new Date(row.due_date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return dueDate < today;
+  return isInvoicePastDue(row);
 }
 
 export default function InvoiceDatatable({ token, role, onAddInvoice }) {
@@ -102,17 +96,8 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
         if (!row.due_date) {
           matchesDateRange = false;
         } else {
-          const dueDate = new Date(row.due_date);
-          if (dateRangeStart) {
-            const startDate = new Date(dateRangeStart);
-            startDate.setHours(0, 0, 0, 0);
-            if (dueDate < startDate) matchesDateRange = false;
-          }
-          if (dateRangeEnd) {
-            const endDate = new Date(dateRangeEnd);
-            endDate.setHours(23, 59, 59, 999);
-            if (dueDate > endDate) matchesDateRange = false;
-          }
+          if (dateRangeStart && row.due_date < dateRangeStart) matchesDateRange = false;
+          if (dateRangeEnd && row.due_date > dateRangeEnd) matchesDateRange = false;
         }
       }
 
@@ -461,7 +446,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
                           </td>
                           <td className="px-4 py-3 text-slate-700">
                             <div className="flex items-center gap-2">
-                              <span>{formatDate(row.due_date)}</span>
+                              <span>{row.due_date ? formatDate(row.due_date) : "Set when sent"}</span>
                               {overdue && (
                                 <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
                                   Overdue

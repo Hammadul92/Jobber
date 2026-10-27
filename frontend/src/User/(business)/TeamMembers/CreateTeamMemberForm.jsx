@@ -26,6 +26,22 @@ function generateStrongPassword(length = 12) {
   return password;
 }
 
+function teamMemberErrorMessage(error, fallback) {
+  const data = error?.data;
+  if (typeof data === "string" && data.trim()) return data;
+  if (Array.isArray(data) && data.length) return data.join(" ");
+  if (data && typeof data === "object") {
+    if (typeof data.detail === "string") return data.detail;
+    const messages = Object.entries(data).flatMap(([field, value]) =>
+      (Array.isArray(value) ? value : [value]).map((message) =>
+        field === "non_field_errors" ? String(message) : `${field}: ${message}`,
+      ),
+    );
+    if (messages.length) return messages.join(" ");
+  }
+  return error?.message || error?.error || fallback;
+}
+
 export default function CreateTeamMemberForm({
   token,
   showModal,
@@ -183,11 +199,10 @@ export default function CreateTeamMemberForm({
         console.error("Update team member error:", err);
         setAlert({
           type: "danger",
-          message:
-            err?.data?.detail ||
-            err?.data?.role?.[0] ||
-            err?.data?.role ||
-            "Something went wrong while updating the team member. Please try again.",
+          message: teamMemberErrorMessage(
+            err,
+            "Could not update the team member. Please try again.",
+          ),
         });
       }
 
@@ -210,9 +225,14 @@ export default function CreateTeamMemberForm({
       return;
     }
 
+    let action = "check the email";
     try {
       const normalizedEmail = email.trim().toLowerCase();
       const normalizedPhone = phone.trim();
+      const businessId = businesses?.[0]?.id;
+      if (!businessId) {
+        throw new Error("Your business is unavailable. Refresh the page and try again.");
+      }
 
       const checkResponse = await checkUserExists({
         email: normalizedEmail,
@@ -220,6 +240,7 @@ export default function CreateTeamMemberForm({
       let userId = checkResponse?.id;
 
       if (!userId) {
+        action = "create the account";
         const password = generateStrongPassword();
         const userPayload = {
           name: name.trim(),
@@ -232,13 +253,11 @@ export default function CreateTeamMemberForm({
         userId = newUser.id;
       }
 
-      const businessId = businesses?.[0]?.id;
-      if (!businessId)
-        throw new Error("No business found for the current user.");
-
+      action = "add the account to the team";
       await createTeamMember({
         business: businessId,
         employee: userId,
+        role,
         job_duties: jobDuties,
         expertise,
       }).unwrap();
@@ -250,8 +269,10 @@ export default function CreateTeamMemberForm({
       console.error("Create team member error:", err);
       setAlert({
         type: "danger",
-        message:
-          "Something went wrong while adding the team member. Please try again.",
+        message: teamMemberErrorMessage(
+          err,
+          `Could not ${action}. Please try again.`,
+        ),
       });
     }
   };

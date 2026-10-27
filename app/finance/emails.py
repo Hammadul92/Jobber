@@ -14,11 +14,16 @@ def send_invoice_email(invoice):
     )
 
     subject = f"Invoice #{invoice.invoice_number} from {invoice.business.name}"
+    payment_terms_line = (
+        f"Payment Terms: {invoice.get_payment_terms_display()}\n"
+        if invoice.payment_terms else ""
+    )
     message = (
         f"Dear {invoice.client.user.name},\n\n"
         f"You have received a new invoice from {invoice.business.name}.\n"
         f"Invoice Number: {invoice.invoice_number}\n"
         f"Amount: {invoice.total_amount} {invoice.currency}\n"
+        f"{payment_terms_line}"
         f"Due Date: {invoice.due_date}\n\n"
         f"Use this secure link to view and pay this invoice:\n"
         f"{portal_link}\n\n"
@@ -46,6 +51,10 @@ def send_invoice_email(invoice):
                 "value": f"{invoice.total_amount} {invoice.currency}",
             },
             {"label": "Due date", "value": invoice.due_date},
+            *(
+                [{"label": "Payment terms", "value": invoice.get_payment_terms_display()}]
+                if invoice.payment_terms else []
+            ),
         ],
         action_label="View and Pay Invoice",
         action_url=portal_link,

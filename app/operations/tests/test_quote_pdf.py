@@ -85,6 +85,12 @@ class SignedQuotePdfTests(SimpleTestCase):
         self.assertIn("SIGNED AND ACCEPTED", text)
         self.assertIn(b"/Subtype /Image", pdf.getvalue())
 
+    def test_pdf_shows_agreed_payment_terms(self):
+        self.quote.payment_terms = "NET_30"
+        self.quote.get_payment_terms_display = lambda: "Net 30 days"
+        _, text = self.render()
+        self.assertIn("Payment terms: Net 30 days", text)
+
     def test_no_items_uses_service_as_single_priced_line(self):
         self.service.items = []
         self.quote.line_items = None

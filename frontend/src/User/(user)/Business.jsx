@@ -16,6 +16,7 @@ import Textarea from "../../Components/ui/Textarea";
 import { useFetchUserQuery } from "../../store";
 import { NavLink } from "react-router-dom";
 import { generateBusinessSlug } from "../../utils/businessSlug";
+import { PAYMENT_TERMS_OPTIONS } from "../../utils/paymentTerms";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
@@ -35,6 +36,7 @@ const STEP_FIELDS = {
     "businessNumber",
     "taxRate",
     "taxLabel",
+    "defaultPaymentTerms",
     "businessDescription",
   ],
   2: ["country", "provinceState", "streetAddress", "city", "postalCode"],
@@ -61,6 +63,7 @@ export default function Business({ token, setAlert }) {
   const [businessNumber, setBusinessNumber] = useState("");
   const [taxRate, setTaxRate] = useState(0);
   const [taxLabel, setTaxLabel] = useState("");
+  const [defaultPaymentTerms, setDefaultPaymentTerms] = useState("NET_15");
   const [timezone, setTimezone] = useState("America/Edmonton");
   const [selectedServices, setSelectedServices] = useState([]);
   const [logo, setLogo] = useState(null);
@@ -103,6 +106,7 @@ export default function Business({ token, setAlert }) {
       setBusinessNumber(b.business_number || "");
       setTaxRate(b.tax_rate || 0);
       setTaxLabel(b.tax_label || "");
+      setDefaultPaymentTerms(b.default_payment_terms || "NET_15");
       setTimezone(b.timezone || "America/Edmonton");
       setSelectedServices(b.services_offered || []);
       setLogo(b.logo || null);
@@ -252,6 +256,9 @@ export default function Business({ token, setAlert }) {
       if (trimValue(taxLabel).length > 30) {
         errors.taxLabel = "Tax label cannot exceed 30 characters.";
       }
+      if (!PAYMENT_TERMS_OPTIONS.some((option) => option.value === defaultPaymentTerms)) {
+        errors.defaultPaymentTerms = "Choose default payment terms.";
+      }
 
       if (!trimValue(businessDescription)) {
         errors.businessDescription = "Business description is required.";
@@ -388,6 +395,7 @@ export default function Business({ token, setAlert }) {
     formData.append("business_number", businessNumber);
     formData.append("tax_rate", parseFloat(taxRate));
     formData.append("tax_label", taxLabel.trim());
+    formData.append("default_payment_terms", defaultPaymentTerms);
     formData.append("timezone", timezone);
     formData.append("services_offered", JSON.stringify(selectedServices));
     if (logo && typeof logo !== "string") formData.append("logo", logo);
@@ -428,6 +436,7 @@ export default function Business({ token, setAlert }) {
       formData.append("business_number", businessNumber);
       formData.append("tax_rate", parseFloat(taxRate));
       formData.append("tax_label", taxLabel.trim());
+      formData.append("default_payment_terms", defaultPaymentTerms);
       formData.append("timezone", timezone);
     } else if (stepNum === 2) {
       formData.append("street_address", streetAddress);
@@ -718,6 +727,20 @@ export default function Business({ token, setAlert }) {
                   />
                   <p className="mt-1 text-xs text-slate-500">Shown with the tax rate on quotes. Leave blank to use a regional default.</p>
                   <ErrorText field="taxLabel" />
+                </div>
+                <div>
+                  <label htmlFor="default-payment-terms" className="mb-1 block text-sm font-semibold uppercase text-gray-500">
+                    Default Payment Terms
+                  </label>
+                  <Dropdown
+                    id="default-payment-terms"
+                    value={defaultPaymentTerms}
+                    onChange={setFieldValue(setDefaultPaymentTerms, "defaultPaymentTerms")}
+                    options={PAYMENT_TERMS_OPTIONS}
+                    buttonClassName="h-11 border-gray-200 bg-white text-slate-700"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">Used for automatically generated quote drafts. You can change it on each quote before sending.</p>
+                  <ErrorText field="defaultPaymentTerms" />
                 </div>
               </div>
 

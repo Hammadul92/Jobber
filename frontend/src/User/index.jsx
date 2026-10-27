@@ -216,7 +216,7 @@ export default function UserDashboard({ page, token, user }) {
         return <Quotes token={token} role={user?.role} business={business} />;
       case "quote":
         // Single quote tab
-        return <Quote token={token} business={business} />;
+        return <Quote token={token} role={user?.role} business={business} />;
       case "quote-preview":
         return <SignQuote token={token} preview />;
       case "sign-quote":

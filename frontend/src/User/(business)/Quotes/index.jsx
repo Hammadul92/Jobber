@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import CreateQuoteForm from "./CreateQuoteForm";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
@@ -15,6 +16,14 @@ export default function Quotes({ token, role }) {
   const [showModal, setShowModal] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
   const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!location.state?.quoteSent) return;
+    setAlert({ type: "success", message: "Quote email sent successfully!" });
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     if (role === "MANAGER") {

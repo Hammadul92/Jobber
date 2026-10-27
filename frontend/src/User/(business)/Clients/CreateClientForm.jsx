@@ -147,8 +147,8 @@ export default function CreateClientForm({
             aria-label="Close add client drawer"
           />
 
-          <div className="absolute right-0 top-0 z-10 flex h-screen w-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl md:w-4/6 lg:w-2/6">
-            <div className="border-b border-gray-100 px-6 py-5">
+          <div className="absolute right-0 top-0 z-10 flex h-screen min-h-0 w-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl md:w-4/6 lg:w-2/6">
+            <div className="shrink-0 border-b border-gray-100 px-6 py-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h5 className="text-4xl font-semibold text-slate-800">
@@ -178,8 +178,8 @@ export default function CreateClientForm({
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex h-full flex-col">
-              <div className="flex-1 overflow-y-auto px-6 py-5">
+            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5">
                 {alert.message && (
                   <AlertDispatcher
                     type={alert.type}
@@ -251,7 +251,7 @@ export default function CreateClientForm({
                 </section>
               </div>
 
-              <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+              <div className="shrink-0 border-t border-gray-200 bg-gray-50 px-6 py-4">
                 <div className="flex items-center justify-end gap-3">
                   <button
                     type="button"

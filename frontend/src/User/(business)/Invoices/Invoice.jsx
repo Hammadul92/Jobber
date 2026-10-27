@@ -17,6 +17,8 @@ import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import { formatAddress } from "../../../utils/formatAddress";
 import LineItemsTable from "../../../Components/ui/LineItemsTable";
 import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerNotification";
+import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
+import { isInvoicePastDue, paymentTermsLabel } from "../../../utils/paymentTerms";
 
 const STATUS_STYLES = {
   DRAFT: "bg-slate-100 text-slate-600",
@@ -74,6 +76,7 @@ export default function Invoice({ token, role }) {
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [status, setStatus] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [paymentTerms, setPaymentTerms] = useState("");
   const [subtotal, setSubtotal] = useState("");
   const [taxRate, setTaxRate] = useState("");
   const [taxAmount, setTaxAmount] = useState("");
@@ -86,6 +89,7 @@ export default function Invoice({ token, role }) {
   const [paidAt, setPaidAt] = useState("");
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [confirmAction, setConfirmAction] = useState(null);
+  const [completionMessage, setCompletionMessage] = useState("");
 
   const isLocked = status === "PAID" || invoiceData?.has_paid_payout;
   const canManage = invoiceData?.can_manage ?? role === "MANAGER";
@@ -95,6 +99,7 @@ export default function Invoice({ token, role }) {
       setInvoiceNumber(invoiceData.invoice_number || "");
       setStatus(invoiceData.status || "");
       setDueDate(invoiceData.due_date || "");
+      setPaymentTerms(invoiceData.payment_terms || "");
       setSubtotal(invoiceData.subtotal || "");
       setTaxRate(invoiceData.tax_rate || "");
       setTaxAmount(invoiceData.tax_amount || "");
@@ -151,7 +156,8 @@ export default function Invoice({ token, role }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const payload = { id, status, due_date: dueDate, subtotal, tax_rate: taxRate, tax_amount: taxAmount, total_amount: totalAmount, notes };
+    const payload = { id, status, subtotal, tax_rate: taxRate, tax_amount: taxAmount, total_amount: totalAmount, notes };
+    if (!paymentTerms || status === "DRAFT") payload.due_date = dueDate || null;
     if (invoiceData.status !== "SENT" && status === "SENT") {
       setConfirmAction({ type: "save", payload });
     } else {
@@ -176,10 +182,7 @@ export default function Invoice({ token, role }) {
     if (processingPayment || status !== "SENT" || isLocked) return;
     try {
       const res = await makePayment(invoiceData.id).unwrap();
-      setAlert({
-        type: "success",
-        message: res?.detail || res?.message || "Payment successful!",
-      });
+      setCompletionMessage("Payment complete. The business owner has been notified by email.");
       setStatus("PAID");
       if (res?.paid_at) setPaidAt(res.paid_at);
     } catch (err) {
@@ -208,8 +211,7 @@ export default function Invoice({ token, role }) {
   };
 
   const isOverdue = () => {
-    if (!dueDate || status === "PAID" || status === "CANCELLED") return false;
-    return new Date(dueDate) < new Date();
+    return isInvoicePastDue({ ...invoiceData, due_date: dueDate, status });
   };
 
   if (isLoading || (!invoiceData && !error)) {
@@ -248,7 +250,7 @@ export default function Invoice({ token, role }) {
         />
       )}
       <ConfirmCustomerNotification
-        open={Boolean(confirmAction)}
+        open={role === "MANAGER" && Boolean(confirmAction)}
         detail={`Send invoice ${invoiceNumber || ""} to ${clientName || "the customer"}.`}
         onYes={() => {
           if (confirmAction?.type === "save") saveInvoice(confirmAction.payload);
@@ -256,6 +258,10 @@ export default function Invoice({ token, role }) {
         }}
         onNo={() => setConfirmAction(null)}
         isLoading={sendingInvoice || updatingInvoice}
+      />
+      <TransactionCompleteNotice
+        message={completionMessage}
+        onClose={() => setCompletionMessage("")}
       />
 
       {invoiceData?.has_paid_payout && canManage && (
@@ -287,7 +293,7 @@ export default function Invoice({ token, role }) {
           )}
         </div>
 
-        {canManage && (
+        {role === "MANAGER" && canManage && (
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
@@ -354,8 +360,9 @@ export default function Invoice({ token, role }) {
                 />
                 <SummaryRow
                   label="Due Date"
-                  value={dueDate ? formatDate(dueDate) : "-"}
+                  value={dueDate ? formatDate(dueDate) : "Set when sent"}
                 />
+                {paymentTerms && <SummaryRow label="Payment Terms" value={paymentTermsLabel(paymentTerms)} />}
               </div>
 
               {status === "PAID" && paidAt && (
@@ -400,8 +407,8 @@ export default function Invoice({ token, role }) {
                     fieldClass="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-[#ff6a00] focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                     value={dueDate}
                     onChange={setDueDate}
-                    isRequired={true}
-                    isDisabled={isLocked}
+                    isRequired={!paymentTerms}
+                    isDisabled={isLocked || Boolean(paymentTerms && status !== "DRAFT")}
                     label="Due Date"
                     id="invoice-due-date"
                   />
@@ -496,6 +503,7 @@ export default function Invoice({ token, role }) {
                 subtotal={subtotal}
                 serviceName={serviceName}
                 dueDate={dueDate}
+                paymentTerms={paymentTerms}
               />
             )}
           </div>
@@ -542,6 +550,7 @@ function CustomerView({
   subtotal,
   serviceName,
   dueDate,
+  paymentTerms,
 }) {
   const calculatedTax = (
     (parseFloat(subtotal || 0) * parseFloat(taxRate || 0)) /
@@ -574,7 +583,7 @@ function CustomerView({
         </div>
       </div>
 
-      <div className="grid gap-4 px-6 py-6 md:grid-cols-3">
+      <div className={`grid gap-4 px-6 py-6 ${paymentTerms ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
             Service
@@ -588,9 +597,15 @@ function CustomerView({
             Due Date
           </p>
           <p className="mt-2 text-lg font-semibold text-slate-900">
-            {formatDate(dueDate)}
+            {dueDate ? formatDate(dueDate) : "Set when sent"}
           </p>
         </div>
+        {paymentTerms && (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Payment Terms</p>
+            <p className="mt-2 text-lg font-semibold text-slate-900">{paymentTermsLabel(paymentTerms)}</p>
+          </div>
+        )}
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
             Status

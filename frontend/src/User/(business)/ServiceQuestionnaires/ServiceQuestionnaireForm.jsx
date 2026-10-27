@@ -7,6 +7,7 @@ import {
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import { useDispatch } from "react-redux";
@@ -36,6 +37,7 @@ export default function ServiceQuestionnaireForm(props) {
   const [questions, setQuestions] = useState({});
   const [serviceName, setServiceName] = useState("");
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const [completionMessage, setCompletionMessage] = useState("");
 
   useEffect(() => {
     if (questionnaire) {
@@ -118,10 +120,11 @@ export default function ServiceQuestionnaireForm(props) {
         filled_questionnaire: payload,
       }).unwrap();
 
-      setAlert({
-        type: "success",
-        message: "Questionnaire submitted successfully.",
-      });
+      setCompletionMessage(
+        service?.filled_questionnaire
+          ? "Questionnaire saved."
+          : "Questionnaire submitted. The business owner has been notified by email.",
+      );
     } catch (err) {
       console.error("Failed to save questionnaire:", err);
       setAlert({
@@ -155,6 +158,10 @@ export default function ServiceQuestionnaireForm(props) {
 
   return (
     <div className="space-y-4">
+      <TransactionCompleteNotice
+        message={completionMessage}
+        onClose={() => setCompletionMessage("")}
+      />
       {alert.message && (
         <AlertDispatcher
           type={alert.type}

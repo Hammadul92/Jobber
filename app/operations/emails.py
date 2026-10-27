@@ -15,6 +15,10 @@ def send_quote_email(quote):
     period = " per month" if quote.service.billing_cycle == "MONTHLY" else ""
 
     subject = f"Quote {quote.quote_number} - {quote.service.service_name}"
+    payment_terms_line = (
+        f"Payment Terms: {quote.get_payment_terms_display()}\n"
+        if quote.payment_terms else ""
+    )
     message = (
         f"Hello {quote.service.client.user.name},\n\n"
         f"You have received a new quote from "
@@ -22,6 +26,7 @@ def send_quote_email(quote):
         f"Quote Number: {quote.quote_number}\n"
         f"Service: {quote.service.service_name}\n"
         f"Valid Until: {quote.valid_until}\n"
+        f"{payment_terms_line}"
         f"Subtotal: ${subtotal:,.2f} {currency}\n"
         f"{tax_label} ({quote.tax_rate}%): ${tax_amount:,.2f} {currency}\n"
         f"Total{period}: ${total:,.2f} {currency}\n"
@@ -44,6 +49,7 @@ def send_quote_email(quote):
             {"label": "Quote", "value": quote.quote_number},
             {"label": "Service", "value": quote.service.service_name},
             {"label": "Valid until", "value": quote.valid_until},
+            *([{"label": "Payment terms", "value": quote.get_payment_terms_display()}] if quote.payment_terms else []),
             {"label": f"Total{period}", "value": f"${total:,.2f} {currency}"},
         ],
         action_label="Review and Sign Quote",
