@@ -365,6 +365,7 @@ class QuoteInvoiceAutomationTests(TestCase):
         )
         self.quote = Quote.objects.create(
             service=self.service,
+            payment_terms="NET_15",
             valid_until=date.today() + timedelta(days=2),
             terms_conditions="Test terms",
             notes="Test notes",
@@ -631,6 +632,7 @@ class ServiceTermsTemplateApiTests(TestCase):
             {
                 "service": service.id,
                 "valid_until": date.today() + timedelta(days=2),
+                "payment_terms": "NET_15",
                 "terms_conditions": "Remove furniture before work begins.",
                 "notes": "Quote notes",
             },
@@ -1473,6 +1475,43 @@ class WorkflowRegressionTests(TestCase):
         self.assertIn("role", res.data)
         self.assertEqual(self.manager.role, "MANAGER")
 
+    def test_team_member_create_explains_ineligible_or_duplicate_accounts(self):
+        self.client.force_authenticate(self.manager)
+        url = reverse("operations:teammember-list")
+        for employee, expected in (
+            (self.manager, "business owner"),
+            (self.client_user, "not a manager or employee"),
+            (self.employee_user, "already on this team"),
+        ):
+            with self.subTest(employee=employee.email):
+                response = self.client.post(url, {
+                    "business": self.business.id, "employee": employee.id,
+                    "role": "MANAGER",
+                }, format="json")
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn(expected, str(response.data).lower())
+
+    def test_team_member_create_applies_selected_role_and_checks_business_owner(self):
+        new_employee = get_user_model().objects.create_user(
+            "new-team-member@example.com", "test123", role="EMPLOYEE",
+        )
+        url = reverse("operations:teammember-list")
+        self.client.force_authenticate(self.client_user)
+        forbidden = self.client.post(url, {
+            "business": self.business.id, "employee": new_employee.id,
+            "role": "MANAGER",
+        }, format="json")
+        self.assertEqual(forbidden.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(self.manager)
+        created = self.client.post(url, {
+            "business": self.business.id, "employee": new_employee.id,
+            "role": "MANAGER",
+        }, format="json")
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED, created.data)
+        new_employee.refresh_from_db()
+        self.assertEqual(new_employee.role, "MANAGER")
+
     @patch("operations.views.emails.send_quote_email")
     @patch("operations.views.emails.send_service_questionnaire_email")
     @patch("finance.views.stripe.Account.retrieve")
@@ -1518,6 +1557,10 @@ class WorkflowRegressionTests(TestCase):
         )
 
         self.client.force_authenticate(self.manager)
+        terms_res = self.client.patch(
+            quote_detail_url(quote.id), {"payment_terms": "NET_15"}, format="json",
+        )
+        self.assertEqual(terms_res.status_code, status.HTTP_200_OK)
         send_res = self.client.post(quote_send_url(quote.id))
         self.assertEqual(send_res.status_code, status.HTTP_200_OK)
         mock_quote_email.assert_called_once()
@@ -1640,6 +1683,7 @@ class WorkflowRegressionTests(TestCase):
             {
                 "service": service.id,
                 "valid_until": date.today() + timedelta(days=2),
+                "payment_terms": "NET_15",
                 "terms_conditions": "Additional terms.",
             },
         )
@@ -1660,6 +1704,7 @@ class WorkflowRegressionTests(TestCase):
             {
                 "service": service.id,
                 "valid_until": date.today() + timedelta(days=2),
+                "payment_terms": "NET_15",
                 "terms_conditions": "Additional terms.",
             },
         )
@@ -1855,6 +1900,7 @@ class WorkflowRegressionTests(TestCase):
             {
                 "service": service.id,
                 "valid_until": date.today() + timedelta(days=2),
+                "payment_terms": "NET_15",
             },
         )
         self.assertEqual(quote_res.status_code, status.HTTP_201_CREATED)

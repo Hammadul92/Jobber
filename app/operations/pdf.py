@@ -189,6 +189,10 @@ def build_signed_quote_pdf(quote):
     ]
     if valid_until:
         metadata.append(_paragraph(f"Valid until: {valid_until:%d %b %Y}", styles["meta"]))
+    if getattr(quote, "payment_terms", None):
+        metadata.append(_paragraph(
+            f"Payment terms: {escape(quote.get_payment_terms_display())}", styles["meta"],
+        ))
     header = Table(
         [[_paragraph(business.name, styles["title"]), metadata]],
         colWidths=[width * 0.64, width * 0.36],

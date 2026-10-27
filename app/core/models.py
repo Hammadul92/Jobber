@@ -29,6 +29,12 @@ PAYMENT_METHOD_CHOICES = [
     ("CARD", "Credit/Debit Card"),
 ]
 
+PAYMENT_TERMS_CHOICES = [
+    ("UPFRONT", "Due on Receipt"),
+    ("NET_15", "Net 15 days"),
+    ("NET_30", "Net 30 days"),
+]
+
 SERVICE_TYPE_CHOICES = [
     ("ONE_TIME", "One Time"),
     ("SUBSCRIPTION", "Subscription"),
@@ -265,6 +271,9 @@ class Business(SoftDeletableModel):
     business_number = models.CharField(max_length=20, null=False)
     tax_rate = models.DecimalField(max_digits=4, default=0, decimal_places=2)
     tax_label = models.CharField(max_length=30, blank=True, default="")
+    default_payment_terms = models.CharField(
+        max_length=10, choices=PAYMENT_TERMS_CHOICES, default="NET_15",
+    )
 
     services_offered = TaggableManager(
         blank=True,
@@ -684,6 +693,9 @@ class Quote(SoftDeletableModel):
     quote_number = models.CharField(max_length=20, unique=True, editable=False)
     date_created = models.DateTimeField(auto_now_add=True)
     valid_until = models.DateField()
+    payment_terms = models.CharField(
+        max_length=10, choices=PAYMENT_TERMS_CHOICES, null=True, blank=True,
+    )
 
     status = models.CharField(
         max_length=20,
@@ -800,7 +812,11 @@ class Invoice(SoftDeletableModel):
         unique=True,
         editable=False,
     )
-    due_date = models.DateField()
+    due_date = models.DateField(null=True, blank=True)
+    payment_terms = models.CharField(
+        max_length=10, choices=PAYMENT_TERMS_CHOICES, null=True, blank=True,
+    )
+    sent_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
         max_length=20,
         choices=INVOICE_STATUS_CHOICES,

@@ -41,6 +41,7 @@ class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                   'business_description', 'logo', 'street_address',
                   'city', 'country', 'province_state',
                   'postal_code', 'business_number', 'tax_rate', 'tax_label',
+                  'default_payment_terms',
                   'services_offered', 'timezone', 'created_at', 'updated_at']
 
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at']
@@ -215,6 +216,7 @@ class ClientSerializer(serializers.ModelSerializer):
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):
+    employee = serializers.PrimaryKeyRelatedField(queryset=get_user_model().objects.all())
     employee_name = serializers.CharField(
         source="employee.name",
         read_only=True
@@ -239,6 +241,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeamMember
+        validators = []
         fields = [
             "id", "business", "business_name", "employee",
             "employee_name", "employee_email", "is_active", "role",
@@ -250,6 +253,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         employee = attrs.get("employee")
+        business = attrs.get("business") or getattr(self.instance, "business", None)
         role = self.initial_data.get("role")
 
         # Prevent adding any business owner as a team member
@@ -259,6 +263,22 @@ class TeamMemberSerializer(serializers.ModelSerializer):
                     f"User '{employee.name}' is already a business owner "
                     f"and cannot be added as a team member."
                 )
+
+        if employee and employee.role not in {"MANAGER", "EMPLOYEE"}:
+            raise serializers.ValidationError({
+                "employee": "This account is not a manager or employee. Use a different email address."
+            })
+
+        if employee and business and not self.instance:
+            existing = TeamMember.all_objects.filter(
+                business=business, employee=employee,
+            ).first()
+            if existing:
+                message = (
+                    "This account was previously on this team. Contact support to restore it."
+                    if existing.is_deleted else "This account is already on this team."
+                )
+                raise serializers.ValidationError({"employee": message})
 
         if role is not None:
             normalized_role = str(role).strip().upper()
@@ -359,6 +379,7 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                 "quote_number": quote.quote_number,
                 "status": quote.status,
                 "valid_until": quote.valid_until,
+                "payment_terms": quote.payment_terms,
                 "created_at": quote.created_at,
                 "line_items": quote_line_items(quote),
                 "quoted_subtotal": str(quote_tax_details(quote)[0]),
@@ -642,6 +663,7 @@ class QuoteSerializer(serializers.ModelSerializer):
         fields = [
             "id", "quote_number", "service", "service_data", "client",
             "service_name", "client_name", "business_name", "valid_until",
+            "payment_terms",
             "status", "signed_at", "signature", "general_terms_conditions",
             "terms_conditions", "combined_terms_conditions",
             "notes", "line_items", "quoted_subtotal", "quoted_tax_rate", "quoted_tax_label",
@@ -661,6 +683,8 @@ class QuoteSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Ensure a service cannot have more than one active non-declined quote."""
+        if self.instance is None and not attrs.get("payment_terms"):
+            raise serializers.ValidationError({"payment_terms": "Choose payment terms."})
         service = attrs.get("service") or getattr(self.instance, "service", None)
 
         if service:
