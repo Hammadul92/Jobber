@@ -10,6 +10,9 @@ import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import Input from "../../../Components/ui/Input";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import PhoneInputField from "../../../Components/ui/PhoneInput";
+import Dropdown from "../../../Components/ui/Dropdown";
+import { countries, provinces } from "../../../constants/locations";
+import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerNotification";
 
 function generateStrongPassword(length = 12) {
   const charset =
@@ -31,8 +34,15 @@ export default function CreateClientForm({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [billingStreet, setBillingStreet] = useState("");
+  const [billingCity, setBillingCity] = useState("");
+  const [billingCountry, setBillingCountry] = useState("CA");
+  const [billingProvince, setBillingProvince] = useState("");
+  const [billingPostalCode, setBillingPostalCode] = useState("");
 
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const [confirmInvitation, setConfirmInvitation] = useState(false);
 
   const [createUser, { isLoading: creatingUser }] = useCreateUserMutation();
   const [createClient, { isLoading: creatingClient }] =
@@ -42,19 +52,8 @@ export default function CreateClientForm({
 
   const isSubmitting = creatingUser || creatingClient || checkingUser;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setAlert({ type: "", message: "" });
-
-    if (!name || !email || !phone) {
-      setAlert({ type: "danger", message: "Please fill all required fields." });
-      return;
-    }
-
+  const createClientAccount = async (userId) => {
     try {
-      const checkResponse = await checkUserExists({ email }).unwrap();
-      let userId = checkResponse?.id;
-
       if (!userId) {
         const password = generateStrongPassword();
         const userPayload = { name, email, phone, password, role: "CLIENT" };
@@ -62,7 +61,15 @@ export default function CreateClientForm({
         userId = newUser.id;
       }
 
-      await createClient({ user: userId }).unwrap();
+      await createClient({
+        user: userId,
+        company_name: companyName.trim(),
+        billing_street_address: billingStreet.trim(),
+        billing_city: billingCity.trim(),
+        billing_country: billingCountry,
+        billing_province_state: billingProvince,
+        billing_postal_code: billingPostalCode.trim(),
+      }).unwrap();
 
       const success = {
         type: "success",
@@ -73,6 +80,12 @@ export default function CreateClientForm({
       setName("");
       setPhone("");
       setEmail("");
+      setCompanyName("");
+      setBillingStreet("");
+      setBillingCity("");
+      setBillingCountry("CA");
+      setBillingProvince("");
+      setBillingPostalCode("");
       setShowModal(false);
     } catch (err) {
       const message =
@@ -90,11 +103,41 @@ export default function CreateClientForm({
       setAlert(danger);
       if (setParentAlert) setParentAlert(danger);
       console.error("Create client error:", err);
+    } finally {
+      setConfirmInvitation(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setAlert({ type: "", message: "" });
+
+    if (!name || !email || !phone || !billingStreet || !billingCity || !billingCountry || !billingProvince || !billingPostalCode) {
+      setAlert({ type: "danger", message: "Please fill all required fields." });
+      return;
+    }
+
+    try {
+      const checkResponse = await checkUserExists({ email }).unwrap();
+      if (checkResponse?.id) {
+        await createClientAccount(checkResponse.id);
+      } else {
+        setConfirmInvitation(true);
+      }
+    } catch (err) {
+      setAlert({ type: "danger", message: err?.data?.detail || "Could not check the client email. Please try again." });
     }
   };
 
   return (
     <>
+      <ConfirmCustomerNotification
+        open={confirmInvitation}
+        detail={`Creating this client will send an invitation to ${email}.`}
+        onYes={() => { if (!isSubmitting) createClientAccount(null); }}
+        onNo={() => setConfirmInvitation(false)}
+        isLoading={isSubmitting}
+      />
       {showModal && (
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
           <button
@@ -182,6 +225,28 @@ export default function CreateClientForm({
                       optional={false}
                       // fieldClass="h-11 text-sm"
                     />
+                    <Input id="client-company-name" type="text" label="Company Name (optional)"
+                      value={companyName} onChange={setCompanyName} fieldClass="h-11 text-sm" />
+                  </div>
+                </section>
+
+                <section className="mt-8 border-t border-gray-200 pt-6">
+                  <h6 className="text-xs font-bold uppercase tracking-[0.08em] text-slate-700">Billing Address</h6>
+                  <div className="mt-4 space-y-4">
+                    <Input id="client-billing-street" type="text" label="Street Address"
+                      value={billingStreet} onChange={setBillingStreet} isRequired fieldClass="h-11 text-sm" />
+                    <Input id="client-billing-city" type="text" label="City"
+                      value={billingCity} onChange={setBillingCity} isRequired fieldClass="h-11 text-sm" />
+                    <div>
+                      <label className="mb-1 block text-sm font-semibold uppercase text-gray-500" htmlFor="client-billing-country">Country *</label>
+                      <Dropdown id="client-billing-country" value={billingCountry} onChange={(value) => { setBillingCountry(value); setBillingProvince(""); }} options={countries} />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-semibold uppercase text-gray-500" htmlFor="client-billing-province">Province/State *</label>
+                      <Dropdown id="client-billing-province" value={billingProvince} onChange={setBillingProvince} options={provinces[billingCountry] || []} disabled={!billingCountry} />
+                    </div>
+                    <Input id="client-billing-postal" type="text" label="Postal/Zip Code"
+                      value={billingPostalCode} onChange={setBillingPostalCode} isRequired fieldClass="h-11 text-sm" />
                   </div>
                 </section>
               </div>
