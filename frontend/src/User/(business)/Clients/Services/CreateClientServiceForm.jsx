@@ -6,6 +6,9 @@ import { countries, provinces } from "../../../../constants/locations";
 import Dropdown from "../../../../Components/ui/Dropdown";
 import Input from "../../../../Components/ui/Input";
 import Textarea from "../../../../Components/ui/Textarea";
+import ServiceItemsEditor from "../../../../Components/ui/ServiceItemsEditor";
+import { getBillingAddressForService } from "../../../../utils/formatAddress";
+import ConfirmCustomerNotification from "../../../../Components/ui/ConfirmCustomerNotification";
 
 export default function CreateClientServiceForm({
   showModal,
@@ -13,6 +16,7 @@ export default function CreateClientServiceForm({
   clientId,
   businessId,
   clientName,
+  clientBillingAddress,
   serviceOptions = [],
   setAlert,
   mode = "create",
@@ -23,6 +27,7 @@ export default function CreateClientServiceForm({
   const [serviceName, setServiceName] = useState("");
   const [serviceType, setServiceType] = useState("ONE_TIME");
   const [price, setPrice] = useState("");
+  const [items, setItems] = useState([]);
   const [currency, setCurrency] = useState("CAD");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -34,11 +39,26 @@ export default function CreateClientServiceForm({
   const [country, setCountry] = useState("CA");
   const [provinceState, setProvinceState] = useState("");
   const [postalCode, setPostalCode] = useState("");
+  const [sameAsBilling, setSameAsBilling] = useState(false);
+  const billingAddress = getBillingAddressForService(clientBillingAddress);
+  const hasBillingAddress = Boolean(billingAddress);
+
+  const handleSameAsBilling = (checked) => {
+    setSameAsBilling(checked);
+    if (checked && billingAddress) {
+      setStreetAddress(billingAddress.street_address);
+      setCity(billingAddress.city);
+      setCountry(billingAddress.country);
+      setProvinceState(billingAddress.province_state);
+      setPostalCode(billingAddress.postal_code);
+    }
+  };
 
   const [bypassQuestionnaire, setBypassQuestionnaire] = useState(false);
   const [autoGenerateQuote, setAutoGenerateQuote] = useState(false);
   const [autoGenerateInvoices, setAutoGenerateInvoices] = useState(false);
   const [status, setStatus] = useState("PENDING");
+  const [pendingService, setPendingService] = useState(null);
 
   const [createService, { isLoading: isCreating }] = useCreateServiceMutation();
   const [updateService, { isLoading: isUpdating }] = useUpdateServiceMutation();
@@ -48,6 +68,7 @@ export default function CreateClientServiceForm({
     setServiceName("");
     setServiceType("ONE_TIME");
     setPrice("");
+    setItems([]);
     setCurrency("CAD");
     setStartDate("");
     setEndDate("");
@@ -58,6 +79,7 @@ export default function CreateClientServiceForm({
     setCountry("CA");
     setProvinceState("");
     setPostalCode("");
+    setSameAsBilling(false);
     setBypassQuestionnaire(false);
     setAutoGenerateQuote(false);
     setAutoGenerateInvoices(false);
@@ -70,32 +92,29 @@ export default function CreateClientServiceForm({
 
     if (!isEditMode) {
       resetForm();
+    } else {
+      setServiceName(initialData.service_name || "");
+      setServiceType(initialData.service_type || "ONE_TIME");
+      setPrice(initialData.price || "");
+      setItems(initialData.items || []);
+      setCurrency(initialData.currency || "CAD");
+      setStartDate(initialData.start_date || "");
+      setEndDate(initialData.end_date || "");
+      setBillingCycle(initialData.billing_cycle || "");
+      setDescription(initialData.description || "");
+      setStreetAddress(initialData.street_address || "");
+      setCity(initialData.city || "");
+      setCountry(initialData.country || "CA");
+      setProvinceState(initialData.province_state || "");
+      setPostalCode(initialData.postal_code || "");
+      setStatus(initialData.status || "PENDING");
+      setAutoGenerateQuote(Boolean(initialData.auto_generate_quote));
+      setAutoGenerateInvoices(Boolean(initialData.auto_generate_invoices));
     }
-  }, [showModal, isEditMode]);
+  }, [showModal, isEditMode, initialData]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const saveService = async (payload) => {
     try {
-      const payload = {
-        service_name: serviceName,
-        service_type: serviceType,
-        price,
-        currency,
-        start_date: startDate,
-        end_date: endDate || null,
-        billing_cycle: billingCycle || null,
-        description,
-        street_address: streetAddress,
-        city,
-        country,
-        province_state: provinceState,
-        postal_code: postalCode,
-        status,
-        bypass_questionnaire: isEditMode ? initialData.bypass_questionnaire : bypassQuestionnaire,
-        auto_generate_quote: autoGenerateQuote,
-        auto_generate_invoices: autoGenerateInvoices,
-      };
-
       if (isEditMode) {
         await updateService({
           id: initialData.id,
@@ -134,11 +153,50 @@ export default function CreateClientServiceForm({
         type: "danger",
         message: msg,
       });
+    } finally {
+      setPendingService(null);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const payload = {
+      service_name: serviceName,
+      service_type: serviceType,
+      price: items.length ? items.reduce((sum, item) => sum + Number(item.price || 0), 0).toFixed(2) : price,
+      items,
+      currency,
+      start_date: startDate,
+      end_date: endDate || null,
+      billing_cycle: billingCycle || null,
+      description,
+      street_address: streetAddress,
+      city,
+      country,
+      province_state: provinceState,
+      postal_code: postalCode,
+      status,
+      bypass_questionnaire: isEditMode ? initialData.bypass_questionnaire : bypassQuestionnaire,
+      auto_generate_quote: autoGenerateQuote,
+      auto_generate_invoices: autoGenerateInvoices,
+    };
+
+    if (!isEditMode && !bypassQuestionnaire) {
+      setPendingService(payload);
+    } else {
+      saveService(payload);
     }
   };
 
   return (
     <>
+      <ConfirmCustomerNotification
+        open={Boolean(pendingService)}
+        detail={`Creating this service may send a questionnaire to ${clientName || "the customer"}.`}
+        onYes={() => { if (pendingService && !isLoading) saveService(pendingService); }}
+        onNo={() => setPendingService(null)}
+        isLoading={isLoading}
+      />
       {showModal && (
         <div className="fixed inset-0 z-50">
           <div
@@ -238,14 +296,16 @@ export default function CreateClientServiceForm({
                         <Input
                           type="number"
                           id="price"
-                          label="Price"
-                          value={price}
+                          label={items.length ? "Total Price" : "Price"}
+                          value={items.length ? items.reduce((sum, item) => sum + Number(item.price || 0), 0).toFixed(2) : price}
                           onChange={setPrice}
                           isRequired
                           fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
-                          isDisabled={lockToStatusOnly}
+                          isDisabled={lockToStatusOnly || items.length > 0}
                         />
                       </div>
+
+                      <ServiceItemsEditor items={items} onChange={setItems} currency={currency} disabled={lockToStatusOnly} />
 
                     <div>
                       <label
@@ -401,6 +461,17 @@ export default function CreateClientServiceForm({
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
                       Service Address
                     </p>
+                    {!isEditMode && (
+                      <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                        <input type="checkbox" checked={sameAsBilling}
+                          onChange={(event) => handleSameAsBilling(event.target.checked)}
+                          disabled={!hasBillingAddress} />
+                        Same as billing address
+                      </label>
+                    )}
+                    {!isEditMode && !hasBillingAddress && (
+                      <p className="text-xs text-slate-500">Add a complete billing address to the client profile to use this option.</p>
+                    )}
                     <div className="space-y-6">
                       <div>
                         <Input
@@ -410,7 +481,7 @@ export default function CreateClientServiceForm({
                           onChange={setStreetAddress}
                           isRequired
                           fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
-                          isDisabled={lockToStatusOnly}
+                          isDisabled={lockToStatusOnly || sameAsBilling}
                         />
                       </div>
 
@@ -423,7 +494,7 @@ export default function CreateClientServiceForm({
                             onChange={setCity}
                             isRequired
                             fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
-                            isDisabled={lockToStatusOnly}
+                            isDisabled={lockToStatusOnly || sameAsBilling}
                           />
                         </div>
 
@@ -441,7 +512,7 @@ export default function CreateClientServiceForm({
                           options={provinces[country] || []}
                           placeholder="Select State/Province"
                           buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                          disabled={lockToStatusOnly || !country}
+                          disabled={lockToStatusOnly || sameAsBilling || !country}
                         />
                       </div>
                     </div>
@@ -462,7 +533,7 @@ export default function CreateClientServiceForm({
                         }}
                         options={countries}
                         buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                        disabled={lockToStatusOnly}
+                        disabled={lockToStatusOnly || sameAsBilling}
                       />
                     </div>
 
@@ -474,7 +545,7 @@ export default function CreateClientServiceForm({
                           onChange={setPostalCode}
                           isRequired
                           fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
-                          isDisabled={lockToStatusOnly}
+                          isDisabled={lockToStatusOnly || sameAsBilling}
                         />
                       </div>
                     </div>

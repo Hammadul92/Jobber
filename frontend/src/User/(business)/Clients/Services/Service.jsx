@@ -13,6 +13,7 @@ import LoadingScreen from "../../../../Components/ui/LoadingScreen";
 import Select from "../../../../Components/ui/Select";
 import Input from "../../../../Components/ui/Input";
 import Textarea from "../../../../Components/ui/Textarea";
+import ServiceItemsEditor from "../../../../Components/ui/ServiceItemsEditor";
 import { countries, provinces } from "../../../../constants/locations";
 import { setTopbar, resetTopbar } from "../../../../store/topbarSlice";
 
@@ -35,6 +36,7 @@ export default function Service({ token }) {
   const [endDate, setEndDate] = useState("");
   const [serviceType, setServiceType] = useState("ONE_TIME");
   const [price, setPrice] = useState("");
+  const [items, setItems] = useState([]);
   const [currency, setCurrency] = useState("CAD");
   const [billingCycle, setBillingCycle] = useState("");
 
@@ -90,6 +92,7 @@ export default function Service({ token }) {
       setEndDate(serviceData.end_date || "");
       setServiceType(serviceData.service_type || "ONE_TIME");
       setPrice(serviceData.price || "");
+      setItems(serviceData.items || []);
       setCurrency(serviceData.currency || "CAD");
       setBillingCycle(serviceData.billing_cycle || "");
       setStatus(serviceData.status || "PENDING");
@@ -128,7 +131,8 @@ export default function Service({ token }) {
         start_date: startDate,
         end_date: endDate || null,
         service_type: serviceType,
-        price,
+        price: items.length ? items.reduce((sum, item) => sum + Number(item.price || 0), 0).toFixed(2) : price,
+        items,
         currency,
         billing_cycle: billingCycle,
         status,
@@ -199,10 +203,11 @@ export default function Service({ token }) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6 mb-0">
           <Input
             type="number"
-            label="Price"
-            value={price}
+            label={items.length ? "Total Price" : "Price"}
+            value={items.length ? items.reduce((sum, item) => sum + Number(item.price || 0), 0).toFixed(2) : price}
             onChange={setPrice}
             isRequired={true}
+            isDisabled={items.length > 0}
             fieldClass="mb-0 h-10 rounded-xl px-3 py-2 text-sm"
           />
           <Select
@@ -374,6 +379,7 @@ export default function Service({ token }) {
               rows={5}
             />
           </div>
+          <ServiceItemsEditor items={items} onChange={setItems} currency={currency} />
         </div>
 
         <div className="flex justify-end gap-3">
