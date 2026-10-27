@@ -22,14 +22,9 @@ import {
 } from "react-icons/lu";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import { getBaseUrl } from "../../../store/apis/baseConfig";
-
-function formatMoney(value, currency = "CAD") {
-  const amount = Number.parseFloat(value || 0);
-  return `$${new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number.isFinite(amount) ? amount : 0)} ${currency || "CAD"}`;
-}
+import { formatAddress } from "../../../utils/formatAddress";
+import LineItemsTable from "../../../Components/ui/LineItemsTable";
+import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerNotification";
 
 export default function Quote({ token }) {
   const { id } = useParams();
@@ -49,6 +44,7 @@ export default function Quote({ token }) {
   const [notes, setNotes] = useState("");
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [downloading, setDownloading] = useState(false);
+  const [confirmSend, setConfirmSend] = useState(false);
 
   useEffect(() => {
     if (quoteData) {
@@ -98,6 +94,7 @@ export default function Quote({ token }) {
   };
 
   const handleSendQuote = async () => {
+    if (sending) return;
     try {
       await sendQuote(id).unwrap();
       setAlert({ type: "success", message: "Quote email sent successfully!" });
@@ -106,6 +103,8 @@ export default function Quote({ token }) {
         type: "danger",
         message: err?.data?.detail || "Failed to send quote email. Please try again.",
       });
+    } finally {
+      setConfirmSend(false);
     }
   };
 
@@ -204,6 +203,13 @@ export default function Quote({ token }) {
           onClose={() => setAlert({ type: "", message: "" })}
         />
       )}
+      <ConfirmCustomerNotification
+        open={confirmSend}
+        detail={`Send quote ${quoteData.quote_number} to ${client.client_email || quoteData.client_name || "the customer"}.`}
+        onYes={handleSendQuote}
+        onNo={() => setConfirmSend(false)}
+        isLoading={sending}
+      />
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -234,7 +240,7 @@ export default function Quote({ token }) {
           <button
             type="button"
             className={`${btnPrimary} min-w-43 justify-center`}
-            onClick={handleSendQuote}
+            onClick={() => setConfirmSend(true)}
             disabled={disableSendBtn || sending}
           >
             {sending && (
@@ -306,6 +312,13 @@ export default function Quote({ token }) {
                   </p>
                 </div>
               </div>
+              {client.company_name && (
+                <div><p className="text-sm text-slate-500">Company</p><p className="text-base font-medium text-slate-800">{client.company_name}</p></div>
+              )}
+              <div className="flex items-start gap-3">
+                <LuMapPin className="mt-1 h-5 w-5 shrink-0 text-slate-400" />
+                <div><p className="text-sm text-slate-500">Billing Address</p><p className="text-base font-medium text-slate-800">{formatAddress(client, "billing")}</p></div>
+              </div>
             </div>
           </div>
 
@@ -342,27 +355,27 @@ export default function Quote({ token }) {
                 </p>
               </div>
 
-              {serviceData.description && (
+              {serviceData.description && serviceData.items?.length > 0 && (
                 <div>
                   <p className="text-sm text-slate-500">Description</p>
                   <p className="text-base font-medium text-slate-900">{serviceData.description}</p>
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4 text-slate-800">
-                <div>
-                  <p className="text-sm text-slate-500">Price</p>
-                  <p className="text-base font-medium">
-                    {serviceData.price
-                      ? formatMoney(serviceData.price, serviceData.currency)
-                      : "-"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Billing Cycle</p>
-                  <p className="text-base font-medium">{serviceData.billing_cycle || "-"}</p>
-                </div>
-              </div>
+              <LineItemsTable
+                items={quoteData.line_items || []}
+                currency={quoteData.quoted_currency || serviceData.currency}
+                subtotal={quoteData.quoted_subtotal}
+                taxRate={quoteData.quoted_tax_rate}
+                taxLabel={quoteData.quoted_tax_label || "Tax"}
+                taxAmount={quoteData.quoted_tax_amount}
+                total={quoteData.quoted_total}
+                billingCycle={serviceData.billing_cycle}
+              />
+              {quoteData.status === "SENT" && quoteData.quoted_tax_rate == null && (
+                <p className="text-sm text-amber-700">Tax was not stated on this older quote. Resend it with the current tax breakdown before the client signs.</p>
+              )}
+              <p className="text-sm text-slate-600">Billing Cycle: {serviceData.billing_cycle || "-"}</p>
 
               <div className="grid grid-cols-2 gap-4 text-slate-800">
                 <div>

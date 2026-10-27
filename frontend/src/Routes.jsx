@@ -308,6 +308,10 @@ function MainApp() {
             element={<UserDashboard page="quote" token={token} user={user} />}
           />
           <Route
+            path="quote/:id/preview"
+            element={<UserDashboard page="quote-preview" token={token} user={user} />}
+          />
+          <Route
             path="quote/sign/:id"
             element={<QuoteSignRoute token={token} user={user} />}
           />

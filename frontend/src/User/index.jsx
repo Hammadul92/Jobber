@@ -53,6 +53,7 @@ export default function UserDashboard({ page, token, user }) {
         "team-member",
         "quotes",
         "quote",
+        "quote-preview",
         "sign-quote",
         "jobs",
         "job",
@@ -81,6 +82,7 @@ export default function UserDashboard({ page, token, user }) {
       { page: "terms-and-conditions", roles: ["MANAGER"] },
       { page: "quotes", roles: ["CLIENT", "MANAGER"] },
       { page: "quote", roles: ["CLIENT", "MANAGER"] },
+      { page: "quote-preview", roles: ["CLIENT", "MANAGER"] },
       { page: "sign-quote", roles: ["CLIENT"] },
       { page: "jobs", roles: ["CLIENT", "MANAGER", "EMPLOYEE"] },
       { page: "job", roles: ["CLIENT", "MANAGER", "EMPLOYEE"] },
@@ -215,6 +217,8 @@ export default function UserDashboard({ page, token, user }) {
       case "quote":
         // Single quote tab
         return <Quote token={token} business={business} />;
+      case "quote-preview":
+        return <SignQuote token={token} preview />;
       case "sign-quote":
         // Sign quote tab
         return <SignQuote token={token} />;

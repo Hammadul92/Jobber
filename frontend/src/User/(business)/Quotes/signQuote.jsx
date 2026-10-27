@@ -22,16 +22,10 @@ import {
     LuUser,
     LuFileText,
 } from "react-icons/lu";
+import { formatAddress } from "../../../utils/formatAddress";
+import LineItemsTable from "../../../Components/ui/LineItemsTable";
 
-function formatMoney(value, currency = "CAD") {
-    const amount = Number.parseFloat(value || 0);
-    return `$${new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(Number.isFinite(amount) ? amount : 0)} ${currency || "CAD"}`;
-}
-
-export default function SignQuote({ token }) {
+export default function SignQuote({ token, preview = false }) {
     const { id } = useParams();
 
     const {
@@ -83,6 +77,7 @@ export default function SignQuote({ token }) {
     }, [quote]);
 
     const handleDeclineConfirm = async () => {
+        if (preview) return;
         try {
             const formData = new FormData();
             formData.append("status", "DECLINED");
@@ -103,6 +98,7 @@ export default function SignQuote({ token }) {
     };
 
     const handleSignSubmit = async ({ signature }) => {
+        if (preview) return;
         try {
             const formData = new FormData();
             formData.append("status", "SIGNED");
@@ -181,6 +177,14 @@ export default function SignQuote({ token }) {
 
     return (
         <>
+            {preview && (
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm text-slate-700">
+                    <span><strong>Client view preview.</strong> This quote is read only.</span>
+                    <Link to="/user/business/quotes" className="font-semibold text-accent hover:underline">
+                        Back to Quotes
+                    </Link>
+                </div>
+            )}
             {alert.message && (
                 <AlertDispatcher
                     type={alert.type}
@@ -222,8 +226,7 @@ export default function SignQuote({ token }) {
                 </div>
 
                 <div className="grid grid-cols-1 gap-5 px-6 py-6 lg:grid-cols-5">
-                    <div className="space-y-4 lg:col-span-2 md:grid md:grid-cols-2 md:gap-5 lg:block">
-                        <div className="p-4 border border-gray-200 rounded-2xl bg-background">
+                    <div className="rounded-2xl border border-gray-200 bg-background p-4 lg:col-span-2">
                             <div className="flex items-center justify-between gap-3 mb-3">
                                 <h4 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-600">
                                     Client Details
@@ -269,56 +272,14 @@ export default function SignQuote({ token }) {
                                         </p>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        {isFinalized ? (
-                            <div className="mb-6 lg:col-span-2">
-                                <div className={`rounded-xl px-4 py-3 ${status === "DECLINED"
-                                    ? "border border-rose-200 bg-rose-50 text-rose-800"
-                                    : "border border-emerald-200 bg-emerald-50 text-emerald-800"
-                                    }`}
-                                >
-                                    {status === "SIGNED" ? (
-                                        <div className="">
-                                            <div>
-                                                <p className="mb-2 font-semibold uppercase">
-                                                    This quote has been signed successfully.
-                                                </p>
-                                                <p className="mb-1">
-                                                    Signed on: <strong>{formatDate(quote.signed_at)}</strong>
-                                                </p>
-                                                <p className="mb-1">
-                                                    Signed by: <strong>{quote.client.client_name}</strong>
-                                                </p>
-                                            </div>
-                                            <div className="mt-4">
-                                                {quote.signature && (
-                                                    <img
-                                                        src={
-                                                            quote.signature.startsWith("http")
-                                                                ? quote.signature
-                                                                : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${quote.signature}`
-                                                        }
-                                                        alt="Signed Document"
-                                                        className="w-full h-auto p-2 bg-white border border-gray-200 rounded-xl"
-                                                    />
-                                                )}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <p className="text-sm">
-                                            This quote has been <strong>declined</strong>
-                                            {quote.signed_at && (
-                                                <>
-                                                    {" "}
-                                                    on <strong>{new Date(quote.signed_at).toLocaleString()}</strong>
-                                                </>
-                                            )}
-                                        </p>
-                                    )}
+                                {client.company_name && (
+                                    <div><p className="text-sm text-slate-500">Company</p><p className="text-base font-medium text-slate-800">{client.company_name}</p></div>
+                                )}
+                                <div className="flex items-start gap-3">
+                                    <LuMapPin className="w-4 h-4 mt-1 shrink-0 text-slate-400" />
+                                    <div><p className="text-sm text-slate-500">Billing Address</p><p className="text-base font-medium text-slate-800">{formatAddress(client, "billing")}</p></div>
                                 </div>
                             </div>
-                        ) : null}
                     </div>
 
                     <div className="p-4 border border-gray-200 lg:col-span-3 rounded-2xl bg-background">
@@ -339,7 +300,7 @@ export default function SignQuote({ token }) {
                                 </p>
                             </div>
 
-                            {serviceData.description && (
+                            {serviceData.description && serviceData.items?.length > 0 && (
                                 <div>
                                     <p className="text-sm text-slate-500">Description</p>
                                     <div className="mt-1">
@@ -367,22 +328,7 @@ export default function SignQuote({ token }) {
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-2 gap-4 text-slate-800">
-                                <div>
-                                    <p className="text-sm text-slate-500">Price</p>
-                                    <p className="text-lg font-semibold text-[#ff6a00]">
-                                        {serviceData.price
-                                            ? formatMoney(serviceData.price, serviceData.currency)
-                                            : "-"}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500">Service Type</p>
-                                    <span className="inline-flex items-center px-3 py-1 text-xs font-semibold text-white rounded-full bg-slate-800">
-                                        {serviceData.service_type || "-"}
-                                    </span>
-                                </div>
-                            </div>
+                            <p className="text-sm text-slate-600">Service Type: {serviceData.service_type || "-"}</p>
 
                             <div>
                                 <p className="text-sm text-slate-500">Billing Cycle</p>
@@ -434,46 +380,57 @@ export default function SignQuote({ token }) {
                                 </div>
                             </div>
 
-                            <div className="pt-4 mt-5 border-t border-gray-200">
-                                <div className="flex flex-wrap gap-3">
-                                    {serviceData.service_questionnaires?.id ? (
-                                        <Link
-                                            to={`/user/business/service-questionnaire/${serviceData.service_questionnaires.id}/form/${serviceData.id}`}
-                                            className="inline-flex items-center px-4 py-2 text-sm font-semibold text-white transition border rounded-xl border-secondary bg-secondary hover:bg-secondary/95"
-                                        >
-                                            Questionaire Responses
-                                        </Link>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            disabled
-                                            className="inline-flex items-center px-4 py-2 text-sm font-semibold border cursor-not-allowed rounded-xl border-slate-200 bg-slate-100 text-slate-400"
-                                        >
-                                            Service Questionaire Responses
-                                        </button>
-                                    )}
-
-                                    <button
-                                        type="button"
-                                        onClick={() => openSectionPopup("notes")}
-                                        className="inline-flex items-center px-4 py-2 text-sm font-semibold transition bg-white border rounded-xl border-accent text-accent hover:bg-slate-50"
-                                    >
-                                        View Notes
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => openSectionPopup("terms")}
-                                        className="inline-flex items-center px-4 py-2 text-sm font-semibold transition bg-white border rounded-xl border-accent text-accent hover:bg-slate-50"
-                                    >
-                                        Terms & Conditions
-                                    </button>
-                                </div>
-                            </div>
-
                         </div>
                     </div>
 
+                    {isFinalized && (
+                        <div className={`rounded-xl px-4 py-3 lg:col-span-5 ${status === "DECLINED"
+                            ? "border border-rose-200 bg-rose-50 text-rose-800"
+                            : "border border-emerald-200 bg-emerald-50 text-emerald-800"
+                            }`}
+                        >
+                            {status === "SIGNED" ? (
+                                <div>
+                                    <p className="mb-2 font-semibold uppercase">This quote has been signed successfully.</p>
+                                    <p className="mb-1">Signed on: <strong>{formatDate(quote.signed_at)}</strong></p>
+                                    <p className="mb-1">Signed by: <strong>{quote.client.client_name}</strong></p>
+                                    {quote.signature && (
+                                        <img
+                                            src={quote.signature.startsWith("http")
+                                                ? quote.signature
+                                                : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${quote.signature}`}
+                                            alt="Signed Document"
+                                            className="mt-4 max-h-52 w-auto max-w-full rounded-xl border border-gray-200 bg-white p-2 object-contain"
+                                        />
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="text-sm">
+                                    This quote has been <strong>declined</strong>
+                                    {quote.signed_at && <> on <strong>{new Date(quote.signed_at).toLocaleString()}</strong></>}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    <section className="rounded-2xl border border-gray-200 bg-background p-4 lg:col-span-5" aria-labelledby="quote-service-items-heading">
+                        <h4 id="quote-service-items-heading" className="mb-4 text-sm font-semibold uppercase tracking-[0.08em] text-slate-600">
+                            Service Items
+                        </h4>
+                        <LineItemsTable
+                            items={quote.line_items || []}
+                            currency={quote.quoted_currency || serviceData.currency}
+                            subtotal={quote.quoted_subtotal}
+                            taxRate={quote.quoted_tax_rate}
+                            taxLabel={quote.quoted_tax_label || "Tax"}
+                            taxAmount={quote.quoted_tax_amount}
+                            total={quote.quoted_total}
+                            billingCycle={serviceData.billing_cycle}
+                        />
+                        {status === "SENT" && quote.quoted_tax_rate == null && (
+                            <p className="mt-3 text-sm text-amber-700">This older quote does not state tax. Please ask the business to resend it before signing.</p>
+                        )}
+                    </section>
                 </div>
 
                 <QuoteSectionPopup
@@ -516,27 +473,63 @@ export default function SignQuote({ token }) {
                     )}
                 </QuoteSectionPopup>
 
-                <div className="px-6 py-4 border-t border-gray-200">
-                    <div className="flex justify-end gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 px-6 py-4">
+                    <div className="flex flex-wrap gap-3">
+                        {serviceData.service_questionnaires?.id ? (
+                            <Link
+                                to={`/user/business/service-questionnaire/${serviceData.service_questionnaires.id}/form/${serviceData.id}`}
+                                className="inline-flex items-center rounded-xl border border-secondary bg-secondary px-4 py-2 text-sm font-semibold text-white transition hover:bg-secondary/95"
+                            >
+                                Questionnaire Responses
+                            </Link>
+                        ) : (
+                            <button
+                                type="button"
+                                disabled
+                                className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-400 cursor-not-allowed"
+                            >
+                                Questionnaire Responses
+                            </button>
+                        )}
                         <button
-                            className="inline-flex items-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed! disabled:opacity-75"
-                            onClick={() => setShowDeclineModal(true)}
-                            disabled={signing || timeRemaining === "Expired" || isFinalized}
+                            type="button"
+                            onClick={() => openSectionPopup("notes")}
+                            className="inline-flex items-center rounded-xl border border-accent bg-white px-4 py-2 text-sm font-semibold text-accent transition hover:bg-slate-50"
                         >
-                            Decline
+                            View Notes
                         </button>
                         <button
-                            className="inline-flex items-center rounded-xl bg-[#ff6a00] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#ff7a1f] disabled:cursor-not-allowed! disabled:opacity-75"
-                            onClick={() => setShowSignModal(true)}
-                            disabled={signing || timeRemaining === "Expired" || status !== "SENT" || isFinalized}
+                            type="button"
+                            onClick={() => openSectionPopup("terms")}
+                            className="inline-flex items-center rounded-xl border border-accent bg-white px-4 py-2 text-sm font-semibold text-accent transition hover:bg-slate-50"
                         >
-                            Accept & Sign
+                            Terms & Conditions
                         </button>
                     </div>
+                    {!preview && (
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                type="button"
+                                className="inline-flex items-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed! disabled:opacity-75"
+                                onClick={() => setShowDeclineModal(true)}
+                                disabled={signing || timeRemaining === "Expired" || isFinalized}
+                            >
+                                Decline
+                            </button>
+                            <button
+                                type="button"
+                                className="inline-flex items-center rounded-xl bg-[#ff6a00] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#ff7a1f] disabled:cursor-not-allowed! disabled:opacity-75"
+                                onClick={() => setShowSignModal(true)}
+                                disabled={signing || timeRemaining === "Expired" || status !== "SENT" || isFinalized || quote.quoted_tax_rate == null}
+                            >
+                                Accept & Sign
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {showSignModal && (
+            {!preview && showSignModal && (
                 <AcceptAndSignQuote
                     handleSignSubmit={handleSignSubmit}
                     signing={signing}
@@ -544,7 +537,7 @@ export default function SignQuote({ token }) {
                 />
             )}
 
-            {showDeclineModal && (
+            {!preview && showDeclineModal && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50"
                     role="dialog"
