@@ -10,6 +10,7 @@ import {
 import AcceptAndSignQuote from "./AcceptAndSignQuote";
 import QuoteSectionPopup from "./QuoteSectionPopup";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RichTextContent from "../../../Components/ui/RichTextContent";
 import { formatDate } from "../../../utils/formatDate";
@@ -24,6 +25,7 @@ import {
 } from "react-icons/lu";
 import { formatAddress } from "../../../utils/formatAddress";
 import LineItemsTable from "../../../Components/ui/LineItemsTable";
+import { paymentTermsLabel } from "../../../utils/paymentTerms";
 
 export default function SignQuote({ token, preview = false }) {
     const { id } = useParams();
@@ -36,6 +38,7 @@ export default function SignQuote({ token, preview = false }) {
     const [signQuote, { isLoading: signing }] = useSignQuoteMutation();
 
     const [showSignModal, setShowSignModal] = useState(false);
+    const [showSigningComplete, setShowSigningComplete] = useState(false);
     const [showDeclineModal, setShowDeclineModal] = useState(false);
     const [status, setStatus] = useState("");
     const [timeRemaining, setTimeRemaining] = useState("");
@@ -115,7 +118,7 @@ export default function SignQuote({ token, preview = false }) {
             await signQuote({ id, formData }).unwrap();
 
             setStatus("SIGNED");
-            setAlert({ type: "success", message: "Quote signed successfully!" });
+            setShowSigningComplete(true);
         } catch (err) {
             setAlert({
                 type: "danger",
@@ -202,6 +205,11 @@ export default function SignQuote({ token, preview = false }) {
                         <p className="mt-1 text-sm md:text-base text-slate-500">
                             Quote # {quote.quote_number}
                         </p>
+                        {quote.payment_terms && (
+                            <p className="mt-2 text-sm font-medium text-slate-700">
+                                Payment Terms: {paymentTermsLabel(quote.payment_terms)}
+                            </p>
+                        )}
                     </div>
 
                     <div className="text-right">
@@ -534,6 +542,13 @@ export default function SignQuote({ token, preview = false }) {
                     handleSignSubmit={handleSignSubmit}
                     signing={signing}
                     setShowSignModal={setShowSignModal}
+                />
+            )}
+
+            {!preview && (
+                <TransactionCompleteNotice
+                    message={showSigningComplete ? "Signing complete and a copy has been sent to your email." : ""}
+                    onClose={() => setShowSigningComplete(false)}
                 />
             )}
 

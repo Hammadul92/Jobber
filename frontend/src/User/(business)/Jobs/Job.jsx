@@ -9,6 +9,7 @@ import {
   useFetchServiceQuery,
 } from "../../../store";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
+import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import Select from "../../../Components/ui/Select";
@@ -48,6 +49,7 @@ export default function Job({ token, role }) {
   const [status, setStatus] = useState("");
   const [createdAt, setCreatedAt] = useState("");
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const [completionMessage, setCompletionMessage] = useState("");
 
   const [photoType, setPhotoType] = useState("BEFORE");
   const [selectedFile, setSelectedFile] = useState(null);
@@ -167,11 +169,16 @@ export default function Job({ token, role }) {
     formData.append("photo", selectedFile);
 
     try {
+      const notifiesOwner = photoType === "AFTER" && status !== "COMPLETED";
       await createJobPhoto(formData).unwrap();
       setSelectedFile(null);
       setPhotoPreview("");
-      if (role === "EMPLOYEE") {
-        navigate("/user/business/jobs");
+      if (role !== "MANAGER") {
+        if (notifiesOwner) {
+          setCompletionMessage("Job complete. The business owner has been notified by email.");
+        } else {
+          navigate("/user/business/jobs");
+        }
         return;
       }
       setStatus(photoType === "BEFORE" ? "IN_PROGRESS" : "COMPLETED");
@@ -203,6 +210,13 @@ export default function Job({ token, role }) {
 
   return (
     <>
+      <TransactionCompleteNotice
+        message={completionMessage}
+        onClose={() => {
+          setCompletionMessage("");
+          navigate("/user/business/jobs");
+        }}
+      />
       {alert.message && (
         <AlertDispatcher
           type={alert.type}
