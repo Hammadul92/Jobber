@@ -2,6 +2,7 @@
 
 from base64 import b64decode
 
+from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -35,6 +36,11 @@ class BrandedEmailTests(SimpleTestCase):
         email = mail.outbox[0]
         self.assertEqual(email.body, "Your service is now active.")
         self.assertEqual(email.to, ["client@example.com"])
+        self.assertEqual(
+            email.from_email,
+            f"GetContractorz Support <{settings.DEFAULT_FROM_EMAIL}>",
+        )
+        self.assertEqual(email.reply_to, [settings.NO_REPLY_EMAIL])
         self.assertEqual(email.alternatives[0][1], "text/html")
 
         html = email.alternatives[0][0]
@@ -73,6 +79,19 @@ class BrandedEmailTests(SimpleTestCase):
         )
 
         html = mail.outbox[0].alternatives[0][0]
+        self.assertEqual(
+            mail.outbox[0].from_email,
+            f"InsoLogics Support <{settings.DEFAULT_FROM_EMAIL}>",
+        )
+        self.assertEqual(mail.outbox[0].reply_to, [settings.NO_REPLY_EMAIL])
+        sendgrid_payload = SendgridBackend(api_key="SG.test-key")._build_sg_mail(
+            mail.outbox[0]
+        )
+        self.assertEqual(sendgrid_payload["from"], {
+            "email": settings.DEFAULT_FROM_EMAIL,
+            "name": "InsoLogics Support",
+        })
+        self.assertEqual(sendgrid_payload["reply_to"]["email"], settings.NO_REPLY_EMAIL)
         self.assertIn("InsoLogics", html)
         self.assertIn('alt="GetContractorz logo"', html)
         self.assertIn('alt="InsoLogics logo"', html)
@@ -123,3 +142,22 @@ class BrandedEmailTests(SimpleTestCase):
         self.assertEqual(b64decode(pdf_attachment["content"]), pdf_content)
         self.assertEqual(attachments["getcontractorz-logo.png"]["disposition"], "inline")
         self.assertEqual(attachments["business-logo.png"]["disposition"], "inline")
+
+    def test_unicode_business_name_and_custom_no_reply_reach_sendgrid(self):
+        with self.settings(NO_REPLY_EMAIL="no-reply@custom.example"):
+            send_branded_email(
+                subject="Business update",
+                text_body="An update is ready.",
+                recipient_list=["client@example.com"],
+                eyebrow="Update",
+                heading="An update is ready.",
+                paragraphs=["An update is ready."],
+                brand_name="Café & Sons, Ltd.",
+            )
+
+        payload = SendgridBackend(api_key="SG.test-key")._build_sg_mail(
+            mail.outbox[0]
+        )
+        self.assertEqual(payload["from"]["name"], "Café & Sons, Ltd. Support")
+        self.assertEqual(payload["from"]["email"], settings.DEFAULT_FROM_EMAIL)
+        self.assertEqual(payload["reply_to"]["email"], "no-reply@custom.example")

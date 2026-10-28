@@ -27,6 +27,7 @@ export default function Dropdown({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
+  const buttonRef = useRef(null);
 
   const normalizedOptions = useMemo(
     () =>
@@ -49,8 +50,13 @@ export default function Dropdown({
     };
 
     const handleEscape = (event) => {
-      if (event.key === "Escape") {
+      if (
+        event.key === "Escape" &&
+        isOpen &&
+        wrapperRef.current?.contains(document.activeElement)
+      ) {
         setIsOpen(false);
+        buttonRef.current?.focus();
       }
     };
 
@@ -61,19 +67,30 @@ export default function Dropdown({
       document.removeEventListener("mousedown", handleOutsideClick);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, []);
+  }, [isOpen]);
 
   const handleSelect = (nextValue) => {
     onChange?.(nextValue);
     setIsOpen(false);
+    buttonRef.current?.focus();
   };
 
   return (
-    <div ref={wrapperRef} className={`relative ${className}`}>
+    <div
+      ref={wrapperRef}
+      className={`relative ${className}`}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setIsOpen(false);
+        }
+      }}
+    >
       <button
+        ref={buttonRef}
         id={id}
         type="button"
         disabled={disabled}
+        tabIndex={0}
         className={`flex h-11 w-full items-center justify-between rounded-xl bg-white disabled:bg-[#FAFAFA] disabled:cursor-not-allowed! border border-gray-200 px-4 text-left transition hover:border-accentLight ${buttonClassName}`}
         onClick={() => setIsOpen((prev) => !prev)}
         aria-haspopup="listbox"

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CgClose } from "react-icons/cg";
 import { LuBadgeInfo } from "react-icons/lu";
 import {
-  useCreateUserMutation,
+  useCreateClientUserMutation,
   useCreateClientMutation,
   useCheckUserExistsMutation,
 } from "../../../store";
@@ -12,19 +12,6 @@ import SubmitButton from "../../../Components/ui/SubmitButton";
 import PhoneInputField from "../../../Components/ui/PhoneInput";
 import Dropdown from "../../../Components/ui/Dropdown";
 import { countries, provinces } from "../../../constants/locations";
-import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerNotification";
-
-function generateStrongPassword(length = 12) {
-  const charset =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?";
-  let password = "";
-  const array = new Uint32Array(length);
-  window.crypto.getRandomValues(array);
-  for (let i = 0; i < length; i++) {
-    password += charset[array[i] % charset.length];
-  }
-  return password;
-}
 
 export default function CreateClientForm({
   showModal,
@@ -42,9 +29,8 @@ export default function CreateClientForm({
   const [billingPostalCode, setBillingPostalCode] = useState("");
 
   const [alert, setAlert] = useState({ type: "", message: "" });
-  const [confirmInvitation, setConfirmInvitation] = useState(false);
-
-  const [createUser, { isLoading: creatingUser }] = useCreateUserMutation();
+  const [createClientUser, { isLoading: creatingUser }] =
+    useCreateClientUserMutation();
   const [createClient, { isLoading: creatingClient }] =
     useCreateClientMutation();
   const [checkUserExists, { isLoading: checkingUser }] =
@@ -55,9 +41,7 @@ export default function CreateClientForm({
   const createClientAccount = async (userId) => {
     try {
       if (!userId) {
-        const password = generateStrongPassword();
-        const userPayload = { name, email, phone, password, role: "CLIENT" };
-        const newUser = await createUser(userPayload).unwrap();
+        const newUser = await createClientUser({ name, email, phone }).unwrap();
         userId = newUser.id;
       }
 
@@ -103,8 +87,6 @@ export default function CreateClientForm({
       setAlert(danger);
       if (setParentAlert) setParentAlert(danger);
       console.error("Create client error:", err);
-    } finally {
-      setConfirmInvitation(false);
     }
   };
 
@@ -122,7 +104,7 @@ export default function CreateClientForm({
       if (checkResponse?.id) {
         await createClientAccount(checkResponse.id);
       } else {
-        setConfirmInvitation(true);
+        await createClientAccount(null);
       }
     } catch (err) {
       setAlert({ type: "danger", message: err?.data?.detail || "Could not check the client email. Please try again." });
@@ -131,13 +113,6 @@ export default function CreateClientForm({
 
   return (
     <>
-      <ConfirmCustomerNotification
-        open={confirmInvitation}
-        detail={`Creating this client will send an invitation to ${email}.`}
-        onYes={() => { if (!isSubmitting) createClientAccount(null); }}
-        onNo={() => setConfirmInvitation(false)}
-        isLoading={isSubmitting}
-      />
       {showModal && (
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
           <button

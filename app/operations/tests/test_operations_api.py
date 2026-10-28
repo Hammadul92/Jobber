@@ -10,6 +10,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 import stripe
 
+from django.conf import settings
 from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
 from django.core import mail
@@ -1401,6 +1402,11 @@ class WorkflowRegressionTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, [self.employee_user.email])
         self.assertIn("Flooring Visit", mail.outbox[0].subject)
+        self.assertEqual(
+            mail.outbox[0].from_email,
+            f"{self.business.name} Support <{settings.DEFAULT_FROM_EMAIL}>",
+        )
+        self.assertEqual(mail.outbox[0].reply_to, [settings.NO_REPLY_EMAIL])
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"

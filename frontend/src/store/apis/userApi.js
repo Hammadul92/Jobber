@@ -36,6 +36,13 @@ const userApi = createApi({
         body: data,
       }),
     }),
+    createClientUser: builder.mutation({
+      query: (data) => ({
+        url: "/create-client/",
+        method: "POST",
+        body: data,
+      }),
+    }),
     verifyEmail: builder.query({
       query: (token) => ({
         url: `/verify-email?token=${token}`,
@@ -122,6 +129,7 @@ export const {
   useVerifyEmailQuery,
   useFetchUserQuery,
   useCreateUserMutation,
+  useCreateClientUserMutation,
   useUpdateUserMutation,
   useLogoutUserMutation,
   useRequestPasswordResetMutation,

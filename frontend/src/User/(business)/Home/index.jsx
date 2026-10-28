@@ -525,8 +525,8 @@ function RecentRecords({ recentQuotes, recentInvoices, activeTab, setActiveTab }
   const rows = activeTab === "quotes" ? recentQuotes : recentInvoices;
 
   return (
-    <div className="rounded-3xl border border-gray-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
-      <div className="px-6 pt-5 border-b border-gray-200">
+    <div className="flex h-[480px] min-h-[480px] max-h-[480px] flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+      <div className="shrink-0 px-6 pt-5 border-b border-gray-200">
         <div className="flex flex-wrap gap-6">
           <button
             type="button"
@@ -552,7 +552,7 @@ function RecentRecords({ recentQuotes, recentInvoices, activeTab, setActiveTab }
       </div>
 
       {rows.length ? (
-        <div className="overflow-x-auto">
+        <div className="min-h-0 flex-1 overflow-auto">
           <table className="min-w-full">
             <thead>
               <tr className="bg-slate-50 text-left text-xs uppercase tracking-[0.05em] text-slate-500">
@@ -596,7 +596,7 @@ function RecentRecords({ recentQuotes, recentInvoices, activeTab, setActiveTab }
           </table>
         </div>
       ) : (
-        <div className="p-6">
+        <div className="min-h-0 flex-1 overflow-auto p-6">
           <EmptyState
             message={
               activeTab === "quotes"
@@ -909,7 +909,7 @@ export default function DashboardHome({ token, onRecentActivityChange }) {
           parseApiDate(right.updated_at || right.created_at)?.getTime() || 0;
         return rightDate - leftDate;
       })
-      .slice(0, 6);
+      .slice(0, 5);
 
     const recentInvoices = [...invoices]
       .sort((left, right) => {
@@ -918,7 +918,7 @@ export default function DashboardHome({ token, onRecentActivityChange }) {
           parseApiDate(right.updated_at || right.created_at)?.getTime() || 0;
         return rightDate - leftDate;
       })
-      .slice(0, 6);
+      .slice(0, 5);
 
     const recentActivity = [
       ...[...clients]
