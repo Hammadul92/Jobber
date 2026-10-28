@@ -134,6 +134,7 @@ STRIPE_SECRET_KEY=
 STRIPE_PUBLIC_KEY=
 SENDGRID_API_KEY=
 DEFAULT_FROM_EMAIL=support@example.com
+NO_REPLY_EMAIL=no-reply@example.com
 FRONTEND_URL=http://localhost:5173
 ```
 

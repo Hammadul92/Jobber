@@ -1,6 +1,7 @@
 """Shared branded email delivery helpers."""
 
 from email.mime.image import MIMEImage
+from email.utils import formataddr
 from io import BytesIO
 
 from django.conf import settings
@@ -110,12 +111,20 @@ def send_branded_email(
         "brand_name": brand_name,
     }
     html_body = render_to_string("emails/transactional.html", context)
+    sender_name = f"{brand_name.strip()} Support" if brand_name else "GetContractorz Support"
+    sender_name = " ".join(sender_name.split())
+    quoted_sender_name = sender_name.replace("\\", "\\\\").replace('"', '\\"')
+    sender = (
+        formataddr((sender_name, settings.DEFAULT_FROM_EMAIL))
+        if sender_name.isascii()
+        else f'"{quoted_sender_name}" <{settings.DEFAULT_FROM_EMAIL}>'
+    )
     email = EmailMultiAlternatives(
         subject=subject,
         body=text_body,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        from_email=sender,
         to=recipient_list,
-        reply_to=reply_to,
+        reply_to=reply_to if reply_to is not None else [settings.NO_REPLY_EMAIL],
         attachments=attachments,
     )
     email.attach_alternative(html_body, "text/html")
