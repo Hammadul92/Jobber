@@ -162,9 +162,11 @@ export default function ServiceTermsData({ token, setAlert, onEdit }) {
                   </span>
                 </div>
 
-                <p className="mt-4 line-clamp-4 text-sm leading-6 text-slate-600">
-                  {template.content}
-                </p>
+                <RichTextContent
+                  html={template.content}
+                  className="mt-4 text-sm text-slate-600"
+                  editorClassName="max-h-24 overflow-hidden! p-0! leading-6!"
+                />
 
                 <div className="mt-auto flex items-center gap-2 pt-6">
                   <button

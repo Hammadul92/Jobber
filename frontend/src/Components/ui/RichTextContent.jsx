@@ -5,6 +5,7 @@ import "quill/dist/quill.snow.css";
 export default function RichTextContent({
   html,
   className = "",
+  editorClassName = "",
   emptyText = "No content added.",
 }) {
   const sanitizedHtml = useMemo(
@@ -19,7 +20,7 @@ export default function RichTextContent({
   return (
     <div className={`ql-snow ${className}`}>
       <div
-        className="ql-editor"
+        className={`ql-editor ${editorClassName}`}
         dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
       />
     </div>
