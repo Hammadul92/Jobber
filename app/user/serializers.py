@@ -61,6 +61,20 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+class ClientUserSerializer(serializers.ModelSerializer):
+    """Create a client account from a manager's portal without signup mail."""
+
+    class Meta:
+        model = get_user_model()
+        fields = ['id', 'name', 'email', 'phone']
+        read_only_fields = ['id']
+
+    def create(self, validated_data):
+        return get_user_model().objects.create_user(
+            **validated_data, role='CLIENT', is_active=True
+        )
+
+
 class AuthTokenSerializer(serializers.Serializer):
     """Serializer for the user auth token."""
     email = serializers.EmailField()
