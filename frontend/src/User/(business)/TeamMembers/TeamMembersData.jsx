@@ -1,30 +1,85 @@
 import { useState, useEffect, useMemo } from "react";
-import { LuSearch, LuFilter } from "react-icons/lu";
-import { LuTrash2, LuPencilLine } from "react-icons/lu";
+import { LuSearch, LuFilter, LuTrash2, LuPencilLine } from "react-icons/lu";
 import {
-  useFetchTeamMembersQuery,
+  useFetchTeamMembersPageQuery,
+  useBulkTeamMembersMutation,
   useDeleteTeamMemberMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
+import BulkActionBar from "../../../Components/ui/BulkActionBar";
+import TablePagination from "../../../Components/ui/TablePagination";
+import useServerTable from "../../../hooks/useServerTable";
+
+const ROLE_OPTIONS = [
+  { value: "", label: "All" },
+  { value: "MANAGER", label: "Manager" },
+  { value: "EMPLOYEE", label: "Employee" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "", label: "All" },
+  { value: "true", label: "Active" },
+  { value: "false", label: "Pending" },
+];
+
+const BULK_ACTIONS = [
+  {
+    key: "delete",
+    label: "Remove",
+    tone: "danger",
+    confirmMessage: (count) =>
+      `Remove ${count} team member${count === 1 ? "" : "s"} from your business?`,
+  },
+];
+
+// Only the counts are needed for the summary cards.
+const COUNT_ONLY = { page: 1, page_size: 1 };
+
+const toText = (value) =>
+  value === null || value === undefined ? "" : String(value).trim();
+
+const toTitleCase = (value) =>
+  toText(value)
+    .toLowerCase()
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
+const isMemberActive = (member) => {
+  const value = String(member?.is_active ?? "").toLowerCase();
+  return value === "true" || value === "1" || value === "yes";
+};
+
+const getExpertiseTags = (expertise) =>
+  toText(expertise)
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
 
 export default function TeamMembersData({ token, setAlert, onEdit }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedTeamMemberId, setSelectedTeamMemberId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [openFilter, setOpenFilter] = useState(null);
-  const [selectedRole, setSelectedRole] = useState("ALL");
-  const [selectedStatus, setSelectedStatus] = useState("ALL");
-  const [selectedExpertise, setSelectedExpertise] = useState("ALL");
 
-  const {
-    data: teamMemberData,
-    isLoading,
-    error,
-  } = useFetchTeamMembersQuery(undefined, { skip: !token });
+  const table = useServerTable();
+  const { data, isLoading, isFetching, error } = useFetchTeamMembersPageQuery(
+    table.queryArgs,
+    { skip: !token },
+  );
+  const { data: activeData } = useFetchTeamMembersPageQuery(
+    { ...COUNT_ONLY, is_active: "true" },
+    { skip: !token },
+  );
+  const { data: pendingData } = useFetchTeamMembersPageQuery(
+    { ...COUNT_ONLY, is_active: "false" },
+    { skip: !token },
+  );
   const [deleteTeamMember, { isLoading: deleting }] =
     useDeleteTeamMemberMutation();
+  const [bulkTeamMembers] = useBulkTeamMembersMutation();
 
   useEffect(() => {
     if (error) {
@@ -48,95 +103,34 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
     };
   }, [openFilter]);
 
-  const toText = (value) =>
-    value === null || value === undefined ? "" : String(value).trim();
+  const members = useMemo(
+    () =>
+      (data?.results || []).map((member) => ({
+        ...member,
+        _role: toText(member?.role).toUpperCase(),
+        _active: isMemberActive(member),
+      })),
+    [data],
+  );
 
-  const toTitleCase = (value) =>
-    toText(value)
-      .toLowerCase()
-      .split(/[_\s-]+/)
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ");
+  // The business owner's own manager record cannot be removed.
+  const selectableIds = members
+    .filter((member) => member._role !== "MANAGER")
+    .map((member) => member.id);
 
-  const isMemberActive = (member) => {
-    const value = String(member?.is_active ?? "").toLowerCase();
-    return value === "true" || value === "1" || value === "yes";
-  };
-
-  const members = useMemo(() => {
-    return (teamMemberData || []).map((member) => ({
-      ...member,
-      _role: toText(member?.role).toUpperCase(),
-      _expertise: toText(member?.expertise),
-      _active: isMemberActive(member),
-      _searchBlob: JSON.stringify(member).toLowerCase(),
-    }));
-  }, [teamMemberData]);
-
-  const roleOptions = useMemo(() => {
-    const roles = [...new Set(members.map((m) => m._role))]
-      .filter(Boolean)
-      .sort();
-    return ["ALL", ...roles];
-  }, [members]);
-
-  const expertiseOptions = useMemo(() => {
-    const values = [...new Set(members.map((m) => m._expertise))]
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b));
-    return ["ALL", ...values];
-  }, [members]);
-
-  const statusOptions = ["ALL", "ACTIVE", "PENDING"];
-
-  const filteredMembers = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-
-    return members.filter((m) => {
-      const memberStatus = m._active ? "ACTIVE" : "PENDING";
-      const matchesRole = selectedRole === "ALL" || m._role === selectedRole;
-      const matchesStatus =
-        selectedStatus === "ALL" || memberStatus === selectedStatus;
-      const matchesExpertise =
-        selectedExpertise === "ALL" || m._expertise === selectedExpertise;
-
-      if (!query) {
-        return matchesRole && matchesStatus && matchesExpertise;
-      }
-
-      return (
-        matchesRole &&
-        matchesStatus &&
-        matchesExpertise &&
-        m._searchBlob.includes(query)
-      );
-    });
-  }, [members, searchTerm, selectedRole, selectedStatus, selectedExpertise]);
-
-  const stats = useMemo(() => {
-    const total = members.length;
-    const active = members.filter((m) => m._active).length;
-    const pending = total - active;
-    const roles = new Set(members.map((m) => m._role)).size;
-
-    return {
-      total,
-      active,
-      pending,
-      roles,
-    };
-  }, [members]);
-
-  const getExpertiseTags = (expertise) => {
-    const value = toText(expertise);
-    if (!value) return [];
-
-    return value
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-  };
+  const activeCount = activeData?.count;
+  const pendingCount = pendingData?.count;
+  const stats = [
+    {
+      label: "Total Members",
+      value:
+        activeCount === undefined || pendingCount === undefined
+          ? "—"
+          : activeCount + pendingCount,
+    },
+    { label: "Active", value: activeCount ?? "—" },
+    { label: "Pending", value: pendingCount ?? "—" },
+  ];
 
   const handleDeleteClick = (id) => {
     setSelectedTeamMemberId(id);
@@ -165,10 +159,24 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
     }
   };
 
+  const runBulkAction = async (action) => {
+    const result = await bulkTeamMembers({
+      action,
+      ids: table.selectedIds,
+    }).unwrap();
+    table.clearSelection();
+    return result;
+  };
+
+  const memberNameFor = (id) =>
+    members.find((member) => String(member.id) === String(id))
+      ?.employee_name || `#${id}`;
+
   const columns = [
     {
       key: "member",
       title: "Team Member",
+      sortKey: "employee__name",
       width: "14%",
       className: "px-4 py-3 font-semibold text-slate-900",
       render: (member) => member.employee_name || "—",
@@ -176,12 +184,14 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
     {
       key: "role",
       title: "Role",
+      sortKey: "employee__role",
       width: "9%",
       render: (member) => toTitleCase(member.role) || "—",
     },
     {
       key: "email",
       title: "Email",
+      sortKey: "employee__email",
       width: "18%",
       className: "break-all px-4 py-3 text-slate-700",
       render: (member) => member.employee_email || "—",
@@ -254,7 +264,7 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
           <button
             type="button"
             onClick={() => handleDeleteClick(member.id)}
-            disabled={member.role === "MANAGER"}
+            disabled={member._role === "MANAGER"}
             className="rounded-xl p-2 text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
             title={`Delete ${member.employee_name}`}
             aria-label={`Delete ${member.employee_name}`}
@@ -267,16 +277,12 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
   ];
 
   if (isLoading) return <LoadingScreen />;
-  if (error)
+  if (error && !data)
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
         Failed to load team members. Please refresh the page or try again later.
       </div>
     );
-
-  const hasRoleFilter = selectedRole !== "ALL";
-  const hasStatusFilter = selectedStatus !== "ALL";
-  const hasExpertiseFilter = selectedExpertise !== "ALL";
 
   const buttonClass =
     "relative inline-flex h-8 md:h-10 lg:h-12 items-center gap-2 rounded-lg md:rounded-xl border border-gray-300 bg-white px-3 md:px-5 text-base font-medium text-slate-700 transition hover:border-gray-400";
@@ -284,36 +290,33 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
   const dropdownClass =
     "absolute right-0 top-[calc(100%+6px)] z-20 space-y-1.5 min-w-48 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg";
 
+  const filterMenus = [
+    { key: "role", label: "Role", options: ROLE_OPTIONS, dot: "bg-accent" },
+    {
+      key: "is_active",
+      label: "Status",
+      options: STATUS_OPTIONS,
+      dot: "bg-orange-500",
+    },
+  ];
+
   return (
     <>
       <div className="space-y-5">
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <div className="rounded-xl border border-gray-200 bg-white px-5 py-5">
-            <p className="mb-1 text-base font-light text-slate-600">
-              Total Members
-            </p>
-            <p className="text-3xl font-semibold text-slate-900">
-              {stats.total}
-            </p>
-          </div>
-          <div className="rounded-xl border border-gray-200 bg-white px-5 py-5">
-            <p className="mb-1 text-base font-light text-slate-600">Active</p>
-            <p className="text-3xl font-semibold text-slate-900">
-              {stats.active}
-            </p>
-          </div>
-          <div className="rounded-xl border border-gray-200 bg-white px-5 py-5">
-            <p className="mb-1 text-base font-light text-slate-600">Pending</p>
-            <p className="text-3xl font-semibold text-slate-900">
-              {stats.pending}
-            </p>
-          </div>
-          <div className="rounded-xl border border-gray-200 bg-white px-5 py-5">
-            <p className="mb-1 text-base font-light text-slate-600">Roles</p>
-            <p className="text-3xl font-semibold text-slate-900">
-              {stats.roles}
-            </p>
-          </div>
+        <div className="grid grid-cols-3 gap-4">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-xl border border-gray-200 bg-white px-5 py-5"
+            >
+              <p className="mb-1 text-base font-light text-slate-600">
+                {stat.label}
+              </p>
+              <p className="text-3xl font-semibold text-slate-900">
+                {stat.value}
+              </p>
+            </div>
+          ))}
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -323,184 +326,119 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
                 <LuSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   type="search"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Search members..."
+                  value={table.searchInput}
+                  onChange={(event) => table.setSearchInput(event.target.value)}
+                  placeholder="Search name, email, phone or duties..."
                   className="h-12 w-full rounded-xl border border-gray-300 bg-gray-50 pl-11 pr-3 text-lg text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
                 />
               </div>
 
               <div className="flex justify-between md:justify-start md:flex-wrap items-center gap-2.5 md:gap-3">
-                <div
-                  className="relative"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <button
-                    type="button"
-                    className={buttonClass}
-                    onClick={() =>
-                      setOpenFilter((current) =>
-                        current === "role" ? null : "role",
-                      )
-                    }
-                  >
-                    <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
-                    Role
-                    {hasRoleFilter ? (
-                      <span
-                        className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-accent"
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                  </button>
-                  {openFilter === "role" && (
-                    <div className={dropdownClass}>
-                      {roleOptions.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
-                            selectedRole === option
-                              ? "bg-slate-100 text-slate-900"
-                              : "text-slate-700 hover:bg-slate-100"
-                          }`}
-                          onClick={() => {
-                            setSelectedRole(option);
-                            setOpenFilter(null);
-                          }}
-                        >
-                          <span>
-                            {option === "ALL" ? "All" : toTitleCase(option)}
-                          </span>
-                          {selectedRole === option ? <span>✓</span> : null}
-                        </button>
-                      ))}
+                {filterMenus.map((menu) => {
+                  const current = table.filters[menu.key] || "";
+                  return (
+                    <div
+                      key={menu.key}
+                      className="relative"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        className={buttonClass}
+                        onClick={() =>
+                          setOpenFilter((open) =>
+                            open === menu.key ? null : menu.key,
+                          )
+                        }
+                      >
+                        <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
+                        {menu.label}
+                        {current ? (
+                          <span
+                            className={`absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full ${menu.dot}`}
+                            aria-hidden="true"
+                          />
+                        ) : null}
+                      </button>
+                      {openFilter === menu.key && (
+                        <div className={dropdownClass}>
+                          {menu.options.map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
+                                current === option.value
+                                  ? "bg-slate-100 text-slate-900"
+                                  : "text-slate-700 hover:bg-slate-100"
+                              }`}
+                              onClick={() => {
+                                table.setFilter(menu.key, option.value);
+                                setOpenFilter(null);
+                              }}
+                            >
+                              <span>{option.label}</span>
+                              {current === option.value ? (
+                                <span>✓</span>
+                              ) : null}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-
-                <div
-                  className="relative"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <button
-                    type="button"
-                    className={buttonClass}
-                    onClick={() =>
-                      setOpenFilter((current) =>
-                        current === "status" ? null : "status",
-                      )
-                    }
-                  >
-                    <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
-                    Status
-                    {hasStatusFilter ? (
-                      <span
-                        className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-orange-500"
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                  </button>
-                  {openFilter === "status" && (
-                    <div className={dropdownClass}>
-                      {statusOptions.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
-                            selectedStatus === option
-                              ? "bg-slate-100 text-slate-900"
-                              : "text-slate-700 hover:bg-slate-100"
-                          }`}
-                          onClick={() => {
-                            setSelectedStatus(option);
-                            setOpenFilter(null);
-                          }}
-                        >
-                          <span>
-                            {option === "ALL" ? "All" : toTitleCase(option)}
-                          </span>
-                          {selectedStatus === option ? <span>✓</span> : null}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div
-                  className="relative"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <button
-                    type="button"
-                    className={buttonClass}
-                    onClick={() =>
-                      setOpenFilter((current) =>
-                        current === "expertise" ? null : "expertise",
-                      )
-                    }
-                  >
-                    <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
-                    Expertise
-                    {hasExpertiseFilter ? (
-                      <span
-                        className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-orange-500"
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                  </button>
-                  {openFilter === "expertise" && (
-                    <div className={dropdownClass}>
-                      {expertiseOptions.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
-                            selectedExpertise === option
-                              ? "bg-slate-100 text-slate-900"
-                              : "text-slate-700 hover:bg-slate-100"
-                          }`}
-                          onClick={() => {
-                            setSelectedExpertise(option);
-                            setOpenFilter(null);
-                          }}
-                        >
-                          <span>
-                            {option === "ALL" ? "All" : toTitleCase(option)}
-                          </span>
-                          {selectedExpertise === option ? <span>✓</span> : null}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                  );
+                })}
               </div>
             </div>
           </div>
+          <BulkActionBar
+            selectedCount={table.selectedIds.length}
+            actions={BULK_ACTIONS.map((action) => ({
+              ...action,
+              describeRow: memberNameFor,
+            }))}
+            onRun={runBulkAction}
+            onClear={table.clearSelection}
+          />
           <RecordsTable
             columns={columns}
             tableClassName="min-w-[900px] sm:min-w-[1300px]"
-            rows={filteredMembers}
+            rows={members}
             rowKey={(member) => member.id}
+            ordering={table.ordering}
+            onSort={table.toggleSort}
+            isFetching={isFetching}
+            selection={{
+              selectedIds: table.selectedIds,
+              onToggle: (id) => {
+                if (selectableIds.includes(id)) table.toggleSelected(id);
+              },
+              onToggleAll: () => table.toggleAllSelected(selectableIds),
+            }}
             empty={
               <div className="mx-auto max-w-md text-center">
                 <h5 className="text-xl font-medium text-slate-900">
-                  {members.length
+                  {table.hasActiveFilters
                     ? "No team members match your filters."
                     : "No team members yet"}
                 </h5>
                 <p className="mt-2 text-sm text-slate-500">
-                  {members.length
+                  {table.hasActiveFilters
                     ? "Try adjusting your search or filters."
                     : "Add a team member to start managing staff access and duties."}
                 </p>
               </div>
             }
             footer={
-              <p>
-                Showing {filteredMembers.length} of {members.length} team
-                members
-              </p>
+              <TablePagination
+                page={table.page}
+                pageSize={table.pageSize}
+                count={data?.count}
+                totalPages={data?.total_pages}
+                isFetching={isFetching}
+                noun="team members"
+                onPageChange={table.goToPage}
+                onPageSizeChange={table.setPageSize}
+              />
             }
           />
         </div>

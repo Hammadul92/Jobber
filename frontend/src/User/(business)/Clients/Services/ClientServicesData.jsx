@@ -4,11 +4,13 @@ import {
   LuCheck,
   LuTrash2,
   LuPencil,
+  LuSearch,
   LuSlidersHorizontal,
 } from "react-icons/lu";
 import {
-  useFetchServicesQuery,
+  useFetchServicesPageQuery,
   useDeleteServiceMutation,
+  useBulkServicesMutation,
 } from "../../../../store";
 import SubmitButton from "../../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../../Components/ui/LoadingScreen";
@@ -16,6 +18,30 @@ import { countries, provinces } from "../../../../constants/locations";
 import { formatDate } from "../../../../utils/formatDate";
 import Dropdown from "../../../../Components/ui/Dropdown";
 import RecordsTable from "../../../../Components/ui/RecordsTable";
+import BulkActionBar from "../../../../Components/ui/BulkActionBar";
+import TablePagination from "../../../../Components/ui/TablePagination";
+import useServerTable from "../../../../hooks/useServerTable";
+
+const FILTER_KEYS = ["service_type", "status", "country", "province_state"];
+
+const servicesLabel = (count) => `${count} service${count === 1 ? "" : "s"}`;
+
+const BULK_ACTIONS = [
+  {
+    key: "resend_questionnaire",
+    label: "Resend questionnaire",
+    tone: "primary",
+    confirmMessage: (count) =>
+      `Email the questionnaire again for ${servicesLabel(count)}? Services whose questionnaire is already filled or bypassed are skipped.`,
+  },
+  {
+    key: "delete",
+    label: "Delete",
+    tone: "danger",
+    confirmMessage: (count) =>
+      `Delete ${servicesLabel(count)}? Their quotes, jobs and invoices are removed too. This cannot be undone.`,
+  },
+];
 
 export default function ClientServicesData({
   token,
@@ -23,23 +49,42 @@ export default function ClientServicesData({
   clientId,
   setAlert,
 }) {
-  const isAllServicesView = !clientId && role === "MANAGER";
+  const isManager = role === "MANAGER";
+  const isAllServicesView = !clientId && isManager;
   const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();
+  const [bulkServices] = useBulkServicesMutation();
   const [showModal, setShowModal] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
+  const [bulkLabels, setBulkLabels] = useState({});
 
-  const queryArg = role === "CLIENT" ? null : clientId;
+  // Managers can scope the list to one client; clients only see their own.
+  const clientFilter = role === "CLIENT" ? "" : String(clientId || "");
+  const table = useServerTable({
+    initialOrdering: "-created_at",
+    initialFilters: {
+      service_type: "",
+      status: "",
+      country: "",
+      province_state: "",
+      client: clientFilter,
+    },
+  });
   const {
-    data: services = [],
+    data,
     isLoading,
+    isFetching,
     isError,
     error,
-  } = useFetchServicesQuery(queryArg, { skip: !token });
+  } = useFetchServicesPageQuery(table.queryArgs, { skip: !token });
 
-  const [typeFilter, setTypeFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [countryFilter, setCountryFilter] = useState("");
-  const [provinceFilter, setProvinceFilter] = useState("");
+  const services = data?.results || [];
+  const { filters, setFilter, setSearchInput } = table;
+  const countryFilter = filters.country;
+
+  // Follow the route when it switches to another client without remounting.
+  useEffect(() => {
+    if (filters.client !== clientFilter) setFilter("client", clientFilter);
+  }, [clientFilter, filters.client, setFilter]);
 
   useEffect(() => {
     if (isError) {
@@ -48,17 +93,6 @@ export default function ClientServicesData({
       setAlert({ type: "danger", message: msg });
     }
   }, [isError, error, setAlert]);
-
-  const filteredServices = useMemo(() => {
-    return services.filter((service) => {
-      return (
-        (!typeFilter || service.service_type === typeFilter) &&
-        (!statusFilter || service.status === statusFilter) &&
-        (!countryFilter || service.country === countryFilter) &&
-        (!provinceFilter || service.province_state === provinceFilter)
-      );
-    });
-  }, [services, typeFilter, statusFilter, countryFilter, provinceFilter]);
 
   const handleDeleteClick = (id) => {
     setSelectedServiceId(id);
@@ -81,8 +115,31 @@ export default function ClientServicesData({
     }
   };
 
-  const hasFilters =
-    typeFilter || statusFilter || countryFilter || provinceFilter;
+  const runBulkAction = async (action) => {
+    // Keep names for the result summary; deleted rows leave the page on refetch.
+    setBulkLabels(
+      Object.fromEntries(
+        services.map((service) => [
+          String(service.id),
+          service.service_name || `#${service.id}`,
+        ]),
+      ),
+    );
+    const result = await bulkServices({
+      action,
+      ids: table.selectedIds,
+    }).unwrap();
+    table.clearSelection();
+    return result;
+  };
+
+  const hasFilters = FILTER_KEYS.some((key) => filters[key]);
+  const isFiltered = hasFilters || Boolean(table.queryArgs.search);
+
+  const clearFilters = () => {
+    FILTER_KEYS.forEach((key) => setFilter(key, ""));
+    setSearchInput("");
+  };
 
   const provinceOptions = useMemo(() => {
     const allProvs = Object.values(provinces).flat();
@@ -102,27 +159,30 @@ export default function ClientServicesData({
     {
       key: "service",
       title: "Service",
-      width: isAllServicesView ? "13%" : role === "MANAGER" ? "17%" : "18%",
+      sortKey: "service_name",
+      width: isAllServicesView ? "13%" : isManager ? "17%" : "18%",
       className: "px-4 py-3 font-semibold text-slate-900",
       render: (service) => service.service_name || "—",
     },
     isAllServicesView && {
       key: "client",
       title: "Client",
+      sortKey: "client__name",
       width: "10%",
       render: (service) => service.client_name || "Client",
     },
     {
       key: "type",
       title: "Type",
-      width: isAllServicesView ? "10%" : role === "MANAGER" ? "11%" : "12%",
+      sortKey: "service_type",
+      width: isAllServicesView ? "10%" : isManager ? "11%" : "12%",
       render: (service) =>
         service.service_type === "SUBSCRIPTION" ? "Subscription" : "One-time",
     },
     {
       key: "address",
       title: "Service Address",
-      width: isAllServicesView ? "21%" : role === "MANAGER" ? "24%" : "28%",
+      width: isAllServicesView ? "21%" : isManager ? "24%" : "28%",
       render: (service) =>
         [
           service.street_address,
@@ -136,13 +196,15 @@ export default function ClientServicesData({
     {
       key: "start",
       title: "Start",
-      width: role === "MANAGER" ? "9%" : "10%",
+      sortKey: "start_date",
+      width: isManager ? "9%" : "10%",
       render: (service) =>
         service.start_date ? formatDate(service.start_date, false) : "—",
     },
     {
       key: "end",
       title: "End",
+      sortKey: "end_date",
       width: isAllServicesView ? "9%" : "10%",
       render: (service) =>
         service.end_date ? formatDate(service.end_date, false) : "—",
@@ -150,6 +212,7 @@ export default function ClientServicesData({
     {
       key: "status",
       title: "Status",
+      sortKey: "status",
       width: isAllServicesView ? "9%" : "10%",
       render: (service) => {
         const tone =
@@ -187,7 +250,7 @@ export default function ClientServicesData({
           "None"
         ),
     },
-    role === "MANAGER" && {
+    isManager && {
       key: "actions",
       title: "Actions",
       width: "7%",
@@ -226,20 +289,33 @@ export default function ClientServicesData({
               <LuSlidersHorizontal className="h-4 w-4 text-secondary" />
               Filters
             </div>
-            {hasFilters && (
+            {isFiltered && (
               <button
                 className="text-xs font-semibold text-secondary underline underline-offset-4"
-                onClick={() => {
-                  setTypeFilter("");
-                  setStatusFilter("");
-                  setCountryFilter("");
-                  setProvinceFilter("");
-                }}
+                onClick={clearFilters}
                 type="button"
               >
                 Clear filters
               </button>
             )}
+          </div>
+          <div className="relative mb-3">
+            <LuSearch
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              aria-hidden="true"
+            />
+            <input
+              type="search"
+              value={table.searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder={
+                isAllServicesView
+                  ? "Search by service, client or address"
+                  : "Search by service or address"
+              }
+              aria-label="Search services"
+              className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
+            />
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <div>
@@ -251,8 +327,8 @@ export default function ClientServicesData({
               </label>
               <Dropdown
                 id="type_filter"
-                value={typeFilter}
-                onChange={setTypeFilter}
+                value={filters.service_type}
+                onChange={(value) => setFilter("service_type", value)}
                 placeholder="Subscription Type"
                 options={[
                   { value: "", label: "All" },
@@ -272,8 +348,8 @@ export default function ClientServicesData({
               </label>
               <Dropdown
                 id="service_status_filter"
-                value={statusFilter}
-                onChange={setStatusFilter}
+                value={filters.status}
+                onChange={(value) => setFilter("status", value)}
                 options={[
                   { value: "", label: "All statuses" },
                   { value: "PENDING", label: "Pending" },
@@ -296,8 +372,8 @@ export default function ClientServicesData({
                 id="country_filter"
                 value={countryFilter}
                 onChange={(value) => {
-                  setCountryFilter(value);
-                  setProvinceFilter("");
+                  setFilter("country", value);
+                  setFilter("province_state", "");
                 }}
                 placeholder="Country"
                 options={[{ value: "", label: "All" }, ...countries]}
@@ -314,8 +390,8 @@ export default function ClientServicesData({
               </label>
               <Dropdown
                 id="province_state"
-                value={provinceFilter}
-                onChange={setProvinceFilter}
+                value={filters.province_state}
+                onChange={(value) => setFilter("province_state", value)}
                 placeholder="Province/State"
                 options={provinceOptions}
                 buttonClassName="h-10 border-gray-200 bg-white"
@@ -325,22 +401,52 @@ export default function ClientServicesData({
             </div>
           </div>
         </div>
+        {isManager && (
+          <BulkActionBar
+            selectedCount={table.selectedIds.length}
+            actions={BULK_ACTIONS.map((action) => ({
+              ...action,
+              describeRow: (id) => bulkLabels[String(id)] || `#${id}`,
+            }))}
+            onRun={runBulkAction}
+            onClear={table.clearSelection}
+          />
+        )}
         <RecordsTable
           columns={columns}
           tableClassName="min-w-[950px] sm:min-w-[1350px]"
-          rows={filteredServices}
+          rows={services}
           rowKey={(service) => service.id}
+          ordering={table.ordering}
+          onSort={table.toggleSort}
+          isFetching={isFetching}
+          selection={
+            isManager
+              ? {
+                  selectedIds: table.selectedIds,
+                  onToggle: table.toggleSelected,
+                  onToggleAll: table.toggleAllSelected,
+                }
+              : undefined
+          }
           empty={
             <div className="text-center text-sm text-slate-500">
-              {services.length
+              {isFiltered
                 ? "No services match your filters."
                 : "No services found."}
             </div>
           }
           footer={
-            <p>
-              Showing {filteredServices.length} of {services.length} services
-            </p>
+            <TablePagination
+              page={table.page}
+              pageSize={table.pageSize}
+              count={data?.count}
+              totalPages={data?.total_pages}
+              isFetching={isFetching}
+              noun="services"
+              onPageChange={table.goToPage}
+              onPageSizeChange={table.setPageSize}
+            />
           }
         />
       </div>

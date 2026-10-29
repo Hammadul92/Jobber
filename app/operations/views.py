@@ -173,7 +173,7 @@ class ClientViewSet(ListingMixin, viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
     serializer_class = serializers.ClientSerializer
-    queryset = Client.objects.select_related("user").prefetch_related("client_services")
+    queryset = Client.objects.select_related("user").prefetch_related(*serializers.client_prefetches())
     search_fields = ["name", "phone", "user__email", "company_name"]
     ordering_fields = ["name", "user__email", "phone", "is_active", "created_at"]
     filter_fields = {"is_active": "is_active"}
@@ -226,8 +226,8 @@ class TeamMemberViewSet(ListingMixin, viewsets.ModelViewSet):
         .order_by("-id")
     )
     serializer_class = serializers.TeamMemberSerializer
-    search_fields = ["employee__name", "employee__email", "employee__phone", "job_duties"]
-    ordering_fields = ["employee__name", "employee__email", "employee__role", "joined_at"]
+    search_fields = ["employee__name", "employee__email", "employee__phone", "job_duties", "expertise"]
+    ordering_fields = ["employee__name", "employee__email", "employee__role", "employee__is_active", "joined_at"]
     filter_fields = {"role": "employee__role", "is_active": "employee__is_active"}
     bulk_actions = {"delete": "destroy"}
 
@@ -247,6 +247,8 @@ class TeamMemberViewSet(ListingMixin, viewsets.ModelViewSet):
         serializer.save()
 
     def perform_destroy(self, instance):
+        if instance.employee_id == instance.business.owner_id:
+            raise ValidationError({"detail": "The business owner cannot be removed from the team."})
         instance.soft_delete(user=self.request.user)
 
 
@@ -269,6 +271,7 @@ class ServiceViewSet(ListingMixin, viewsets.ModelViewSet):
     queryset = (
         Service.objects.filter(is_active=True)
         .select_related("client", "business")
+        .prefetch_related(*serializers.service_prefetches())
         .order_by("-id")
     )
 
@@ -385,7 +388,14 @@ class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
     client_actions = ("sign_quote",)
     serializer_class = serializers.QuoteSerializer
-    queryset = Quote.objects.filter(is_active=True).select_related("service", "service__client", "service__business")
+    queryset = (
+        Quote.objects.filter(is_active=True)
+        .select_related("service", "service__client", "service__client__user", "service__business")
+        .prefetch_related(
+            *serializers.service_prefetches("service__"),
+            *serializers.client_prefetches("service__client__"),
+        )
+    )
     search_fields = ["quote_number", "service__service_name", "service__client__name"]
     ordering_fields = ["quote_number", "service__client__name", "service__service_name", "status", "valid_until",
                        "created_at"]
@@ -472,6 +482,11 @@ class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
         if not quote.payment_terms:
             return Response(
                 {"payment_terms": ["Choose payment terms before sending this quote."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if quote.valid_until and quote.valid_until < timezone.localdate():
+            return Response(
+                {"detail": "This quote has expired. Update the Valid Until date before sending."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
@@ -644,7 +659,7 @@ class JobViewSet(ListingMixin, viewsets.ModelViewSet):
     ordering_fields = ["title", "service__service_name", "assigned_to__employee__name", "scheduled_date", "status",
                        "created_at"]
     filter_fields = {
-        "status": "status", "assigned_to": "assigned_to_id",
+        "status": "status", "assigned_to": "assigned_to_id", "unassigned": "assigned_to__isnull",
         "scheduled_from": "scheduled_date__date__gte", "scheduled_to": "scheduled_date__date__lte",
     }
     bulk_actions = {"cancel": "bulk_cancel", "delete": "destroy"}

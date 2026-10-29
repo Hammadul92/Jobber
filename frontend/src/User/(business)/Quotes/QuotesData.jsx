@@ -139,7 +139,7 @@ export default function QuotesData({ token, role, setAlert }) {
     {
       key: "address",
       title: "Service Address",
-      width: "32%",
+      width: "24%",
       render: (quote) =>
         [
           quote.service_data?.street_address,

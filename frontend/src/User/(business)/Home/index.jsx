@@ -4,7 +4,6 @@ import {
   LuArrowDownRight,
   LuArrowUpRight,
   LuBriefcase,
-  LuCalendarDays,
   LuClock3,
   LuClipboardList,
   LuDollarSign,
@@ -13,21 +12,8 @@ import {
   LuReceipt,
   LuUsers,
 } from "react-icons/lu";
-import {
-  useFetchClientsQuery,
-  useFetchInvoicesQuery,
-  useFetchJobsQuery,
-  useFetchQuotesQuery,
-  useFetchServiceQuestionnairesQuery,
-  useFetchServicesQuery,
-  useFetchTeamMembersQuery,
-} from "../../../store";
+import { useFetchDashboardQuery } from "../../../store";
 import { formatDate } from "../../../utils/formatDate";
-import {
-  buildRevenueSeries,
-  isPaidInvoice,
-  parseInvoiceAmount,
-} from "./dashboardMetrics";
 
 const CHART_RANGES = ["Monthly", "Weekly", "Yearly"];
 
@@ -63,58 +49,6 @@ const progressTone = {
 
 const currencyFallback = "USD";
 
-function parseApiDate(value) {
-  if (!value) return null;
-
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? null : value;
-  }
-
-  if (typeof value === "string") {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      const [year, month, day] = value.split("-").map(Number);
-      return new Date(year, month - 1, day);
-    }
-
-    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
-      return new Date(value.replace(" ", "T"));
-    }
-  }
-
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function startOfMonth(date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function startOfWeek(date) {
-  const weekStart = new Date(date);
-  const day = weekStart.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  weekStart.setDate(weekStart.getDate() + diff);
-  weekStart.setHours(0, 0, 0, 0);
-  return weekStart;
-}
-
-function addMonths(date, count) {
-  return new Date(date.getFullYear(), date.getMonth() + count, 1);
-}
-
-function addWeeks(date, count) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + count * 7);
-  return next;
-}
-
-function isSameMonth(left, right) {
-  return (
-    left.getFullYear() === right.getFullYear() &&
-    left.getMonth() === right.getMonth()
-  );
-}
-
 function formatCompactNumber(value) {
   return new Intl.NumberFormat("en-US", {
     notation: "compact",
@@ -139,8 +73,8 @@ function formatMoneyFromRecord(record, amountKey = "total_amount") {
 
 function getQuoteAmount(quote) {
   return formatCurrency(
-    quote?.service_data?.price || 0,
-    quote?.service_data?.currency || currencyFallback,
+    quote?.amount || 0,
+    quote?.amount_currency || currencyFallback,
   );
 }
 
@@ -578,7 +512,7 @@ function RecentRecords({ recentQuotes, recentInvoices, activeTab, setActiveTab }
                       {isQuote ? row.quote_number : row.invoice_number}
                     </td>
                     <td className="px-2 py-4">{row.client_name}</td>
-                    <td className="px-2 py-4">{row.service_name || row.service_data?.service_name || "-"}</td>
+                    <td className="px-2 py-4">{row.service_name || "-"}</td>
                     <td className="px-2 py-4">{amount}</td>
                     <td className="px-2 py-4">
                       <StatusBadge
@@ -771,354 +705,92 @@ function QuestionnaireCard({
   );
 }
 
+const JOB_STATUS_ROWS = [
+  { key: "IN_PROGRESS", label: "In Progress" },
+  { key: "PENDING", label: "Scheduled" },
+  { key: "COMPLETED", label: "Completed" },
+  { key: "CANCELLED", label: "Cancelled" },
+];
+
+const EMPTY_LIST = [];
+
 export default function DashboardHome({ token, onRecentActivityChange }) {
   const [chartRange, setChartRange] = useState("Monthly");
   const [recordsTab, setRecordsTab] = useState("quotes");
 
-  const { data: clientData, isLoading: loadingClients } = useFetchClientsQuery(
-    undefined,
-    { skip: !token },
+  // Every number below is aggregated server-side over all of the user's records.
+  const { data, isFetching } = useFetchDashboardQuery(
+    { range: chartRange.toLowerCase() },
+    { skip: !token, refetchOnMountOrArgChange: true },
   );
-  const { data: teamMembersData, isLoading: loadingTeamMembers } =
-    useFetchTeamMembersQuery(undefined, { skip: !token });
-  const { data: quoteData, isLoading: loadingQuotes } = useFetchQuotesQuery(
-    undefined,
-    { skip: !token },
-  );
-  const { data: jobsData, isLoading: loadingJobs } = useFetchJobsQuery(
-    undefined,
-    { skip: !token },
-  );
-  const { data: invoiceData, isLoading: loadingInvoices } =
-    useFetchInvoicesQuery({ page_size: 100 }, { skip: !token });
-  const { data: questionnaireData, isLoading: loadingQuestionnaires } =
-    useFetchServiceQuestionnairesQuery(undefined, { skip: !token });
-  const { data: servicesData, isLoading: loadingServices } =
-    useFetchServicesQuery(undefined, { skip: !token });
 
-  const clients = useMemo(() => clientData?.results || [], [clientData]);
-  const clientsCount = clientData?.count ?? clients.length;
-  const teamMembers = useMemo(() => teamMembersData || [], [teamMembersData]);
-  const quotes = useMemo(() => quoteData || [], [quoteData]);
-  const jobs = useMemo(() => jobsData || [], [jobsData]);
-  const invoices = useMemo(
-    () => (Array.isArray(invoiceData) ? invoiceData : invoiceData?.results || []),
-    [invoiceData],
-  );
-  const questionnaires = useMemo(
-    () => questionnaireData || [],
-    [questionnaireData],
-  );
-  const services = useMemo(() => servicesData || [], [servicesData]);
+  const recentActivity = useMemo(() => {
+    const now = new Date();
+    return (data?.recent_activity || EMPTY_LIST)
+      .map((item) => ({ ...item, date: new Date(item.date) }))
+      .filter((item) => !Number.isNaN(item.date.getTime()))
+      .map((item) => ({ ...item, time: formatRelativeTime(item.date, now) }));
+  }, [data?.recent_activity]);
 
   const dashboardData = useMemo(() => {
-    const now = new Date();
-    const currentMonthStart = startOfMonth(now);
-    const previousMonthStart = addMonths(currentMonthStart, -1);
-    const currentWeekStart = startOfWeek(now);
-    const previousWeekStart = addWeeks(currentWeekStart, -1);
+    const stats = data?.stats;
+    const statValue = (key, format = formatCompactNumber) =>
+      stats ? format(stats[key].value) : "...";
+    const statChange = (key) =>
+      getChangeMeta(stats?.[key]?.current || 0, stats?.[key]?.previous || 0);
 
-    const openQuotes = quotes.filter((quote) =>
-      ["DRAFT", "SENT"].includes(quote.status),
-    );
-    const activeJobs = jobs.filter((job) => job.status === "IN_PROGRESS");
-    const unpaidInvoices = invoices.filter(
-      (invoice) => !["PAID", "CANCELLED"].includes(invoice.status),
-    );
-
-    const paidInvoices = invoices.filter(isPaidInvoice);
-    const currentMonthRevenue = paidInvoices
-      .filter((invoice) => {
-        const paidDate = parseApiDate(invoice.paid_at || invoice.updated_at);
-        return paidDate ? isSameMonth(paidDate, now) : false;
-      })
-      .reduce((sum, invoice) => sum + parseInvoiceAmount(invoice), 0);
-
-    const previousMonthRevenue = paidInvoices
-      .filter((invoice) => {
-        const paidDate = parseApiDate(invoice.paid_at || invoice.updated_at);
-        return paidDate ? isSameMonth(paidDate, previousMonthStart) : false;
-      })
-      .reduce((sum, invoice) => sum + parseInvoiceAmount(invoice), 0);
-
-    const servicesWithResponses = services.filter(
-      (service) =>
-        service.filled_questionnaire &&
-        Object.keys(service.filled_questionnaire).length > 0,
-    );
-
-    const newSubmissions = servicesWithResponses.filter((service) => {
-      const updatedAt = parseApiDate(service.updated_at);
-      return updatedAt ? updatedAt >= previousWeekStart : false;
-    }).length;
-
-    const pendingReview = servicesWithResponses.filter(
-      (service) => service.status === "PENDING",
-    ).length;
-
-    const completedReviews = servicesWithResponses.filter((service) =>
-      ["ACTIVE", "COMPLETED"].includes(service.status),
-    ).length;
-
-    const jobsStatusCounts = [
-      {
-        key: "IN_PROGRESS",
-        label: "In Progress",
-      },
-      {
-        key: "PENDING",
-        label: "Scheduled",
-      },
-      {
-        key: "COMPLETED",
-        label: "Completed",
-      },
-      {
-        key: "CANCELLED",
-        label: "Cancelled",
-      },
-    ].map((item) => ({
-      ...item,
-      value: jobs.filter((job) => job.status === item.key).length,
-    }));
-
+    const jobStatus = data?.job_status || {};
     const maxStatusCount = Math.max(
-      ...jobsStatusCounts.map((item) => item.value),
+      ...JOB_STATUS_ROWS.map((item) => jobStatus[item.key] || 0),
       1,
     );
 
-    const jobsStatusStats = jobsStatusCounts.map((item) => ({
-      ...item,
-      width: Math.max((item.value / maxStatusCount) * 100, item.value ? 8 : 0),
-      barClass: progressTone[item.key] || "bg-slate-400",
-    }));
-
-    const upcomingJobs = [...jobs]
-      .filter((job) => !["COMPLETED", "CANCELLED"].includes(job.status))
-      .sort((left, right) => {
-        const leftDate = parseApiDate(left.scheduled_date)?.getTime() || 0;
-        const rightDate = parseApiDate(right.scheduled_date)?.getTime() || 0;
-        return leftDate - rightDate;
-      })
-      .slice(0, 3);
-
-    const recentQuotes = [...quotes]
-      .sort((left, right) => {
-        const leftDate = parseApiDate(left.updated_at || left.created_at)?.getTime() || 0;
-        const rightDate =
-          parseApiDate(right.updated_at || right.created_at)?.getTime() || 0;
-        return rightDate - leftDate;
-      })
-      .slice(0, 5);
-
-    const recentInvoices = [...invoices]
-      .sort((left, right) => {
-        const leftDate = parseApiDate(left.updated_at || left.created_at)?.getTime() || 0;
-        const rightDate =
-          parseApiDate(right.updated_at || right.created_at)?.getTime() || 0;
-        return rightDate - leftDate;
-      })
-      .slice(0, 5);
-
-    const recentActivity = [
-      ...[...clients]
-        .sort((left, right) => {
-          const leftDate =
-            parseApiDate(left.updated_at || left.created_at)?.getTime() || 0;
-          const rightDate =
-            parseApiDate(right.updated_at || right.created_at)?.getTime() || 0;
-          return rightDate - leftDate;
-        })
-        .map((client) => ({
-          id: `client-${client.id}`,
-          title: "New client added",
-          description: `${client.client_name} registered`,
-          date: parseApiDate(client.created_at),
-        })),
-      ...quotes
-        .filter((quote) => ["SIGNED", "SENT"].includes(quote.status))
-        .map((quote) => ({
-          id: `quote-${quote.id}`,
-          title:
-            quote.status === "SIGNED" ? "Quote approved" : "Quote sent",
-          description: `${quote.quote_number} for ${quote.client_name}`,
-          date: parseApiDate(quote.updated_at || quote.created_at),
-        })),
-      ...invoices
-        .filter((invoice) => ["PAID", "SENT"].includes(invoice.status))
-        .map((invoice) => ({
-          id: `invoice-${invoice.id}`,
-          title:
-            isPaidInvoice(invoice) ? "Invoice paid" : "Invoice sent",
-          description: `${invoice.invoice_number} for ${invoice.client_name}`,
-          date: parseApiDate(invoice.paid_at || invoice.updated_at),
-        })),
-    ]
-      .filter((item) => item.date)
-      .sort((left, right) => right.date - left.date)
-      .map((item) => ({
-        ...item,
-        time: formatRelativeTime(item.date, now),
-      }));
-
-    const chartData = buildRevenueSeries({
-      invoices,
-      range: chartRange,
-      now,
-    });
-
     return {
       statsCards: [
-        {
-          title: "Total Clients",
-          icon: LuUsers,
-          value: loadingClients ? "..." : formatCompactNumber(clientsCount),
-          change: getChangeMeta(
-            countRecordsInRange(clients, "created_at", currentMonthStart, now),
-            countRecordsInRange(
-              clients,
-              "created_at",
-              previousMonthStart,
-              currentMonthStart,
-            ),
-          ),
-        },
-        {
-          title: "Active Jobs",
-          icon: LuBriefcase,
-          value: loadingJobs ? "..." : formatCompactNumber(activeJobs.length),
-          change: getChangeMeta(
-            countRecordsByStatusInRange(
-              jobs,
-              "IN_PROGRESS",
-              "scheduled_date",
-              currentMonthStart,
-              now,
-            ),
-            countRecordsByStatusInRange(
-              jobs,
-              "IN_PROGRESS",
-              "scheduled_date",
-              previousMonthStart,
-              currentMonthStart,
-            ),
-          ),
-        },
-        {
-          title: "Pending Quotes",
-          icon: LuFileText,
-          value: loadingQuotes ? "..." : formatCompactNumber(openQuotes.length),
-          change: getChangeMeta(
-            countStatusesInRange(
-              quotes,
-              ["DRAFT", "SENT"],
-              "created_at",
-              currentMonthStart,
-              now,
-            ),
-            countStatusesInRange(
-              quotes,
-              ["DRAFT", "SENT"],
-              "created_at",
-              previousMonthStart,
-              currentMonthStart,
-            ),
-          ),
-        },
-        {
-          title: "Unpaid Invoices",
-          icon: LuReceipt,
-          value: loadingInvoices
-            ? "..."
-            : formatCompactNumber(unpaidInvoices.length),
-          change: getChangeMeta(
-            countStatusesInRange(
-              invoices,
-              ["DRAFT", "SENT"],
-              "due_date",
-              currentMonthStart,
-              now,
-            ),
-            countStatusesInRange(
-              invoices,
-              ["DRAFT", "SENT"],
-              "due_date",
-              previousMonthStart,
-              currentMonthStart,
-            ),
-          ),
-        },
-        {
-          title: "Team Members",
-          icon: LuUsers,
-          value: loadingTeamMembers
-            ? "..."
-            : formatCompactNumber(teamMembers.length),
-          change: getChangeMeta(
-            countRecordsInRange(teamMembers, "joined_at", currentMonthStart, now),
-            countRecordsInRange(
-              teamMembers,
-              "joined_at",
-              previousMonthStart,
-              currentMonthStart,
-            ),
-          ),
-        },
+        { title: "Total Clients", icon: LuUsers, key: "clients" },
+        { title: "Active Jobs", icon: LuBriefcase, key: "active_jobs" },
+        { title: "Pending Quotes", icon: LuFileText, key: "pending_quotes" },
+        { title: "Unpaid Invoices", icon: LuReceipt, key: "unpaid_invoices" },
+        { title: "Team Members", icon: LuUsers, key: "team_members" },
         {
           title: "Monthly Revenue",
           icon: LuDollarSign,
-          value: loadingInvoices
-            ? "..."
-            : formatCurrency(currentMonthRevenue, "USD", true),
-          change: getChangeMeta(currentMonthRevenue, previousMonthRevenue),
+          key: "monthly_revenue",
+          format: (value) => formatCurrency(value, "USD", true),
         },
-      ],
-      chartData,
-      recentQuotes,
-      recentInvoices,
-      upcomingJobs,
-      jobsStatusStats,
+      ].map(({ key, format, ...card }) => ({
+        ...card,
+        value: statValue(key, format),
+        change: statChange(key),
+      })),
+      chartData: data?.revenue?.series || EMPTY_LIST,
+      recentQuotes: data?.recent_quotes || EMPTY_LIST,
+      recentInvoices: data?.recent_invoices || EMPTY_LIST,
+      upcomingJobs: data?.upcoming_jobs || EMPTY_LIST,
+      jobsStatusStats: JOB_STATUS_ROWS.map((item) => {
+        const value = jobStatus[item.key] || 0;
+        return {
+          ...item,
+          value,
+          width: Math.max((value / maxStatusCount) * 100, value ? 8 : 0),
+          barClass: progressTone[item.key] || "bg-slate-400",
+        };
+      }),
       questionnairesCard: {
-        templatesCount: questionnaires.length,
-        newSubmissions,
-        pendingReview,
-        completedReviews,
+        newSubmissions: data?.questionnaires?.new || 0,
+        pendingReview: data?.questionnaires?.pending || 0,
+        completedReviews: data?.questionnaires?.done || 0,
       },
-      recentActivity,
     };
-  }, [
-    chartRange,
-    clients,
-    clientsCount,
-    invoices,
-    jobs,
-    loadingClients,
-    loadingInvoices,
-    loadingJobs,
-    loadingQuotes,
-    loadingTeamMembers,
-    questionnaires.length,
-    quotes,
-    services,
-    teamMembers,
-  ]);
-
-  const isLoading =
-    loadingClients ||
-    loadingTeamMembers ||
-    loadingQuotes ||
-    loadingJobs ||
-    loadingInvoices ||
-    loadingQuestionnaires ||
-    loadingServices;
+  }, [data]);
 
   useEffect(() => {
-    onRecentActivityChange?.(dashboardData.recentActivity);
+    onRecentActivityChange?.(recentActivity);
 
     return () => {
       onRecentActivityChange?.([]);
     };
-  }, [dashboardData.recentActivity, onRecentActivityChange]);
+  }, [recentActivity, onRecentActivityChange]);
 
   return (
     <div className="space-y-4">
@@ -1149,7 +821,7 @@ export default function DashboardHome({ token, onRecentActivityChange }) {
         <QuestionnaireCard {...dashboardData.questionnairesCard} />
       </section>
 
-      {isLoading && (
+      {isFetching && (
         <p className="text-sm text-slate-400">
           Dashboard metrics are refreshing from the latest records.
         </p>
@@ -1157,32 +829,6 @@ export default function DashboardHome({ token, onRecentActivityChange }) {
     </div>
   );
 }
-
-function countRecordsInRange(records, key, startDate, endDate) {
-  return records.filter((record) => {
-    const date = parseApiDate(record[key]);
-    return date ? date >= startDate && date < endDate : false;
-  }).length;
-}
-
-function countRecordsByStatusInRange(records, status, key, startDate, endDate) {
-  return records.filter((record) => {
-    const date = parseApiDate(record[key]);
-    return record.status === status && date
-      ? date >= startDate && date < endDate
-      : false;
-  }).length;
-}
-
-function countStatusesInRange(records, statuses, key, startDate, endDate) {
-  return records.filter((record) => {
-    const date = parseApiDate(record[key]);
-    return statuses.includes(record.status) && date
-      ? date >= startDate && date < endDate
-      : false;
-  }).length;
-}
-
 
 function formatRelativeTime(date, now) {
   const diffMs = now.getTime() - date.getTime();

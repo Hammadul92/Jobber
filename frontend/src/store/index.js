@@ -12,6 +12,7 @@ import { jobApi } from "./apis/jobApi";
 import { bankingInformationApi } from "./apis/bankingInformationApi";
 import { invoiceApi } from "./apis/invoiceApi";
 import { payoutApi } from "./apis/payoutApi";
+import { dashboardApi } from "./apis/dashboardApi";
 import { topbarReducer } from "./topbarSlice";
 
 const store = configureStore({
@@ -28,6 +29,7 @@ const store = configureStore({
     [bankingInformationApi.reducerPath]: bankingInformationApi.reducer,
     [invoiceApi.reducerPath]: invoiceApi.reducer,
     [payoutApi.reducerPath]: payoutApi.reducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
     topbar: topbarReducer,
   },
   middleware: (getDefaultMiddleware) => {
@@ -50,7 +52,8 @@ const store = configureStore({
       .concat(jobApi.middleware)
       .concat(bankingInformationApi.middleware)
       .concat(invoiceApi.middleware)
-      .concat(payoutApi.middleware);
+      .concat(payoutApi.middleware)
+      .concat(dashboardApi.middleware);
   },
 });
 
@@ -70,6 +73,7 @@ export {
   bankingInformationApi,
   invoiceApi,
   payoutApi,
+  dashboardApi,
 };
 
 export {
@@ -206,5 +210,10 @@ export {
   useReplacePayoutMutation,
   useRefundPayoutMutation,
 } from "./apis/payoutApi";
+
+export {
+  useFetchDashboardQuery,
+  useFetchDashboardTodosQuery,
+} from "./apis/dashboardApi";
 
 export { topbarReducer } from "./topbarSlice";

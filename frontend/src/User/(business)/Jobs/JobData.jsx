@@ -1,78 +1,77 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useFetchJobsQuery, useDeleteJobMutation } from "../../../store";
+import {
+  useFetchJobsPageQuery,
+  useBulkJobsMutation,
+  useDeleteJobMutation,
+  useFetchTeamMembersQuery,
+} from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Dropdown from "../../../Components/ui/Dropdown";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
-import { LuPencilLine, LuTrash2 } from "react-icons/lu";
+import BulkActionBar from "../../../Components/ui/BulkActionBar";
+import TablePagination from "../../../Components/ui/TablePagination";
+import useServerTable from "../../../hooks/useServerTable";
+import { LuPencilLine, LuSearch, LuTrash2 } from "react-icons/lu";
+
+const plural = (count) => `${count} job${count === 1 ? "" : "s"}`;
+
+const BULK_ACTIONS = [
+  {
+    key: "cancel",
+    label: "Cancel jobs",
+    tone: "default",
+    confirmMessage: (count) =>
+      `Cancel ${plural(count)}? Completed jobs are skipped.`,
+  },
+  {
+    key: "delete",
+    label: "Delete",
+    tone: "danger",
+    confirmMessage: (count) =>
+      `Delete ${plural(count)}? This cannot be undone.`,
+  },
+];
+
+const UNASSIGNED = "unassigned";
 
 export default function JobData({ token, role, setAlert }) {
+  const isManager = role === "MANAGER";
+  const table = useServerTable({ initialOrdering: "-created_at" });
+  const { data, isLoading, isFetching, error } = useFetchJobsPageQuery(
+    table.queryArgs,
+    { skip: !token },
+  );
+  const { data: teamMembers = [] } = useFetchTeamMembersQuery(undefined, {
+    skip: !token || !isManager,
+  });
+
   const [deleteJob, { isLoading: deleting }] = useDeleteJobMutation();
+  const [bulkJobs] = useBulkJobsMutation();
   const [showModal, setShowModal] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
 
-  // --- Filters ---
-  const [serviceFilter, setServiceFilter] = useState("");
-  const [assignedToFilter, setAssignedToFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [startDateFilter, setStartDateFilter] = useState("");
-  const [endDateFilter, setEndDateFilter] = useState("");
+  const jobs = data?.results || [];
 
-  const {
-    data: jobs = [],
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useFetchJobsQuery(undefined, { skip: !token });
-
-  // --- Error handling ---
   useEffect(() => {
-    if (isError) {
-      console.error("Fetch jobs error:", error);
+    if (error) {
       setAlert({
         type: "danger",
-        message: "Failed to load jobs. Please try again later.",
+        message:
+          error?.data?.detail || "Failed to load jobs. Please try again later.",
       });
     }
-  }, [isError, error, setAlert]);
+  }, [error, setAlert]);
 
-  const uniqueServices = useMemo(
-    () => [...new Set(jobs.map((j) => j.service_name).filter(Boolean))],
-    [jobs],
-  );
-  const uniqueAssignees = useMemo(
-    () => [...new Set(jobs.map((j) => j.assigned_to_name || "Unassigned"))],
-    [jobs],
-  );
+  const runBulkAction = async (action) => {
+    const result = await bulkJobs({ action, ids: table.selectedIds }).unwrap();
+    table.clearSelection();
+    return result;
+  };
 
-  const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
-      const matchService = !serviceFilter || job.service_name === serviceFilter;
-      const matchAssigned =
-        !assignedToFilter ||
-        (assignedToFilter === "Unassigned" && !job.assigned_to_name) ||
-        job.assigned_to_name === assignedToFilter;
-      const matchStatus = !statusFilter || job.status === statusFilter;
-      const matchStart =
-        !startDateFilter ||
-        new Date(job.scheduled_date) >= new Date(startDateFilter);
-      const matchEnd =
-        !endDateFilter ||
-        new Date(job.scheduled_date) <= new Date(endDateFilter);
-      return (
-        matchService && matchAssigned && matchStatus && matchStart && matchEnd
-      );
-    });
-  }, [
-    jobs,
-    serviceFilter,
-    assignedToFilter,
-    statusFilter,
-    startDateFilter,
-    endDateFilter,
-  ]);
+  const jobTitleFor = (id) =>
+    jobs.find((job) => String(job.id) === String(id))?.title || `#${id}`;
 
   const handleDeleteClick = (id) => {
     setSelectedJobId(id);
@@ -85,13 +84,11 @@ export default function JobData({ token, role, setAlert }) {
 
     try {
       await deleteJob(selectedJobId).unwrap();
-      refetch();
       setAlert({
         type: "success",
         message: "Job deleted successfully!",
       });
     } catch (err) {
-      console.error("Failed to delete job:", err);
       const msg =
         err?.data?.detail || "Failed to delete job. Please try again.";
       setAlert({
@@ -108,6 +105,7 @@ export default function JobData({ token, role, setAlert }) {
     {
       key: "job",
       title: "Job",
+      sortKey: "title",
       width: "20%",
       className: "px-4 py-3 font-semibold text-slate-900",
       render: (job) => job.title || "—",
@@ -115,18 +113,21 @@ export default function JobData({ token, role, setAlert }) {
     {
       key: "service",
       title: "Service",
+      sortKey: "service__service_name",
       width: "20%",
       render: (job) => job.service_name || "—",
     },
     {
       key: "assigned",
       title: "Assigned To",
+      sortKey: "assigned_to__employee__name",
       width: "20%",
       render: (job) => job.assigned_to_name || "Unassigned",
     },
     {
       key: "scheduled",
       title: "Scheduled",
+      sortKey: "scheduled_date",
       width: "15%",
       render: (job) =>
         job.scheduled_date
@@ -140,6 +141,7 @@ export default function JobData({ token, role, setAlert }) {
     {
       key: "status",
       title: "Status",
+      sortKey: "status",
       width: "12%",
       render: (job) => {
         const tone =
@@ -163,7 +165,7 @@ export default function JobData({ token, role, setAlert }) {
       title: "Actions",
       width: "13%",
       render: (job) =>
-        role === "MANAGER" ? (
+        isManager ? (
           <div className="flex items-center gap-1">
             <Link
               to={`/user/business/job/${job.id}`}
@@ -204,35 +206,59 @@ export default function JobData({ token, role, setAlert }) {
     <>
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-end gap-3 border-b border-gray-100 p-4">
-          <div className="flex-1 min-w-50">
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Service
+          <div className="flex-[2] min-w-60">
+            <label
+              htmlFor="jobs-search"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
+              Search
             </label>
-            <Dropdown
-              id="jobs-service-filter"
-              value={serviceFilter}
-              onChange={setServiceFilter}
-              placeholder="Select Service"
-              options={uniqueServices}
-              buttonClassName="h-11 rounded-lg border-gray-300 px-4 text-sm text-gray-900"
-              menuClassName="rounded-lg"
-            />
+            <div className="relative">
+              <LuSearch
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                aria-hidden="true"
+              />
+              <input
+                id="jobs-search"
+                type="search"
+                value={table.searchInput}
+                onChange={(e) => table.setSearchInput(e.target.value)}
+                placeholder="Job, service, client or team member"
+                className="h-11 w-full rounded-lg border border-gray-300 bg-white pl-9 pr-3 text-sm text-gray-900 focus:border-accent focus:outline-none"
+              />
+            </div>
           </div>
 
-          <div className="flex-1 min-w-50">
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Assigned To
-            </label>
-            <Dropdown
-              id="jobs-assignedto-filter"
-              value={assignedToFilter}
-              onChange={setAssignedToFilter}
-              placeholder="Select Assignee"
-              options={uniqueAssignees}
-              buttonClassName="h-11 rounded-lg border-gray-300 px-4 text-sm text-gray-900"
-              menuClassName="rounded-lg"
-            />
-          </div>
+          {isManager && (
+            <div className="flex-1 min-w-50">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Assigned To
+              </label>
+              <Dropdown
+                id="jobs-assignedto-filter"
+                value={
+                  table.filters.unassigned
+                    ? UNASSIGNED
+                    : table.filters.assigned_to || ""
+                }
+                onChange={(value) => {
+                  table.setFilter("unassigned", value === UNASSIGNED ? "true" : "");
+                  table.setFilter("assigned_to", value === UNASSIGNED ? "" : value);
+                }}
+                placeholder="All team members"
+                options={[
+                  { value: "", label: "All team members" },
+                  { value: UNASSIGNED, label: "Unassigned" },
+                  ...teamMembers.map((member) => ({
+                    value: String(member.id),
+                    label: member.employee_name || `#${member.id}`,
+                  })),
+                ]}
+                buttonClassName="h-11 rounded-lg border-gray-300 px-4 text-sm text-gray-900"
+                menuClassName="rounded-lg"
+              />
+            </div>
+          )}
 
           <div className="flex-1 min-w-50">
             <label
@@ -243,8 +269,8 @@ export default function JobData({ token, role, setAlert }) {
             </label>
             <Dropdown
               id="jobs-status-filter"
-              value={statusFilter}
-              onChange={setStatusFilter}
+              value={table.filters.status || ""}
+              onChange={(value) => table.setFilter("status", value)}
               options={[
                 { value: "", label: "All statuses" },
                 { value: "PENDING", label: "Pending" },
@@ -258,15 +284,18 @@ export default function JobData({ token, role, setAlert }) {
           </div>
 
           <div className="flex-1 min-w-50">
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="jobdata-start-date"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               Start Date
             </label>
             <div className="relative">
               <input
                 type="date"
                 id="jobdata-start-date"
-                value={startDateFilter}
-                onChange={(e) => setStartDateFilter(e.target.value)}
+                value={table.filters.scheduled_from || ""}
+                onChange={(e) => table.setFilter("scheduled_from", e.target.value)}
                 placeholder="dd/mm/yyyy"
                 className="h-11 date-input-no-icon w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-900 transition focus:border-accent focus:outline-none"
               />
@@ -290,15 +319,18 @@ export default function JobData({ token, role, setAlert }) {
           </div>
 
           <div className="flex-1 min-w-50">
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="jobdata-end-date"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               End Date
             </label>
             <div className="relative">
               <input
                 type="date"
                 id="jobdata-end-date"
-                value={endDateFilter}
-                onChange={(e) => setEndDateFilter(e.target.value)}
+                value={table.filters.scheduled_to || ""}
+                onChange={(e) => table.setFilter("scheduled_to", e.target.value)}
                 placeholder="dd/mm/yyyy"
                 className="h-11 date-input-no-icon w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-900 transition focus:border-accent focus:outline-none"
               />
@@ -321,20 +353,52 @@ export default function JobData({ token, role, setAlert }) {
             </div>
           </div>
         </div>
+        {isManager && (
+          <BulkActionBar
+            selectedCount={table.selectedIds.length}
+            actions={BULK_ACTIONS.map((action) => ({
+              ...action,
+              describeRow: jobTitleFor,
+            }))}
+            onRun={runBulkAction}
+            onClear={table.clearSelection}
+          />
+        )}
         <RecordsTable
           columns={columns}
           tableClassName="min-w-[700px] sm:min-w-[900px]"
-          rows={filteredJobs}
+          rows={jobs}
           rowKey={(job) => job.id}
+          ordering={table.ordering}
+          onSort={table.toggleSort}
+          isFetching={isFetching}
+          selection={
+            isManager
+              ? {
+                  selectedIds: table.selectedIds,
+                  onToggle: table.toggleSelected,
+                  onToggleAll: table.toggleAllSelected,
+                }
+              : undefined
+          }
           empty={
             <div className="text-center text-sm text-slate-500">
-              {jobs.length ? "No jobs match your filters." : "No jobs found."}
+              {table.hasActiveFilters
+                ? "No jobs match your filters."
+                : "No jobs found."}
             </div>
           }
           footer={
-            <p>
-              Showing {filteredJobs.length} of {jobs.length} jobs
-            </p>
+            <TablePagination
+              page={table.page}
+              pageSize={table.pageSize}
+              count={data?.count}
+              totalPages={data?.total_pages}
+              isFetching={isFetching}
+              noun="jobs"
+              onPageChange={table.goToPage}
+              onPageSizeChange={table.setPageSize}
+            />
           }
         />
       </div>

@@ -189,12 +189,15 @@ export default function CreateInvoiceForm({
           }))
       : [];
 
+  // The client list is a plain array of every client, deactivated ones included.
   const clientOptions =
-    !loadingClients && clients?.results
-      ? clients.results.map((client) => ({
-          value: client.id,
-          label: client.client_name,
-        }))
+    !loadingClients && Array.isArray(clients)
+      ? clients
+          .filter((client) => client.is_active !== false)
+          .map((client) => ({
+            value: client.id,
+            label: client.client_name,
+          }))
       : [];
 
   return (

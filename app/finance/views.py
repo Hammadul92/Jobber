@@ -5,7 +5,7 @@ from decimal import Decimal, InvalidOperation
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from rest_framework import status, viewsets, mixins
@@ -22,7 +22,7 @@ from core.models import BankingInformation, Business, Client, Invoice, Payout, P
 from core.payment_terms import business_local_date, prepare_first_send
 from finance import serializers, emails
 from finance.stripe_connect import create_merchant_account, create_onboarding_link
-from finance.payment_methods import get_client_payment_method
+from finance.payment_methods import get_client_payment_method, usable_cards_for_user
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
@@ -360,7 +360,9 @@ class InvoiceViewSet(ListingMixin, viewsets.ModelViewSet):
     """ViewSet for managing invoices."""
 
     serializer_class = serializers.InvoiceSerializer
-    queryset = Invoice.objects.all()
+    queryset = Invoice.objects.select_related(
+        "business", "client", "client__user", "service",
+    ).prefetch_related("payouts")
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
     client_actions = ("make_payment",)
@@ -373,9 +375,14 @@ class InvoiceViewSet(ListingMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         """Return invoices linked to the logged-in user."""
         user = self.request.user
-        invoices = self.queryset.filter(is_active=True)
+        invoices = self.queryset.filter(is_active=True).annotate(
+            client_has_card=Exists(usable_cards_for_user(OuterRef("client__user_id"))),
+        )
         if self.action in ("update", "partial_update"):
-            invoices = invoices.select_for_update()
+            invoices = invoices.select_for_update(of=("self",))
+        # Overdue: unpaid, sent, and past its due date.
+        if self.request.query_params.get("overdue") == "true":
+            invoices = invoices.filter(status="SENT", due_date__lt=timezone.localdate())
         if self.action == "list" and Business.objects.filter(owner=user).exists():
             return invoices.filter(business__owner=user).order_by("-id")
         return invoices.filter(
@@ -608,12 +615,12 @@ class PayoutViewSet(
     """Payment records are kept permanently; refunds are recorded against them."""
 
     serializer_class = serializers.PayoutSerializer
-    queryset = Payout.objects.all()
+    queryset = Payout.objects.select_related("business", "invoice", "invoice__client", "invoice__service")
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
     search_fields = ["invoice__invoice_number", "invoice__client__name", "invoice__service__service_name"]
-    ordering_fields = ["invoice__invoice_number", "invoice__client__name", "amount", "status", "processed_at",
-                       "created_at"]
+    ordering_fields = ["invoice__invoice_number", "invoice__client__name", "invoice__service__service_name", "amount",
+                       "status", "processed_at", "created_at"]
     filter_fields = {
         "status": "status", "processed_from": "processed_at__date__gte", "processed_to": "processed_at__date__lte",
     }

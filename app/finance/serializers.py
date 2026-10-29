@@ -143,6 +143,13 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
         total = sum((payout.refunded_amount or 0) for payout in obj.payouts.all())
         return f"{total:.2f}"
 
+    def _paid_payout(self, obj):
+        # Uses the prefetched payouts when the view loaded them.
+        return min(
+            (payout for payout in obj.payouts.all() if payout.status == "PAID"),
+            key=lambda payout: payout.pk, default=None,
+        )
+
     def validate(self, attrs):
         """Keep invoice amounts aligned with the saved item breakdown."""
         service = attrs.get("service") or getattr(self.instance, "service", None)
@@ -204,6 +211,9 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
         return attrs
 
     def get_has_payment_method(self, obj):
+        # Lists annotate this in the query; single invoices look it up.
+        if hasattr(obj, "client_has_card"):
+            return obj.client_has_card
         return get_client_payment_method(obj.client) is not None
 
     def get_can_manage(self, obj):
@@ -215,10 +225,10 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
         Returns True only if there is a payout with status PAID
         for this invoice.
         """
-        return obj.payouts.filter(status="PAID").exists()
+        return self._paid_payout(obj) is not None
 
     def get_payout_id(self, obj):
-        payout = obj.payouts.filter(status="PAID").first()
+        payout = self._paid_payout(obj)
         return payout.id if payout else None
 
 

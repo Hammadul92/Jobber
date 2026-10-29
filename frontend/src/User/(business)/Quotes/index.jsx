@@ -33,7 +33,7 @@ export default function Quotes({ token, role }) {
     dispatch(
       setTopbar({
         title: "Quotes",
-        description: "Manage your staff access, duties, and expertise.",
+        description: "Create, send and track quotes and client approvals.",
         action:
           role === "MANAGER"
             ? {

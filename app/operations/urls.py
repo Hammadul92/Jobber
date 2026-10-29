@@ -8,7 +8,7 @@ from django.urls import (
 
 from rest_framework.routers import DefaultRouter
 
-from . import views
+from . import dashboard, views
 
 router = DefaultRouter()
 router.register('business', views.BusinessViewSet)
@@ -24,5 +24,7 @@ router.register('job-photo', views.JobPhotoViewSet)
 app_name = 'operations'
 
 urlpatterns = [
+    path('dashboard/', dashboard.DashboardView.as_view(), name='dashboard'),
+    path('dashboard/todos/', dashboard.DashboardTodosView.as_view(), name='dashboard-todos'),
     path('', include(router.urls)),
 ]

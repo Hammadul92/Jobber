@@ -13,6 +13,7 @@ from core.pricing import (
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.html import strip_tags
+from django.db.models import Prefetch
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -20,6 +21,7 @@ from taggit.models import Tag
 
 
 from core.models import (
+    BankingInformation,
     Business,
     Client,
     Job,
@@ -128,6 +130,39 @@ class BusinessMarqueeLogoSerializer(serializers.ModelSerializer):
         return logo_url
 
 
+def client_prefetches(prefix=""):
+    """Related rows ClientSerializer reads, loaded once per page instead of per row."""
+    return [
+        Prefetch(f"{prefix}client_services", queryset=Service.objects.filter(is_active=True)),
+        Prefetch(
+            f"{prefix}banking_information",
+            queryset=BankingInformation.objects.filter(is_active=True).order_by("-created_at"),
+            to_attr="active_banking",
+        ),
+    ]
+
+
+def service_prefetches(prefix=""):
+    """Related rows ServiceSerializer reads, loaded once per page instead of per row."""
+    return [
+        Prefetch(
+            f"{prefix}service_quotes",
+            queryset=Quote.objects.filter(is_active=True).order_by("id"),
+            to_attr="active_quotes",
+        ),
+        Prefetch(
+            f"{prefix}business__service_questionnaires",
+            queryset=ServiceQuestionnaire.objects.filter(is_active=True),
+            to_attr="active_questionnaires",
+        ),
+        Prefetch(
+            f"{prefix}business__service_terms_templates",
+            queryset=ServiceTermsTemplate.objects.filter(is_active=True),
+            to_attr="active_terms_templates",
+        ),
+    ]
+
+
 class ClientSerializer(serializers.ModelSerializer):
     """ Serializer for clients."""
     client_name = serializers.CharField(
@@ -164,8 +199,10 @@ class ClientSerializer(serializers.ModelSerializer):
         """
         Return client's active payment method details if available.
         """
-        banking_info = obj.banking_information.filter(is_active=True) \
-            .order_by('-created_at').first()
+        cards = getattr(obj, "active_banking", None)
+        if cards is None:
+            cards = obj.banking_information.filter(is_active=True).order_by('-created_at')[:1]
+        banking_info = next(iter(cards), None)
 
         if not banking_info or banking_info.payment_method_type != "CARD":
             return "-"
@@ -181,7 +218,7 @@ class ClientSerializer(serializers.ModelSerializer):
 
     def get_questionnaires_total(self, obj):
         """Return active client services expected to have questionnaires."""
-        return obj.client_services.filter(bypass_questionnaire=False).count()
+        return sum(1 for service in obj.client_services.all() if not service.bypass_questionnaire)
 
     def validate(self, attrs):
         user_data = attrs.get("user", {})
@@ -432,8 +469,14 @@ class ServiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
 
     def get_quotations(self, obj):
         """Return related active quotes."""
-        return [
-            {
+        quotes = getattr(obj, "active_quotes", None)
+        if quotes is None:
+            quotes = obj.service_quotes.filter(is_active=True)
+        quotations = []
+        for quote in quotes:
+            subtotal, _, _, total = quote_tax_details(quote)
+            rate = quote_effective_tax_rate(quote)
+            quotations.append({
                 "id": quote.id,
                 "quote_number": quote.quote_number,
                 "status": quote.status,
@@ -441,25 +484,27 @@ class ServiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
                 "payment_terms": quote.payment_terms,
                 "created_at": quote.created_at,
                 "line_items": quote_line_items(quote),
-                "quoted_subtotal": str(quote_tax_details(quote)[0]),
-                "quoted_tax_rate": (
-                    str(quote_effective_tax_rate(quote))
-                    if quote_effective_tax_rate(quote) is not None else None
-                ),
-                "quoted_total": str(quote_tax_details(quote)[3]),
+                "quoted_subtotal": str(subtotal),
+                "quoted_tax_rate": str(rate) if rate is not None else None,
+                "quoted_total": str(total),
                 "quoted_currency": quote.currency or obj.currency,
-            }
-            for quote in obj.service_quotes.filter(is_active=True)
-        ]
+            })
+        return quotations
+
+    def _active_for_service(self, obj, prefetched_attr, related_name):
+        """The business's active record for this service name, from a prefetch if present."""
+        records = getattr(obj.business, prefetched_attr, None)
+        if records is None:
+            return getattr(obj.business, related_name).filter(
+                service_name=obj.service_name, is_active=True,
+            ).first()
+        return next((record for record in records if record.service_name == obj.service_name), None)
 
     def get_service_questionnaires(self, obj):
         """Return the active questionnaire for this service if exists."""
         if obj.bypass_questionnaire:
             return {}
-        questionnaire = obj.business.service_questionnaires.filter(
-            service_name=obj.service_name,
-            is_active=True
-        ).first()
+        questionnaire = self._active_for_service(obj, "active_questionnaires", "service_questionnaires")
         if questionnaire:
             return {
                 "id": questionnaire.id,
@@ -473,10 +518,7 @@ class ServiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
 
     def get_service_terms_template(self, obj):
         """Return the active general terms template for this service if exists."""
-        template = obj.business.service_terms_templates.filter(
-            service_name=obj.service_name,
-            is_active=True,
-        ).first()
+        template = self._active_for_service(obj, "active_terms_templates", "service_terms_templates")
         if template:
             return {
                 "id": template.id,

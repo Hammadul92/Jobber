@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from core.models import Business, Client, Invoice, Quote, Service
+from core.models import Business, Client, Invoice, Quote, Service, TeamMember
 
 QUOTES_URL = reverse("operations:quote-list")
 QUOTES_BULK_URL = reverse("operations:quote-bulk")
@@ -81,6 +81,11 @@ class ListingTests(TestCase):
         by_id = {row["id"]: row for row in res.data["results"]}
         self.assertFalse(by_id["999999"]["ok"])
         self.assertFalse(by_id[str(signed.pk)]["ok"])
+        self.assertTrue(by_id[str(self.quotes[0].pk)]["ok"])
+
+        Quote.objects.filter(pk=self.quotes[1].pk).update(valid_until=date.today() - timedelta(days=1))
+        expired = self.api.post(QUOTES_BULK_URL, {"action": "send", "ids": [self.quotes[1].pk]}, format="json")
+        self.assertIn("expired", expired.data["results"][0]["detail"])
         self.assertEqual(res.data["succeeded"] + res.data["failed"], 4)
 
     def test_bulk_delete_skips_signed_quotes(self):
@@ -114,3 +119,21 @@ class ListingTests(TestCase):
         res = self.api.post(reverse("finance:invoice-bulk"), {"action": "delete", "ids": [invoice.pk]}, format="json")
         self.assertEqual(res.data["failed"], 1)
         self.assertIn("Paid invoices", res.data["results"][0]["detail"])
+
+    def test_overdue_filter_and_owner_stays_on_team(self):
+        overdue = Invoice.objects.create(
+            business=self.business, client=self.clients[0], due_date=date.today() - timedelta(days=2),
+            status="SENT", subtotal=10, tax_rate=0, tax_amount=0, total_amount=10,
+        )
+        Invoice.objects.create(
+            business=self.business, client=self.clients[1], due_date=date.today() + timedelta(days=2),
+            status="SENT", subtotal=10, tax_rate=0, tax_amount=0, total_amount=10,
+        )
+        rows = self.api.get(reverse("finance:invoice-list"), {"overdue": "true"}).data
+        self.assertEqual([row["id"] for row in rows], [overdue.pk])
+
+        owner_member = TeamMember.objects.create(business=self.business, employee=self.owner)
+        res = self.api.post(reverse("operations:teammember-bulk"), {"action": "delete", "ids": [owner_member.pk]},
+                            format="json")
+        self.assertEqual(res.data["failed"], 1)
+        self.assertTrue(TeamMember.objects.filter(pk=owner_member.pk).exists())

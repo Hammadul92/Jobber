@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   LuChevronRight,
@@ -8,65 +8,9 @@ import {
   LuListTodo,
   LuX,
 } from "react-icons/lu";
-import {
-  useFetchBankingInformationListQuery,
-  useFetchInvoicesQuery,
-  useFetchJobsQuery,
-  useFetchQuotesQuery,
-  useFetchServiceQuestionnairesQuery,
-  useFetchServicesQuery,
-  useFetchServiceTermsTemplatesQuery,
-} from "../store";
-import { isInvoicePastDue } from "../utils/paymentTerms";
+import { useFetchDashboardTodosQuery } from "../store";
 
-const ACTIVE_SERVICE_STATUSES = new Set(["PENDING", "ACTIVE", "IN_PROGRESS"]);
-const CLOSED_STATUSES = new Set(["CANCELLED", "COMPLETED"]);
-const INVOICE_CLOSED_STATUSES = new Set(["PAID", "CANCELLED"]);
-
-function normalizeCollection(data) {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.results)) return data.results;
-  return [];
-}
-
-function normalizeText(value) {
-  return String(value || "").trim();
-}
-
-function normalizeKey(value) {
-  return normalizeText(value).toLowerCase();
-}
-
-function normalizeStatus(value) {
-  return normalizeText(value).toUpperCase();
-}
-
-function isActiveRecord(record) {
-  return record?.is_active !== false && record?.is_active !== "False";
-}
-
-function hasFilledQuestionnaire(service) {
-  const questionnaire = service?.filled_questionnaire;
-  if (!questionnaire) return false;
-  if (Array.isArray(questionnaire)) return questionnaire.length > 0;
-  if (typeof questionnaire === "object") {
-    return Object.keys(questionnaire).length > 0;
-  }
-  return Boolean(String(questionnaire).trim());
-}
-
-function createTodo({ id, title, description, to, type = "Setup", priority = "normal" }) {
-  return { id, title, description, to, type, priority };
-}
-
-function dedupeTodos(todos) {
-  const seen = new Set();
-  return todos.filter((todo) => {
-    if (seen.has(todo.id)) return false;
-    seen.add(todo.id);
-    return true;
-  });
-}
+const EMPTY_TODOS = [];
 
 export default function DashboardTodos({ token, user, business }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -74,26 +18,16 @@ export default function DashboardTodos({ token, user, business }) {
   const isManager = user?.role === "MANAGER";
   const shouldSkip = !token || !isManager || !business?.id;
 
-  const queryOptions = {
+  // The server builds the list over every record; `count` can exceed the
+  // items it returns.
+  const { data, isFetching } = useFetchDashboardTodosQuery(undefined, {
     skip: shouldSkip,
+    refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
     refetchOnReconnect: true,
-  };
-
-  const { data: questionnaireData, isFetching: loadingQuestionnaires } =
-    useFetchServiceQuestionnairesQuery(undefined, queryOptions);
-  const { data: termsData, isFetching: loadingTerms } =
-    useFetchServiceTermsTemplatesQuery(undefined, queryOptions);
-  const { data: servicesData, isFetching: loadingServices } =
-    useFetchServicesQuery(undefined, queryOptions);
-  const { data: quotesData, isFetching: loadingQuotes } =
-    useFetchQuotesQuery(undefined, queryOptions);
-  const { data: invoicesData, isFetching: loadingInvoices } =
-    useFetchInvoicesQuery({ page_size: 100 }, queryOptions);
-  const { data: jobsData, isFetching: loadingJobs } =
-    useFetchJobsQuery(undefined, queryOptions);
-  const { data: bankingData, isFetching: loadingBanking } =
-    useFetchBankingInformationListQuery(undefined, queryOptions);
+  });
+  const todos = shouldSkip ? EMPTY_TODOS : data?.items || EMPTY_TODOS;
+  const todoCount = shouldSkip ? 0 : data?.count ?? todos.length;
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -116,275 +50,6 @@ export default function DashboardTodos({ token, user, business }) {
     };
   }, [isOpen]);
 
-  const todos = useMemo(() => {
-    if (shouldSkip) return [];
-
-    const offeredServices = Array.isArray(business?.services_offered)
-      ? business.services_offered.map(normalizeText).filter(Boolean)
-      : [];
-    const questionnaires = normalizeCollection(questionnaireData);
-    const termsTemplates = normalizeCollection(termsData);
-    const services = normalizeCollection(servicesData);
-    const quotes = normalizeCollection(quotesData);
-    const invoices = normalizeCollection(invoicesData);
-    const jobs = normalizeCollection(jobsData);
-    const bankingItems = normalizeCollection(bankingData);
-
-    const activeQuestionnaireServices = new Set(
-      questionnaires
-        .filter(isActiveRecord)
-        .map((questionnaire) => normalizeKey(questionnaire.service_name))
-        .filter(Boolean),
-    );
-    const activeTermsServices = new Set(
-      termsTemplates
-        .filter(isActiveRecord)
-        .map((template) => normalizeKey(template.service_name))
-        .filter(Boolean),
-    );
-    const activeQuoteServiceIds = new Set(
-      quotes
-        .filter((quote) => isActiveRecord(quote))
-        .filter((quote) => normalizeStatus(quote.status) !== "DECLINED")
-        .map((quote) => String(quote.service || quote.service_data?.id || ""))
-        .filter(Boolean),
-    );
-    const signedQuoteServiceIds = new Set(
-      quotes
-        .filter((quote) => isActiveRecord(quote))
-        .filter((quote) => normalizeStatus(quote.status) === "SIGNED")
-        .map((quote) => String(quote.service || quote.service_data?.id || ""))
-        .filter(Boolean),
-    );
-    const invoiceServiceIds = new Set(
-      invoices
-        .filter((invoice) => isActiveRecord(invoice))
-        .filter((invoice) => normalizeStatus(invoice.status) !== "CANCELLED")
-        .map((invoice) => String(invoice.service || ""))
-        .filter(Boolean),
-    );
-    const hasBusinessBanking = bankingItems.some(
-      (item) =>
-        isActiveRecord(item) &&
-        String(item.business || "") === String(business.id) &&
-        !item.client,
-    );
-
-    const nextTodos = [];
-
-    if (!offeredServices.length) {
-      nextTodos.push(
-        createTodo({
-          id: "business:offered-services",
-          title: "Add offered services",
-          description:
-            "Choose the services this business provides so client services can be created.",
-          to: "/user/business",
-          type: "Setup",
-          priority: "high",
-        }),
-      );
-    }
-
-    offeredServices.forEach((serviceName) => {
-      const serviceKey = normalizeKey(serviceName);
-      if (!activeQuestionnaireServices.has(serviceKey)) {
-        nextTodos.push(
-          createTodo({
-            id: `questionnaire:${serviceKey}`,
-            title: `Create questionnaire for ${serviceName}`,
-            description:
-              "Clients must complete a questionnaire before this service can become active.",
-            to: "/user/business/service-questionnaires",
-            type: "Setup",
-            priority: "high",
-          }),
-        );
-      }
-
-      if (!activeTermsServices.has(serviceKey)) {
-        nextTodos.push(
-          createTodo({
-            id: `terms:${serviceKey}`,
-            title: `Create terms for ${serviceName}`,
-            description:
-              "General terms are required and will be included with every quote for this service.",
-            to: "/user/business/terms-and-conditions",
-            type: "Setup",
-            priority: "high",
-          }),
-        );
-      }
-    });
-
-    services.forEach((service) => {
-      const status = normalizeStatus(service.status);
-      if (CLOSED_STATUSES.has(status)) return;
-
-      const serviceId = String(service.id || "");
-      const serviceName = normalizeText(service.service_name) || "Service";
-      const clientName = normalizeText(service.client_name) || "client";
-      const clientLink = service.client
-        ? `/user/business/client/${service.client}/services`
-        : "/user/business/services";
-
-      if (!service.bypass_questionnaire && !hasFilledQuestionnaire(service)) {
-        nextTodos.push(
-          createTodo({
-            id: `service-questionnaire-response:${serviceId}`,
-            title: `Collect questionnaire for ${serviceName}`,
-            description: `${clientName} still needs to complete the service questionnaire.`,
-            to: clientLink,
-            type: "Client",
-            priority: "normal",
-          }),
-        );
-      }
-
-      if (
-        (service.bypass_questionnaire || hasFilledQuestionnaire(service)) &&
-        service.auto_generate_quote &&
-        !activeQuoteServiceIds.has(serviceId)
-      ) {
-        nextTodos.push(
-          createTodo({
-            id: `quote-missing:${serviceId}`,
-            title: `Create quote for ${serviceName}`,
-            description: `${clientName} is ready for a quote, but no active quote exists yet.`,
-            to: clientLink,
-            type: "Quote",
-            priority: "high",
-          }),
-        );
-      }
-
-      if (
-        ACTIVE_SERVICE_STATUSES.has(status) &&
-        service.auto_generate_invoices &&
-        signedQuoteServiceIds.has(serviceId) &&
-        !invoiceServiceIds.has(serviceId)
-      ) {
-        nextTodos.push(
-          createTodo({
-            id: `invoice-missing:${serviceId}`,
-            title: `Create invoice for ${serviceName}`,
-            description: `${clientName}'s quote is signed and the service is active.`,
-            to: "/user/business/invoices",
-            type: "Invoice",
-            priority: "high",
-          }),
-        );
-      }
-    });
-
-    quotes.forEach((quote) => {
-      const status = normalizeStatus(quote.status);
-      if (!isActiveRecord(quote)) return;
-
-      if (status === "DRAFT") {
-        nextTodos.push(
-          createTodo({
-            id: `quote-draft:${quote.id}`,
-            title: `Send ${quote.quote_number || "quote"}`,
-            description: `${quote.service_name || "Service"} quote for ${quote.client_name || "client"} is still a draft.`,
-            to: `/user/business/quote/${quote.id}`,
-            type: "Quote",
-            priority: "normal",
-          }),
-        );
-      }
-
-      if (status === "SENT") {
-        nextTodos.push(
-          createTodo({
-            id: `quote-sent:${quote.id}`,
-            title: `Await signature for ${quote.quote_number || "quote"}`,
-            description: `${quote.client_name || "Client"} has not signed this quote yet.`,
-            to: `/user/business/quote/${quote.id}`,
-            type: "Quote",
-            priority: "normal",
-          }),
-        );
-      }
-    });
-
-    invoices.forEach((invoice) => {
-      const status = normalizeStatus(invoice.status);
-      if (!isActiveRecord(invoice) || INVOICE_CLOSED_STATUSES.has(status)) {
-        return;
-      }
-
-      if (isInvoicePastDue(invoice)) {
-        nextTodos.push(
-          createTodo({
-            id: `invoice-overdue:${invoice.id}`,
-            title: `Follow up on ${invoice.invoice_number || "invoice"}`,
-            description: `${invoice.client_name || "Client"} has an overdue invoice for ${invoice.service_name || "a service"}.`,
-            to: `/user/business/invoice/${invoice.id}`,
-            type: "Payment",
-            priority: "high",
-          }),
-        );
-      }
-    });
-
-    jobs.forEach((job) => {
-      const status = normalizeStatus(job.status);
-      if (!isActiveRecord(job) || CLOSED_STATUSES.has(status)) return;
-
-      if (!job.assigned_to && !job.assigned_to_name) {
-        nextTodos.push(
-          createTodo({
-            id: `job-unassigned:${job.id}`,
-            title: `Assign ${job.title || job.service_name || "job"}`,
-            description: "This job needs a team member before work can be tracked.",
-            to: `/user/business/job/${job.id}`,
-            type: "Job",
-            priority: "normal",
-          }),
-        );
-      }
-    });
-
-    if (!hasBusinessBanking) {
-      nextTodos.push(
-        createTodo({
-          id: "banking:business-payout",
-          title: "Connect business banking",
-          description:
-            "Payments and payout flow need an active business Stripe/bank connection.",
-          to: "/user/banking",
-          type: "Payment",
-          priority: "normal",
-        }),
-      );
-    }
-
-    return dedupeTodos(nextTodos).sort((a, b) => {
-      if (a.priority === b.priority) return a.title.localeCompare(b.title);
-      return a.priority === "high" ? -1 : 1;
-    });
-  }, [
-    bankingData,
-    business,
-    invoicesData,
-    jobsData,
-    questionnaireData,
-    quotesData,
-    servicesData,
-    shouldSkip,
-    termsData,
-  ]);
-
-  const isFetching =
-    loadingQuestionnaires ||
-    loadingTerms ||
-    loadingServices ||
-    loadingQuotes ||
-    loadingInvoices ||
-    loadingJobs ||
-    loadingBanking;
-
   if (!isManager) return null;
 
   return (
@@ -403,8 +68,8 @@ export default function DashboardTodos({ token, user, business }) {
                 Pending Tasks
               </h2>
               <p className="text-sm text-slate-500">
-                {todos.length
-                  ? `${todos.length} item${todos.length === 1 ? "" : "s"} need attention`
+                {todoCount
+                  ? `${todoCount} item${todoCount === 1 ? "" : "s"} need attention`
                   : "Everything is caught up"}
               </p>
             </div>
@@ -499,9 +164,9 @@ export default function DashboardTodos({ token, user, business }) {
           Todos
         </span>
         <LuListTodo className="h-6 w-6" />
-        {todos.length > 0 && (
+        {todoCount > 0 && (
           <span className="absolute -right-1.5 -top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full border-2 border-white bg-slate-950 px-1.5 text-xs font-bold text-white">
-            {todos.length > 99 ? "99+" : todos.length}
+            {todoCount > 99 ? "99+" : todoCount}
           </span>
         )}
       </button>
