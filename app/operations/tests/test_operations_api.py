@@ -713,6 +713,12 @@ class QuoteInvoiceAutomationTests(TestCase):
         renamed = self.client.patch(detail, {"client_name": "Fixed Name"}, format="json")
         self.assertEqual(renamed.status_code, status.HTTP_200_OK, renamed.data)
 
+    def test_owner_can_only_have_one_active_business(self):
+        self.client.force_authenticate(self.owner)
+        res = self.client.post(BUSINESSES_URL, {"name": "Second Business"}, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Business.objects.filter(owner=self.owner).count(), 1)
+
 
 class ServiceTermsTemplateApiTests(TestCase):
     """Test service terms template integration with services and quotes."""

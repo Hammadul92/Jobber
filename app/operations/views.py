@@ -117,6 +117,9 @@ class BusinessViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Assign the owner to the logged-in user."""
         user = self.request.user
+        # One business per owner for now; several screens assume a single business.
+        if Business.objects.filter(owner=user).exists():
+            raise ValidationError({"detail": "You already have a business. Each account can own one business."})
         business = serializer.save(owner=user)
 
         TeamMember.objects.get_or_create(
