@@ -87,6 +87,7 @@ def send_branded_email(
     brand_name=None,
     brand_logo=None,
     attachments=None,
+    business=None,
 ):
     """Send branded HTML and plain text with optional file attachments."""
     platform_logo = _read_platform_logo()
@@ -148,4 +149,29 @@ def send_branded_email(
     if (platform_logo or business_logo) and not attachments:
         email.mixed_subtype = "related"
 
-    return email.send(fail_silently=False)
+    history = None
+    if business is not None:
+        from core.models import BusinessEmail
+
+        history = BusinessEmail.objects.create(
+            business=business, subject=subject, from_email=sender,
+            recipients=list(email.to), reply_to=list(email.reply_to or []),
+            text_body=text_body, html_body=html_body, action_url=action_url or "",
+            attachment_names=[item[0] for item in (attachments or [])],
+        )
+    try:
+        sent = email.send(fail_silently=False)
+        if not sent:
+            raise RuntimeError("Email backend did not accept the message.")
+    except Exception:
+        if history:
+            history.status = "FAILED"
+            history.save(update_fields=["status"])
+        raise
+    if history:
+        from django.utils import timezone
+
+        history.status = "SENT"
+        history.sent_at = timezone.now()
+        history.save(update_fields=["status", "sent_at"])
+    return sent

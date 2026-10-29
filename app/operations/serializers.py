@@ -20,6 +20,7 @@ from taggit.models import Tag
 
 from core.models import (
     Business,
+    BusinessEmail,
     Client,
     Job,
     JobPhoto,
@@ -948,3 +949,15 @@ class JobPhotoSerializer(serializers.ModelSerializer):
             "uploaded_at",
         ]
         read_only_fields = ["uploaded_at"]
+
+
+class BusinessEmailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessEmail
+        fields = ["id", "business", "subject", "from_email", "recipients", "reply_to",
+                  "status", "created_at", "sent_at", "attachment_names"]
+
+
+class BusinessEmailDetailSerializer(BusinessEmailSerializer):
+    class Meta(BusinessEmailSerializer.Meta):
+        fields = BusinessEmailSerializer.Meta.fields + ["text_body", "html_body", "action_url"]

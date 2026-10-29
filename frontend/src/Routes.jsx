@@ -300,6 +300,10 @@ function MainApp() {
             element={<UserDashboard page="service" token={token} user={user} />}
           />
           <Route
+            path="email-history"
+            element={<UserDashboard page="email-history" token={token} user={user} />}
+          />
+          <Route
             path="quotes"
             element={<UserDashboard page="quotes" token={token} user={user} />}
           />

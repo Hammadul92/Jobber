@@ -18,7 +18,7 @@ def generate_password_reset_token(user):
     return signing.dumps({'user_id': user.id}, salt="password-reset")
 
 
-def verify_password_reset_token(token, max_age=3600):
+def verify_password_reset_token(token, max_age=60 * 60 * 24):
     try:
         data = signing.loads(token, salt="password-reset", max_age=max_age)
         user_id = data.get('user_id')
@@ -32,11 +32,11 @@ def verify_password_reset_token(token, max_age=3600):
 
 
 def generate_magic_login_token(user):
-    """Generate a short-lived token for magic link login (1 hour)."""
+    """Generate a short-lived token for magic link login (24 hours)."""
     return signing.dumps({'user_id': user.id}, salt="magic-login")
 
 
-def verify_magic_login_token(token, max_age=3600):
+def verify_magic_login_token(token, max_age=60 * 60 * 24):
     """Verify magic login token and return the user, or None."""
     try:
         data = signing.loads(token, salt="magic-login", max_age=max_age)

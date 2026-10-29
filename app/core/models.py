@@ -946,3 +946,23 @@ class Payout(SoftDeletableModel):
             f"Payout {self.id} for {self.invoice.invoice_number} "
             f"({self.get_status_display()})"
         )
+
+
+class BusinessEmail(models.Model):
+    """Immutable content snapshot for a business email send attempt."""
+
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="email_history")
+    subject = models.TextField()
+    from_email = models.TextField()
+    recipients = models.JSONField(default=list)
+    reply_to = models.JSONField(default=list)
+    text_body = models.TextField()
+    html_body = models.TextField()
+    action_url = models.TextField(blank=True)
+    attachment_names = models.JSONField(default=list)
+    status = models.CharField(max_length=10, choices=[("PENDING", "Pending"), ("SENT", "Sent"), ("FAILED", "Failed")], default="PENDING")
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]

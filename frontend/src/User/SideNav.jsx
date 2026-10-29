@@ -98,6 +98,7 @@ export default function SideNav({ user, businessRegistered }) {
   // Role-based dashboard menu aligned with Header dropdown role menus
   const roleDashboardMenu = {
     MANAGER: [
+      { name: "Email History", path: "/user/business/email-history", icon: LuFileText },
       { name: "Dashboard", path: "/user/business/home", icon: RiDashboardLine },
       {
         name: "Questionnaires",

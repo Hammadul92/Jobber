@@ -27,7 +27,7 @@ def send_invoice_email(invoice):
         f"Due Date: {invoice.due_date}\n\n"
         f"Use this secure link to view and pay this invoice:\n"
         f"{portal_link}\n\n"
-        "This secure link signs you in automatically and expires in 1 hour.\n"
+        "This secure link signs you in automatically and expires in 24 hours.\n"
         "If it expires, sign in to your client portal to view the invoice.\n\n"
         "If you have any questions, please contact the business directly.\n\n"
         f"Best regards,\n"
@@ -59,12 +59,13 @@ def send_invoice_email(invoice):
         action_label="View and Pay Invoice",
         action_url=portal_link,
         notice=(
-            "This secure link signs you in automatically and expires in 1 hour. "
+            "This secure link signs you in automatically and expires in 24 hours. "
             "If it expires, sign in to view your invoice. "
             "Questions about this invoice should be directed to the business."
         ),
         signoff=invoice.business.name,
         brand_name=invoice.business.name,
+        business=invoice.business,
         brand_logo=invoice.business.logo,
     )
 
@@ -108,5 +109,6 @@ def send_invoice_paid_email(invoice):
         action_label="View Invoice",
         action_url=invoice_link,
         brand_name=business.name,
+        business=business,
         brand_logo=business.logo,
     )

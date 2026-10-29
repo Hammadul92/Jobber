@@ -11,6 +11,7 @@ from rest_framework.routers import DefaultRouter
 from . import views
 
 router = DefaultRouter()
+router.register('email-history', views.BusinessEmailViewSet)
 router.register('business', views.BusinessViewSet)
 router.register('client', views.ClientViewSet)
 router.register('service-questionnaire', views.ServiceQuestionnaireViewSet)

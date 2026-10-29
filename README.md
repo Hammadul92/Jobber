@@ -305,3 +305,25 @@ traffic to a new backend image.
   should be visible.
 - Never place live credentials, payment identifiers, or customer information in
   fixtures, tests, logs, or source control.
+
+### Business email history
+
+Business owners can open **Email History** in the dashboard to inspect new
+business emails, including their original plain text and HTML, recipients,
+subject, sender, send status, attachment names, and emailed action link. Each
+resend creates a separate record. Account verification, password reset, and
+public contact emails are not included in business history. Past emails cannot
+be imported from SendGrid delivery events.
+
+Apply migration `core.0030_businessemail` during deployment (`python manage.py
+migrate`). The read-only endpoints are `/api/ops/email-history/` (paginated,
+optional `business` filter) and `/api/ops/email-history/<id>/`. Only the owning
+business user can read records; list responses omit message bodies and action
+links. HTML previews block scripts and external resources. Attachments are
+listed by filename; their contents are not archived.
+
+Email login and password reset tokens last 24 hours. Copying an archived link
+preserves the original token and expiry; it does not generate a new token.
+Archived login links grant access as the recipient, so email history is restricted
+to owners. `SENT` means the configured email backend accepted the message,
+not confirmed inbox delivery; delivery webhooks are not connected to this history.

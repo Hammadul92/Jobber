@@ -50,7 +50,7 @@ def send_password_reset_email(user, token):
         "You requested to reset your password. "
         "Click the link below to set a new password:\n"
         f"{reset_link}\n\n"
-        "This link will expire in 1 hour. "
+        "This link will expire in 24 hours. "
         "If you did not request a password reset, ignore this email.\n\n"
         "Best regards,\n"
         "Contractorz Team"
@@ -69,7 +69,7 @@ def send_password_reset_email(user, token):
         action_label="Reset Password",
         action_url=reset_link,
         notice=(
-            "This link expires in 1 hour. If you did not request a password "
+            "This link expires in 24 hours. If you did not request a password "
             "reset, you can safely ignore this email."
         ),
     )

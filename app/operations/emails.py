@@ -54,9 +54,10 @@ def send_quote_email(quote):
         ],
         action_label="Review and Sign Quote",
         action_url=sign_link,
-        notice="This secure link signs you in automatically and expires in 1 hour.",
+        notice="This secure link signs you in automatically and expires in 24 hours.",
         signoff=f"The {quote.service.business.name} Team",
         brand_name=quote.service.business.name,
+        business=quote.service.business,
         brand_logo=quote.service.business.logo,
     )
 
@@ -78,7 +79,7 @@ def send_service_questionnaire_email(service, questionnaire, magic_token=None):
         f"Please fill out your service questionnaire by clicking "
         f"the link below:\n\n"
         f"{questionnaire_link}\n\n"
-        f"This link will log you in automatically and expires in 1 hour.\n\n"
+        f"This link will log you in automatically and expires in 24 hours.\n\n"
         f"Best regards,\n"
         f"The {service.business.name} Team"
     )
@@ -99,9 +100,10 @@ def send_service_questionnaire_email(service, questionnaire, magic_token=None):
         ],
         action_label="Complete Questionnaire",
         action_url=questionnaire_link,
-        notice="This secure link signs you in automatically and expires in 1 hour.",
+        notice="This secure link signs you in automatically and expires in 24 hours.",
         signoff=f"The {service.business.name} Team",
         brand_name=service.business.name,
+        business=service.business,
         brand_logo=service.business.logo,
     )
 
@@ -139,6 +141,7 @@ def send_questionnaire_submitted_email(service):
         action_label="Review Submission",
         action_url=service_link,
         brand_name=business.name,
+        business=business,
         brand_logo=business.logo,
     )
 
@@ -184,6 +187,7 @@ def send_job_created_email(job):
         action_label="View Job",
         action_url=job_link,
         brand_name=business.name,
+        business=business,
         brand_logo=business.logo,
     )
 
@@ -226,6 +230,7 @@ def send_job_completed_email(job):
         action_label="Review Completed Job",
         action_url=job_link,
         brand_name=business.name,
+        business=business,
         brand_logo=business.logo,
     )
 
@@ -264,6 +269,7 @@ def send_quote_signed_email(quote):
         action_label="View Signed Quote",
         action_url=quote_link,
         brand_name=business.name,
+        business=business,
         brand_logo=business.logo,
     )
 
@@ -304,6 +310,7 @@ def send_signed_quote_copy_email(quote):
             action_url=quote_link,
             signoff=f"The {business.name} Team",
             brand_name=business.name,
+            business=business,
             brand_logo=business.logo,
             attachments=[
                 (f"{quote.quote_number}-signed.pdf", pdf.read(), "application/pdf"),
