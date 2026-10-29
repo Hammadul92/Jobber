@@ -4,6 +4,7 @@ Views for operations APIs.
 
 from datetime import timedelta
 
+from django.db import transaction
 from django.http import FileResponse
 from django.utils import timezone
 from rest_framework import status, viewsets
@@ -243,6 +244,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
         .order_by("-id")
     )
 
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         prev_filled_questionnaire = instance.filled_questionnaire
@@ -323,6 +325,8 @@ class ServiceViewSet(viewsets.ModelViewSet):
             qs = qs.filter(business__owner=user)
         elif user.role == "CLIENT":
             qs = qs.filter(client__user=user)
+        elif user.role != "ADMIN":
+            qs = qs.none()
 
         return qs
 
@@ -607,6 +611,8 @@ class JobViewSet(viewsets.ModelViewSet):
             qs = qs.filter(service__client__user=user)
         elif user.role == "EMPLOYEE":
             qs = qs.filter(assigned_to__employee=user)
+        elif user.role != "ADMIN":
+            qs = qs.none()
 
         return qs
 
@@ -661,6 +667,8 @@ class JobPhotoViewSet(viewsets.ModelViewSet):
             qs = qs.filter(job__service__client__user=user)
         elif user.role == "EMPLOYEE":
             qs = qs.filter(job__assigned_to__employee=user)
+        elif user.role != "ADMIN":
+            qs = qs.none()
 
         return qs
 

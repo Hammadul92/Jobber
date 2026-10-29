@@ -51,6 +51,20 @@ class PublicUserApiTests(TestCase):
         self.assertNotIn('password', res.data)
         self.assertEqual(len(mail.outbox), 1)
 
+    def test_create_user_ignores_submitted_role(self):
+        """Test signup cannot choose a privileged role."""
+        res = self.client.post(CREATE_USER_URL, {
+            'email': 'admin@example.com',
+            'password': 'testpass123',
+            'name': 'Test Name',
+            'phone': '1234567890',
+            'role': 'ADMIN',
+        })
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        user = get_user_model().objects.get(email='admin@example.com')
+        self.assertEqual(user.role, 'USER')
+
     def test_portal_client_creation_does_not_send_registration_email(self):
         manager = create_user(
             email='manager@example.com', password='testpass123', name='Manager'
@@ -331,6 +345,14 @@ class PrivateUserApiTests(TestCase):
         self.assertEqual(self.user.name, payload['name'])
         self.assertTrue(self.user.check_password(payload['password']))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_update_user_profile_cannot_change_role(self):
+        """Test a user cannot grant themselves another role."""
+        res = self.client.patch(ME_URL, {'role': 'ADMIN'})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.role, 'USER')
 
     def test_update_user_profile_photo(self):
         """Test uploading and saving a profile image for the authenticated user."""

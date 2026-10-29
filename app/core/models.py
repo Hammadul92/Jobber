@@ -8,7 +8,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
-from django.db import IntegrityError, models
+from django.db import IntegrityError, models, transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
@@ -850,26 +850,38 @@ class Invoice(SoftDeletableModel):
         return f"Invoice {self.invoice_number} for {self.client.user.name}"
 
     def save(self, *args, **kwargs):
-        if not self.invoice_number:
+        if self.invoice_number:
+            super().save(*args, **kwargs)
+            return
+
+        # Retry invoice number generation if a concurrent insert uses the same value.
+        for _ in range(5):
             self.invoice_number = self.generate_invoice_number()
-        super().save(*args, **kwargs)
+            try:
+                with transaction.atomic():
+                    super().save(*args, **kwargs)
+                return
+            except IntegrityError as exc:
+                if "invoice_number" not in str(exc):
+                    raise
+                self.invoice_number = None
+
+        raise IntegrityError(
+            "Unable to generate a unique invoice number after multiple attempts."
+        )
 
     def generate_invoice_number(self):
         year = timezone.now().year
         prefix = f"INV-{year}-"
-        last_invoice = (
-            Invoice.objects.filter(invoice_number__startswith=prefix)
-            .order_by("invoice_number")
-            .last()
-        )
-        new_number = 1
-        if last_invoice:
+        max_number = 0
+        for invoice_number in Invoice.all_objects.filter(
+            invoice_number__startswith=prefix
+        ).values_list("invoice_number", flat=True):
             try:
-                last_number = int(last_invoice.invoice_number.split("-")[-1])
-                new_number = last_number + 1
-            except ValueError:
-                pass
-        return f"{prefix}{new_number:03d}"
+                max_number = max(max_number, int(invoice_number.split("-")[-1]))
+            except (ValueError, IndexError):
+                continue
+        return f"{prefix}{max_number + 1:03d}"
 
 
 class Payout(SoftDeletableModel):

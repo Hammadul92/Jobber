@@ -26,6 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True, 'min_length': 6},
             'last_login': {'read_only': True},
+            'role': {'read_only': True},
             'photo': {'required': False, 'allow_null': True},
         }
 

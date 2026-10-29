@@ -174,6 +174,7 @@ class ResetPasswordView(generics.GenericAPIView):
 
         user.set_password(new_password)
         user.save()
+        Token.objects.filter(user=user).delete()
 
         return Response(
             {"detail": "Password reset successfully."}, status=status.HTTP_200_OK

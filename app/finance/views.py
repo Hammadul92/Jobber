@@ -52,7 +52,10 @@ def record_payment_result(invoice, payment_intent, account_id, payout=None):
     payout.status = "PAID"
     payout.processed_at = timezone.now()
     payout.save(update_fields=["status", "processed_at"])
-    emails.send_invoice_paid_email(invoice)
+    try:
+        emails.send_invoice_paid_email(invoice)
+    except Exception:
+        logger.exception("Invoice paid email failed for invoice %s", invoice.pk)
     return Response({"detail": "Payment successful and payout recorded."}, status=200)
 
 
@@ -583,8 +586,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 attempt.save(update_fields=["status"])
             return Response({"error": f"Stripe error: {str(e)}"}, status=400)
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=500)
+        except Exception:
+            logger.exception("Payment failed for invoice %s", pk)
+            return Response({"error": "Payment could not be processed. Please try again later."}, status=500)
 
 
 class PayoutViewSet(

@@ -511,6 +511,33 @@ class QuoteInvoiceAutomationTests(TestCase):
             "Only signed quotations can be downloaded as PDF.",
         )
 
+    def test_user_without_business_role_sees_no_services_jobs_or_photos(self):
+        outsider = get_user_model().objects.create_user(
+            "outsider@example.com", "test123", role="USER",
+        )
+        self.client.force_authenticate(user=outsider)
+
+        for url in (SERVICES_URL, JOBS_URL, JOB_PHOTOS_URL):
+            res = self.client.get(url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            rows = res.data["results"] if isinstance(res.data, dict) else res.data
+            self.assertEqual(len(rows), 0, url)
+
+    def test_invoice_numbers_skip_deleted_and_compare_numerically(self):
+        prefix = f"INV-{timezone.now().year}-"
+        fields = dict(
+            business=self.business, client=self.client_record,
+            due_date=date.today(), status="SENT", subtotal=10,
+            tax_rate=0, tax_amount=0, total_amount=10,
+        )
+        Invoice.objects.create(invoice_number=f"{prefix}999", **fields)
+        first = Invoice.objects.create(**fields)
+        self.assertEqual(first.invoice_number, f"{prefix}1000")
+
+        first.soft_delete(user=self.owner)
+        second = Invoice.objects.create(**fields)
+        self.assertEqual(second.invoice_number, f"{prefix}1001")
+
 
 class ServiceTermsTemplateApiTests(TestCase):
     """Test service terms template integration with services and quotes."""
