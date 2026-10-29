@@ -305,6 +305,10 @@ class Client(SoftDeletableModel):
         related_name="users",
         on_delete=models.CASCADE,
     )
+    # Each business keeps its own name and phone for the client; the login
+    # account (and its email) can be shared across businesses.
+    name = models.CharField(max_length=255, blank=True, default="")
+    phone = models.CharField(max_length=20, blank=True, default="")
 
     company_name = models.CharField(max_length=255, blank=True, default="")
     billing_street_address = models.CharField(max_length=255, blank=True, default="")
@@ -320,8 +324,15 @@ class Client(SoftDeletableModel):
     class Meta:
         unique_together = ("business", "user")
 
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = self.user.name
+        if not self.phone:
+            self.phone = self.user.phone
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.user.name} ({self.business.name})"
+        return f"{self.name} ({self.business.name})"
 
 
 class BankingInformation(SoftDeletableModel):
@@ -409,7 +420,7 @@ class BankingInformation(SoftDeletableModel):
             raise ValueError("Banking Info cannot belong to both Business and Client.")
 
     def __str__(self):
-        owner = self.business.name if self.business else self.client.user.name
+        owner = self.business.name if self.business else self.client.name
         if self.payment_method_type == "BANK_ACCOUNT":
             return f"Bank ••••{self.account_number_last4 or '----'} ({owner})"
         return f"{self.card_brand or 'Card'} ••••{self.card_last4 or '----'} ({owner})"
@@ -592,7 +603,7 @@ class Service(SoftDeletableModel):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.service_name} for {self.client.user.name}"
+        return f"{self.service_name} for {self.client.name}"
 
 
 class Job(SoftDeletableModel):
@@ -847,7 +858,7 @@ class Invoice(SoftDeletableModel):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Invoice {self.invoice_number} for {self.client.user.name}"
+        return f"Invoice {self.invoice_number} for {self.client.name}"
 
     def save(self, *args, **kwargs):
         if self.invoice_number:

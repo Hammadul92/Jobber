@@ -30,6 +30,7 @@ class SignedQuotePdfTests(SimpleTestCase):
         self.service = SimpleNamespace(
             business=self.business,
             client=SimpleNamespace(
+                name="Example Client", phone="+1 403-555-0145",
                 company_name="Example Construction Ltd.",
                 billing_street_address="45 Billing Road", billing_city="Calgary",
                 billing_province_state="AB", billing_country="CA",

@@ -131,7 +131,7 @@ class BusinessMarqueeLogoSerializer(serializers.ModelSerializer):
 class ClientSerializer(serializers.ModelSerializer):
     """ Serializer for clients."""
     client_name = serializers.CharField(
-        source="user.name",
+        source="name",
         required=False
     )
     client_email = serializers.EmailField(
@@ -139,7 +139,7 @@ class ClientSerializer(serializers.ModelSerializer):
         required=False
     )
     client_phone = serializers.CharField(
-        source="user.phone",
+        source="phone",
         required=False
     )
     payment_method = serializers.SerializerMethodField()
@@ -187,57 +187,57 @@ class ClientSerializer(serializers.ModelSerializer):
         user_data = attrs.get("user", {})
         if self.instance is None:
             missing = {
-                f"client_{field}": "This field is required."
-                for field in ("name", "email", "phone")
-                if not user_data.get(field)
+                key: "This field is required."
+                for key, value in (
+                    ("client_name", attrs.get("name")),
+                    ("client_email", user_data.get("email")),
+                    ("client_phone", attrs.get("phone")),
+                )
+                if not value
             }
             if missing:
                 raise serializers.ValidationError(missing)
             return attrs
 
         account = self.instance.user
-        changed = {
-            field for field, value in user_data.items()
-            if getattr(account, field) != value
-        }
-        if not changed:
+        if "email" not in user_data or user_data["email"] == account.email:
             attrs.pop("user", None)
             return attrs
 
         # The login account is shared with every business the person works
-        # with, so a business may only edit it while it is the sole user.
+        # with, so a business may only fix its email while it is the sole
+        # business and the client has never signed in.
         shared = (
             account.role != "CLIENT"
             or account.owned_businesses.exists()
             or Client.all_objects.filter(user=account).exclude(pk=self.instance.pk).exists()
         )
         if shared:
-            raise serializers.ValidationError(
-                "This client's account is shared with another business, so only the client can change "
-                "their name, email or phone from their profile."
-            )
-        if "email" in changed:
-            if account.last_login:
-                raise serializers.ValidationError({
-                    "client_email": "This client has already signed in, so only they can change their email."
-                })
-            if get_user_model().objects.exclude(pk=account.pk).filter(
-                email__iexact=user_data["email"]
-            ).exists():
-                raise serializers.ValidationError({
-                    "client_email": "A user with this email already exists."
-                })
+            raise serializers.ValidationError({
+                "client_email": "This client's account is shared with another business, "
+                                "so only the client can change their email."
+            })
+        if account.last_login:
+            raise serializers.ValidationError({
+                "client_email": "This client has already signed in, so only they can change their email."
+            })
+        if get_user_model().objects.exclude(pk=account.pk).filter(
+            email__iexact=user_data["email"]
+        ).exists():
+            raise serializers.ValidationError({
+                "client_email": "A user with this email already exists."
+            })
         return attrs
 
     def create(self, validated_data):
         """Link the person with this email, creating their account if needed."""
-        user_data = validated_data.pop("user")
+        email = validated_data.pop("user")["email"]
         business = validated_data["business"]
         User = get_user_model()
-        account = User.objects.filter(email__iexact=user_data["email"]).first()
+        account = User.objects.filter(email__iexact=email).first()
         if account is None:
             account = User.objects.create_user(
-                user_data["email"], name=user_data["name"], phone=user_data["phone"],
+                email, name=validated_data["name"], phone=validated_data["phone"],
                 role="CLIENT", is_active=True,
             )
         elif account.pk == business.owner_id:
@@ -387,7 +387,7 @@ class ServiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
     service_terms_template = serializers.SerializerMethodField()
     tax_rate = serializers.SerializerMethodField()
     client_name = serializers.CharField(
-        source="client.user.name",
+        source="client.name",
         read_only=True
     )
 
@@ -710,7 +710,7 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
         read_only=True
     )
     client_name = serializers.CharField(
-        source="service.client.user.name",
+        source="service.client.name",
         read_only=True
     )
     business_name = serializers.CharField(

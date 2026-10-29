@@ -62,7 +62,7 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
     )
     business_timezone = serializers.CharField(source="business.timezone", read_only=True)
     client_name = serializers.CharField(
-        source="client.user.name",
+        source="client.name",
         read_only=True,
     )
     client_company_name = serializers.CharField(source="client.company_name", read_only=True)
@@ -222,7 +222,7 @@ class PayoutSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         read_only=True,
     )
     client_name = serializers.CharField(
-        source="invoice.client.user.name", read_only=True
+        source="invoice.client.name", read_only=True
     )
     service_name = serializers.CharField(
         source="invoice.service.service_name", read_only=True

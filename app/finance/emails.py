@@ -19,7 +19,7 @@ def send_invoice_email(invoice):
         if invoice.payment_terms else ""
     )
     message = (
-        f"Dear {invoice.client.user.name},\n\n"
+        f"Dear {invoice.client.name},\n\n"
         f"You have received a new invoice from {invoice.business.name}.\n"
         f"Invoice Number: {invoice.invoice_number}\n"
         f"Amount: {invoice.total_amount} {invoice.currency}\n"
@@ -41,7 +41,7 @@ def send_invoice_email(invoice):
         eyebrow="Invoice ready",
         heading="You have a new invoice.",
         paragraphs=[
-            f"Hello {invoice.client.user.name},",
+            f"Hello {invoice.client.name},",
             f"{invoice.business.name} sent you a new invoice for review and payment.",
         ],
         details=[
@@ -74,7 +74,7 @@ def send_invoice_paid_email(invoice):
     """Notify the business owner after a client successfully pays an invoice."""
     invoice_link = f"{settings.FRONTEND_URL}/user/business/invoice/{invoice.id}"
     business = invoice.business
-    client = invoice.client.user
+    client = invoice.client
 
     subject = f"Invoice paid: {invoice.invoice_number}"
     message = (

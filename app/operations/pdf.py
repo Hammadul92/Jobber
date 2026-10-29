@@ -155,7 +155,7 @@ def build_signed_quote_pdf(quote):
     service = quote.service
     quoted_currency = getattr(quote, "currency", None) or service.currency
     business = service.business
-    client = service.client.user
+    client = service.client
     # SimpleDocTemplate's content frame has 6pt inner padding on each side.
     content_left = document.leftMargin + 6
     content_right = LETTER[0] - document.rightMargin - 6
@@ -216,7 +216,7 @@ def build_signed_quote_pdf(quote):
         _paragraph("PREPARED FOR", styles["label"]),
         _paragraph(client.name, styles["name"]),
         *([_paragraph(service.client.company_name, styles["body"])] if service.client.company_name else []),
-        _paragraph(client.email, styles["body"]),
+        _paragraph(client.user.email, styles["body"]),
         _paragraph(client.phone, styles["body"]),
         _paragraph(f"Billing address: {_text(_billing_address(service.client))}", styles["body"]),
     ]

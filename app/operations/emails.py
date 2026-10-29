@@ -20,7 +20,7 @@ def send_quote_email(quote):
         if quote.payment_terms else ""
     )
     message = (
-        f"Hello {quote.service.client.user.name},\n\n"
+        f"Hello {quote.service.client.name},\n\n"
         f"You have received a new quote from "
         f"{quote.service.business.name}.\n\n"
         f"Quote Number: {quote.quote_number}\n"
@@ -42,7 +42,7 @@ def send_quote_email(quote):
         eyebrow="Quote ready",
         heading="Your quote is ready to review.",
         paragraphs=[
-            f"Hello {quote.service.client.user.name},",
+            f"Hello {quote.service.client.name},",
             f"{quote.service.business.name} sent you a new quote for review and signature.",
         ],
         details=[
@@ -74,7 +74,7 @@ def send_service_questionnaire_email(service, questionnaire, magic_token=None):
     )
 
     message = (
-        f"Hi {service.client.user.name},\n\n"
+        f"Hi {service.client.name},\n\n"
         f"Thank you for choosing our services! "
         f"Please fill out your service questionnaire by clicking "
         f"the link below:\n\n"
@@ -91,7 +91,7 @@ def send_service_questionnaire_email(service, questionnaire, magic_token=None):
         eyebrow="Action required",
         heading="Tell us about your service needs.",
         paragraphs=[
-            f"Hello {service.client.user.name},",
+            f"Hello {service.client.name},",
             f"{service.business.name} needs a few details before moving your service forward.",
         ],
         details=[
@@ -111,7 +111,7 @@ def send_service_questionnaire_email(service, questionnaire, magic_token=None):
 def send_questionnaire_submitted_email(service):
     """Notify the business owner that a client submitted a questionnaire."""
     service_link = f"{settings.FRONTEND_URL}/user/business/service/{service.id}"
-    client = service.client.user
+    client = service.client
     business = service.business
 
     subject = f"Questionnaire submitted - {client.name}"
@@ -164,7 +164,7 @@ def send_job_created_email(job):
         f"{opening}\n\n"
         f"Job: {job.title}\n"
         f"Service: {job.service.service_name}\n"
-        f"Client: {job.service.client.user.name}\n"
+        f"Client: {job.service.client.name}\n"
         f"Scheduled for: {job.scheduled_date}\n\n"
         f"View the job here:\n{job_link}\n\n"
         "Best regards,\n"
@@ -181,7 +181,7 @@ def send_job_created_email(job):
         details=[
             {"label": "Job", "value": job.title},
             {"label": "Service", "value": job.service.service_name},
-            {"label": "Client", "value": job.service.client.user.name},
+            {"label": "Client", "value": job.service.client.name},
             {"label": "Scheduled", "value": job.scheduled_date},
         ],
         action_label="View Job",
@@ -204,7 +204,7 @@ def send_job_completed_email(job):
         f"Hello {business.owner.name},\n\n"
         f"{completed_by} completed the job {job.title}.\n\n"
         f"Service: {job.service.service_name}\n"
-        f"Client: {job.service.client.user.name}\n"
+        f"Client: {job.service.client.name}\n"
         f"Completed at: {job.completed_at}\n\n"
         f"Review the completed job here:\n{job_link}\n\n"
         "Best regards,\n"
@@ -224,7 +224,7 @@ def send_job_completed_email(job):
         details=[
             {"label": "Job", "value": job.title},
             {"label": "Service", "value": job.service.service_name},
-            {"label": "Client", "value": job.service.client.user.name},
+            {"label": "Client", "value": job.service.client.name},
             {"label": "Completed", "value": job.completed_at},
         ],
         action_label="Review Completed Job",
@@ -238,7 +238,7 @@ def send_job_completed_email(job):
 def send_quote_signed_email(quote):
     """Notify the business owner when a client signs a quote."""
     business = quote.service.business
-    client = quote.service.client.user
+    client = quote.service.client
     quote_link = f"{settings.FRONTEND_URL}/user/business/quote/{quote.id}"
 
     subject = f"Quote signed: {quote.quote_number}"
@@ -277,7 +277,7 @@ def send_quote_signed_email(quote):
 def send_signed_quote_copy_email(quote):
     """Send the signing client a PDF copy of their finalized quote."""
     business = quote.service.business
-    client = quote.service.client.user
+    client = quote.service.client
     quote_link = f"{settings.FRONTEND_URL}/user/business/quote/{quote.id}"
     subject = f"Your signed quote: {quote.quote_number}"
     message = (
@@ -293,7 +293,7 @@ def send_signed_quote_copy_email(quote):
         send_branded_email(
             subject=subject,
             text_body=message,
-            recipient_list=[client.email],
+            recipient_list=[client.user.email],
             eyebrow="Signed quote",
             heading="Your signed quote, for your records.",
             paragraphs=[

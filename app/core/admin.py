@@ -119,7 +119,7 @@ class BusinessAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
 class ClientAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     list_display = ["user", "business", "is_active", "created_at"]
     list_filter = ["is_active", "business"]
-    search_fields = ["user__name", "user__email", "user__phone"]
+    search_fields = ["name", "phone", "user__name", "user__email"]
     readonly_fields = ["created_at", "updated_at"]
 
 
@@ -148,7 +148,7 @@ class ServiceAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
         "currency",
     ]
     list_filter = ["service_type", "status", "currency"]
-    search_fields = ["service_name", "client__user__name", "business__name"]
+    search_fields = ["service_name", "client__name", "business__name"]
     readonly_fields = ["created_at", "updated_at"]
 
 
@@ -169,7 +169,7 @@ class JobAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
         "title",
         "description",
         "service__service_name",
-        "service__client__user__name",
+        "service__client__name",
         "assigned_to__employee__name",
     ]
     readonly_fields = ["created_at", "updated_at"]
@@ -181,10 +181,10 @@ class JobAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     get_business.admin_order_field = "service__business__name"
 
     def get_client(self, obj):
-        return obj.service.client.user.name
+        return obj.service.client.name
 
     get_client.short_description = "Client"
-    get_client.admin_order_field = "service__client__user__name"
+    get_client.admin_order_field = "service__client__name"
 
     def get_assigned_employee(self, obj):
         if obj.assigned_to:
@@ -281,7 +281,7 @@ class InvoiceAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     search_fields = [
         "invoice_number",
         "business__name",
-        "client__user__name",
+        "client__name",
         "service__service_name",
     ]
     readonly_fields = ["invoice_number", "created_at", "updated_at"]

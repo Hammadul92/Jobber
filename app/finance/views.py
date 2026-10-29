@@ -124,7 +124,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        owner_name = business.name if business else client.user.name
+        owner_name = business.name if business else client.name
         owner_email = business.email if business else client.user.email
 
         banking_info, _ = BankingInformation.objects.get_or_create(

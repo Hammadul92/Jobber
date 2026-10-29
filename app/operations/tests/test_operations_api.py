@@ -651,6 +651,23 @@ class QuoteInvoiceAutomationTests(TestCase):
         self.assertNotEqual(account.name, "Renamed")
         self.assertEqual(len(mail.outbox), 0)
 
+        # Each business keeps its own name and phone for the shared account.
+        mine = Client.objects.get(pk=res.data["id"])
+        theirs = Client.objects.exclude(pk=mine.pk).get(user=account)
+        self.assertEqual((mine.name, mine.phone), ("Renamed", "999"))
+        self.assertEqual(res.data["client_name"], "Renamed")
+        self.assertEqual(theirs.name, account.name)
+
+        renamed = self.client.patch(
+            reverse("operations:client-detail", args=[mine.pk]),
+            {"client_name": "Alan D.", "client_phone": "111"}, format="json",
+        )
+        self.assertEqual(renamed.status_code, status.HTTP_200_OK, renamed.data)
+        theirs.refresh_from_db()
+        account.refresh_from_db()
+        self.assertNotEqual(theirs.name, "Alan D.")
+        self.assertNotEqual(account.name, "Alan D.")
+
     def test_only_business_owner_can_add_clients(self):
         outsider = get_user_model().objects.create_user("outsider@example.com", "test123")
         self.client.force_authenticate(outsider)
