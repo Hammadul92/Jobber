@@ -56,7 +56,9 @@ export default function Job({ token, role }) {
   const [photoPreview, setPhotoPreview] = useState("");
   const [photoInputKey, setPhotoInputKey] = useState(0);
   const canEditJobDetails = role === "MANAGER";
-  const uploadedPhotoTypes = new Set((jobPhotos || []).map((photo) => photo.photo_type));
+  const uploadedPhotoTypes = new Set(
+    (jobPhotos || []).map((photo) => photo.photo_type),
+  );
   const availablePhotoTypeOptions = [
     { value: "BEFORE", label: "Before" },
     { value: "AFTER", label: "After" },
@@ -175,7 +177,9 @@ export default function Job({ token, role }) {
       setPhotoPreview("");
       if (role !== "MANAGER") {
         if (notifiesOwner) {
-          setCompletionMessage("Job complete. The business owner has been notified by email.");
+          setCompletionMessage(
+            "Job complete. The business owner has been notified by email.",
+          );
         } else {
           navigate("/user/business/jobs");
         }
@@ -229,7 +233,7 @@ export default function Job({ token, role }) {
 
       <div className="grid gap-5 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-4">
-            <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <span
               className={`absolute right-4 top-4 inline-flex rounded-md px-3 py-1 text-xs font-semibold ${
                 status === "COMPLETED"
@@ -246,17 +250,19 @@ export default function Job({ token, role }) {
               {status.replace("_", " ")}
             </span>
 
-            <h5 className="mb-4 text-2xl font-medium text-gray-900">
-              {title}
-            </h5>
+            <h5 className="mb-4 text-2xl font-medium text-gray-900">{title}</h5>
             {serviceData ? (
               <div className="space-y-2 text-base text-gray-800">
                 <p>
-                  <span className="font-medium block text-sm text-gray-600">Service:</span>{" "}
+                  <span className="font-medium block text-sm text-gray-600">
+                    Service:
+                  </span>{" "}
                   {serviceData.service_name}
                 </p>
                 <p>
-                  <span className="font-medium block text-sm text-gray-600">Client:</span>{" "}
+                  <span className="font-medium block text-sm text-gray-600">
+                    Client:
+                  </span>{" "}
                   {serviceData.client_name || "—"}
                 </p>
                 <p>
@@ -273,64 +279,67 @@ export default function Job({ token, role }) {
             )}
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <form onSubmit={handlePhotoUpload} className="space-y-4">
-              <Select
-                id="photoType"
-                label={"Photo Type"}
-                value={photoType}
-                onChange={setPhotoType}
-                isRequired={true}
-                isDisabled={isPhotoTypeFullyUsed}
-                options={availablePhotoTypeOptions}
-              />
+          {role !== "CLIENT" && (
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <form onSubmit={handlePhotoUpload} className="space-y-4">
+                <Select
+                  id="photoType"
+                  label={"Photo Type"}
+                  value={photoType}
+                  onChange={setPhotoType}
+                  isRequired={true}
+                  isDisabled={isPhotoTypeFullyUsed}
+                  options={availablePhotoTypeOptions}
+                />
 
-              <Input
-                key={photoInputKey}
-                type="file"
-                fieldClass="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                onChange={handlePhotoChange}
-                label="Choose Photo"
-                id="job-photo-upload"
-                isRequired={true}
-                isDisabled={isPhotoTypeFullyUsed}
-              />
+                <Input
+                  key={photoInputKey}
+                  type="file"
+                  fieldClass="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  onChange={handlePhotoChange}
+                  label="Choose Photo"
+                  id="job-photo-upload"
+                  isRequired={true}
+                  isDisabled={isPhotoTypeFullyUsed}
+                />
 
-              {isPhotoTypeFullyUsed && (
-                <p className="-mt-2 text-sm text-slate-500">
-                  Before and after images have already been uploaded for this job.
-                </p>
-              )}
+                {isPhotoTypeFullyUsed && (
+                  <p className="-mt-2 text-sm text-slate-500">
+                    Before and after images have already been uploaded for this
+                    job.
+                  </p>
+                )}
 
-              {photoPreview && (
-                <div className="relative overflow-hidden rounded-lg shadow-sm">
+                {photoPreview && (
+                  <div className="relative overflow-hidden rounded-lg shadow-sm">
+                    <button
+                      type="button"
+                      onClick={handleRemovePhotoPreview}
+                      className="absolute right-1 top-1 z-10 inline-flex h-6 w-6 items-center justify-center rounded-full bg-red-500/70 text-white transition hover:bg-red"
+                      aria-label="Remove selected photo"
+                    >
+                      ×
+                    </button>
+                    <img
+                      src={photoPreview}
+                      alt="Preview"
+                      className="mx-auto h-48 w-full max-w-xs object-cover"
+                    />
+                  </div>
+                )}
+
+                <div>
                   <button
-                    type="button"
-                    onClick={handleRemovePhotoPreview}
-                    className="absolute right-1 top-1 z-10 inline-flex h-6 w-6 items-center justify-center rounded-full bg-red-500/70 text-white transition hover:bg-red"
-                    aria-label="Remove selected photo"
+                    type="submit"
+                    className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={uploading || isPhotoTypeFullyUsed}
                   >
-                    ×
+                    <LuUpload className="h-4 w-4" /> Upload
                   </button>
-                  <img
-                    src={photoPreview}
-                    alt="Preview"
-                    className="mx-auto h-48 w-full max-w-xs object-cover"
-                  />
                 </div>
-              )}
-
-              <div>
-                <button
-                  type="submit"
-                  className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
-                  disabled={uploading || isPhotoTypeFullyUsed}
-                >
-                  <LuUpload className="h-4 w-4" /> Upload
-                </button>
-              </div>
-            </form>
-          </div>
+              </form>
+            </div>
+          )}
         </div>
 
         <div className="space-y-5 lg:col-span-8">
@@ -450,7 +459,9 @@ export default function Job({ token, role }) {
                 ))
               ) : (
                 <div className="flex h-40 items-center justify-center">
-                  <p className="text-sm text-gray-500">No photos uploaded yet.</p>
+                  <p className="text-sm text-gray-500">
+                    No photos uploaded yet.
+                  </p>
                 </div>
               )}
             </div>

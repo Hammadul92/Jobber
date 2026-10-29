@@ -1230,9 +1230,34 @@ class WorkflowRegressionTests(TestCase):
         res = self.client.patch(
             service_detail_url(service.id), {"bypass_questionnaire": True}, format="json",
         )
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
         service.refresh_from_db()
         self.assertFalse(service.bypass_questionnaire)
+
+    def test_client_can_only_answer_questionnaire_sign_and_read(self):
+        self.create_questionnaire_and_terms()
+        service = self.create_service()
+        self.client.force_authenticate(self.client_user)
+
+        answered = self.client.patch(
+            service_detail_url(service.id), {"filled_questionnaire": {"Room size": "Large"}}, format="json",
+        )
+        self.assertEqual(answered.status_code, status.HTTP_200_OK, answered.data)
+
+        for res in (
+            self.client.patch(service_detail_url(service.id), {"status": "ACTIVE"}, format="json"),
+            self.client.delete(service_detail_url(service.id)),
+            self.client.post(SERVICES_URL, self.service_payload(), format="json"),
+        ):
+            self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.get(service_detail_url(service.id)).status_code, status.HTTP_200_OK)
+
+        quote = service.service_quotes.first() or Quote.objects.create(
+            service=service, payment_terms="NET_15", valid_until=date.today() + timedelta(days=2),
+        )
+        edited = self.client.patch(quote_detail_url(quote.id), {"payment_terms": "NET_30"}, format="json")
+        self.assertEqual(edited.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.delete(quote_detail_url(quote.id)).status_code, status.HTTP_403_FORBIDDEN)
 
     def test_cannot_remove_bypass_without_questionnaire_or_change_after_activation(self):
         service = self.create_service(bypass_questionnaire=True, auto_generate_quote=False)
@@ -1716,8 +1741,7 @@ class WorkflowRegressionTests(TestCase):
             "business": self.business.id, "employee": new_employee.id,
             "role": "MANAGER",
         }, format="json")
-        self.assertEqual(forbidden.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("business", forbidden.data)
+        self.assertEqual(forbidden.status_code, status.HTTP_403_FORBIDDEN)
         self.assertFalse(TeamMember.objects.filter(employee=new_employee).exists())
 
         self.client.force_authenticate(self.manager)

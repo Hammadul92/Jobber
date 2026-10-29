@@ -15,6 +15,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.response import Response
 
+from core.permissions import ClientLimitedWrite
+
 from core.models import BankingInformation, Business, Client, Invoice, Payout
 from core.payment_terms import business_local_date, prepare_first_send
 from finance import serializers, paginations, emails
@@ -359,7 +361,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.InvoiceSerializer
     queryset = Invoice.objects.all()
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ClientLimitedWrite]
+    client_actions = ("make_payment",)
     pagination_class = paginations.InvoicePagination
 
     def get_queryset(self):
@@ -600,7 +603,7 @@ class PayoutViewSet(
     serializer_class = serializers.PayoutSerializer
     queryset = Payout.objects.all()
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ClientLimitedWrite]
     pagination_class = paginations.PayoutPagination
 
     def get_queryset(self):

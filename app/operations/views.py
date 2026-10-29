@@ -14,6 +14,8 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+
+from core.permissions import ClientLimitedWrite
 from taggit.models import Tag
 
 from core.models import (
@@ -164,7 +166,7 @@ class ClientViewSet(viewsets.ModelViewSet):
     """View for manage clients APIs."""
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ClientLimitedWrite]
     serializer_class = serializers.ClientSerializer
     queryset = Client.objects.filter(is_active=True).prefetch_related(
         "client_services"
@@ -198,7 +200,7 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
     """View for manage team member APIs."""
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ClientLimitedWrite]
     queryset = (
         TeamMember.objects.filter(is_active=True)
         .select_related("business", "employee")
@@ -229,7 +231,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
     """View for manage services APIs."""
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ClientLimitedWrite]
+    client_actions = ("partial_update",)
+    client_fields = ("filled_questionnaire",)
     serializer_class = serializers.ServiceSerializer
 
     queryset = (
@@ -348,7 +352,8 @@ class QuoteViewSet(viewsets.ModelViewSet):
     """View for manage quote APIs."""
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ClientLimitedWrite]
+    client_actions = ("sign_quote",)
     serializer_class = serializers.QuoteSerializer
     queryset = Quote.objects.filter(is_active=True).select_related("service")
 
@@ -529,7 +534,7 @@ class ServiceQuestionnaireViewSet(viewsets.ModelViewSet):
     """View for manage service questionnaires APIs."""
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ClientLimitedWrite]
     queryset = ServiceQuestionnaire.objects.all().select_related("business")
     serializer_class = serializers.ServiceQuestionnaireSerializer
 
@@ -552,7 +557,7 @@ class ServiceTermsTemplateViewSet(viewsets.ModelViewSet):
     """View for managing service terms template APIs."""
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ClientLimitedWrite]
     queryset = ServiceTermsTemplate.objects.all().select_related("business")
     serializer_class = serializers.ServiceTermsTemplateSerializer
 
@@ -584,7 +589,7 @@ class JobViewSet(viewsets.ModelViewSet):
     """ViewSet for managing jobs related to services."""
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ClientLimitedWrite]
     serializer_class = serializers.JobSerializer
     queryset = Job.objects.select_related(
         "service",
@@ -635,7 +640,7 @@ class JobPhotoViewSet(viewsets.ModelViewSet):
     """ViewSet for managing before/after photos attached to jobs."""
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ClientLimitedWrite]
     serializer_class = serializers.JobPhotoSerializer
     parser_classes = [MultiPartParser, FormParser]
     queryset = JobPhoto.objects.select_related(
