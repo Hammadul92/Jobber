@@ -2,8 +2,10 @@
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.core import mail
+from django.core import mail, signing
 from django.test import TestCase, override_settings
+from django.urls import reverse
+from rest_framework.test import APIClient
 
 from core.emails import send_branded_email
 from user.utils import (
@@ -79,3 +81,46 @@ class EmailTokenExpiryTests(TestCase):
                 with patch("django.core.signing.time.time", return_value=100000 + EMAIL_TOKEN_MAX_AGE + 1):
                     self.assertIsNone(verify(token))
                 self.assertIsNone(verify(token + "tampered"))
+
+
+class SingleUseLinkTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user("client@example.com", "password", role="CLIENT")
+        self.api = APIClient()
+
+    def test_login_link_works_once(self):
+        token = generate_magic_login_token(self.user)
+        url = reverse("user:magic-login")
+
+        first = self.api.post(url, {"token": token})
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(self.api.post(url, {"token": token}).status_code, 400)
+
+        other_link = generate_magic_login_token(self.user)
+        self.assertEqual(self.api.post(url, {"token": other_link}).status_code, 200)
+
+    def test_inactive_user_does_not_use_up_link(self):
+        token = generate_magic_login_token(self.user)
+        self.user.is_active = False
+        self.user.save(update_fields=["is_active"])
+        self.assertEqual(self.api.post(reverse("user:magic-login"), {"token": token}).status_code, 400)
+        self.assertEqual(verify_magic_login_token(token), self.user)
+
+    def test_password_reset_link_stops_working_after_reset(self):
+        token = generate_password_reset_token(self.user)
+        url = reverse("user:password-reset")
+
+        first = self.api.post(url, {"token": token, "password": "newpassword123"})
+        self.assertEqual(first.status_code, 200, first.data)
+        second = self.api.post(url, {"token": token, "password": "otherpassword123"})
+        self.assertEqual(second.status_code, 400)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("newpassword123"))
+
+    def test_links_sent_before_upgrade_keep_their_one_day_limit(self):
+        with patch("django.core.signing.time.time", return_value=100000):
+            legacy = signing.dumps({"user_id": self.user.id}, salt="magic-login")
+        with patch("django.core.signing.time.time", return_value=100000 + 3600):
+            self.assertEqual(verify_magic_login_token(legacy), self.user)
+        with patch("django.core.signing.time.time", return_value=100000 + 86401):
+            self.assertIsNone(verify_magic_login_token(legacy))

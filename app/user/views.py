@@ -195,6 +195,8 @@ class MagicLoginView(APIView):
             )
 
         user = verify_magic_login_token(token)
+        if user and user.is_active:
+            user = verify_magic_login_token(token, consume=True)
         if not user or not user.is_active:
             return Response(
                 {"detail": "Invalid or expired magic link."},

@@ -10,7 +10,7 @@ import { useMagicLoginMutation } from "../store";
  *
  * Flow:
  *   1. Extract token from search params.
- *   2. POST to /api/user/magic-login/ with the token.
+ *   2. POST to /api/user/magic-login/ with the token (each link works once).
  *   3. On success the mutation stores the auth token in localStorage.
  *   4. Redirect the user to the protected questionnaire form.
  */
@@ -50,8 +50,13 @@ export default function MagicLogin({ destination: destinationOverride }) {
         // cache or React state from the previous user flashing on screen.
         window.location.replace(destination);
       } catch {
+        // Links work once; reopening one on a signed-in device keeps the session.
+        if (localStorage.getItem("token")) {
+          window.location.replace(destination);
+          return;
+        }
         setError(
-          "This link has expired or is invalid. Please contact your service provider for a new link.",
+          "This link has already been used or has expired. Sign in to continue, or use Forgot password to set a password for your account.",
         );
       }
     };
@@ -72,7 +77,7 @@ export default function MagicLogin({ destination: destinationOverride }) {
       <div className="flex min-h-screen items-center justify-center px-4">
         <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center shadow-sm">
           <h2 className="mb-2 text-xl font-semibold text-red-700">
-            Link Expired
+            Link No Longer Valid
           </h2>
           <p className="text-sm text-red-600">{error}</p>
           <Link
