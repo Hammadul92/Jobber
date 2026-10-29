@@ -39,14 +39,6 @@ const businessApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Business"],
   endpoints: (builder) => ({
-    fetchEmailHistory: builder.query({
-      query: ({ business, page = 1 }) => ({ url: "/email-history/", params: { business, page } }),
-      keepUnusedDataFor: 0,
-    }),
-    fetchEmailHistoryDetail: builder.query({
-      query: (id) => `/email-history/${id}/`,
-      keepUnusedDataFor: 0,
-    }),
     fetchBusinesses: builder.query({
       query: () => "/business/",
       providesTags: ["Business"],

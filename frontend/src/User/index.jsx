@@ -24,7 +24,6 @@ import ServiceQuestionnaireForm from "./(business)/ServiceQuestionnaires/Service
 import TermsAndConditions from "./(business)/TermsAndConditions";
 import TeamMembers from "./(business)/TeamMembers";
 import TeamMember from "./(business)/TeamMembers/TeamMember";
-import EmailHistory from "./(business)/EmailHistory";
 import Quotes from "./(business)/Quotes";
 import Quote from "./(business)/Quotes/Quote";
 import SignQuote from "./(business)/Quotes/signQuote";
@@ -70,7 +69,6 @@ export default function UserDashboard({ page, token, user }) {
         "terms-and-conditions",
         "team-members",
         "team-member",
-        "email-history",
         "quotes",
         "quote",
         "quote-preview",
@@ -100,7 +98,6 @@ export default function UserDashboard({ page, token, user }) {
       { page: "service-questionnaires", roles: ["MANAGER"] },
       { page: "service-questionnaire-form", roles: ["MANAGER", "CLIENT"] },
       { page: "terms-and-conditions", roles: ["MANAGER"] },
-      { page: "email-history", roles: ["MANAGER"] },
       { page: "quotes", roles: ["CLIENT", "MANAGER"] },
       { page: "quote", roles: ["CLIENT", "MANAGER"] },
       { page: "quote-preview", roles: ["CLIENT", "MANAGER"] },
@@ -232,8 +229,6 @@ export default function UserDashboard({ page, token, user }) {
         return (
           <TeamMember token={token} business={business} role={user?.role} />
         );
-      case "email-history":
-        return user?.role === "MANAGER" ? <EmailHistory business={business} /> : null;
       case "quotes":
         // Quotes tab
         return <Quotes token={token} role={user?.role} business={business} />;

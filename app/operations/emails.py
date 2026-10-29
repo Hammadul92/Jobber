@@ -58,7 +58,6 @@ def send_quote_email(quote):
         signoff=f"The {quote.service.business.name} Team",
         reply_to=[quote.service.business.email],
         brand_name=quote.service.business.name,
-        business=quote.service.business,
         brand_logo=quote.service.business.logo,
     )
 
@@ -105,7 +104,6 @@ def send_service_questionnaire_email(service, questionnaire, magic_token=None):
         signoff=f"The {service.business.name} Team",
         reply_to=[service.business.email],
         brand_name=service.business.name,
-        business=service.business,
         brand_logo=service.business.logo,
     )
 
@@ -144,7 +142,6 @@ def send_questionnaire_submitted_email(service):
         action_url=service_link,
         reply_to=[business.email],
         brand_name=business.name,
-        business=business,
         brand_logo=business.logo,
     )
 
@@ -191,7 +188,6 @@ def send_job_created_email(job):
         action_url=job_link,
         reply_to=[business.email],
         brand_name=business.name,
-        business=business,
         brand_logo=business.logo,
     )
 
@@ -235,7 +231,6 @@ def send_job_completed_email(job):
         action_url=job_link,
         reply_to=[business.email],
         brand_name=business.name,
-        business=business,
         brand_logo=business.logo,
     )
 
@@ -275,7 +270,6 @@ def send_quote_signed_email(quote):
         action_url=quote_link,
         reply_to=[business.email],
         brand_name=business.name,
-        business=business,
         brand_logo=business.logo,
     )
 
@@ -317,7 +311,6 @@ def send_signed_quote_copy_email(quote):
             signoff=f"The {business.name} Team",
             reply_to=[business.email],
             brand_name=business.name,
-            business=business,
             brand_logo=business.logo,
             attachments=[
                 (f"{quote.quote_number}-signed.pdf", pdf.read(), "application/pdf"),

@@ -11,7 +11,6 @@ from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -19,7 +18,6 @@ from taggit.models import Tag
 
 from core.models import (
     Business,
-    BusinessEmail,
     Client,
     Invoice,
     Job,
@@ -690,35 +688,3 @@ class JobPhotoViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
-
-
-class BusinessEmailViewSet(viewsets.ReadOnlyModelViewSet):
-    """Only business owners may read archived emails, including login links."""
-
-    queryset = BusinessEmail.objects.all()
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    class HistoryPagination(PageNumberPagination):
-        page_size = 25
-
-    pagination_class = HistoryPagination
-
-    def get_serializer_class(self):
-        if self.action == "retrieve":
-            return serializers.BusinessEmailDetailSerializer
-        return serializers.BusinessEmailSerializer
-
-    def get_queryset(self):
-        queryset = self.queryset.filter(business__owner=self.request.user, business__is_deleted=False)
-        business_id = self.request.query_params.get("business")
-        if business_id:
-            if not business_id.isdigit():
-                raise ValidationError({"business": "A numeric business ID is required."})
-            queryset = queryset.filter(business_id=business_id)
-        return queryset
-
-    def finalize_response(self, request, response, *args, **kwargs):
-        response = super().finalize_response(request, response, *args, **kwargs)
-        response["Cache-Control"] = "no-store"
-        return response

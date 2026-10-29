@@ -66,7 +66,6 @@ def send_invoice_email(invoice):
         signoff=invoice.business.name,
         reply_to=[invoice.business.email],
         brand_name=invoice.business.name,
-        business=invoice.business,
         brand_logo=invoice.business.logo,
     )
 
@@ -111,6 +110,5 @@ def send_invoice_paid_email(invoice):
         action_url=invoice_link,
         reply_to=[business.email],
         brand_name=business.name,
-        business=business,
         brand_logo=business.logo,
     )

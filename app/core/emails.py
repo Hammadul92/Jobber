@@ -1,5 +1,7 @@
 """Shared branded email delivery helpers."""
 
+import copy
+import logging
 from email.mime.image import MIMEImage
 from email.utils import formataddr
 from io import BytesIO
@@ -10,6 +12,8 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from PIL import Image
 
+
+logger = logging.getLogger(__name__)
 
 LOGO_STATIC_PATH = "public_site/images/favicon.png"
 PLATFORM_LOGO_CONTENT_ID = "contractorz-mark"
@@ -87,7 +91,6 @@ def send_branded_email(
     brand_name=None,
     brand_logo=None,
     attachments=None,
-    business=None,
 ):
     """Send branded HTML and plain text with optional file attachments."""
     platform_logo = _read_platform_logo()
@@ -149,29 +152,36 @@ def send_branded_email(
     if (platform_logo or business_logo) and not attachments:
         email.mixed_subtype = "related"
 
-    history = None
-    if business is not None:
-        from core.models import BusinessEmail
-
-        history = BusinessEmail.objects.create(
-            business=business, subject=subject, from_email=sender,
-            recipients=list(email.to), reply_to=list(email.reply_to or []),
-            text_body=text_body, html_body=html_body, action_url=action_url or "",
-            attachment_names=[item[0] for item in (attachments or [])],
-        )
-    try:
-        sent = email.send(fail_silently=False)
-        if not sent:
-            raise RuntimeError("Email backend did not accept the message.")
-    except Exception:
-        if history:
-            history.status = "FAILED"
-            history.save(update_fields=["status"])
-        raise
-    if history:
-        from django.utils import timezone
-
-        history.status = "SENT"
-        history.sent_at = timezone.now()
-        history.save(update_fields=["status", "sent_at"])
+    sent = email.send(fail_silently=False)
+    if not sent:
+        raise RuntimeError("Email backend did not accept the message.")
+    _send_admin_copy(email, context, text_body, subject)
     return sent
+
+
+def _send_admin_copy(email, context, text_body, subject):
+    """Send a reference copy of a delivered email to the platform admin."""
+    copy_recipient = settings.EMAIL_COPY_RECIPIENT
+    if not copy_recipient or copy_recipient.lower() in (
+        address.lower() for address in email.to
+    ):
+        return
+
+    original_recipients = ", ".join(email.to)
+    admin_copy = copy.copy(email)
+    admin_copy.to = [copy_recipient]
+    admin_copy.cc = []
+    admin_copy.bcc = []
+    admin_copy.subject = f"{subject} (copy)"
+    admin_copy.body = f"Copy of an email sent to: {original_recipients}\n\n{text_body}"
+    admin_copy.alternatives = [(
+        render_to_string(
+            "emails/transactional.html",
+            {**context, "copy_recipients": original_recipients},
+        ),
+        "text/html",
+    )]
+    try:
+        admin_copy.send(fail_silently=False)
+    except Exception:
+        logger.exception("Admin copy of email %r could not be sent", subject)

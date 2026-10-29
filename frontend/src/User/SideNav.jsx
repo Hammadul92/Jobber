@@ -2,7 +2,6 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
   LuLogOut,
-  LuMails,
   LuUser,
   LuReceipt,
   LuBriefcase,
@@ -121,7 +120,6 @@ export default function SideNav({ user, businessRegistered }) {
       },
       { name: "Jobs", path: "/user/business/jobs", icon: LuBriefcase },
       { name: "Payouts", path: "/user/business/payouts", icon: LuArrowUpRight },
-      { name: "Email History", path: "/user/business/email-history", icon: LuMails },
     ],
     CLIENT: [
       { name: "Services", path: "/user/business/services", icon: LuFileText },
