@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
+from core.ownership import OwnedRelationsMixin
 from core.utils import BusinessTimezoneMixin
 from core.models import BankingInformation, Invoice, Payout
 from core.pricing import invoice_line_items, line_items_total, quote_line_items, service_line_items, tax_amount_for
@@ -51,7 +52,8 @@ class BankingInformationSerializer(serializers.ModelSerializer):
         ]
 
 
-class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
+class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.ModelSerializer):
+    owned_relations = ("business", "client", "service")
     line_items = serializers.SerializerMethodField()
     line_items_locked = serializers.SerializerMethodField()
     business_name = serializers.CharField(
@@ -137,6 +139,11 @@ class InvoiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         """Keep invoice amounts aligned with the saved item breakdown."""
         service = attrs.get("service") or getattr(self.instance, "service", None)
         business = attrs.get("business") or getattr(self.instance, "business", None)
+        client = attrs.get("client") or getattr(self.instance, "client", None)
+        if business and client and client.business_id != business.pk:
+            raise serializers.ValidationError({"client": "This client does not belong to the invoice's business."})
+        if business and service and service.business_id != business.pk:
+            raise serializers.ValidationError({"service": "This service does not belong to the invoice's business."})
         if self.instance is None:
             if attrs.get("status", "DRAFT") != "DRAFT":
                 raise serializers.ValidationError({"status": "Create a draft before sending an invoice."})

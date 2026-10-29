@@ -538,6 +538,77 @@ class QuoteInvoiceAutomationTests(TestCase):
         second = Invoice.objects.create(**fields)
         self.assertEqual(second.invoice_number, f"{prefix}1001")
 
+    def _other_business_records(self):
+        other_owner = get_user_model().objects.create_user(
+            "other-owner@example.com", "test123", role="MANAGER",
+        )
+        other_business = create_business(owner=other_owner, slug="other-business")
+        other_client = Client.objects.create(
+            business=other_business,
+            user=get_user_model().objects.create_user("other-client@example.com", "test123", role="CLIENT"),
+        )
+        other_service = Service.objects.create(
+            client=other_client, business=other_business, service_name="Flooring",
+            description="Other", start_date=date.today(), service_type="ONE_TIME",
+            price=Decimal("100.00"), currency="CAD", status="PENDING",
+            street_address="9 Other Street", city="Calgary", country="CA",
+            province_state="AB", postal_code="T2T2T2",
+        )
+        return other_business, other_client, other_service
+
+    def test_owner_cannot_link_another_business_records(self):
+        other_business, other_client, other_service = self._other_business_records()
+        self.client.force_authenticate(self.owner)
+
+        job = self.client.post(JOBS_URL, {
+            "service": other_service.id, "title": "Job", "scheduled_date": timezone.now().isoformat(),
+        }, format="json")
+        self.assertEqual(job.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("service", job.data)
+
+        quote = self.client.post(QUOTES_URL, {
+            "service": other_service.id, "payment_terms": "NET_15",
+            "valid_until": (date.today() + timedelta(days=5)).isoformat(),
+        }, format="json")
+        self.assertEqual(quote.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("service", quote.data)
+
+        questionnaire = self.client.post(SERVICE_QUESTIONNAIRES_URL, {
+            "business": other_business.id, "service_name": "Flooring", "questions": [],
+        }, format="json")
+        self.assertEqual(questionnaire.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("business", questionnaire.data)
+
+        moved = self.client.patch(
+            service_detail_url(self.service.id), {"client": other_client.id}, format="json",
+        )
+        self.assertEqual(moved.status_code, status.HTTP_400_BAD_REQUEST)
+        self.service.refresh_from_db()
+        self.assertEqual(self.service.client, self.client_record)
+
+    def test_unchanged_relations_are_accepted_on_update(self):
+        self.business.services_offered.add("Flooring")
+        self.client.force_authenticate(self.owner)
+        res = self.client.patch(service_detail_url(self.service.id), {
+            "business": self.business.id, "client": self.client_record.id,
+            "description": "Updated description",
+        }, format="json")
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+
+    def test_invoice_client_must_belong_to_invoice_business(self):
+        _, other_client, _ = self._other_business_records()
+        invoice = Invoice.objects.create(
+            business=self.business, client=self.client_record, due_date=date.today(),
+            status="DRAFT", subtotal=10, tax_rate=0, tax_amount=0, total_amount=10,
+        )
+        self.client.force_authenticate(self.owner)
+        res = self.client.patch(
+            reverse("finance:invoice-detail", args=[invoice.id]), {"client": other_client.id}, format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.client, self.client_record)
+
 
 class ServiceTermsTemplateApiTests(TestCase):
     """Test service terms template integration with services and quotes."""
@@ -1542,7 +1613,9 @@ class WorkflowRegressionTests(TestCase):
             "business": self.business.id, "employee": new_employee.id,
             "role": "MANAGER",
         }, format="json")
-        self.assertEqual(forbidden.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(forbidden.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("business", forbidden.data)
+        self.assertFalse(TeamMember.objects.filter(employee=new_employee).exists())
 
         self.client.force_authenticate(self.manager)
         created = self.client.post(url, {

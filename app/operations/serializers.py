@@ -4,6 +4,7 @@ Serializers for business APIs
 
 import json
 from decimal import Decimal, InvalidOperation
+from core.ownership import OwnedRelationsMixin
 from core.utils import BusinessTimezoneMixin
 from core.pricing import (
     line_items_total, quote_effective_tax_rate, quote_line_items,
@@ -215,7 +216,8 @@ class ClientSerializer(serializers.ModelSerializer):
         return instance
 
 
-class TeamMemberSerializer(serializers.ModelSerializer):
+class TeamMemberSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
+    owned_relations = ("business",)
     employee = serializers.PrimaryKeyRelatedField(queryset=get_user_model().objects.all())
     employee_name = serializers.CharField(
         source="employee.name",
@@ -255,6 +257,9 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         employee = attrs.get("employee")
         business = attrs.get("business") or getattr(self.instance, "business", None)
         role = self.initial_data.get("role")
+
+        if self.instance and employee and employee.pk != self.instance.employee_id:
+            raise serializers.ValidationError({"employee": "A team member's account cannot be changed."})
 
         # Prevent adding any business owner as a team member
         if employee and hasattr(employee, "owned_businesses"):
@@ -321,8 +326,9 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
+class ServiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.ModelSerializer):
     """Serializer for services with optimized validation."""
+    owned_relations = ("business", "client")
     quotations = serializers.SerializerMethodField()
     service_questionnaires = serializers.SerializerMethodField()
     service_terms_template = serializers.SerializerMethodField()
@@ -632,8 +638,9 @@ class ServiceSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         return data
 
 
-class QuoteSerializer(serializers.ModelSerializer):
+class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
     """ Serializer for quotes."""
+    owned_relations = ("service",)
 
     service_data = ServiceSerializer(source="service", read_only=True)
     client = ClientSerializer(source="service.client", read_only=True)
@@ -760,7 +767,8 @@ class QuoteSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class ServiceTermsTemplateSerializer(serializers.ModelSerializer):
+class ServiceTermsTemplateSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
+    owned_relations = ("business",)
     business_name = serializers.CharField(
         source="business.name",
         read_only=True,
@@ -798,7 +806,8 @@ class ServiceTermsTemplateSerializer(serializers.ModelSerializer):
         return value
 
 
-class ServiceQuestionnaireSerializer(serializers.ModelSerializer):
+class ServiceQuestionnaireSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
+    owned_relations = ("business",)
     business_name = serializers.CharField(
         source='business.name',
         read_only=True
@@ -847,8 +856,9 @@ class ServiceQuestionnaireSerializer(serializers.ModelSerializer):
         return 0
 
 
-class JobSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
+class JobSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.ModelSerializer):
     """Serializer for Job model."""
+    owned_relations = ("service", "assigned_to")
 
     service_name = serializers.CharField(
         source="service.service_name",
@@ -909,7 +919,13 @@ class JobSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         return data
 
 
-class JobPhotoSerializer(serializers.ModelSerializer):
+class JobPhotoSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
+    owned_relations = ("job",)
+
+    def can_link(self, field, target, user):
+        assigned = target.assigned_to
+        return super().can_link(field, target, user) or bool(assigned and assigned.employee_id == user.pk)
+
     def validate(self, attrs):
         job = attrs.get("job") or getattr(self.instance, "job", None)
         photo_type = (
