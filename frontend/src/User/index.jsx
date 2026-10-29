@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useFetchBusinessesQuery } from "../store";
 import MobileTopbar from "./MobileTopbar";
 import DashboardTopbar from "./DashboardTopbar";
 import Topbar from "./Topbar";
 import SideNav from "./SideNav";
 import DashboardTodos from "./DashboardTodos";
+import GoBackLink from "../Components/ui/GoBackLink";
 
 import Profile from "./(user)/Profile";
 import AlertDispatcher from "../Components/ui/AlertDispatcher";
@@ -38,6 +39,23 @@ export default function UserDashboard({ page, token, user }) {
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [dashboardNotifications, setDashboardNotifications] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const backFallback =
+    {
+      client: "/user/business/clients",
+      service: "/user/business/services",
+      quote: "/user/business/quotes",
+      "quote-preview": location.pathname.replace(/\/preview\/?$/, ""),
+      "sign-quote": "/user/business/quotes",
+      invoice: "/user/business/invoices",
+      job: "/user/business/jobs",
+      payout: "/user/business/payouts",
+    }[page] ||
+    (page === "client-services" &&
+    /^\/user\/business\/client\/[^/]+\/services\/?$/.test(location.pathname)
+      ? "/user/business/clients"
+      : null);
 
   const businessTabPages = useMemo(
     () =>
@@ -286,6 +304,7 @@ export default function UserDashboard({ page, token, user }) {
         )}
 
         <div className="px-4 pt-8 pb-4 md:px-12 md:pt-12 lg:pb-12 lg:p-12 lg:pr-14">
+          {backFallback && <GoBackLink fallback={backFallback} />}
           {renderTab()}
         </div>
         <DashboardTodos token={token} user={user} business={business} />

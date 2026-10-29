@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { LuArrowLeft, LuMail, LuPhone, LuUserRound } from "react-icons/lu";
-import {
-  useFetchClientQuery,
-  useUpdateClientMutation,
-} from "../../../store";
+import { useFetchClientQuery, useUpdateClientMutation } from "../../../store";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import Input from "../../../Components/ui/Input";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
@@ -14,10 +10,6 @@ import Dropdown from "../../../Components/ui/Dropdown";
 import { countries, provinces } from "../../../constants/locations";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import { resetTopbar, setTopbar } from "../../../store/topbarSlice";
-
-function formatStatus(isActive) {
-  return isActive === true || isActive === "True" ? "Active" : "Inactive";
-}
 
 export default function Client({ token }) {
   const { id } = useParams();
@@ -117,8 +109,9 @@ export default function Client({ token }) {
         err?.data?.detail ||
         (err?.data && typeof err.data === "object"
           ? Object.entries(err.data)
-              .map(([key, value]) =>
-                `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
+              .map(
+                ([key, value]) =>
+                  `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
               )
               .join(" | ")
           : err?.message) ||
@@ -140,75 +133,21 @@ export default function Client({ token }) {
         />
       )}
 
-      <div className="mb-6 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-5 border-b border-gray-100 px-5 py-5 md:flex-row md:items-center md:justify-between md:px-6">
-          <div className="flex items-center gap-4">
-            <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-purple-500 text-xl font-semibold text-white shadow">
-              {(name || "CL").slice(0, 2).toUpperCase()}
-              <span
-                className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white ${
-                  isActive ? "bg-emerald-500" : "bg-slate-400"
-                }`}
-              />
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-                Client Profile
-              </p>
-              <h3 className="text-2xl font-semibold text-primary">
-                {name || "Client"}
-              </h3>
-              <span
-                className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                  isActive
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-slate-100 text-slate-600"
-                }`}
-              >
-                {formatStatus(isActive)}
-              </span>
-            </div>
-          </div>
-
-          <Link
-            to="/user/business/clients"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-gray-50"
-          >
-            <LuArrowLeft className="h-4 w-4" />
-            Back to Clients
-          </Link>
-        </div>
-
-        <div className="grid gap-3 px-5 py-4 text-sm text-slate-600 md:grid-cols-3 md:px-6">
-          <div className="flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3">
-            <LuUserRound className="h-5 w-5 text-slate-400" />
-            <span className="truncate">{name || "No name"}</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3">
-            <LuMail className="h-5 w-5 text-slate-400" />
-            <span className="truncate">{email || "No email"}</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3">
-            <LuPhone className="h-5 w-5 text-slate-400" />
-            <span className="truncate">{phone || "No phone"}</span>
-          </div>
-        </div>
-      </div>
-
       <form
         onSubmit={handleSubmit}
         className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm md:p-6"
       >
-        <div className="mb-6">
-          <h4 className="text-lg font-semibold text-primary">
-            Client Information
-          </h4>
-          <p className="mt-1 text-sm text-slate-500">
-            Keep the client&apos;s contact information accurate for quotes,
-            invoices, and service updates.
-          </p>
-        </div>
+        <header className="mb-6 flex items-start gap-3 border-b border-gray-100 pb-5">
+          <div className="min-w-0">
+            <h4 className="text-xl font-semibold text-primary md:text-2xl">
+              Client Information
+            </h4>
+            <p className="mt-1 text-base text-slate-500">
+              Keep the client&apos;s contact information accurate for quotes,
+              invoices, and service updates.
+            </p>
+          </div>
+        </header>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <Input
@@ -230,8 +169,14 @@ export default function Client({ token }) {
             fieldClass="h-12"
           />
           <PhoneInputField value={phone} setValue={setPhone} optional={false} />
-          <Input id="edit-client-company" type="text" label="Company Name (optional)"
-            value={companyName} onChange={setCompanyName} fieldClass="h-12" />
+          <Input
+            id="edit-client-company"
+            type="text"
+            label="Company Name (optional)"
+            value={companyName}
+            onChange={setCompanyName}
+            fieldClass="h-12"
+          />
 
           <div className="mb-6">
             <p className="mb-1 block text-sm font-semibold uppercase text-gray-500">
@@ -265,20 +210,69 @@ export default function Client({ token }) {
         </div>
 
         <div className="mt-6 border-t border-gray-100 pt-6">
-          <h4 className="text-lg font-semibold text-primary">Billing Address</h4>
-          <p className="mt-1 text-sm text-slate-500">Shown on quotes and invoices for this client.</p>
+          <h4 className="text-lg font-semibold text-primary">
+            Billing Address
+          </h4>
+          <p className="mt-1 text-sm text-slate-500">
+            Shown on quotes and invoices for this client.
+          </p>
           <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <Input id="edit-client-billing-street" type="text" label="Street Address" value={billingStreet} onChange={setBillingStreet} fieldClass="h-12" />
-            <Input id="edit-client-billing-city" type="text" label="City" value={billingCity} onChange={setBillingCity} fieldClass="h-12" />
+            <Input
+              id="edit-client-billing-street"
+              type="text"
+              label="Street Address"
+              value={billingStreet}
+              onChange={setBillingStreet}
+              fieldClass="h-12"
+            />
+            <Input
+              id="edit-client-billing-city"
+              type="text"
+              label="City"
+              value={billingCity}
+              onChange={setBillingCity}
+              fieldClass="h-12"
+            />
             <div>
-              <label htmlFor="edit-client-billing-country" className="mb-1 block text-sm font-semibold uppercase text-gray-500">Country</label>
-              <Dropdown id="edit-client-billing-country" value={billingCountry} onChange={(value) => { setBillingCountry(value); setBillingProvince(""); }} options={countries} />
+              <label
+                htmlFor="edit-client-billing-country"
+                className="mb-1 block text-sm font-semibold uppercase text-gray-500"
+              >
+                Country
+              </label>
+              <Dropdown
+                id="edit-client-billing-country"
+                value={billingCountry}
+                onChange={(value) => {
+                  setBillingCountry(value);
+                  setBillingProvince("");
+                }}
+                options={countries}
+              />
             </div>
             <div>
-              <label htmlFor="edit-client-billing-province" className="mb-1 block text-sm font-semibold uppercase text-gray-500">Province/State</label>
-              <Dropdown id="edit-client-billing-province" value={billingProvince} onChange={setBillingProvince} options={provinces[billingCountry] || []} disabled={!billingCountry} />
+              <label
+                htmlFor="edit-client-billing-province"
+                className="mb-1 block text-sm font-semibold uppercase text-gray-500"
+              >
+                Province/State
+              </label>
+              <Dropdown
+                id="edit-client-billing-province"
+                value={billingProvince}
+                onChange={setBillingProvince}
+                options={provinces[billingCountry] || []}
+                disabled={!billingCountry}
+              />
             </div>
-            <Input id="edit-client-billing-postal" type="text" label="Postal/Zip Code" value={billingPostalCode} onChange={setBillingPostalCode} fieldClass="h-12" />
+            <Input
+              id="edit-client-billing-postal"
+              type="text"
+              label="Postal/Zip Code"
+              value={billingPostalCode}
+              onChange={setBillingPostalCode}
+              fieldClass="h-12"
+            />
           </div>
         </div>
 

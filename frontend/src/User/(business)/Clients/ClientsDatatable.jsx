@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { LuPencil, LuTrash2, LuPlus } from "react-icons/lu";
 import { MdOutlineMiscellaneousServices } from "react-icons/md";
@@ -17,6 +17,7 @@ import {
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
+import RecordsTable from "../../../Components/ui/RecordsTable";
 
 export default function ClientsDatatable({ token, showAddClient }) {
   const [rows, setRows] = useState([]);
@@ -195,55 +196,100 @@ export default function ClientsDatatable({ token, showAddClient }) {
     }
   };
 
-  const Cell = (props) => {
-    if (props.column.name === "actions") {
-      return (
-        <Table.Cell {...props}>
-          <Link
-            to={`/user/business/client/${props.row.id}/services`}
-            className="inline-flex items-center gap-2 rounded-lg bg-secondary/90 px-3 py-1 text-xs font-semibold text-white shadow transition hover:bg-secondary"
-            title="Client Services"
+  const columns = [
+    {
+      key: "client",
+      title: "Client",
+      className: "px-4 py-3 font-semibold text-slate-900",
+      render: (row) => row.client_name || row.name || "Client",
+    },
+    {
+      key: "email",
+      title: "Email Address",
+      render: (row) => row.email || row.client_email || "—",
+    },
+    {
+      key: "phone",
+      title: "Phone Number",
+      render: (row) => row.client_phone || row.phone || "—",
+    },
+    {
+      key: "payment",
+      title: "Payment Method",
+      render: (row) =>
+        row.payment_method || row.paymentMethod || row.payment || "—",
+    },
+    {
+      key: "questionnaires",
+      title: "Questionnaires",
+      render: (row) => {
+        const counts = questionnaireCountsByClient.get(String(row.id));
+        const filled = Number(counts?.filled ?? row.questionnaires_filled ?? 0);
+        const total = Number(counts?.total ?? row.questionnaires_total ?? 0);
+        return (
+          <span
+            className={
+              total > 0 && filled >= total
+                ? "font-semibold text-emerald-700"
+                : "text-slate-700"
+            }
           >
-            <MdOutlineMiscellaneousServices className="h-4 w-4" /> Services
+            {filled} / {total}
+          </span>
+        );
+      },
+    },
+    {
+      key: "status",
+      title: "Status",
+      render: (row) => {
+        const active = row.is_active === true || row.is_active === "True";
+        return (
+          <span
+            className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+          >
+            {active ? "ACTIVE" : "INACTIVE"}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      title: "Actions",
+      render: (row) => (
+        <div className="flex items-center gap-1 whitespace-nowrap">
+          <Link
+            to={`/user/business/client/${row.id}/services`}
+            className="inline-flex items-center gap-1 rounded-xl p-2 text-secondary hover:bg-secondary/5"
+            title="Client Services"
+            aria-label={`Services for ${row.client_name || row.name}`}
+          >
+            <MdOutlineMiscellaneousServices className="h-4 w-4" />
+            <span className="hidden text-xs font-semibold sm:inline">
+              Services
+            </span>
+          </Link>
+          <Link
+            to={`/user/business/client/${row.id}`}
+            className="rounded-xl p-2 text-slate-500 hover:bg-gray-50 hover:text-accent"
+            title="Edit Client"
+            aria-label={`Edit ${row.client_name || row.name}`}
+          >
+            <LuPencil className="h-4 w-4" />
           </Link>
           <button
-            className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100"
-            onClick={() => handleDeleteClick(props.row.id)}
-            title="Delete Client"
             type="button"
+            onClick={() => handleDeleteClick(row.id)}
+            className="rounded-xl p-2 text-rose-600 hover:bg-rose-50"
+            title="Delete Client"
+            aria-label={`Delete ${row.client_name || row.name}`}
           >
-            <LuTrash2 className="h-4 w-4" /> Delete
+            <LuTrash2 className="h-4 w-4" />
           </button>
-        </Table.Cell>
-      );
-    } else if (props.column.name === "client_name") {
-      return (
-        <Table.Cell {...props}>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-800">
-              {props.row.client_name}
-            </span>
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${props.row.is_active === "True"
-                  ? "bg-accent/15 text-accent"
-                  : "bg-amber-100 text-amber-800"
-                }`}
-            >
-              {props.row.is_active === "True" ? "ACTIVE" : "INACTIVE"}
-            </span>
-          </div>
-        </Table.Cell>
-      );
-    }
-    return <Table.Cell {...props} />;
-  };
-
-  const HeaderCell = (props) => (
-    <TableHeaderRow.Cell
-      {...props}
-      className="bg-gray-50 text-[11px] font-semibold uppercase tracking-[0.05em] text-gray-600"
-    />
-  );
+        </div>
+      ),
+    },
+  ];
 
   if (isLoading) return <LoadingScreen />;
 
@@ -275,7 +321,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
         ))}
       </div>
 
-      <div className="flex min-h-[65vh] flex-col overflow-visible rounded-2xl border border-gray-200 bg-[#fbfbfc] shadow-sm">
+      <div className="flex flex-col overflow-visible rounded-2xl border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-200 bg-white px-4 py-4 md:px-5 rounded-t-2xl">
           {/* Header: search and filter controls */}
           <div className="flex flex-row items-center justify-between gap-1 md:gap-3 ">
@@ -286,7 +332,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Search clients by name, email, or phone..."
-                className="h-12 md:h-14 w-full rounded-2xl border border-gray-200 bg-white pl-12 pr-4 text-sm text-slate-700 placeholder:text-slate-400 shadow-sm focus:border-accent focus:outline-none"
+                className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-12 pr-4 text-sm text-slate-700 placeholder:text-slate-400 shadow-sm focus:border-accent focus:outline-none"
               />
             </div>
 
@@ -294,7 +340,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
-                className="relative inline-flex h-12 md:h-14 items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 md:px-6 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-gray-50"
+                className="relative inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 md:px-6 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-gray-50"
               >
                 <LuSlidersHorizontal className="h-4 w-4" />
                 <span className="hidden md:inline-flex">Filters</span>
@@ -388,282 +434,40 @@ export default function ClientsDatatable({ token, showAddClient }) {
           </div>
         </div>
 
-        {filteredRows.length === 0 ? (
-          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 py-14 text-center">
-            <div className="relative flex items-center justify-center">
+        <RecordsTable
+          columns={columns}
+          rows={paginatedRows}
+          rowKey={(row) => row.id}
+          empty={
+            <div className="mx-auto flex max-w-md flex-col items-center text-center">
               <img
                 src="/images/add-clients.svg"
-                alt="Add clients"
-                className="h-56 w-56 object-contain"
+                alt=""
+                className="h-40 w-40 object-contain"
               />
+              <h5 className="mt-3 text-xl font-medium text-slate-900">
+                {rows.length
+                  ? "No clients match your filters."
+                  : "No clients yet"}
+              </h5>
+              <p className="mt-2 text-sm text-slate-500">
+                {rows.length
+                  ? "Try adjusting your search or status filter."
+                  : "Add your first client to manage their services and account details."}
+              </p>
+              {!rows.length && (
+                <button
+                  type="button"
+                  onClick={() => showAddClient(true)}
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white"
+                >
+                  <LuPlus className="h-4 w-4" />
+                  Add Client
+                </button>
+              )}
             </div>
-
-            <p className="text-2xl -mt-8 font-semibold text-slate-800">
-              No clients yet
-            </p>
-            <p className="max-w-100! text-slate-500">
-              Get started by adding your first client. Once added, you can
-              manage their services, track engagement, and organize their
-              account details.
-            </p>
-
-            <button
-              className="mt-2 inline-flex items-center gap-2 rounded-xl bg-accent px-7 py-3 font-semibold text-white shadow hover:bg-accentLight"
-              onClick={() => showAddClient(true)}
-              type="button"
-            >
-              <LuPlus className="h-4 w-4" /> Add Your First Client
-            </button>
-
-            <p className="mt-2 text-sm text-slate-400">
-              Once you add a client, their services and access can be managed
-              here.
-            </p>
-          </div>
-        ) : (
-          <div className="flex-1 space-y-4 px-4 py-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 md:px-5 lg:flex lg:flex-col lg:space-y-4 lg:gap-0">
-            {paginatedRows.map((row) => {
-              const isActive =
-                row.is_active === "True" || row.is_active === true;
-              const clientLabel = row.client_name || row.name || "Client";
-              const email =
-                row.email || row.client_email || "No email provided";
-              const phone =
-                row.client_phone || row.phone || "No phone provided";
-              const paymentMethod =
-                row.payment_method ||
-                row.paymentMethod ||
-                row.payment ||
-                "No payment method";
-              const serviceQuestionnaireCounts =
-                questionnaireCountsByClient.get(String(row.id));
-              const questionnairesFilled = Number(
-                serviceQuestionnaireCounts?.filled ??
-                  row.questionnaires_filled ??
-                  0,
-              );
-              const questionnairesTotal = Number(
-                serviceQuestionnaireCounts?.total ??
-                  row.questionnaires_total ??
-                  0,
-              );
-              const questionnaireSummary = `${questionnairesFilled} / ${questionnairesTotal}`;
-              const questionnairesComplete =
-                questionnairesTotal > 0 &&
-                questionnairesFilled >= questionnairesTotal;
-
-              return (
-                <Fragment key={row.id}>
-                  {/* Mobile and tablet card layout (default and md, hidden on lg+) */}
-                  <div className="rounded-2xl border border-gray-200 bg-white shadow-sm lg:hidden h-fit">
-                    <div className="flex flex-col items-center gap-3 text-center px-4 py-4 md:px-5">
-                      {/* Avatar and client name section */}
-                      <div className="flex items-center justify-start gap-3 w-full">
-                        {/* Client avatar */}
-                        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-purple-500 text-lg font-semibold text-white shadow">
-                          {(clientLabel || "C").slice(0, 2).toUpperCase()}
-                          <span
-                            className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white ${isActive ? "bg-emerald-500" : "bg-slate-400"}`}
-                          />
-                        </div>
-                        {/* Client name and status */}
-                        <div className="min-w-0 space-y-1">
-                          <div className="flex flex-wrap items-center justify-center gap-2">
-                            <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                              Client Name
-                            </p>
-                            <span
-                              className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
-                            >
-                              {isActive ? "Active" : "Inactive"}
-                            </span>
-                          </div>
-                          <p className="truncate text-lg text-left font-medium text-slate-900">
-                            {clientLabel}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Client details grid */}
-                      <div className="grid w-full grid-cols-1 gap-3 text-left text-sm text-slate-700 px-2">
-                        <div>
-                          <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                            Email Address
-                          </p>
-                          <p className="truncate">{email}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                            Phone Number
-                          </p>
-                          <p className="truncate">{phone}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                            Payment Method
-                          </p>
-                          <p className="truncate">{paymentMethod}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                            Questionnaires
-                          </p>
-                          <p
-                            className={`truncate font-semibold ${questionnairesComplete ? "text-emerald-700" : "text-slate-700"}`}
-                          >
-                            {questionnaireSummary}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Divider line */}
-                      <div className="h-px w-full bg-secondary/40" />
-
-                      {/* Card actions */}
-                      <div className="flex flex-wrap justify-end w-full gap-2">
-                        <Link
-                          to={`/user/business/client/${row.id}/services`}
-                          className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-accentLight"
-                        >
-                          <MdOutlineMiscellaneousServices className="h-4 w-4" />{" "}
-                          Services
-                        </Link>
-                        <Link
-                          to={`/user/business/client/${row.id}`}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-500 transition hover:bg-gray-50 hover:text-accent"
-                          title="Edit Client"
-                          aria-label={`Edit ${clientLabel}`}
-                        >
-                          <LuPencil className="h-4 w-4" />
-                        </Link>
-                        <button
-                          className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
-                          onClick={() => handleDeleteClick(row.id)}
-                          title="Delete Client"
-                          type="button"
-                        >
-                          <LuTrash2 className="h-4 w-4" /> Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Desktop row layout (lg and up only) */}
-                  <div className="hidden items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm md:px-5 lg:flex">
-                    {/* Left section: avatar, name, and info columns */}
-                    <div className="flex min-w-0 flex-1 items-center gap-5">
-                      {/* Client avatar */}
-                      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-purple-500 text-lg font-semibold text-white shadow">
-                        {(clientLabel || "C").slice(0, 2).toUpperCase()}
-                        <span
-                          className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white ${isActive ? "bg-emerald-500" : "bg-slate-400"}`}
-                        />
-                      </div>
-
-                      {/* Client name column */}
-                      <div className="flex-1" style={{ minWidth: "10rem" }}>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                            Client Name
-                          </p>
-                          <span
-                            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
-                          >
-                            {isActive ? "Active" : "Inactive"}
-                          </span>
-                        </div>
-                        <p className="truncate text-lg font-medium text-slate-900">
-                          {clientLabel}
-                        </p>
-                      </div>
-
-                      {/* Email column */}
-                      <div
-                        className="hidden flex-1 flex-col md:flex"
-                        style={{ minWidth: "11rem" }}
-                      >
-                        <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                          Email Address
-                        </p>
-                        <p className="truncate text-sm text-slate-700">
-                          {email}
-                        </p>
-                      </div>
-
-                      {/* Phone column */}
-                      <div
-                        className="hidden flex-1 flex-col lg:flex"
-                        style={{ minWidth: "9.25rem" }}
-                      >
-                        <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                          Phone Number
-                        </p>
-                        <p className="truncate text-sm text-slate-700">
-                          {phone}
-                        </p>
-                      </div>
-
-                      {/* Payment method column */}
-                      <div
-                        className="hidden flex-1 flex-col xl:flex"
-                        style={{ minWidth: "9.5rem" }}
-                      >
-                        <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                          Payment Method
-                        </p>
-                        <p className="truncate text-sm text-slate-700">
-                          {paymentMethod}
-                        </p>
-                      </div>
-
-                      {/* Questionnaire completion column */}
-                      <div
-                        className="hidden flex-col 2xl:flex"
-                        style={{ minWidth: "8.5rem" }}
-                      >
-                        <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
-                          Questionnaires
-                        </p>
-                        <p
-                          className={`truncate text-sm font-semibold ${questionnairesComplete ? "text-emerald-700" : "text-slate-700"}`}
-                        >
-                          {questionnaireSummary}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Right section: action buttons */}
-                    <div className="flex shrink-0 items-center gap-2">
-                      <Link
-                        to={`/user/business/client/${row.id}/services`}
-                        className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-accentLight"
-                      >
-                        <MdOutlineMiscellaneousServices className="h-4 w-4" />{" "}
-                        Services
-                      </Link>
-                      <Link
-                        to={`/user/business/client/${row.id}`}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 hover:text-accent"
-                        title="Edit Client"
-                        aria-label={`Edit ${clientLabel}`}
-                      >
-                        <LuPencil className="h-4 w-4" />
-                      </Link>
-                      <button
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition hover:bg-gray-50 hover:text-red-500"
-                        onClick={() => handleDeleteClick(row.id)}
-                        title="Delete Client"
-                        type="button"
-                      >
-                        <LuTrash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </Fragment>
-              );
-            })}
-          </div>
-        )}
+          }
+        />
 
         {/* Footer: page size selector and pagination */}
         <div className="mt-auto border-t border-gray-200 bg-white px-4 py-2 md:px-4 md:py-3 rounded-b-2xl">
@@ -700,10 +504,11 @@ export default function ClientsDatatable({ token, showAddClient }) {
                           className={`w-full px-2  text-left text-base transition `}
                         >
                           <div
-                            className={`flex items-center gap-2 w-full ${isSelected
+                            className={`flex items-center gap-2 w-full ${
+                              isSelected
                                 ? "bg-accent/10 font-semibold text-slate-900"
                                 : "text-slate-700 hover:bg-gray-50"
-                              } rounded-lg px-2 py-1`}
+                            } rounded-lg px-2 py-1`}
                           >
                             <span>{size}</span>
                             {isSelected && (
@@ -843,9 +648,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
               </button>
             </div>
 
-            <p className="text-gray-600">
-              This action cannot be undone.
-            </p>
+            <p className="text-gray-600">This action cannot be undone.</p>
 
             <div className="flex items-center justify-end gap-3">
               <button

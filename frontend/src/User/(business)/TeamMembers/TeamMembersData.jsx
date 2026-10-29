@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
 import { LuSearch, LuFilter } from "react-icons/lu";
-import { LuMail, LuPhone, LuTrash2, LuPencilLine } from "react-icons/lu";
+import { LuTrash2, LuPencilLine } from "react-icons/lu";
 import {
   useFetchTeamMembersQuery,
   useDeleteTeamMemberMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
+import RecordsTable from "../../../Components/ui/RecordsTable";
 
 export default function TeamMembersData({ token, setAlert, onEdit }) {
   const [showModal, setShowModal] = useState(false);
@@ -128,11 +128,6 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
     };
   }, [members]);
 
-  const getInitial = (name) => {
-    const safeName = toText(name);
-    return safeName ? safeName.charAt(0).toUpperCase() : "U";
-  };
-
   const getExpertiseTags = (expertise) => {
     const value = toText(expertise);
     if (!value) return [];
@@ -170,8 +165,108 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
     }
   };
 
-  if (isLoading)
-    return <LoadingScreen />;
+  const columns = [
+    {
+      key: "member",
+      title: "Team Member",
+      width: "14%",
+      className: "px-4 py-3 font-semibold text-slate-900",
+      render: (member) => member.employee_name || "—",
+    },
+    {
+      key: "role",
+      title: "Role",
+      width: "9%",
+      render: (member) => toTitleCase(member.role) || "—",
+    },
+    {
+      key: "email",
+      title: "Email",
+      width: "18%",
+      className: "break-all px-4 py-3 text-slate-700",
+      render: (member) => member.employee_email || "—",
+    },
+    {
+      key: "phone",
+      title: "Phone",
+      width: "13%",
+      render: (member) => member.employee_phone || "—",
+    },
+    {
+      key: "duties",
+      title: "Job Duties",
+      width: "16%",
+      render: (member) => (
+        <span className="line-clamp-4" title={member.job_duties || undefined}>
+          {member.job_duties || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "expertise",
+      title: "Expertise",
+      width: "14%",
+      render: (member) => {
+        const tags = getExpertiseTags(member.expertise);
+        return tags.length ? (
+          <div className="line-clamp-4 leading-7" title={tags.join(", ")}>
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="mr-1 inline-block rounded-lg bg-gray-100 px-2 py-1 text-xs font-medium text-slate-800"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : (
+          "—"
+        );
+      },
+    },
+    {
+      key: "status",
+      title: "Status",
+      width: "8%",
+      render: (member) => (
+        <span
+          className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${member._active ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}
+        >
+          {member._active ? "ACTIVE" : "PENDING"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      title: "Actions",
+      width: "8%",
+      render: (member) => (
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onEdit?.(member)}
+            className="rounded-xl p-2 text-secondary hover:bg-secondary/5"
+            title={`Edit ${member.employee_name}`}
+            aria-label={`Edit ${member.employee_name}`}
+          >
+            <LuPencilLine className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDeleteClick(member.id)}
+            disabled={member.role === "MANAGER"}
+            className="rounded-xl p-2 text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
+            title={`Delete ${member.employee_name}`}
+            aria-label={`Delete ${member.employee_name}`}
+          >
+            <LuTrash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  if (isLoading) return <LoadingScreen />;
   if (error)
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
@@ -184,7 +279,7 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
   const hasExpertiseFilter = selectedExpertise !== "ALL";
 
   const buttonClass =
-    "relative inline-flex h-8 md:h-10 lg:h-12 items-center gap-2 rounded-lg md:rounded-xl border border-gray-300 bg-white px-3 md:px-5 text-lg font-medium text-slate-700 transition hover:border-gray-400";
+    "relative inline-flex h-8 md:h-10 lg:h-12 items-center gap-2 rounded-lg md:rounded-xl border border-gray-300 bg-white px-3 md:px-5 text-base font-medium text-slate-700 transition hover:border-gray-400";
 
   const dropdownClass =
     "absolute right-0 top-[calc(100%+6px)] z-20 space-y-1.5 min-w-48 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg";
@@ -221,279 +316,194 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-5">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
-            <div className="relative w-full xl:flex-1">
-              <LuSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                type="search"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search members..."
-                className="h-12 w-full rounded-xl border border-gray-300 bg-gray-50 pl-11 pr-3 text-lg text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
-              />
-            </div>
+        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-100 p-5">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
+              <div className="relative w-full xl:flex-1">
+                <LuSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="search"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Search members..."
+                  className="h-12 w-full rounded-xl border border-gray-300 bg-gray-50 pl-11 pr-3 text-lg text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
 
-            <div className="flex justify-between md:justify-start md:flex-wrap items-center gap-2.5 md:gap-3">
-              <div
-                className="relative"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <button
-                  type="button"
-                  className={buttonClass}
-                  onClick={() =>
-                    setOpenFilter((current) =>
-                      current === "role" ? null : "role",
-                    )
-                  }
+              <div className="flex justify-between md:justify-start md:flex-wrap items-center gap-2.5 md:gap-3">
+                <div
+                  className="relative"
+                  onClick={(event) => event.stopPropagation()}
                 >
-                  <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
-                  Role
-                  {hasRoleFilter ? (
-                    <span
-                      className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-accent"
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                </button>
-                {openFilter === "role" && (
-                  <div className={dropdownClass}>
-                    {roleOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${selectedRole === option
-                          ? "bg-slate-100 text-slate-900"
-                          : "text-slate-700 hover:bg-slate-100"
-                          }`}
-                        onClick={() => {
-                          setSelectedRole(option);
-                          setOpenFilter(null);
-                        }}
-                      >
-                        <span>
-                          {option === "ALL" ? "All" : toTitleCase(option)}
-                        </span>
-                        {selectedRole === option ? <span>✓</span> : null}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div
-                className="relative"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <button
-                  type="button"
-                  className={buttonClass}
-                  onClick={() =>
-                    setOpenFilter((current) =>
-                      current === "status" ? null : "status",
-                    )
-                  }
-                >
-                  <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
-                  Status
-                  {hasStatusFilter ? (
-                    <span
-                      className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-orange-500"
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                </button>
-                {openFilter === "status" && (
-                  <div className={dropdownClass}>
-                    {statusOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${selectedStatus === option
-                          ? "bg-slate-100 text-slate-900"
-                          : "text-slate-700 hover:bg-slate-100"
-                          }`}
-                        onClick={() => {
-                          setSelectedStatus(option);
-                          setOpenFilter(null);
-                        }}
-                      >
-                        <span>
-                          {option === "ALL" ? "All" : toTitleCase(option)}
-                        </span>
-                        {selectedStatus === option ? <span>✓</span> : null}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div
-                className="relative"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <button
-                  type="button"
-                  className={buttonClass}
-                  onClick={() =>
-                    setOpenFilter((current) =>
-                      current === "expertise" ? null : "expertise",
-                    )
-                  }
-                >
-                  <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
-                  Expertise
-                  {hasExpertiseFilter ? (
-                    <span
-                      className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-orange-500"
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                </button>
-                {openFilter === "expertise" && (
-                  <div className={dropdownClass}>
-                    {expertiseOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${selectedExpertise === option
-                          ? "bg-slate-100 text-slate-900"
-                          : "text-slate-700 hover:bg-slate-100"
-                          }`}
-                        onClick={() => {
-                          setSelectedExpertise(option);
-                          setOpenFilter(null);
-                        }}
-                      >
-                        <span>
-                          {option === "ALL" ? "All" : toTitleCase(option)}
-                        </span>
-                        {selectedExpertise === option ? <span>✓</span> : null}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredMembers.length > 0 ? (
-          filteredMembers.map((m) => (
-            <div
-              key={m.id}
-              className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
-            >
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-orange-100 text-2xl font-semibold text-orange-700">
-                    {getInitial(m.employee_name)}
-                  </div>
-                  <div>
-                    <h5 className="text-2xl font-medium text-slate-900">
-                      {m.employee_name}
-                    </h5>
-                    <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
-                      {toTitleCase(m.role)}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  className="rounded-md p-1 text-red-500 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed! disabled:opacity-40"
-                  onClick={() => handleDeleteClick(m.id)}
-                  disabled={m.role === "MANAGER"}
-                  aria-label="Delete member"
-                >
-                  <LuTrash2 className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="mb-4">
-                <span
-                  className={`inline-flex rounded-lg border px-3 py-0.5 text-sm font-semibold ${m._active
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-amber-200 bg-amber-50 text-amber-700"
-                    }`}
-                >
-                  {m._active ? "Active" : "Pending"}
-                </span>
-              </div>
-
-              <div className="space-y-2 text-base text-slate-600">
-                <p className="flex items-center gap-3">
-                  <LuMail className="h-5 w-5 text-slate-400" />
-                  <span className="truncate">{m.employee_email || "-"}</span>
-                </p>
-                <p className="flex items-center gap-3">
-                  <LuPhone className="h-5 w-5 text-slate-400" />
-                  <span>{m.employee_phone || "-"}</span>
-                </p>
-              </div>
-
-              <div className="mt-5 space-y-2">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-600">
-                    Job Duties
-                  </p>
-                  <p className="text-base text-slate-800">
-                    {m.job_duties || "-"}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-600">
-                    Expertise
-                  </p>
-                  <div className="my-1 flex flex-wrap gap-2">
-                    {getExpertiseTags(m.expertise).length ? (
-                      getExpertiseTags(m.expertise).map((tag) => (
-                        <span
-                          key={`${m.id}-${tag}`}
-                          className="rounded-lg bg-gray-100 px-3 py-1 text-sm font-medium text-slate-800"
-                        >
-                          {tag}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-sm text-slate-500">-</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-auto border-t border-gray-200 pt-4">
-                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => onEdit?.(m)}
-                    className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-slate-900 px-4 py-2.5 text-base font-medium text-white hover:bg-slate-800"
-                    title="Edit Team Member"
+                    className={buttonClass}
+                    onClick={() =>
+                      setOpenFilter((current) =>
+                        current === "role" ? null : "role",
+                      )
+                    }
                   >
-                    <LuPencilLine className="h-4 w-4" />
-                    Edit
+                    <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
+                    Role
+                    {hasRoleFilter ? (
+                      <span
+                        className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-accent"
+                        aria-hidden="true"
+                      />
+                    ) : null}
                   </button>
+                  {openFilter === "role" && (
+                    <div className={dropdownClass}>
+                      {roleOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
+                            selectedRole === option
+                              ? "bg-slate-100 text-slate-900"
+                              : "text-slate-700 hover:bg-slate-100"
+                          }`}
+                          onClick={() => {
+                            setSelectedRole(option);
+                            setOpenFilter(null);
+                          }}
+                        >
+                          <span>
+                            {option === "ALL" ? "All" : toTitleCase(option)}
+                          </span>
+                          {selectedRole === option ? <span>✓</span> : null}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                  {/* <Link
-                    to={`/user/business/team-member/${m.id}`}
-                    className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-base font-medium text-slate-700 hover:bg-gray-50"
-                    title="View Profile"
+                <div
+                  className="relative"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    className={buttonClass}
+                    onClick={() =>
+                      setOpenFilter((current) =>
+                        current === "status" ? null : "status",
+                      )
+                    }
                   >
-                    View Profile
-                  </Link> */}
+                    <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
+                    Status
+                    {hasStatusFilter ? (
+                      <span
+                        className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-orange-500"
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                  </button>
+                  {openFilter === "status" && (
+                    <div className={dropdownClass}>
+                      {statusOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
+                            selectedStatus === option
+                              ? "bg-slate-100 text-slate-900"
+                              : "text-slate-700 hover:bg-slate-100"
+                          }`}
+                          onClick={() => {
+                            setSelectedStatus(option);
+                            setOpenFilter(null);
+                          }}
+                        >
+                          <span>
+                            {option === "ALL" ? "All" : toTitleCase(option)}
+                          </span>
+                          {selectedStatus === option ? <span>✓</span> : null}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  className="relative"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    className={buttonClass}
+                    onClick={() =>
+                      setOpenFilter((current) =>
+                        current === "expertise" ? null : "expertise",
+                      )
+                    }
+                  >
+                    <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
+                    Expertise
+                    {hasExpertiseFilter ? (
+                      <span
+                        className="absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full bg-orange-500"
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                  </button>
+                  {openFilter === "expertise" && (
+                    <div className={dropdownClass}>
+                      {expertiseOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
+                            selectedExpertise === option
+                              ? "bg-slate-100 text-slate-900"
+                              : "text-slate-700 hover:bg-slate-100"
+                          }`}
+                          onClick={() => {
+                            setSelectedExpertise(option);
+                            setOpenFilter(null);
+                          }}
+                        >
+                          <span>
+                            {option === "ALL" ? "All" : toTitleCase(option)}
+                          </span>
+                          {selectedExpertise === option ? <span>✓</span> : null}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          ))
-        ) : (
-          <div className="col-span-full rounded-xl border border-dashed border-gray-200 bg-white/70 px-5 py-10 text-center text-gray-600">
-            No team members match the selected filters.
           </div>
-        )}
+          <RecordsTable
+            columns={columns}
+            tableClassName="min-w-[900px] sm:min-w-[1300px]"
+            rows={filteredMembers}
+            rowKey={(member) => member.id}
+            empty={
+              <div className="mx-auto max-w-md text-center">
+                <h5 className="text-xl font-medium text-slate-900">
+                  {members.length
+                    ? "No team members match your filters."
+                    : "No team members yet"}
+                </h5>
+                <p className="mt-2 text-sm text-slate-500">
+                  {members.length
+                    ? "Try adjusting your search or filters."
+                    : "Add a team member to start managing staff access and duties."}
+                </p>
+              </div>
+            }
+            footer={
+              <p>
+                Showing {filteredMembers.length} of {members.length} team
+                members
+              </p>
+            }
+          />
+        </div>
       </div>
 
       {showModal && (

@@ -365,6 +365,7 @@ class InvoicePaymentWorkflowTests(TestCase):
         link = values["action_url"]
         self.assertIn(link, values["text_body"])
         self.assertEqual(values["recipient_list"], [self.client_user.email])
+        self.assertEqual(values["reply_to"], [self.business.email])
         self.assertEqual(urlsplit(link).path, f"/user/business/invoice/{self.invoice.pk}")
         magic_token = parse_qs(urlsplit(link).query)["token"][0]
         login = self.client.post(reverse("user:magic-login"), {"token": magic_token}, format="json")

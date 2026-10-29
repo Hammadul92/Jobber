@@ -7,6 +7,7 @@ import {
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
+import RecordsTable from "../../../Components/ui/RecordsTable";
 import { formatDate } from "../../../utils/formatDate";
 import { isInvoicePastDue } from "../../../utils/paymentTerms";
 import Select from "../../../Components/ui/Select";
@@ -96,8 +97,10 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
         if (!row.due_date) {
           matchesDateRange = false;
         } else {
-          if (dateRangeStart && row.due_date < dateRangeStart) matchesDateRange = false;
-          if (dateRangeEnd && row.due_date > dateRangeEnd) matchesDateRange = false;
+          if (dateRangeStart && row.due_date < dateRangeStart)
+            matchesDateRange = false;
+          if (dateRangeEnd && row.due_date > dateRangeEnd)
+            matchesDateRange = false;
         }
       }
 
@@ -227,14 +230,67 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
   };
 
   const columns = [
-    { name: "invoice_number", title: "Invoice" },
-    { name: "business_name", title: "Business" },
-    { name: "client_name", title: "Client" },
-    { name: "service_name", title: "Service" },
-    { name: "invoice_total", title: "Total" },
-    { name: "status", title: "Status" },
-    { name: "due_date", title: "Due Date" },
-    { name: "actions", title: "Actions" },
+    {
+      key: "invoice",
+      title: "Invoice",
+      className: "px-4 py-3 font-semibold text-slate-900",
+      render: (row) => row.invoice_number,
+    },
+    { key: "business", title: "Business", render: (row) => row.business_name },
+    { key: "client", title: "Client", render: (row) => row.client_name },
+    { key: "service", title: "Service", render: (row) => row.service_name },
+    {
+      key: "total",
+      title: "Total",
+      render: (row) => formatMoney(row.total_amount),
+    },
+    {
+      key: "status",
+      title: "Status",
+      render: (row) => {
+        const status = isInvoiceOverdue(row) ? "OVERDUE" : row.status;
+        return (
+          <span
+            className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${statusBadge(status)}`}
+          >
+            {status}
+          </span>
+        );
+      },
+    },
+    {
+      key: "due",
+      title: "Due Date",
+      render: (row) =>
+        row.due_date ? formatDate(row.due_date) : "Set when sent",
+    },
+    {
+      key: "actions",
+      title: "Actions",
+      render: (row) => (
+        <div className="flex items-center gap-1">
+          <Link
+            to={`/user/business/invoice/${row.id}`}
+            className="rounded-xl p-2 text-secondary hover:bg-secondary/5"
+            title="View Invoice"
+            aria-label={`View invoice ${row.invoice_number}`}
+          >
+            <LuEye className="h-4 w-4" />
+          </Link>
+          {role === "MANAGER" && (
+            <button
+              type="button"
+              className="rounded-xl p-2.5 text-rose-600 hover:bg-rose-50"
+              onClick={() => handleDeleteClick(row.id)}
+              title="Delete Invoice"
+              aria-label={`Delete invoice ${row.invoice_number}`}
+            >
+              <LuTrash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      ),
+    },
   ];
 
   if (isLoading) {
@@ -398,185 +454,94 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
             </div>
           </div>
 
-          <div className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-100 text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {columns.map((col) => (
-                      <th
-                        key={col.name}
-                        scope="col"
-                        className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
-                      >
-                        {col.title}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 bg-white">
-                  {filteredRows.length ? (
-                    filteredRows.map((row) => {
-                      const overdue = isInvoiceOverdue(row);
-                      const effectiveStatus = overdue ? "OVERDUE" : row.status;
-
-                      return (
-                        <tr key={row.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 font-semibold text-slate-900">
-                            {row.invoice_number}
-                          </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            {row.business_name}
-                          </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            {row.client_name}
-                          </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            {row.service_name}
-                          </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            {formatMoney(row.total_amount)}
-                          </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            <span
-                              className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${statusBadge(effectiveStatus)}`}
-                            >
-                              {effectiveStatus}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            <div className="flex items-center gap-2">
-                              <span>{row.due_date ? formatDate(row.due_date) : "Set when sent"}</span>
-                              {overdue && (
-                                <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
-                                  Overdue
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex justify-start">
-                              <Link
-                                to={`/user/business/invoice/${row.id}`}
-                                className="inline-flex items-center gap-2 rounded-xl p-2 text-sm font-medium text-secondary transition hover:bg-secondary/5"
-                                title="View Invoice"
-                              >
-                                <LuEye className="h-4 w-4" />
-
-                              </Link>
-
-                              {role === "MANAGER" && (
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center gap-2 rounded-xl p-2.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
-                                  onClick={() => handleDeleteClick(row.id)}
-                                  title="Delete Invoice"
-                                >
-                                  <LuTrash2 className="h-3.5 w-3.5" />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={columns.length} className="px-4 py-20">
-                        <div className="mx-auto flex max-w-md flex-col items-center text-center">
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-slate-400">
-                            <LuFileText className="h-8 w-8" />
-                          </div>
-                          <h5 className="mt-5 text-xl font-medium text-slate-900">
-                            {rows.length
-                              ? "No invoices match your filters."
-                              : "No invoices yet"}
-                          </h5>
-                          <p className="mt-2 text-sm leading-6 text-slate-500">
-                            {rows.length
-                              ? "Try adjusting the search, status, or date range filters."
-                              : "Create your first invoice to start tracking billing, due dates, and payments."}
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-slate-500">
-                            {rows.length
-                              ? "Filtered invoices will appear here once they match your criteria."
-                              : "Once invoices are created, they will appear here with payment status and due dates."}
-                          </p>
-                          {role === "MANAGER" &&
-                            onAddInvoice &&
-                            !rows.length && (
-                              <button
-                                type="button"
-                                onClick={onAddInvoice}
-                                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accentLight"
-                              >
-                                <LuPlus className="h-4 w-4" />
-                                Add Invoice
-                              </button>
-                            )}
-                          {rows.length > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSearchTerm("");
-                                setStatusFilter("ALL");
-                                setDateRangeStart("");
-                                setDateRangeEnd("");
-                              }}
-                              className="mt-6 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-gray-300 hover:bg-gray-50"
-                            >
-                              <LuX className="h-4 w-4" />
-                              Clear Filters
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex flex-col gap-3 border-t border-gray-100 px-4 py-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-              <p>
-                Showing {filteredRows.length} of {totalCount} invoices
-              </p>
-
-              <div className="flex items-center justify-between gap-2 sm:justify-end">
-                <p className="text-slate-500">
-                  Page {currentPage} of {totalPages}
+          <RecordsTable
+            columns={columns}
+            rows={filteredRows}
+            rowKey={(row) => row.id}
+            empty={
+              <div className="mx-auto flex max-w-md flex-col items-center text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-slate-400">
+                  <LuFileText className="h-8 w-8" />
+                </div>
+                <h5 className="mt-5 text-xl font-medium text-slate-900">
+                  {rows.length
+                    ? "No invoices match your filters."
+                    : "No invoices yet"}
+                </h5>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  {rows.length
+                    ? "Try adjusting the search, status, or date range filters."
+                    : "Create your first invoice to start tracking billing, due dates, and payments."}
                 </p>
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() =>
-                    setPage((nextPage) => Math.max(1, nextPage - 1))
-                  }
-                  disabled={currentPage <= 1}
-                  aria-label="Previous page"
-                >
-                  <LuChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-accent px-3 text-sm font-semibold text-white"
-                >
-                  {currentPage}
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() =>
-                    setPage((nextPage) => Math.min(totalPages, nextPage + 1))
-                  }
-                  disabled={currentPage >= totalPages}
-                  aria-label="Next page"
-                >
-                  <LuChevronRight className="h-4 w-4" />
-                </button>
+                {role === "MANAGER" && onAddInvoice && !rows.length && (
+                  <button
+                    type="button"
+                    onClick={onAddInvoice}
+                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white"
+                  >
+                    <LuPlus className="h-4 w-4" />
+                    Add Invoice
+                  </button>
+                )}
+                {rows.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setStatusFilter("ALL");
+                      setDateRangeStart("");
+                      setDateRangeEnd("");
+                    }}
+                    className="mt-6 inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-slate-600"
+                  >
+                    <LuX className="h-4 w-4" />
+                    Clear Filters
+                  </button>
+                )}
               </div>
-            </div>
-          </div>
+            }
+            footer={
+              <>
+                {" "}
+                <p>
+                  Showing {filteredRows.length} of {totalCount} invoices
+                </p>
+                <div className="flex items-center justify-between gap-2 sm:justify-end">
+                  <p className="text-slate-500">
+                    Page {currentPage} of {totalPages}
+                  </p>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={() =>
+                      setPage((nextPage) => Math.max(1, nextPage - 1))
+                    }
+                    disabled={currentPage <= 1}
+                    aria-label="Previous page"
+                  >
+                    <LuChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-accent px-3 text-sm font-semibold text-white"
+                  >
+                    {currentPage}
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={() =>
+                      setPage((nextPage) => Math.min(totalPages, nextPage + 1))
+                    }
+                    disabled={currentPage >= totalPages}
+                    aria-label="Next page"
+                  >
+                    <LuChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </>
+            }
+          />
         </div>
 
         {showDateRangeModal && (

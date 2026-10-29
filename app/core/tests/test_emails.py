@@ -40,7 +40,7 @@ class BrandedEmailTests(SimpleTestCase):
             email.from_email,
             f"GetContractorz Support <{settings.DEFAULT_FROM_EMAIL}>",
         )
-        self.assertEqual(email.reply_to, [settings.NO_REPLY_EMAIL])
+        self.assertEqual(email.reply_to, [])
         self.assertEqual(email.alternatives[0][1], "text/html")
 
         html = email.alternatives[0][0]
@@ -74,6 +74,7 @@ class BrandedEmailTests(SimpleTestCase):
             eyebrow="Job assignment",
             heading="A new job is ready.",
             paragraphs=["Hello Employee,"],
+            reply_to=["office@insologics.example"],
             brand_name="InsoLogics",
             brand_logo=business_logo,
         )
@@ -83,7 +84,7 @@ class BrandedEmailTests(SimpleTestCase):
             mail.outbox[0].from_email,
             f"InsoLogics Support <{settings.DEFAULT_FROM_EMAIL}>",
         )
-        self.assertEqual(mail.outbox[0].reply_to, [settings.NO_REPLY_EMAIL])
+        self.assertEqual(mail.outbox[0].reply_to, ["office@insologics.example"])
         sendgrid_payload = SendgridBackend(api_key="SG.test-key")._build_sg_mail(
             mail.outbox[0]
         )
@@ -91,7 +92,7 @@ class BrandedEmailTests(SimpleTestCase):
             "email": settings.DEFAULT_FROM_EMAIL,
             "name": "InsoLogics Support",
         })
-        self.assertEqual(sendgrid_payload["reply_to"]["email"], settings.NO_REPLY_EMAIL)
+        self.assertEqual(sendgrid_payload["reply_to"]["email"], "office@insologics.example")
         self.assertIn("InsoLogics", html)
         self.assertIn('alt="GetContractorz logo"', html)
         self.assertIn('alt="InsoLogics logo"', html)
@@ -143,21 +144,21 @@ class BrandedEmailTests(SimpleTestCase):
         self.assertEqual(attachments["getcontractorz-logo.png"]["disposition"], "inline")
         self.assertEqual(attachments["business-logo.png"]["disposition"], "inline")
 
-    def test_unicode_business_name_and_custom_no_reply_reach_sendgrid(self):
-        with self.settings(NO_REPLY_EMAIL="no-reply@custom.example"):
-            send_branded_email(
-                subject="Business update",
-                text_body="An update is ready.",
-                recipient_list=["client@example.com"],
-                eyebrow="Update",
-                heading="An update is ready.",
-                paragraphs=["An update is ready."],
-                brand_name="Café & Sons, Ltd.",
-            )
+    def test_unicode_business_name_and_reply_to_reach_sendgrid(self):
+        send_branded_email(
+            subject="Business update",
+            text_body="An update is ready.",
+            recipient_list=["client@example.com"],
+            eyebrow="Update",
+            heading="An update is ready.",
+            paragraphs=["An update is ready."],
+            reply_to=["owner@cafe.example"],
+            brand_name="Café & Sons, Ltd.",
+        )
 
         payload = SendgridBackend(api_key="SG.test-key")._build_sg_mail(
             mail.outbox[0]
         )
         self.assertEqual(payload["from"]["name"], "Café & Sons, Ltd. Support")
         self.assertEqual(payload["from"]["email"], settings.DEFAULT_FROM_EMAIL)
-        self.assertEqual(payload["reply_to"]["email"], "no-reply@custom.example")
+        self.assertEqual(payload["reply_to"]["email"], "owner@cafe.example")

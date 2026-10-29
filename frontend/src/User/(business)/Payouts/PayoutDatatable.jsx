@@ -6,6 +6,7 @@ import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import Select from "../../../Components/ui/Select";
+import RecordsTable from "../../../Components/ui/RecordsTable";
 import {
   LuCalendarDays,
   LuChevronLeft,
@@ -221,8 +222,7 @@ export default function PayoutDatatable({ token, role }) {
     URL.revokeObjectURL(url);
   };
 
-  if (isLoading)
-    return <LoadingScreen />;
+  if (isLoading) return <LoadingScreen />;
 
   // const summaryCards = [
   //   {
@@ -248,13 +248,62 @@ export default function PayoutDatatable({ token, role }) {
   // ];
 
   const columns = [
-    { name: "invoice_number", title: "Invoice" },
-    { name: "client_name", title: "Client" },
-    { name: "service_name", title: "Service" },
-    { name: "payout_total", title: "Payment Total" },
-    { name: "status", title: "Status" },
-    { name: "processed_at", title: "Processed At" },
-    { name: "actions", title: "Actions" },
+    {
+      key: "invoice",
+      title: "Invoice",
+      className: "px-4 py-3 font-semibold text-slate-900",
+      render: (row) => row.invoice_number,
+    },
+    { key: "client", title: "Client", render: (row) => row.client_name },
+    { key: "service", title: "Service", render: (row) => row.service_name },
+    {
+      key: "total",
+      title: "Payment Total",
+      render: (row) => getPayoutTotal(row),
+    },
+    {
+      key: "status",
+      title: "Status",
+      render: (row) => (
+        <span
+          className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${statusBadge(row.status)}`}
+        >
+          {row.status}
+        </span>
+      ),
+    },
+    {
+      key: "processed",
+      title: "Processed At",
+      render: (row) => (row.processed_at ? formatDate(row.processed_at) : "—"),
+    },
+    {
+      key: "actions",
+      title: "Actions",
+      render: (row) => (
+        <div className="flex items-center gap-1">
+          <Link
+            to={`/user/business/payout/${row.id}`}
+            className="rounded-xl p-2 text-secondary hover:bg-secondary/5"
+            title="View Payout"
+            aria-label={`View payout for invoice ${row.invoice_number}`}
+          >
+            <LuEye className="h-4 w-4" />
+          </Link>
+          {role === "MANAGER" && (
+            <button
+              type="button"
+              className="rounded-xl p-2.5 text-rose-600 hover:bg-rose-50"
+              onClick={() => handleDeleteClick(row.id)}
+              title="Delete Payout"
+              aria-label={`Delete payout for invoice ${row.invoice_number}`}
+            >
+              <LuTrash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -390,147 +439,79 @@ export default function PayoutDatatable({ token, role }) {
             </div>
           </div>
 
-          <div className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-100 text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {columns.map((col) => (
-                      <th
-                        key={col.name}
-                        scope="col"
-                        className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
-                      >
-                        {col.title}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 bg-white">
-                  {filteredRows.length ? (
-                    filteredRows.map((row) => (
-                      <tr key={row.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-semibold text-slate-900">
-                          {row.invoice_number}
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">
-                          {row.client_name}
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">
-                          {row.service_name}
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">
-                          {getPayoutTotal(row)}
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${statusBadge(row.status)}`}
-                          >
-                            {row.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">
-                          {row.processed_at
-                            ? formatDate(row.processed_at)
-                            : "—"}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex justify-start">
-                            <Link
-                              to={`/user/business/payout/${row.id}`}
-                              className="inline-flex items-center gap-2 rounded-xl p-2 text-sm font-medium text-secondary transition hover:bg-secondary/5"
-                              title="View Payout"
-                            >
-                              <LuEye className="h-4 w-4" />
-                            </Link>
-
-                            {role === "MANAGER" && (
-                              <button
-                                type="button"
-                                className="inline-flex items-center gap-2 rounded-xl p-2.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
-                                onClick={() => handleDeleteClick(row.id)}
-                                title="Delete Payout"
-                              >
-                                <LuTrash2 className="h-4 w-4" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={columns.length} className="px-4 py-20">
-                        <div className="mx-auto flex max-w-md flex-col items-center text-center">
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-slate-400">
-                            <LuFileText className="h-8 w-8" />
-                          </div>
-                          <h5 className="mt-5 text-xl font-medium text-slate-900">
-                            No payouts yet
-                          </h5>
-                          <p className="mt-2 text-sm leading-6 text-slate-500">
-                            Processed payouts will appear here once client
-                            payments are completed.
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-slate-500">
-                            You can use filters or search once payout records
-                            are available.
-                          </p>
-                          <Link
-                            to="/user/business/invoices"
-                            className="mt-6 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-slate-500 transition hover:border-gray-300 hover:bg-gray-50"
-                          >
-                            <LuFileText className="h-4 w-4" />
-                            View Invoices
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex flex-col gap-3 border-t border-gray-100 px-4 py-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-              <p>
-                Showing {filteredRows.length} of {totalCount} payouts
-              </p>
-
-              <div className="flex items-center justify-between gap-2 sm:justify-end">
-                <p className="text-slate-500">
-                  Page {currentPage} of {totalPages}
+          <RecordsTable
+            columns={columns}
+            rows={filteredRows}
+            rowKey={(row) => row.id}
+            empty={
+              <div className="mx-auto flex max-w-md flex-col items-center text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-slate-400">
+                  <LuFileText className="h-8 w-8" />
+                </div>
+                <h5 className="mt-5 text-xl font-medium text-slate-900">
+                  {rows.length
+                    ? "No payouts match your filters."
+                    : "No payouts yet"}
+                </h5>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  {rows.length
+                    ? "Try adjusting the search, status, or date range filters."
+                    : "Processed payouts will appear here once client payments are completed."}
                 </p>
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() =>
-                    setPage((nextPage) => Math.max(1, nextPage - 1))
-                  }
-                  disabled={currentPage <= 1}
-                  aria-label="Previous page"
-                >
-                  <LuChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-accent px-3 text-sm font-semibold text-white"
-                >
-                  {currentPage}
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() =>
-                    setPage((nextPage) => Math.min(totalPages, nextPage + 1))
-                  }
-                  disabled={currentPage >= totalPages}
-                  aria-label="Next page"
-                >
-                  <LuChevronRight className="h-4 w-4" />
-                </button>
+                {!rows.length && (
+                  <Link
+                    to="/user/business/invoices"
+                    className="mt-6 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-slate-500 transition hover:border-gray-300 hover:bg-gray-50"
+                  >
+                    <LuFileText className="h-4 w-4" />
+                    View Invoices
+                  </Link>
+                )}
               </div>
-            </div>
-          </div>
+            }
+            footer={
+              <>
+                <p>
+                  Showing {filteredRows.length} of {totalCount} payouts
+                </p>
+                <div className="flex items-center justify-between gap-2 sm:justify-end">
+                  <p className="text-slate-500">
+                    Page {currentPage} of {totalPages}
+                  </p>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={() =>
+                      setPage((nextPage) => Math.max(1, nextPage - 1))
+                    }
+                    disabled={currentPage <= 1}
+                    aria-label="Previous page"
+                  >
+                    <LuChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-accent px-3 text-sm font-semibold text-white"
+                    aria-label={`Current page ${currentPage}`}
+                    aria-current="page"
+                  >
+                    {currentPage}
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={() =>
+                      setPage((nextPage) => Math.min(totalPages, nextPage + 1))
+                    }
+                    disabled={currentPage >= totalPages}
+                    aria-label="Next page"
+                  >
+                    <LuChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </>
+            }
+          />
         </div>
 
         {showDateRangeModal && (

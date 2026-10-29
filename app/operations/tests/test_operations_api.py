@@ -1385,6 +1385,14 @@ class WorkflowRegressionTests(TestCase):
             filled_questionnaire={"Room size": "Large"},
         )
         self.client.force_authenticate(self.manager)
+        updated_email = "updated-business@example.com"
+        business_update = self.client.patch(
+            reverse("operations:business-detail", args=[self.business.id]),
+            {"email": updated_email},
+        )
+        self.assertEqual(business_update.status_code, status.HTTP_200_OK)
+        self.business.refresh_from_db()
+        self.assertEqual(self.business.email, updated_email)
 
         res = self.client.post(
             JOBS_URL,
@@ -1406,7 +1414,7 @@ class WorkflowRegressionTests(TestCase):
             mail.outbox[0].from_email,
             f"{self.business.name} Support <{settings.DEFAULT_FROM_EMAIL}>",
         )
-        self.assertEqual(mail.outbox[0].reply_to, [settings.NO_REPLY_EMAIL])
+        self.assertEqual(mail.outbox[0].reply_to, [self.business.email])
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"

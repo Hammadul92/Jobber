@@ -194,11 +194,6 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
     "support@getcontractorz.com",
 )
-NO_REPLY_EMAIL = os.environ.get(
-    "NO_REPLY_EMAIL",
-    "no-reply@getcontractorz.com",
-)
-
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Stripe settings

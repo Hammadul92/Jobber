@@ -125,7 +125,7 @@ def send_branded_email(
         body=text_body,
         from_email=sender,
         to=recipient_list,
-        reply_to=reply_to if reply_to is not None else [settings.NO_REPLY_EMAIL],
+        reply_to=reply_to,
         attachments=attachments,
     )
     email.attach_alternative(html_body, "text/html")
