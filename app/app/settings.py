@@ -14,6 +14,8 @@ import os
 import sys
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 from app.email_settings import get_email_backend
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,14 +25,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY", "django-insecure-bqi-pv4i0_tubk4mcct3xj#m+)^4n44m!o5%ig4%ev0boc5uv7"
-)
-
 # SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
+# SECURITY WARNING: keep the secret key used in production secret!
+# Anyone with this key can forge login and password reset links.
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured("SECRET_KEY must be set when DEBUG is off.")
+    SECRET_KEY = "django-insecure-local-development-only"
 
 
 # Application definition
@@ -150,6 +154,16 @@ AUTH_USER_MODEL = "core.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Views open to the public must opt in with AllowAny.
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+}
+
+# API docs are public in development and staff-only in production.
+SPECTACULAR_SETTINGS = {
+    "SERVE_PERMISSIONS": [
+        "rest_framework.permissions.AllowAny" if DEBUG
+        else "rest_framework.permissions.IsAdminUser"
+    ],
 }
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
@@ -167,10 +181,6 @@ CORS_ALLOWED_ORIGINS = [
     origin.strip() for origin in CORS_ALLOWED_ORIGINS_ENV.split(",")
 ]
 
-# In production with no explicit CORS origins, allow all
-if not DEBUG and not os.environ.get("CORS_ALLOWED_ORIGINS"):
-    CORS_ALLOW_ALL_ORIGINS = True
-
 # CSRF Trusted Origins - required for POST requests through proxy
 CSRF_TRUSTED_ORIGINS_ENV = os.environ.get(
     "CSRF_TRUSTED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
@@ -178,6 +188,12 @@ CSRF_TRUSTED_ORIGINS_ENV = os.environ.get(
 CSRF_TRUSTED_ORIGINS = [
     origin.strip() for origin in CSRF_TRUSTED_ORIGINS_ENV.split(",")
 ]
+
+if not DEBUG:
+    # nginx terminates HTTPS and forwards the original scheme.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # =========================
 # Email Configuration

@@ -44,6 +44,7 @@ class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system."""
 
     serializer_class = UserSerializer
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         user = serializer.save()
@@ -53,6 +54,8 @@ class CreateUserView(generics.CreateAPIView):
 
 class VerifyEmailView(APIView):
     """Verify user email via token."""
+
+    permission_classes = [AllowAny]
 
     def get(self, request):
         token = request.query_params.get("token")
@@ -85,6 +88,7 @@ class CreateTokenView(ObtainAuthToken):
     """Create a new auth token for user and update last_login."""
 
     serializer_class = AuthTokenSerializer
+    permission_classes = [AllowAny]
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
     def post(self, request, *args, **kwargs):
@@ -113,6 +117,7 @@ class RequestPasswordResetView(generics.GenericAPIView):
     """Generate password reset email with token."""
 
     serializer_class = RequestPasswordResetSerializer
+    permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -140,6 +145,7 @@ class ResetPasswordView(generics.GenericAPIView):
     """Reset password using token."""
 
     serializer_class = ResetPasswordSerializer
+    permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
