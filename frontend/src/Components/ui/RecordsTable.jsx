@@ -1,6 +1,9 @@
 import { memo, useLayoutEffect, useRef, useState } from "react";
+import { LuArrowDown, LuArrowUp, LuArrowUpDown } from "react-icons/lu";
 
 // Shared table shell keeps headers, row spacing, and empty states consistent.
+// Optional server features: columns with a sortKey become sortable when
+// ordering/onSort are passed, and `selection` adds a checkbox column.
 const RecordsTable = memo(function RecordsTable({
   columns,
   rows,
@@ -8,6 +11,10 @@ const RecordsTable = memo(function RecordsTable({
   empty,
   footer,
   tableClassName = "",
+  ordering,
+  onSort,
+  selection,
+  isFetching = false,
 }) {
   const viewportRef = useRef(null);
   const tableRef = useRef(null);
@@ -45,6 +52,12 @@ const RecordsTable = memo(function RecordsTable({
     };
   }, []);
 
+  const rowIds = selection ? rows.map(rowKey) : [];
+  const allSelected =
+    rowIds.length > 0 && rowIds.every((id) => selection.selectedIds.includes(id));
+  const someSelected =
+    !allSelected && rowIds.some((id) => selection?.selectedIds.includes(id));
+
   const maxScroll = Math.max(0, scroll.contentWidth - scroll.width);
   const thumbWidth = scroll.contentWidth
     ? Math.max(
@@ -62,6 +75,7 @@ const RecordsTable = memo(function RecordsTable({
         >
           {columns.some((column) => column.width) && (
             <colgroup>
+              {selection && <col style={{ width: "3rem" }} />}
               {columns.map((column) => (
                 <col key={column.key} style={{ width: column.width }} />
               ))}
@@ -69,6 +83,21 @@ const RecordsTable = memo(function RecordsTable({
           )}
           <thead className="bg-gray-50">
             <tr>
+              {selection && (
+                <th scope="col" className="w-12 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-gray-300 accent-[#ff6a00]"
+                    checked={allSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = someSelected;
+                    }}
+                    onChange={() => selection.onToggleAll(rowIds)}
+                    disabled={!rowIds.length}
+                    aria-label="Select all rows on this page"
+                  />
+                </th>
+              )}
               {columns.map((column) => (
                 <th
                   key={column.key}
@@ -79,18 +108,50 @@ const RecordsTable = memo(function RecordsTable({
                       : ""
                   }`}
                 >
-                  {column.title}
+                  {column.sortKey && onSort ? (
+                    <button
+                      type="button"
+                      onClick={() => onSort(column.sortKey)}
+                      className="inline-flex items-center gap-1 uppercase tracking-wide hover:text-slate-800"
+                      aria-label={`Sort by ${column.title}`}
+                    >
+                      {column.title}
+                      {ordering === column.sortKey ? (
+                        <LuArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
+                      ) : ordering === `-${column.sortKey}` ? (
+                        <LuArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
+                      ) : (
+                        <LuArrowUpDown className="h-3.5 w-3.5 opacity-40" aria-hidden="true" />
+                      )}
+                    </button>
+                  ) : (
+                    column.title
+                  )}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50 bg-white">
+          <tbody
+            className={`divide-y divide-gray-50 bg-white transition-opacity ${isFetching ? "opacity-60" : ""}`}
+            aria-busy={isFetching}
+          >
             {rows.length ? (
               rows.map((row) => (
                 <tr
                   key={rowKey(row)}
                   className="odd:bg-white even:bg-slate-50 hover:bg-slate-100"
                 >
+                  {selection && (
+                    <td className="w-12 px-4 py-3">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 accent-[#ff6a00]"
+                        checked={selection.selectedIds.includes(rowKey(row))}
+                        onChange={() => selection.onToggle(rowKey(row))}
+                        aria-label="Select row"
+                      />
+                    </td>
+                  )}
                   {columns.map((column) => (
                     <td
                       key={column.key}
@@ -107,7 +168,7 @@ const RecordsTable = memo(function RecordsTable({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-20">
+                <td colSpan={columns.length + (selection ? 1 : 0)} className="px-4 py-20">
                   {empty}
                 </td>
               </tr>

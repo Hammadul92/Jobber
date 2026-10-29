@@ -27,6 +27,19 @@ const jobApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Job", "JobPhoto"],
   endpoints: (builder) => ({
+    // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
+    fetchJobsPage: builder.query({
+      query: (params) => ({ url: "/job/", params }),
+      providesTags: ["Job"],
+    }),
+    bulkJobs: builder.mutation({
+      query: ({ action, ids }) => ({
+        url: "/job/bulk/",
+        method: "POST",
+        body: { action, ids },
+      }),
+      invalidatesTags: ["Job"],
+    }),
     fetchJobs: builder.query({
       query: (serviceId) => {
         let url = "/job/";
@@ -145,6 +158,8 @@ const jobApi = createApi({
 
 export const {
   useFetchJobsQuery,
+  useFetchJobsPageQuery,
+  useBulkJobsMutation,
   useFetchJobQuery,
   useCreateJobMutation,
   useUpdateJobMutation,

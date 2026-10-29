@@ -27,6 +27,19 @@ const invoiceApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Invoice"],
   endpoints: (builder) => ({
+    // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
+    fetchInvoicesPage: builder.query({
+      query: (params) => ({ url: "/invoice/", params }),
+      providesTags: ["Invoice"],
+    }),
+    bulkInvoices: builder.mutation({
+      query: ({ action, ids }) => ({
+        url: "/invoice/bulk/",
+        method: "POST",
+        body: { action, ids },
+      }),
+      invalidatesTags: ["Invoice"],
+    }),
     fetchInvoices: builder.query({
       query: (params) => {
         let url = "/invoice/";
@@ -127,6 +140,8 @@ const invoiceApi = createApi({
 
 export const {
   useFetchInvoicesQuery,
+  useFetchInvoicesPageQuery,
+  useBulkInvoicesMutation,
   useFetchInvoiceQuery,
   useCreateInvoiceMutation,
   useUpdateInvoiceMutation,

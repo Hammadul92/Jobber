@@ -27,6 +27,19 @@ const payoutApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Payout"],
   endpoints: (builder) => ({
+    // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
+    fetchPayoutsPage: builder.query({
+      query: (params) => ({ url: "/payout/", params }),
+      providesTags: ["Payout"],
+    }),
+    bulkPayouts: builder.mutation({
+      query: ({ action, ids }) => ({
+        url: "/payout/bulk/",
+        method: "POST",
+        body: { action, ids },
+      }),
+      invalidatesTags: ["Payout"],
+    }),
     fetchPayouts: builder.query({
       query: () => "/payout/",
       providesTags: ["Payout"],
@@ -86,6 +99,8 @@ const payoutApi = createApi({
 
 export const {
   useFetchPayoutsQuery,
+  useFetchPayoutsPageQuery,
+  useBulkPayoutsMutation,
   useFetchPayoutQuery,
   useCreatePayoutMutation,
   useUpdatePayoutMutation,

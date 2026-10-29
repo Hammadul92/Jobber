@@ -27,6 +27,19 @@ const quoteApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Quote"],
   endpoints: (builder) => ({
+    // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
+    fetchQuotesPage: builder.query({
+      query: (params) => ({ url: "/quote/", params }),
+      providesTags: ["Quote"],
+    }),
+    bulkQuotes: builder.mutation({
+      query: ({ action, ids }) => ({
+        url: "/quote/bulk/",
+        method: "POST",
+        body: { action, ids },
+      }),
+      invalidatesTags: ["Quote"],
+    }),
     fetchQuotes: builder.query({
       query: () => "/quote/",
       providesTags: ["Quote"],
@@ -84,6 +97,8 @@ const quoteApi = createApi({
 
 export const {
   useFetchQuotesQuery,
+  useFetchQuotesPageQuery,
+  useBulkQuotesMutation,
   useFetchQuoteQuery,
   useCreateQuoteMutation,
   useUpdateQuoteMutation,

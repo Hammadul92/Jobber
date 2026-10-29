@@ -6,6 +6,7 @@ from datetime import timedelta
 
 from django.db import transaction
 from django.http import FileResponse
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -15,6 +16,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from core.listing import ListingMixin
 from core.permissions import ClientLimitedWrite
 from taggit.models import Tag
 
@@ -31,7 +33,7 @@ from core.models import (
     Quote,
 )
 from core.pricing import business_tax_label, line_items_total, quote_line_items, service_line_items, tax_amount_for
-from operations import serializers, paginations, emails
+from operations import serializers, emails
 from operations.pdf import build_signed_quote_pdf
 
 
@@ -165,16 +167,17 @@ class BusinessViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ClientViewSet(viewsets.ModelViewSet):
+class ClientViewSet(ListingMixin, viewsets.ModelViewSet):
     """View for manage clients APIs."""
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
     serializer_class = serializers.ClientSerializer
-    queryset = Client.objects.filter(is_active=True).prefetch_related(
-        "client_services"
-    )
-    pagination_class = paginations.ClientPagination
+    queryset = Client.objects.select_related("user").prefetch_related("client_services")
+    search_fields = ["name", "phone", "user__email", "company_name"]
+    ordering_fields = ["name", "user__email", "phone", "is_active", "created_at"]
+    filter_fields = {"is_active": "is_active"}
+    bulk_actions = {"activate": "bulk_activate", "deactivate": "bulk_deactivate", "delete": "destroy"}
 
     def get_queryset(self):
         """Retrieve clients for authenticated user."""
@@ -198,8 +201,21 @@ class ClientViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
 
+    def bulk_activate(self, request, pk=None):
+        return self._set_active(True)
 
-class TeamMemberViewSet(viewsets.ModelViewSet):
+    def bulk_deactivate(self, request, pk=None):
+        return self._set_active(False)
+
+    def _set_active(self, active):
+        client = self.get_object()
+        serializer = self.get_serializer(client, data={"is_active": active}, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_200_OK)
+
+
+class TeamMemberViewSet(ListingMixin, viewsets.ModelViewSet):
     """View for manage team member APIs."""
 
     authentication_classes = [TokenAuthentication]
@@ -210,6 +226,10 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
         .order_by("-id")
     )
     serializer_class = serializers.TeamMemberSerializer
+    search_fields = ["employee__name", "employee__email", "employee__phone", "job_duties"]
+    ordering_fields = ["employee__name", "employee__email", "employee__role", "joined_at"]
+    filter_fields = {"role": "employee__role", "is_active": "employee__is_active"}
+    bulk_actions = {"delete": "destroy"}
 
     def get_queryset(self):
         user = self.request.user
@@ -230,7 +250,7 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
         instance.soft_delete(user=self.request.user)
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(ListingMixin, viewsets.ModelViewSet):
     """View for manage services APIs."""
 
     authentication_classes = [TokenAuthentication]
@@ -238,6 +258,13 @@ class ServiceViewSet(viewsets.ModelViewSet):
     client_actions = ("partial_update",)
     client_fields = ("filled_questionnaire",)
     serializer_class = serializers.ServiceSerializer
+    search_fields = ["service_name", "client__name", "street_address", "city", "postal_code"]
+    ordering_fields = ["service_name", "client__name", "service_type", "start_date", "end_date", "status", "created_at"]
+    filter_fields = {
+        "status": "status", "service_type": "service_type",
+        "country": "country", "province_state": "province_state",
+    }
+    bulk_actions = {"resend_questionnaire": "resend_questionnaire", "delete": "destroy"}
 
     queryset = (
         Service.objects.filter(is_active=True)
@@ -351,18 +378,28 @@ class ServiceViewSet(viewsets.ModelViewSet):
         instance.soft_delete(user=self.request.user)
 
 
-class QuoteViewSet(viewsets.ModelViewSet):
+class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
     """View for manage quote APIs."""
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
     client_actions = ("sign_quote",)
     serializer_class = serializers.QuoteSerializer
-    queryset = Quote.objects.filter(is_active=True).select_related("service")
+    queryset = Quote.objects.filter(is_active=True).select_related("service", "service__client", "service__business")
+    search_fields = ["quote_number", "service__service_name", "service__client__name"]
+    ordering_fields = ["quote_number", "service__client__name", "service__service_name", "status", "valid_until",
+                       "created_at"]
+    bulk_actions = {"send": "send_quote", "delete": "destroy"}
 
     def get_queryset(self):
         user = self.request.user
         qs = super().get_queryset()
+
+        # EXPIRED is shown for unsigned quotes past their valid-until date.
+        status_filter = self.request.query_params.get("status")
+        if status_filter:
+            expired = Q(valid_until__lt=timezone.localdate()) & ~Q(status="SIGNED")
+            qs = qs.filter(expired) if status_filter == "EXPIRED" else qs.filter(status=status_filter).exclude(expired)
         if user.role == "ADMIN":
             return qs
         if user.role == "MANAGER":
@@ -372,6 +409,8 @@ class QuoteViewSet(viewsets.ModelViewSet):
         return qs.none()
 
     def perform_destroy(self, instance):
+        if instance.status == "SIGNED":
+            raise ValidationError({"detail": "Signed quotes cannot be deleted."})
         instance.soft_delete(user=self.request.user)
 
     def perform_create(self, serializer):
@@ -588,7 +627,7 @@ class ServiceTermsTemplateViewSet(viewsets.ModelViewSet):
         instance.soft_delete(user=self.request.user)
 
 
-class JobViewSet(viewsets.ModelViewSet):
+class JobViewSet(ListingMixin, viewsets.ModelViewSet):
     """ViewSet for managing jobs related to services."""
 
     authentication_classes = [TokenAuthentication]
@@ -601,6 +640,22 @@ class JobViewSet(viewsets.ModelViewSet):
         "assigned_to",
         "assigned_to__employee",
     ).order_by("-id")
+    search_fields = ["title", "service__service_name", "service__client__name", "assigned_to__employee__name"]
+    ordering_fields = ["title", "service__service_name", "assigned_to__employee__name", "scheduled_date", "status",
+                       "created_at"]
+    filter_fields = {
+        "status": "status", "assigned_to": "assigned_to_id",
+        "scheduled_from": "scheduled_date__date__gte", "scheduled_to": "scheduled_date__date__lte",
+    }
+    bulk_actions = {"cancel": "bulk_cancel", "delete": "destroy"}
+
+    def bulk_cancel(self, request, pk=None):
+        job = self.get_object()
+        if job.status in ("COMPLETED", "CANCELLED"):
+            raise ValidationError({"detail": f"Job is already {job.status.lower()}."})
+        job.status = "CANCELLED"
+        job.save(update_fields=["status", "updated_at"])
+        return Response(status=status.HTTP_200_OK)
 
     def get_queryset(self):
         """Filter queryset based on user role and optional query params."""

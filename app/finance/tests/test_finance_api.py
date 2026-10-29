@@ -161,7 +161,7 @@ class InvoicePaymentWorkflowTests(TestCase):
         for invoice in (self.invoice, other_invoice):
             res = self.client.get(reverse("finance:invoice-detail", args=[invoice.pk]))
             self.assertEqual(res.status_code, status.HTTP_200_OK)
-        listing = self.client.get(reverse("finance:invoice-list"))
+        listing = self.client.get(reverse("finance:invoice-list"), {"page": 1})
         self.assertEqual(
             {item["id"] for item in listing.data["results"]},
             {self.invoice.pk, other_invoice.pk},
@@ -178,7 +178,7 @@ class InvoicePaymentWorkflowTests(TestCase):
         )
         self.client.force_authenticate(self.client_user)
 
-        listing = self.client.get(reverse("finance:invoice-list"))
+        listing = self.client.get(reverse("finance:invoice-list"), {"page": 1})
 
         self.assertEqual(listing.status_code, 200)
         self.assertEqual(

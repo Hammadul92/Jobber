@@ -1,14 +1,38 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useFetchQuotesQuery, useDeleteQuoteMutation } from "../../../store";
+import {
+  useFetchQuotesPageQuery,
+  useDeleteQuoteMutation,
+  useBulkQuotesMutation,
+} from "../../../store";
 import Select from "../../../Components/ui/Select";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
+import BulkActionBar from "../../../Components/ui/BulkActionBar";
+import TablePagination from "../../../Components/ui/TablePagination";
+import useServerTable from "../../../hooks/useServerTable";
 import { formatDate } from "../../../utils/formatDate";
-import { LuEye, LuPencil, LuTrash2 } from "react-icons/lu";
+import { LuEye, LuPencil, LuSearch, LuTrash2 } from "react-icons/lu";
 
 const QUOTE_STATUS_OPTIONS = ["DRAFT", "SENT", "SIGNED", "DECLINED", "EXPIRED"];
+
+const BULK_ACTIONS = [
+  {
+    key: "send",
+    label: "Send quotes",
+    tone: "primary",
+    confirmMessage: (count) =>
+      `Email ${count} selected quote${count === 1 ? "" : "s"} to the client? Signed or expired quotes are skipped.`,
+  },
+  {
+    key: "delete",
+    label: "Delete",
+    tone: "danger",
+    confirmMessage: (count) =>
+      `Delete ${count} selected quote${count === 1 ? "" : "s"}? Signed quotes are kept.`,
+  },
+];
 
 const getDisplayStatus = (quote) =>
   quote.status !== "SIGNED" &&
@@ -18,37 +42,21 @@ const getDisplayStatus = (quote) =>
     : quote.status;
 
 export default function QuotesData({ token, role, setAlert }) {
+  const table = useServerTable({ initialOrdering: "-created_at" });
   const {
-    data: quoteData,
+    data,
     isLoading,
+    isFetching,
     error,
-    refetch,
-  } = useFetchQuotesQuery(undefined, { skip: !token });
+  } = useFetchQuotesPageQuery(table.queryArgs, { skip: !token });
 
   const [deleteQuote, { isLoading: deleting }] = useDeleteQuoteMutation();
+  const [bulkQuotes] = useBulkQuotesMutation();
   const [showModal, setShowModal] = useState(false);
   const [selectedQuoteId, setSelectedQuoteId] = useState(null);
 
-  const [serviceFilter, setServiceFilter] = useState("");
-  const [clientFilter, setClientFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-
-  const quotes = useMemo(() => quoteData || [], [quoteData]);
-
-  const uniqueServices = useMemo(
-    () => [...new Set(quotes.map((q) => q.service_name).filter(Boolean))],
-    [quotes],
-  );
-  const uniqueClients = useMemo(
-    () => [...new Set(quotes.map((q) => q.client_name).filter(Boolean))],
-    [quotes],
-  );
-  const filteredQuotes = quotes.filter((q) => {
-    const matchService = !serviceFilter || q.service_name === serviceFilter;
-    const matchClient = !clientFilter || q.client_name === clientFilter;
-    const matchStatus = !statusFilter || getDisplayStatus(q) === statusFilter;
-    return matchService && matchClient && matchStatus;
-  });
+  const quotes = data?.results || [];
+  const isManager = role === "MANAGER";
 
   useEffect(() => {
     if (error) {
@@ -74,9 +82,7 @@ export default function QuotesData({ token, role, setAlert }) {
       setAlert({ type: "success", message: "Quote deleted successfully!" });
       setShowModal(false);
       setSelectedQuoteId(null);
-      refetch();
     } catch (err) {
-      console.error("Failed to delete quote:", err);
       setAlert({
         type: "danger",
         message:
@@ -86,10 +92,21 @@ export default function QuotesData({ token, role, setAlert }) {
     }
   };
 
+  const runBulkAction = async (action) => {
+    const result = await bulkQuotes({ action, ids: table.selectedIds }).unwrap();
+    table.clearSelection();
+    return result;
+  };
+
+  const quoteNumberFor = (id) =>
+    quotes.find((quote) => String(quote.id) === String(id))?.quote_number ||
+    `#${id}`;
+
   const columns = [
     {
       key: "quote",
       title: "Quote",
+      sortKey: "quote_number",
       width: "12%",
       className: "whitespace-nowrap px-4 py-3 font-semibold text-slate-900",
       render: (quote) => quote.quote_number,
@@ -97,6 +114,7 @@ export default function QuotesData({ token, role, setAlert }) {
     {
       key: "client",
       title: "Client",
+      sortKey: "service__client__name",
       width: "14%",
       className: "whitespace-nowrap px-4 py-3 text-slate-700",
       render: (quote) => quote.client_name || "—",
@@ -104,9 +122,10 @@ export default function QuotesData({ token, role, setAlert }) {
     {
       key: "service",
       title: "Service",
+      sortKey: "service__service_name",
       width: "12%",
       render: (quote) =>
-        role === "MANAGER" && quote.service_data?.id ? (
+        isManager && quote.service_data?.id ? (
           <Link
             to={`/user/business/service/${quote.service_data.id}`}
             className="font-medium text-secondary hover:text-accent"
@@ -135,6 +154,7 @@ export default function QuotesData({ token, role, setAlert }) {
     {
       key: "status",
       title: "Status",
+      sortKey: "status",
       width: "9%",
       render: (quote) => {
         const status = getDisplayStatus(quote);
@@ -158,6 +178,7 @@ export default function QuotesData({ token, role, setAlert }) {
     {
       key: "valid_until",
       title: "Valid Until",
+      sortKey: "valid_until",
       width: "12%",
       render: (quote) =>
         quote.valid_until ? formatDate(quote.valid_until) : "—",
@@ -187,7 +208,7 @@ export default function QuotesData({ token, role, setAlert }) {
               View
             </Link>
           )}
-          {role === "MANAGER" && (
+          {isManager && (
             <Link
               to={`/user/business/quote/${quote.id}`}
               className="rounded-xl p-2 text-secondary hover:bg-secondary/5"
@@ -201,7 +222,7 @@ export default function QuotesData({ token, role, setAlert }) {
               )}
             </Link>
           )}
-          {role === "MANAGER" && quote.status !== "SIGNED" && (
+          {isManager && quote.status !== "SIGNED" && (
             <button
               type="button"
               onClick={() => handleDeleteClick(quote.id)}
@@ -224,35 +245,30 @@ export default function QuotesData({ token, role, setAlert }) {
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-100 px-6 py-5">
           <div className="grid gap-4 md:grid-cols-3 [&>div]:mb-0">
-            <Select
-              id="quotes-service-filter"
-              label="Service"
-              value={serviceFilter}
-              onChange={setServiceFilter}
-              options={[
-                { value: "", label: "All Services" },
-                ...uniqueServices.map((name) => ({ value: name, label: name })),
-              ]}
-              fieldClass="h-11 rounded-lg border-gray-200 bg-white px-3 text-sm text-slate-700"
-            />
-
-            <Select
-              id="quotes-client-filter"
-              label="Client"
-              value={clientFilter}
-              onChange={setClientFilter}
-              options={[
-                { value: "", label: "All Clients" },
-                ...uniqueClients.map((name) => ({ value: name, label: name })),
-              ]}
-              fieldClass="h-11 rounded-lg border-gray-200 bg-white px-3 text-sm text-slate-700"
-            />
+            <label className="md:col-span-2">
+              <span className="mb-1 block text-sm font-medium text-slate-700">
+                Search
+              </span>
+              <span className="relative block">
+                <LuSearch
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                  aria-hidden="true"
+                />
+                <input
+                  type="search"
+                  value={table.searchInput}
+                  onChange={(event) => table.setSearchInput(event.target.value)}
+                  placeholder="Quote number, client or service"
+                  className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-slate-700 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                />
+              </span>
+            </label>
 
             <Select
               id="quotes-status-filter"
               label="Status"
-              value={statusFilter}
-              onChange={setStatusFilter}
+              value={table.filters.status || ""}
+              onChange={(value) => table.setFilter("status", value)}
               options={[
                 { value: "", label: "All Statuses" },
                 ...QUOTE_STATUS_OPTIONS.map((status) => ({
@@ -264,29 +280,59 @@ export default function QuotesData({ token, role, setAlert }) {
             />
           </div>
         </div>
+        {isManager && (
+          <BulkActionBar
+            selectedCount={table.selectedIds.length}
+            actions={BULK_ACTIONS.map((action) => ({
+              ...action,
+              describeRow: quoteNumberFor,
+            }))}
+            onRun={runBulkAction}
+            onClear={table.clearSelection}
+          />
+        )}
         <RecordsTable
           columns={columns}
           tableClassName="min-w-[800px] sm:min-w-[1150px]"
-          rows={filteredQuotes}
+          rows={quotes}
           rowKey={(quote) => quote.id}
+          ordering={table.ordering}
+          onSort={table.toggleSort}
+          isFetching={isFetching}
+          selection={
+            isManager
+              ? {
+                  selectedIds: table.selectedIds,
+                  onToggle: table.toggleSelected,
+                  onToggleAll: table.toggleAllSelected,
+                }
+              : undefined
+          }
           empty={
             <div className="mx-auto flex max-w-md flex-col items-center text-center">
               <h5 className="text-xl font-medium text-slate-900">
-                {quotes.length
+                {table.hasActiveFilters
                   ? "No quotes match your filters."
                   : "No quotes yet"}
               </h5>
               <p className="mt-2 text-sm text-slate-500">
-                {quotes.length
-                  ? "Try adjusting your service, client, or status filters."
+                {table.hasActiveFilters
+                  ? "Try a different search or status."
                   : "Create a quote to start tracking pricing and approvals."}
               </p>
             </div>
           }
           footer={
-            <p>
-              Showing {filteredQuotes.length} of {quotes.length} quotes
-            </p>
+            <TablePagination
+              page={table.page}
+              pageSize={table.pageSize}
+              count={data?.count}
+              totalPages={data?.total_pages}
+              isFetching={isFetching}
+              noun="quotes"
+              onPageChange={table.goToPage}
+              onPageSizeChange={table.setPageSize}
+            />
           }
         />
       </div>
@@ -298,7 +344,7 @@ export default function QuotesData({ token, role, setAlert }) {
           role="dialog"
           aria-modal="true"
         >
-          <div className="w-1/4 bg-white shadow-2xl rounded-2xl">
+          <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h5 className="text-xl font-medium text-gray-900">
                 Delete Quote

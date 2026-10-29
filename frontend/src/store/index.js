@@ -97,6 +97,8 @@ export {
 
 export {
   useFetchClientsQuery,
+  useFetchClientsPageQuery,
+  useBulkClientsMutation,
   useFetchClientQuery,
   useCreateClientMutation,
   useUpdateClientMutation,
@@ -105,6 +107,8 @@ export {
 
 export {
   useFetchTeamMembersQuery,
+  useFetchTeamMembersPageQuery,
+  useBulkTeamMembersMutation,
   useFetchTeamMemberQuery,
   useCreateTeamMemberMutation,
   useUpdateTeamMemberMutation,
@@ -113,6 +117,8 @@ export {
 
 export {
   useFetchServicesQuery,
+  useFetchServicesPageQuery,
+  useBulkServicesMutation,
   useFetchServiceQuery,
   useCreateServiceMutation,
   useUpdateServiceMutation,
@@ -122,6 +128,8 @@ export {
 
 export {
   useFetchQuotesQuery,
+  useFetchQuotesPageQuery,
+  useBulkQuotesMutation,
   useFetchQuoteQuery,
   useCreateQuoteMutation,
   useUpdateQuoteMutation,
@@ -148,6 +156,8 @@ export {
 
 export {
   useFetchJobsQuery,
+  useFetchJobsPageQuery,
+  useBulkJobsMutation,
   useFetchJobQuery,
   useCreateJobMutation,
   useUpdateJobMutation,
@@ -175,6 +185,8 @@ export {
 
 export {
   useFetchInvoicesQuery,
+  useFetchInvoicesPageQuery,
+  useBulkInvoicesMutation,
   useFetchInvoiceQuery,
   useCreateInvoiceMutation,
   useUpdateInvoiceMutation,
@@ -186,6 +198,8 @@ export {
 
 export {
   useFetchPayoutsQuery,
+  useFetchPayoutsPageQuery,
+  useBulkPayoutsMutation,
   useFetchPayoutQuery,
   useCreatePayoutMutation,
   useUpdatePayoutMutation,

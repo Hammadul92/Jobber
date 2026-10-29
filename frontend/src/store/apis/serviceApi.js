@@ -39,6 +39,19 @@ const serviceApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Service"],
   endpoints: (builder) => ({
+    // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
+    fetchServicesPage: builder.query({
+      query: (params) => ({ url: "/service/", params }),
+      providesTags: ["Service"],
+    }),
+    bulkServices: builder.mutation({
+      query: ({ action, ids }) => ({
+        url: "/service/bulk/",
+        method: "POST",
+        body: { action, ids },
+      }),
+      invalidatesTags: ["Service"],
+    }),
     fetchServices: builder.query({
       query: (client) => {
         let url = "/service/";
@@ -92,6 +105,8 @@ const serviceApi = createApi({
 
 export const {
   useFetchServicesQuery,
+  useFetchServicesPageQuery,
+  useBulkServicesMutation,
   useFetchServiceQuery,
   useCreateServiceMutation,
   useUpdateServiceMutation,

@@ -27,6 +27,19 @@ const teamMemberApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["TeamMember"],
   endpoints: (builder) => ({
+    // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
+    fetchTeamMembersPage: builder.query({
+      query: (params) => ({ url: "/team-member/", params }),
+      providesTags: ["TeamMember"],
+    }),
+    bulkTeamMembers: builder.mutation({
+      query: ({ action, ids }) => ({
+        url: "/team-member/bulk/",
+        method: "POST",
+        body: { action, ids },
+      }),
+      invalidatesTags: ["TeamMember"],
+    }),
     fetchTeamMembers: builder.query({
       query: () => "/team-member",
       providesTags: ["TeamMember"],
@@ -66,6 +79,8 @@ const teamMemberApi = createApi({
 
 export const {
   useFetchTeamMembersQuery,
+  useFetchTeamMembersPageQuery,
+  useBulkTeamMembersMutation,
   useFetchTeamMemberQuery,
   useCreateTeamMemberMutation,
   useUpdateTeamMemberMutation,

@@ -27,6 +27,19 @@ const clientApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Client"],
   endpoints: (builder) => ({
+    // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
+    fetchClientsPage: builder.query({
+      query: (params) => ({ url: "/client/", params }),
+      providesTags: ["Client"],
+    }),
+    bulkClients: builder.mutation({
+      query: ({ action, ids }) => ({
+        url: "/client/bulk/",
+        method: "POST",
+        body: { action, ids },
+      }),
+      invalidatesTags: ["Client"],
+    }),
     fetchClients: builder.query({
       query: () => "/client/",
       providesTags: ["Client"],
@@ -70,6 +83,8 @@ const clientApi = createApi({
 
 export const {
   useFetchClientsQuery,
+  useFetchClientsPageQuery,
+  useBulkClientsMutation,
   useFetchClientQuery,
   useCreateClientMutation,
   useUpdateClientMutation,

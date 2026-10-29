@@ -12,14 +12,15 @@ from rest_framework import status, viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import APIException, PermissionDenied
+from rest_framework.exceptions import APIException, PermissionDenied, ValidationError as DRFValidationError
 from rest_framework.response import Response
 
+from core.listing import ListingMixin
 from core.permissions import ClientLimitedWrite
 
 from core.models import BankingInformation, Business, Client, Invoice, Payout, PayoutRefund
 from core.payment_terms import business_local_date, prepare_first_send
-from finance import serializers, paginations, emails
+from finance import serializers, emails
 from finance.stripe_connect import create_merchant_account, create_onboarding_link
 from finance.payment_methods import get_client_payment_method
 
@@ -355,7 +356,7 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
             )
 
 
-class InvoiceViewSet(viewsets.ModelViewSet):
+class InvoiceViewSet(ListingMixin, viewsets.ModelViewSet):
     """ViewSet for managing invoices."""
 
     serializer_class = serializers.InvoiceSerializer
@@ -363,7 +364,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
     client_actions = ("make_payment",)
-    pagination_class = paginations.InvoicePagination
+    search_fields = ["invoice_number", "client__name", "service__service_name"]
+    ordering_fields = ["invoice_number", "client__name", "service__service_name", "total_amount", "status",
+                       "due_date", "created_at"]
+    filter_fields = {"status": "status", "due_from": "due_date__gte", "due_to": "due_date__lte"}
+    bulk_actions = {"send": "send_invoice", "delete": "destroy"}
 
     def get_queryset(self):
         """Return invoices linked to the logged-in user."""
@@ -435,6 +440,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
         if instance.business.owner_id != self.request.user.pk:
             raise PermissionDenied("Only the business owner can delete invoices.")
+        settled = ("PAID", "PARTIALLY_REFUNDED", "REFUNDED")
+        if instance.status == "PAID" or instance.payouts.filter(status__in=settled).exists():
+            raise DRFValidationError({"detail": "Paid invoices cannot be deleted."})
         instance.soft_delete(user=self.request.user)
 
     @action(detail=True, methods=["post"], url_path="send-invoice")
@@ -595,7 +603,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
 
 class PayoutViewSet(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet,
+    ListingMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet,
 ):
     """Payment records are kept permanently; refunds are recorded against them."""
 
@@ -603,7 +611,12 @@ class PayoutViewSet(
     queryset = Payout.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
-    pagination_class = paginations.PayoutPagination
+    search_fields = ["invoice__invoice_number", "invoice__client__name", "invoice__service__service_name"]
+    ordering_fields = ["invoice__invoice_number", "invoice__client__name", "amount", "status", "processed_at",
+                       "created_at"]
+    filter_fields = {
+        "status": "status", "processed_from": "processed_at__date__gte", "processed_to": "processed_at__date__lte",
+    }
 
     def get_queryset(self):
         """Restrict payouts to the user's business."""
