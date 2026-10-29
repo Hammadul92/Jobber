@@ -152,23 +152,33 @@ def send_branded_email(
     if (platform_logo or business_logo) and not attachments:
         email.mixed_subtype = "related"
 
+    # Build the copy first: backends such as SendGrid write delivery details
+    # into the sent message's headers, which must not leak into the copy.
+    admin_copy = _build_admin_copy(email, context, text_body, subject)
     sent = email.send(fail_silently=False)
     if not sent:
         raise RuntimeError("Email backend did not accept the message.")
-    _send_admin_copy(email, context, text_body, subject)
+    if admin_copy is not None:
+        try:
+            admin_copy.send(fail_silently=False)
+        except Exception:
+            logger.exception("Admin copy of email %r could not be sent", subject)
     return sent
 
 
-def _send_admin_copy(email, context, text_body, subject):
-    """Send a reference copy of a delivered email to the platform admin."""
+def _build_admin_copy(email, context, text_body, subject):
+    """Return a reference copy of the email for the platform admin, if enabled."""
     copy_recipient = settings.EMAIL_COPY_RECIPIENT
     if not copy_recipient or copy_recipient.lower() in (
         address.lower() for address in email.to
     ):
-        return
+        return None
 
     original_recipients = ", ".join(email.to)
     admin_copy = copy.copy(email)
+    admin_copy.extra_headers = dict(email.extra_headers)
+    admin_copy.attachments = list(email.attachments)
+    admin_copy.connection = None
     admin_copy.to = [copy_recipient]
     admin_copy.cc = []
     admin_copy.bcc = []
@@ -181,7 +191,4 @@ def _send_admin_copy(email, context, text_body, subject):
         ),
         "text/html",
     )]
-    try:
-        admin_copy.send(fail_silently=False)
-    except Exception:
-        logger.exception("Admin copy of email %r could not be sent", subject)
+    return admin_copy

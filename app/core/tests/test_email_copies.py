@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core import mail, signing
+from django.core.mail.backends.locmem import EmailBackend as LocmemBackend
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -13,6 +14,19 @@ from user.utils import (
     generate_magic_login_token, verify_magic_login_token,
     generate_password_reset_token, verify_password_reset_token,
 )
+
+
+class SendgridLikeBackend(LocmemBackend):
+    """Writes delivery details into sent messages, as django-sendgrid-v5 does."""
+
+    def send_messages(self, messages):
+        for message in messages:
+            assert "status" not in message.extra_headers, "copy reused the sent message's headers"
+        sent = super().send_messages(messages)
+        for message in messages:
+            message.extra_headers["status"] = 202
+            message.extra_headers["message_id"] = "sg-message-id"
+        return sent
 
 
 @override_settings(
@@ -40,6 +54,14 @@ class EmailCopyTests(TestCase):
         self.assertIn("Copy of an email sent to client@example.com", copy.alternatives[0][0])
         self.assertNotIn("Copy of an email", original.alternatives[0][0])
         self.assertIn("quote.pdf", [item[0] for item in copy.attachments if isinstance(item, tuple)])
+
+    @override_settings(EMAIL_BACKEND="core.tests.test_email_copies.SendgridLikeBackend")
+    def test_copy_does_not_reuse_headers_written_by_the_backend(self):
+        self.assertEqual(send_branded_email(**self.options), 1)
+
+        self.assertEqual([message.to for message in mail.outbox], [["client@example.com"], ["admin@example.com"]])
+        self.assertEqual(mail.outbox[1].extra_headers["message_id"], "sg-message-id")
+        self.assertIsNot(mail.outbox[0].extra_headers, mail.outbox[1].extra_headers)
 
     def test_no_copy_when_admin_is_the_recipient_or_disabled(self):
         send_branded_email(**{**self.options, "recipient_list": ["Admin@example.com"]})
