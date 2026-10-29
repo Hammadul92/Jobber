@@ -266,8 +266,11 @@ class SignedQuotePdfTests(SimpleTestCase):
         self.assertLessEqual(signature.drawHeight, 56)
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-    def test_email_attachment_uses_pdf_with_business_details(self):
+    @patch("core.models.BusinessEmail.objects.create")
+    def test_email_attachment_uses_pdf_with_business_details(self, create_history):
         _, text = self.render(lambda: send_signed_quote_copy_email(self.quote))
+
+        create_history.assert_called_once()
 
         self.assertIn("Address: 700 Business Avenue, Suite 12", text)
         self.assertIn("Phone: +1 780-555-0123", text)

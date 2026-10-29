@@ -960,7 +960,11 @@ class BusinessEmail(models.Model):
     html_body = models.TextField()
     action_url = models.TextField(blank=True)
     attachment_names = models.JSONField(default=list)
-    status = models.CharField(max_length=10, choices=[("PENDING", "Pending"), ("SENT", "Sent"), ("FAILED", "Failed")], default="PENDING")
+    status = models.CharField(
+        max_length=10,
+        choices=[("PENDING", "Pending"), ("SENT", "Sent"), ("FAILED", "Failed")],
+        default="PENDING",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
 
