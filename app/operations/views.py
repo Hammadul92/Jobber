@@ -186,13 +186,9 @@ class ClientViewSet(viewsets.ModelViewSet):
         """Assign business and user to the client for authenticated user."""
         business = Business.objects.filter(owner=self.request.user).first()
         if not business:
-            raise ValueError("You must own a business to create a client.")
+            raise PermissionDenied("You must own a business to create a client.")
 
-        user_id = self.request.data.get("user")
-        if not user_id:
-            raise ValueError("Client must have a user assigned.")
-
-        serializer.save(business=business, user_id=user_id)
+        serializer.save(business=business)
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
@@ -322,7 +318,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
         if user.role == "MANAGER":
             qs = qs.filter(business__owner=user)
         elif user.role == "CLIENT":
-            qs = qs.filter(client__user=user)
+            qs = qs.filter(client__user=user, client__is_active=True)
         elif user.role != "ADMIN":
             qs = qs.none()
 
@@ -364,7 +360,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
         if user.role == "MANAGER":
             return qs.filter(service__business__owner=user).order_by("-id")
         if user.role == "CLIENT":
-            return qs.filter(service__client__user=user).order_by("-id")
+            return qs.filter(service__client__user=user, service__client__is_active=True).order_by("-id")
         return qs.none()
 
     def perform_destroy(self, instance):
@@ -606,7 +602,7 @@ class JobViewSet(viewsets.ModelViewSet):
         if user.role == "MANAGER":
             qs = qs.filter(service__business__owner=user)
         elif user.role == "CLIENT":
-            qs = qs.filter(service__client__user=user)
+            qs = qs.filter(service__client__user=user, service__client__is_active=True)
         elif user.role == "EMPLOYEE":
             qs = qs.filter(assigned_to__employee=user)
         elif user.role != "ADMIN":
@@ -662,7 +658,7 @@ class JobPhotoViewSet(viewsets.ModelViewSet):
         if user.role == "MANAGER":
             qs = qs.filter(job__service__business__owner=user)
         elif user.role == "CLIENT":
-            qs = qs.filter(job__service__client__user=user)
+            qs = qs.filter(job__service__client__user=user, job__service__client__is_active=True)
         elif user.role == "EMPLOYEE":
             qs = qs.filter(job__assigned_to__employee=user)
         elif user.role != "ADMIN":

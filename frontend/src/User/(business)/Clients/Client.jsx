@@ -109,10 +109,10 @@ export default function Client({ token }) {
         err?.data?.detail ||
         (err?.data && typeof err.data === "object"
           ? Object.entries(err.data)
-              .map(
-                ([key, value]) =>
-                  `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
-              )
+              .map(([key, value]) => {
+                const text = Array.isArray(value) ? value.join(", ") : value;
+                return key === "non_field_errors" ? text : `${key}: ${text}`;
+              })
               .join(" | ")
           : err?.message) ||
         "Failed to update client.";

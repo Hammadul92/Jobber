@@ -134,7 +134,7 @@ class ClientSerializer(serializers.ModelSerializer):
         source="user.name",
         required=False
     )
-    client_email = serializers.CharField(
+    client_email = serializers.EmailField(
         source="user.email",
         required=False
     )
@@ -145,10 +145,6 @@ class ClientSerializer(serializers.ModelSerializer):
     payment_method = serializers.SerializerMethodField()
     questionnaires_filled = serializers.SerializerMethodField()
     questionnaires_total = serializers.SerializerMethodField()
-    is_active = serializers.BooleanField(
-        source="user.is_active",
-        required=False
-    )
 
     class Meta:
         model = Client
@@ -189,28 +185,85 @@ class ClientSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         user_data = attrs.get("user", {})
-        email = user_data.get("email")
+        if self.instance is None:
+            missing = {
+                f"client_{field}": "This field is required."
+                for field in ("name", "email", "phone")
+                if not user_data.get(field)
+            }
+            if missing:
+                raise serializers.ValidationError(missing)
+            return attrs
 
-        if email and self.instance:
-            User = get_user_model()
-            if User.objects.exclude(pk=self.instance.user_id).filter(
-                email__iexact=email
+        account = self.instance.user
+        changed = {
+            field for field, value in user_data.items()
+            if getattr(account, field) != value
+        }
+        if not changed:
+            attrs.pop("user", None)
+            return attrs
+
+        # The login account is shared with every business the person works
+        # with, so a business may only edit it while it is the sole user.
+        shared = (
+            account.role != "CLIENT"
+            or account.owned_businesses.exists()
+            or Client.all_objects.filter(user=account).exclude(pk=self.instance.pk).exists()
+        )
+        if shared:
+            raise serializers.ValidationError(
+                "This client's account is shared with another business, so only the client can change "
+                "their name, email or phone from their profile."
+            )
+        if "email" in changed:
+            if account.last_login:
+                raise serializers.ValidationError({
+                    "client_email": "This client has already signed in, so only they can change their email."
+                })
+            if get_user_model().objects.exclude(pk=account.pk).filter(
+                email__iexact=user_data["email"]
             ).exists():
                 raise serializers.ValidationError({
                     "client_email": "A user with this email already exists."
                 })
-
         return attrs
+
+    def create(self, validated_data):
+        """Link the person with this email, creating their account if needed."""
+        user_data = validated_data.pop("user")
+        business = validated_data["business"]
+        User = get_user_model()
+        account = User.objects.filter(email__iexact=user_data["email"]).first()
+        if account is None:
+            account = User.objects.create_user(
+                user_data["email"], name=user_data["name"], phone=user_data["phone"],
+                role="CLIENT", is_active=True,
+            )
+        elif account.pk == business.owner_id:
+            raise serializers.ValidationError({"client_email": "You cannot add yourself as a client."})
+        else:
+            existing = Client.all_objects.filter(business=business, user=account).first()
+            if existing:
+                raise serializers.ValidationError({
+                    "client_email": (
+                        "This client was previously removed. Contact support to restore them."
+                        if existing.is_deleted else "This person is already your client."
+                    )
+                })
+        return super().create({**validated_data, "user": account})
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop("user", {})
         instance = super().update(instance, validated_data)
 
+        user = instance.user
+        if instance.is_active and not user.is_active and user.role == "CLIENT":
+            # Restore accounts disabled when deactivation was account-wide.
+            user_data["is_active"] = True
         if user_data:
-            user = instance.user
-            for field in ["name", "email", "phone", "is_active"]:
-                if field in user_data:
-                    setattr(user, field, user_data[field])
+            for field, value in user_data.items():
+                setattr(user, field, value)
             user.save(update_fields=list(user_data.keys()))
 
         return instance

@@ -12,7 +12,7 @@ from io import BytesIO
 from rest_framework.test import APIClient
 from rest_framework import status
 from PIL import Image
-from core.models import Business, FAQ
+from core.models import FAQ
 
 
 CREATE_USER_URL = reverse('user:create')
@@ -64,60 +64,6 @@ class PublicUserApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         user = get_user_model().objects.get(email='admin@example.com')
         self.assertEqual(user.role, 'USER')
-
-    def test_portal_client_creation_does_not_send_registration_email(self):
-        manager = create_user(
-            email='manager@example.com', password='testpass123', name='Manager'
-        )
-        Business.objects.create(owner=manager, name='Manager Business')
-        self.client.force_authenticate(user=manager)
-
-        invalid = self.client.post(reverse('user:create-client'), {
-            'email': 'not-an-email',
-            'name': 'Invalid Client',
-            'phone': '1234567890',
-        })
-        self.assertEqual(invalid.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(mail.outbox), 0)
-
-        res = self.client.post(reverse('user:create-client'), {
-            'email': 'client@example.com',
-            'name': 'Client Name',
-            'phone': '1234567890',
-            'role': 'ADMIN',
-            'password': 'should-not-be-used',
-        })
-
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        user = get_user_model().objects.get(email='client@example.com')
-        self.assertEqual(user.role, 'CLIENT')
-        self.assertTrue(user.is_active)
-        self.assertFalse(user.has_usable_password())
-        self.assertEqual(len(mail.outbox), 0)
-
-        duplicate = self.client.post(reverse('user:create-client'), {
-            'email': 'client@example.com',
-            'name': 'Duplicate Client',
-            'phone': '1234567890',
-        })
-        self.assertEqual(duplicate.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(get_user_model().objects.filter(email='client@example.com').count(), 1)
-        self.assertEqual(len(mail.outbox), 0)
-
-    def test_portal_client_creation_requires_business_owner(self):
-        payload = {
-            'email': 'client@example.com',
-            'name': 'Client Name',
-            'phone': '1234567890',
-        }
-        url = reverse('user:create-client')
-        self.assertEqual(self.client.post(url, payload).status_code, status.HTTP_401_UNAUTHORIZED)
-
-        self.client.force_authenticate(user=create_user(
-            email='regular@example.com', password='testpass123', name='Regular'
-        ))
-        self.assertEqual(self.client.post(url, payload).status_code, status.HTTP_403_FORBIDDEN)
-        self.assertFalse(get_user_model().objects.filter(email=payload['email']).exists())
 
     def test_user_with_email_exists_error(self):
         """Test error returned if user with email exists."""

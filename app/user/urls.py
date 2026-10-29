@@ -10,7 +10,6 @@ app_name = 'user'
 
 urlpatterns = [
     path('create/', views.CreateUserView.as_view(), name='create'),
-    path('create-client/', views.CreateClientUserView.as_view(), name='create-client'),
     path(
         'verify-email/',
         views.VerifyEmailView.as_view(),

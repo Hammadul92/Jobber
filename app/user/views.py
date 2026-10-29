@@ -8,7 +8,6 @@ from django.utils import timezone
 
 from rest_framework import generics, authentication, permissions, status
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -17,10 +16,9 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
-from core.models import Business, FAQ
+from core.models import FAQ
 from user.serializers import (
     UserSerializer,
-    ClientUserSerializer,
     AuthTokenSerializer,
     RequestPasswordResetSerializer,
     ResetPasswordSerializer,
@@ -51,21 +49,6 @@ class CreateUserView(generics.CreateAPIView):
         user = serializer.save()
         token = generate_email_token(user)
         send_registration_email(user, token)
-
-
-class CreateClientUserView(generics.CreateAPIView):
-    """Create an active client account for a business owner without signup mail."""
-
-    serializer_class = ClientUserSerializer
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def perform_create(self, serializer):
-        if not Business.objects.filter(owner=self.request.user).exists():
-            raise PermissionDenied(
-                "You must own a business to create a client."
-            )
-        serializer.save()
 
 
 class VerifyEmailView(APIView):

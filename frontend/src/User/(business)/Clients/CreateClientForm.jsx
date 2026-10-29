@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { CgClose } from "react-icons/cg";
 import { LuBadgeInfo } from "react-icons/lu";
-import {
-  useCreateClientUserMutation,
-  useCreateClientMutation,
-  useCheckUserExistsMutation,
-} from "../../../store";
+import { useCreateClientMutation } from "../../../store";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import Input from "../../../Components/ui/Input";
 import SubmitButton from "../../../Components/ui/SubmitButton";
@@ -29,24 +25,16 @@ export default function CreateClientForm({
   const [billingPostalCode, setBillingPostalCode] = useState("");
 
   const [alert, setAlert] = useState({ type: "", message: "" });
-  const [createClientUser, { isLoading: creatingUser }] =
-    useCreateClientUserMutation();
-  const [createClient, { isLoading: creatingClient }] =
+  const [createClient, { isLoading: isSubmitting }] =
     useCreateClientMutation();
-  const [checkUserExists, { isLoading: checkingUser }] =
-    useCheckUserExistsMutation();
 
-  const isSubmitting = creatingUser || creatingClient || checkingUser;
-
-  const createClientAccount = async (userId) => {
+  const createClientAccount = async () => {
     try {
-      if (!userId) {
-        const newUser = await createClientUser({ name, email, phone }).unwrap();
-        userId = newUser.id;
-      }
-
+      // The server links an existing account with this email or creates one.
       await createClient({
-        user: userId,
+        client_name: name.trim(),
+        client_email: email.trim(),
+        client_phone: phone,
         company_name: companyName.trim(),
         billing_street_address: billingStreet.trim(),
         billing_city: billingCity.trim(),
@@ -76,10 +64,10 @@ export default function CreateClientForm({
         err?.data?.detail ||
         (err?.data && typeof err.data === "object"
           ? Object.entries(err.data)
-              .map(
-                ([key, value]) =>
-                  `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
-              )
+              .map(([key, value]) => {
+                const text = Array.isArray(value) ? value.join(", ") : value;
+                return key === "non_field_errors" ? text : `${key}: ${text}`;
+              })
               .join(" | ")
           : err?.message) ||
         "Failed to create client. Please try again.";
@@ -99,16 +87,7 @@ export default function CreateClientForm({
       return;
     }
 
-    try {
-      const checkResponse = await checkUserExists({ email }).unwrap();
-      if (checkResponse?.id) {
-        await createClientAccount(checkResponse.id);
-      } else {
-        await createClientAccount(null);
-      }
-    } catch (err) {
-      setAlert({ type: "danger", message: err?.data?.detail || "Could not check the client email. Please try again." });
-    }
+    await createClientAccount();
   };
 
   return (
@@ -130,8 +109,8 @@ export default function CreateClientForm({
                     Add Client Account
                   </h5>
                   <p className="mt-1 text-sm text-slate-500">
-                    Secure login credentials are generated automatically and
-                    emailed to the client.
+                    Add a client by email. If they already use the platform,
+                    their existing account is linked to your business.
                   </p>
                 </div>
                 <button
@@ -147,8 +126,8 @@ export default function CreateClientForm({
               <div className="mt-4 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-700">
                 <LuBadgeInfo className="mt-0.5 h-4 w-4" />
                 <p>
-                  We securely generate login credentials and send the client an
-                  invitation email. They can reset their password anytime.
+                  No sign-up email is sent. Your client gets secure access
+                  through the quotes and invoices you send them.
                 </p>
               </div>
             </div>

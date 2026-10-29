@@ -609,6 +609,110 @@ class QuoteInvoiceAutomationTests(TestCase):
         invoice.refresh_from_db()
         self.assertEqual(invoice.client, self.client_record)
 
+    def _add_client(self, **overrides):
+        payload = {
+            "client_name": "New Client", "client_email": "new-client@example.com",
+            "client_phone": "1234567890", "billing_street_address": "1 Main St",
+        }
+        payload.update(overrides)
+        return self.client.post(reverse("operations:client-list"), payload, format="json")
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_adding_client_creates_account_without_signup_email(self):
+        self.client.force_authenticate(self.owner)
+        res = self._add_client(role="ADMIN", user=self.owner.id)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+        account = get_user_model().objects.get(email="new-client@example.com")
+        self.assertEqual(account.role, "CLIENT")
+        self.assertTrue(account.is_active)
+        self.assertFalse(account.has_usable_password())
+        self.assertEqual(res.data["user"], account.id)
+        self.assertEqual(len(mail.outbox), 0)
+
+        duplicate = self._add_client(client_email="NEW-client@example.com")
+        self.assertEqual(duplicate.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("client_email", duplicate.data)
+
+        invalid = self._add_client(client_email="not-an-email")
+        self.assertEqual(invalid.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_existing_account_is_linked_without_email_or_changes(self):
+        other_business, _, _ = self._other_business_records()
+        self.client.force_authenticate(self.owner)
+        res = self._add_client(
+            client_email="other-client@example.com", client_name="Renamed", client_phone="999",
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+        account = get_user_model().objects.get(email="other-client@example.com")
+        self.assertEqual(Client.objects.filter(user=account).count(), 2)
+        self.assertNotEqual(account.name, "Renamed")
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_only_business_owner_can_add_clients(self):
+        outsider = get_user_model().objects.create_user("outsider@example.com", "test123")
+        self.client.force_authenticate(outsider)
+        self.assertEqual(self._add_client().status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(get_user_model().objects.filter(email="new-client@example.com").exists())
+
+        self.client.force_authenticate(None)
+        self.assertEqual(self._add_client().status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_owner_cannot_add_themselves_as_client(self):
+        self.client.force_authenticate(self.owner)
+        res = self._add_client(client_email=self.owner.email)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_shared_client_account_cannot_be_edited_by_a_business(self):
+        _, other_client, _ = self._other_business_records()
+        self.client.force_authenticate(self.owner)
+        linked = self._add_client(client_email="other-client@example.com")
+        detail = reverse("operations:client-detail", args=[linked.data["id"]])
+
+        hijack = self.client.patch(detail, {"client_email": "attacker@example.com"}, format="json")
+        self.assertEqual(hijack.status_code, status.HTTP_400_BAD_REQUEST)
+        other_client.user.refresh_from_db()
+        self.assertEqual(other_client.user.email, "other-client@example.com")
+
+        unchanged = self.client.patch(detail, {
+            "client_email": "other-client@example.com", "company_name": "Acme",
+        }, format="json")
+        self.assertEqual(unchanged.status_code, status.HTTP_200_OK, unchanged.data)
+
+    def test_deactivating_client_only_affects_this_business(self):
+        _, other_client, other_service = self._other_business_records()
+        self.client.force_authenticate(self.owner)
+        linked = self._add_client(client_email="other-client@example.com")
+        detail = reverse("operations:client-detail", args=[linked.data["id"]])
+
+        res = self.client.patch(detail, {"is_active": False}, format="json")
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+        account = other_client.user
+        account.refresh_from_db()
+        self.assertTrue(account.is_active)
+        self.client.force_authenticate(account)
+        services = self.client.get(SERVICES_URL).data
+        services = services["results"] if isinstance(services, dict) else services
+        self.assertEqual([s["id"] for s in services], [other_service.id])
+
+    def test_sole_business_can_fix_email_until_client_signs_in(self):
+        self.client.force_authenticate(self.owner)
+        created = self._add_client()
+        detail = reverse("operations:client-detail", args=[created.data["id"]])
+
+        fixed = self.client.patch(detail, {"client_email": "fixed@example.com"}, format="json")
+        self.assertEqual(fixed.status_code, status.HTTP_200_OK, fixed.data)
+
+        account = get_user_model().objects.get(email="fixed@example.com")
+        account.last_login = timezone.now()
+        account.save(update_fields=["last_login"])
+        blocked = self.client.patch(detail, {"client_email": "again@example.com"}, format="json")
+        self.assertEqual(blocked.status_code, status.HTTP_400_BAD_REQUEST)
+        renamed = self.client.patch(detail, {"client_name": "Fixed Name"}, format="json")
+        self.assertEqual(renamed.status_code, status.HTTP_200_OK, renamed.data)
+
 
 class ServiceTermsTemplateApiTests(TestCase):
     """Test service terms template integration with services and quotes."""
@@ -919,12 +1023,11 @@ class WorkflowRegressionTests(TestCase):
 
     def test_client_billing_address_and_company_can_be_created_and_edited(self):
         self.client.force_authenticate(self.manager)
-        new_user = get_user_model().objects.create_user(
-            "billing-client@example.com", "test123", role="CLIENT",
-        )
         url = reverse("operations:client-list")
         created = self.client.post(url, {
-            "user": new_user.id,
+            "client_name": "Billing Client",
+            "client_email": "billing-client@example.com",
+            "client_phone": "1234567890",
             "company_name": "Northstar Projects",
             "billing_street_address": "10 Billing Lane",
             "billing_city": "Calgary",
