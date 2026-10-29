@@ -305,24 +305,13 @@ traffic to a new backend image.
 - Never place live credentials, payment identifiers, or customer information in
   fixtures, tests, logs, or source control.
 
-### Business email history
+### Email copies and link expiry
 
-Business owners can open **Email History** in the dashboard to inspect new
-business emails, including their original plain text and HTML, recipients,
-subject, sender, send status, attachment names, and emailed action link. Each
-resend creates a separate record. Account verification, password reset, and
-public contact emails are not included in business history. Past emails cannot
-be imported from SendGrid delivery events.
+Every email sent through `send_branded_email` is also sent as a reference copy
+to `EMAIL_COPY_RECIPIENT` (default `zsprojectsyyc@gmail.com`; set it to an empty
+value to disable). The copy has "(copy)" appended to its subject and a banner
+naming the original recipients. A failed copy is logged and never fails the
+original send. Copies contain working login links, so keep that inbox secure.
 
-Apply migration `core.0030_businessemail` during deployment (`python manage.py
-migrate`). The read-only endpoints are `/api/ops/email-history/` (paginated,
-optional `business` filter) and `/api/ops/email-history/<id>/`. Only the owning
-business user can read records; list responses omit message bodies and action
-links. HTML previews block scripts and external resources. Attachments are
-listed by filename; their contents are not archived.
-
-Email login and password reset tokens last 24 hours. Copying an archived link
-preserves the original token and expiry; it does not generate a new token.
-Archived login links grant access as the recipient, so email history is restricted
-to owners. `SENT` means the configured email backend accepted the message,
-not confirmed inbox delivery; delivery webhooks are not connected to this history.
+Email verification, login and password reset links last 7 days. Login links can
+be used more than once until they expire.

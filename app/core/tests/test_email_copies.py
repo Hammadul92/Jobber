@@ -7,6 +7,7 @@ from django.test import TestCase, override_settings
 
 from core.emails import send_branded_email
 from user.utils import (
+    EMAIL_TOKEN_MAX_AGE,
     generate_magic_login_token, verify_magic_login_token,
     generate_password_reset_token, verify_password_reset_token,
 )
@@ -63,7 +64,7 @@ class EmailTokenExpiryTests(TestCase):
     def setUp(self):
         self.owner = get_user_model().objects.create_user("owner@example.com", "password", role="MANAGER")
 
-    def test_email_tokens_work_after_one_hour_and_expire_after_one_day(self):
+    def test_email_tokens_work_for_seven_days_then_expire(self):
         for generate, verify in [
             (generate_magic_login_token, verify_magic_login_token),
             (generate_password_reset_token, verify_password_reset_token),
@@ -71,10 +72,10 @@ class EmailTokenExpiryTests(TestCase):
             with self.subTest(generate=generate.__name__):
                 with patch("django.core.signing.time.time", return_value=100000):
                     token = generate(self.owner)
-                with patch("django.core.signing.time.time", return_value=100000 + 3601):
-                    self.assertEqual(verify(token), self.owner)
-                with patch("django.core.signing.time.time", return_value=100000 + 86400):
-                    self.assertEqual(verify(token), self.owner)
                 with patch("django.core.signing.time.time", return_value=100000 + 86401):
+                    self.assertEqual(verify(token), self.owner)
+                with patch("django.core.signing.time.time", return_value=100000 + EMAIL_TOKEN_MAX_AGE):
+                    self.assertEqual(verify(token), self.owner)
+                with patch("django.core.signing.time.time", return_value=100000 + EMAIL_TOKEN_MAX_AGE + 1):
                     self.assertIsNone(verify(token))
                 self.assertIsNone(verify(token + "tampered"))

@@ -199,7 +199,7 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 # Every outgoing email is also copied here for reference; empty disables it.
 EMAIL_COPY_RECIPIENT = os.environ.get(
     "EMAIL_COPY_RECIPIENT",
-    "hammad17622@gmail.com",
+    "zsprojectsyyc@gmail.com",
 )
 if "test" in sys.argv:
     EMAIL_COPY_RECIPIENT = ""

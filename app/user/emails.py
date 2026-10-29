@@ -16,7 +16,7 @@ def send_registration_email(user, token):
         "clicking the link below:\n"
         f"{verification_link}\n\n"
         "This step helps us keep your account secure. "
-        "The link will expire in 24 hours.\n\n"
+        "The link will expire in 7 days.\n\n"
         "If you did not create an account, "
         "you can safely ignore this email.\n\n"
         "Best regards,\n"
@@ -36,7 +36,7 @@ def send_registration_email(user, token):
         action_label="Verify Email",
         action_url=verification_link,
         notice=(
-            "This verification link expires in 24 hours. If you did not create "
+            "This verification link expires in 7 days. If you did not create "
             "this account, you can safely ignore this email."
         ),
     )
@@ -50,7 +50,7 @@ def send_password_reset_email(user, token):
         "You requested to reset your password. "
         "Click the link below to set a new password:\n"
         f"{reset_link}\n\n"
-        "This link will expire in 24 hours. "
+        "This link will expire in 7 days. "
         "If you did not request a password reset, ignore this email.\n\n"
         "Best regards,\n"
         "Contractorz Team"
@@ -69,7 +69,7 @@ def send_password_reset_email(user, token):
         action_label="Reset Password",
         action_url=reset_link,
         notice=(
-            "This link expires in 24 hours. If you did not request a password "
+            "This link expires in 7 days. If you did not request a password "
             "reset, you can safely ignore this email."
         ),
     )

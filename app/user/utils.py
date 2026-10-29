@@ -2,13 +2,17 @@ from django.core import signing
 from django.contrib.auth import get_user_model
 
 
+# Links in verification, password reset and login emails stay valid this long.
+EMAIL_TOKEN_MAX_AGE = 60 * 60 * 24 * 7
+
+
 def generate_email_token(user):
     return signing.dumps({'user_id': user.id}, salt="email-verify")
 
 
 def verify_email_token(token):
     try:
-        data = signing.loads(token, salt="email-verify", max_age=60*60*24)
+        data = signing.loads(token, salt="email-verify", max_age=EMAIL_TOKEN_MAX_AGE)
         return data['user_id']
     except (signing.BadSignature, signing.SignatureExpired):
         return None
@@ -18,7 +22,7 @@ def generate_password_reset_token(user):
     return signing.dumps({'user_id': user.id}, salt="password-reset")
 
 
-def verify_password_reset_token(token, max_age=60 * 60 * 24):
+def verify_password_reset_token(token, max_age=EMAIL_TOKEN_MAX_AGE):
     try:
         data = signing.loads(token, salt="password-reset", max_age=max_age)
         user_id = data.get('user_id')
@@ -32,11 +36,11 @@ def verify_password_reset_token(token, max_age=60 * 60 * 24):
 
 
 def generate_magic_login_token(user):
-    """Generate a short-lived token for magic link login (24 hours)."""
+    """Generate a token for magic link login (valid for 7 days)."""
     return signing.dumps({'user_id': user.id}, salt="magic-login")
 
 
-def verify_magic_login_token(token, max_age=60 * 60 * 24):
+def verify_magic_login_token(token, max_age=EMAIL_TOKEN_MAX_AGE):
     """Verify magic login token and return the user, or None."""
     try:
         data = signing.loads(token, salt="magic-login", max_age=max_age)

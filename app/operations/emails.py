@@ -54,7 +54,7 @@ def send_quote_email(quote):
         ],
         action_label="Review and Sign Quote",
         action_url=sign_link,
-        notice="This secure link signs you in automatically and expires in 24 hours.",
+        notice="This secure link signs you in automatically and expires in 7 days.",
         signoff=f"The {quote.service.business.name} Team",
         reply_to=[quote.service.business.email],
         brand_name=quote.service.business.name,
@@ -79,7 +79,7 @@ def send_service_questionnaire_email(service, questionnaire, magic_token=None):
         f"Please fill out your service questionnaire by clicking "
         f"the link below:\n\n"
         f"{questionnaire_link}\n\n"
-        f"This link will log you in automatically and expires in 24 hours.\n\n"
+        f"This link will log you in automatically and expires in 7 days.\n\n"
         f"Best regards,\n"
         f"The {service.business.name} Team"
     )
@@ -100,7 +100,7 @@ def send_service_questionnaire_email(service, questionnaire, magic_token=None):
         ],
         action_label="Complete Questionnaire",
         action_url=questionnaire_link,
-        notice="This secure link signs you in automatically and expires in 24 hours.",
+        notice="This secure link signs you in automatically and expires in 7 days.",
         signoff=f"The {service.business.name} Team",
         reply_to=[service.business.email],
         brand_name=service.business.name,
