@@ -12,6 +12,7 @@ import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
 const STATUS_STYLES = {
   PAID: "bg-emerald-100 text-emerald-700",
+  PARTIALLY_REFUNDED: "bg-sky-100 text-sky-700",
   REFUNDED: "bg-amber-100 text-amber-700",
   FAILED: "bg-rose-100 text-rose-700",
   PENDING: "bg-slate-100 text-slate-600",
@@ -100,10 +101,9 @@ export default function Payout({ token, role }) {
   const badgeClass = STATUS_STYLES[payoutData?.status] || STATUS_STYLES.PENDING;
   const grossAmount = Number.parseFloat(payoutData?.amount || 0);
   const payoutCurrency = payoutData?.currency || "CAD";
-  const canRefund =
-    role === "MANAGER" &&
-    payoutData?.status === "PAID" &&
-    !payoutData?.is_refunded;
+  const refundable = Number.parseFloat(payoutData?.refundable_amount || 0);
+  const canRefund = role === "MANAGER" && refundable > 0;
+  const statusLabel = (payoutData?.status || "").replace("_", " ");
 
   return (
     <>
@@ -123,7 +123,7 @@ export default function Payout({ token, role }) {
           <span
             className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold ${badgeClass}`}
           >
-            {payoutData?.status}
+            {statusLabel}
           </span>
         </div>
       </div>
@@ -169,13 +169,19 @@ export default function Payout({ token, role }) {
                 label="Stripe Fee"
                 value="View Stripe Dashboard"
               />
-              {payoutData?.refunded_amount && (
+              {Number.parseFloat(payoutData?.refunded_amount || 0) > 0 && (
                 <SummaryRow
                   label="Refunded"
                   value={formatMoney(
                     payoutData.refunded_amount,
                     payoutCurrency,
                   )}
+                />
+              )}
+              {canRefund && (
+                <SummaryRow
+                  label="Available to refund"
+                  value={formatMoney(refundable, payoutCurrency)}
                 />
               )}
               <SummaryRow
@@ -203,7 +209,9 @@ export default function Payout({ token, role }) {
                   Refund payout for {payoutData?.invoice_number}
                 </h4>
                 <p className="mt-1 text-sm text-slate-500">
-                  Submit a full or partial refund request for this payout record.
+                  Refund all or part of the payment. You can issue several
+                  partial refunds up to the amount paid; the invoice stays paid
+                  and the client is emailed a refund confirmation.
                 </p>
               </div>
             </div>
@@ -214,7 +222,11 @@ export default function Payout({ token, role }) {
                   type="number"
                   value={amount}
                   onChange={setAmount}
-                  placeholder="Enter refund amount"
+                  placeholder={
+                    canRefund
+                      ? `Up to ${refundable.toFixed(2)} (leave blank for the full remaining amount)`
+                      : "Enter refund amount"
+                  }
                   label="Amount"
                   id="refund-amount"
                   fieldClass="h-11 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-[#ff6a00] focus:outline-none focus:ring-2 focus:ring-[#ff6a00]/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
@@ -223,7 +235,7 @@ export default function Payout({ token, role }) {
 
                 <Input
                   type="text"
-                  value={payoutData?.status || ""}
+                  value={statusLabel}
                   onChange={() => {}}
                   label="Current Status"
                   id="payout-status"
@@ -251,8 +263,8 @@ export default function Payout({ token, role }) {
                   {role !== "MANAGER"
                     ? "Only managers can request refunds."
                     : payoutData?.is_refunded
-                      ? "This payout has already been refunded."
-                      : "Only paid payouts can be refunded."}
+                      ? "This payment has been fully refunded."
+                      : "Only paid payments can be refunded."}
                 </div>
               )}
 
@@ -272,6 +284,35 @@ export default function Payout({ token, role }) {
                 />
               </div>
             </form>
+
+            {payoutData?.refunds?.length > 0 && (
+              <div className="mt-8 border-t border-gray-100 pt-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-500">
+                  Refund History
+                </p>
+                <ul className="mt-3 divide-y divide-gray-100">
+                  {payoutData.refunds.map((refund) => (
+                    <li
+                      key={refund.id}
+                      className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
+                    >
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {formatMoney(refund.amount, payoutCurrency)}
+                        </p>
+                        <p className="text-slate-500">
+                          {formatDate(refund.created_at)}
+                          {refund.reason ? ` · ${refund.reason}` : ""}
+                        </p>
+                      </div>
+                      <span className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                        {refund.status}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>

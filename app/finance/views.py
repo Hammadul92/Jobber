@@ -17,7 +17,7 @@ from rest_framework.response import Response
 
 from core.permissions import ClientLimitedWrite
 
-from core.models import BankingInformation, Business, Client, Invoice, Payout
+from core.models import BankingInformation, Business, Client, Invoice, Payout, PayoutRefund
 from core.payment_terms import business_local_date, prepare_first_send
 from finance import serializers, paginations, emails
 from finance.stripe_connect import create_merchant_account, create_onboarding_link
@@ -595,10 +595,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
 
 class PayoutViewSet(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin, viewsets.GenericViewSet,
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet,
 ):
-    """ViewSet for managing payouts."""
+    """Payment records are kept permanently; refunds are recorded against them."""
 
     serializer_class = serializers.PayoutSerializer
     queryset = Payout.objects.all()
@@ -616,109 +615,109 @@ class PayoutViewSet(
             return self.queryset.filter(
                 business=business,
                 is_active=True,
-            ).order_by("-id")
+            ).prefetch_related("refunds").order_by("-id")
         return self.queryset.none()
-
-    def perform_destroy(self, instance):
-        """Soft delete the payout."""
-
-        instance.soft_delete(user=self.request.user)
 
     @action(detail=True, methods=["post"], url_path="refund")
     @transaction.atomic
     def refund_payout(self, request, pk=None):
-        """
-        Refund a payout through Stripe.
-        Supports partial or full refunds.
+        """Refund all or part of the remaining paid amount through Stripe.
+
+        Several partial refunds are allowed up to the amount paid. The invoice
+        stays paid; the payment shows partially refunded or refunded.
         """
         payout = Payout.objects.select_for_update().get(pk=self.get_object().pk)
-        amount = request.data.get("amount")
-        reason = request.data.get(
-            "reason",
-            "Customer requested refund",
-        )
+        reason = request.data.get("reason") or "Customer requested refund"
 
         if not payout.stripe_payment_intent_id:
             return Response(
                 {"error": "No Stripe payment intent found for this payout."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        if payout.is_refunded:
+        if payout.status not in ("PAID", "PARTIALLY_REFUNDED"):
             return Response(
-                {"error": "This payout has already been refunded."},
+                {"error": "This payout has already been refunded."
+                 if payout.status == "REFUNDED" else "Only completed payments can be refunded."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if payout.status != "PAID":
-            return Response({"error": "Only completed payments can be refunded."}, status=400)
-
+        scope = {"stripe_account": payout.stripe_account_id} if payout.stripe_account_id else {}
         try:
-            refund_params = {
-                "payment_intent": payout.stripe_payment_intent_id,
-                "idempotency_key": f"payout-{payout.pk}-refund",
-            }
-            if payout.stripe_account_id:
-                refund_params["stripe_account"] = payout.stripe_account_id
-            if amount not in (None, ""):
+            # Finish an earlier refund that Stripe had not completed yet.
+            pending = payout.refunds.filter(status="PENDING").first()
+            if pending:
+                refund = stripe.Refund.retrieve(pending.stripe_refund_id, **scope)
+                return self._settle_refund(payout, pending, refund)
+
+            remaining = payout.amount - (payout.refunded_amount or Decimal("0"))
+            amount = request.data.get("amount")
+            if amount in (None, ""):
+                requested = remaining
+            else:
                 try:
                     requested = Decimal(str(amount))
                     if (
-                        not requested.is_finite() or requested <= 0 or requested > payout.amount
+                        not requested.is_finite() or requested <= 0 or requested > remaining
                         or requested != requested.quantize(Decimal("0.01"))
                     ):
                         raise ValueError
                 except (InvalidOperation, ValueError):
-                    return Response({"error": "Enter a valid refund amount up to the payment total."}, status=400)
-                refund_params["amount"] = int(requested * 100)
+                    return Response(
+                        {"error": f"Enter a refund amount up to the remaining {remaining} {payout.currency}."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
-            if payout.stripe_refund_id:
-                scope = {"stripe_account": payout.stripe_account_id} if payout.stripe_account_id else {}
-                refund = stripe.Refund.retrieve(payout.stripe_refund_id, **scope)
-            else:
-                refund = stripe.Refund.create(**refund_params)
-                payout.stripe_refund_id = refund.id
-                payout.save(update_fields=["stripe_refund_id"])
-            if refund.status != "succeeded":
-                return Response(
-                    {"detail": "Refund is not completed. Retry to check its status."},
-                    status=status.HTTP_202_ACCEPTED,
-                )
-
-            payout.is_refunded = True
-            payout.refunded_amount = Decimal(refund.amount) / 100
-            payout.refund_reason = reason
-            payout.stripe_refund_id = refund.id
-            payout.refunded_at = timezone.now()
-            payout.status = "REFUNDED"
-            payout.save(
-                update_fields=[
-                    "is_refunded",
-                    "refunded_amount",
-                    "refund_reason",
-                    "stripe_refund_id",
-                    "refunded_at",
-                    "status",
-                ]
+            # Same key for a retried request, a new key for each later refund.
+            refund = stripe.Refund.create(
+                payment_intent=payout.stripe_payment_intent_id,
+                amount=int(requested * 100),
+                idempotency_key=f"payout-{payout.pk}-refund-{payout.refunds.count() + 1}",
+                **scope,
             )
-
-            return Response(
-                {"detail": "Refund successful.", "refund_id": refund.id},
-                status=status.HTTP_200_OK,
+            record = PayoutRefund.objects.create(
+                payout=payout, amount=requested, reason=reason, stripe_refund_id=refund.id,
             )
+            return self._settle_refund(payout, record, refund)
 
         except stripe.StripeError as e:
-            payout.failure_reason = str(e)
-            payout.save(update_fields=["failure_reason"])
+            logger.warning("Stripe refund failed for payout %s: %s", payout.pk, e)
             return Response(
-                {"error": f"Stripe error: {str(e)}"},
+                {"error": f"Stripe error: {getattr(e, 'user_message', None) or 'the refund could not be processed.'}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        except Exception as e:
-            payout.failure_reason = str(e)
-            payout.save(update_fields=["failure_reason"])
+    def _settle_refund(self, payout, record, refund):
+        if refund.status in ("pending", "requires_action"):
             return Response(
-                {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"detail": "Refund is processing. Retry to check its status."},
+                status=status.HTTP_202_ACCEPTED,
             )
+        record.processed_at = timezone.now()
+        if refund.status != "succeeded":
+            record.status = "FAILED"
+            record.save(update_fields=["status", "processed_at"])
+            return Response(
+                {"error": "Stripe could not complete this refund."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        record.status = "SUCCEEDED"
+        record.save(update_fields=["status", "processed_at"])
+        payout.refunded_amount = (payout.refunded_amount or Decimal("0")) + record.amount
+        payout.is_refunded = payout.refunded_amount >= payout.amount
+        payout.status = "REFUNDED" if payout.is_refunded else "PARTIALLY_REFUNDED"
+        payout.refund_reason = record.reason
+        payout.stripe_refund_id = record.stripe_refund_id
+        payout.refunded_at = record.processed_at
+        payout.save(update_fields=[
+            "refunded_amount", "is_refunded", "status", "refund_reason",
+            "stripe_refund_id", "refunded_at",
+        ])
+        try:
+            emails.send_refund_issued_email(payout, record)
+        except Exception:
+            logger.exception("Refund email failed for payout %s", payout.pk)
+        return Response(
+            {"detail": "Refund successful.", "refund_id": record.stripe_refund_id},
+            status=status.HTTP_200_OK,
+        )

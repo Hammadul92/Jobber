@@ -554,3 +554,62 @@ class InvoicePaymentWorkflowTests(TestCase):
         self.assertTrue(payout.is_refunded)
         self.assertEqual(payout.status, "REFUNDED")
         self.assertEqual(payout.stripe_refund_id, "re_success")
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    @patch("finance.views.stripe.Refund.retrieve")
+    @patch("finance.views.stripe.Refund.create")
+    def test_partial_refunds_add_up_and_cannot_exceed_payment(self, create, retrieve):
+        self.invoice.status = "PAID"
+        self.invoice.save(update_fields=["status"])
+        total = self.invoice.total_amount
+        payout = Payout.objects.create(
+            business=self.business, invoice=self.invoice, amount=total,
+            currency=self.invoice.currency, status="PAID",
+            stripe_payment_intent_id="pi_partial", processed_at=timezone.now(),
+        )
+        create.side_effect = [
+            SimpleNamespace(id="re_1", status="succeeded"),
+            SimpleNamespace(id="re_2", status="pending"),
+        ]
+        self.client.force_authenticate(self.manager)
+
+        first = self.client.post(self.refund_url(payout), {"amount": "30.00"}, format="json")
+        self.assertEqual(first.status_code, status.HTTP_200_OK, first.data)
+        payout.refresh_from_db()
+        self.assertEqual(payout.status, "PARTIALLY_REFUNDED")
+        self.assertEqual(payout.refunded_amount, Decimal("30.00"))
+        self.assertFalse(payout.is_refunded)
+        self.assertEqual(mail.outbox[-1].to, [self.invoice.client.user.email])
+
+        too_much = self.client.post(
+            self.refund_url(payout), {"amount": str(total - Decimal("29.99"))}, format="json",
+        )
+        self.assertEqual(too_much.status_code, status.HTTP_400_BAD_REQUEST)
+
+        rest = str(total - Decimal("30.00"))
+        pending = self.client.post(self.refund_url(payout), {"amount": rest}, format="json")
+        self.assertEqual(pending.status_code, status.HTTP_202_ACCEPTED)
+
+        retrieve.return_value = SimpleNamespace(id="re_2", status="succeeded")
+        settled = self.client.post(self.refund_url(payout), {}, format="json")
+        self.assertEqual(settled.status_code, status.HTTP_200_OK, settled.data)
+
+        payout.refresh_from_db()
+        self.assertEqual(payout.status, "REFUNDED")
+        self.assertTrue(payout.is_refunded)
+        self.assertEqual(payout.refunded_amount, total)
+        self.assertEqual(create.call_count, 2)
+        keys = [call.kwargs["idempotency_key"] for call in create.call_args_list]
+        self.assertEqual(len(set(keys)), 2)
+        self.assertEqual(
+            list(payout.refunds.values_list("status", flat=True)), ["SUCCEEDED", "SUCCEEDED"],
+        )
+
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, "PAID")
+        detail = self.client.get(reverse("finance:invoice-detail", args=[self.invoice.id]))
+        self.assertEqual(detail.data["refunded_amount"], f"{total:.2f}")
+        self.assertEqual(
+            self.client.delete(reverse("finance:payout-detail", args=[payout.id])).status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )

@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useFetchPayoutsQuery, useDeletePayoutMutation } from "../../../store";
-import SubmitButton from "../../../Components/ui/SubmitButton";
+import { useFetchPayoutsQuery } from "../../../store";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
@@ -15,17 +14,14 @@ import {
   LuEye,
   LuFileText,
   LuSearch,
-  LuTrash2,
 } from "react-icons/lu";
 
-export default function PayoutDatatable({ token, role }) {
+export default function PayoutDatatable({ token }) {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(100);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [showModal, setShowModal] = useState(false);
   const [showDateRangeModal, setShowDateRangeModal] = useState(false);
-  const [selectedPayoutId, setSelectedPayoutId] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [dateRangeStart, setDateRangeStart] = useState("");
   const [dateRangeEnd, setDateRangeEnd] = useState("");
@@ -34,9 +30,7 @@ export default function PayoutDatatable({ token, role }) {
     data: payoutData,
     isLoading,
     error,
-    refetch,
   } = useFetchPayoutsQuery({ page, page_size: pageSize }, { skip: !token });
-  const [deletePayout, { isLoading: deleting }] = useDeletePayoutMutation();
 
   const rows = useMemo(() => payoutData?.results || [], [payoutData]);
   const totalCount = payoutData?.count ?? rows.length;
@@ -131,29 +125,6 @@ export default function PayoutDatatable({ token, role }) {
     }
   }, [error]);
 
-  const handleDeleteClick = (id) => {
-    setSelectedPayoutId(id);
-    setShowModal(true);
-  };
-
-  const confirmDelete = async (e) => {
-    e.preventDefault();
-    if (!selectedPayoutId) return;
-
-    try {
-      await deletePayout(selectedPayoutId).unwrap();
-      setAlert({ type: "success", message: "Payout deleted successfully!" });
-      setShowModal(false);
-      setSelectedPayoutId(null);
-      refetch();
-    } catch (err) {
-      setAlert({
-        type: "danger",
-        message: err?.data?.detail || "Failed to delete payout.",
-      });
-    }
-  };
-
   const handleDateRangeApply = () => {
     if (dateRangeStart && dateRangeEnd) {
       const startDate = new Date(dateRangeStart);
@@ -179,6 +150,7 @@ export default function PayoutDatatable({ token, role }) {
     if (status === "PAID") return "bg-emerald-100 text-emerald-700";
     if (status === "PENDING") return "bg-amber-100 text-amber-700";
     if (status === "REFUNDED") return "bg-sky-100 text-sky-700";
+    if (status === "PARTIALLY_REFUNDED") return "bg-sky-50 text-sky-700";
     return "bg-rose-100 text-rose-700";
   };
 
@@ -290,17 +262,6 @@ export default function PayoutDatatable({ token, role }) {
           >
             <LuEye className="h-4 w-4" />
           </Link>
-          {role === "MANAGER" && (
-            <button
-              type="button"
-              className="rounded-xl p-2.5 text-rose-600 hover:bg-rose-50"
-              onClick={() => handleDeleteClick(row.id)}
-              title="Delete Payout"
-              aria-label={`Delete payout for invoice ${row.invoice_number}`}
-            >
-              <LuTrash2 className="h-3.5 w-3.5" />
-            </button>
-          )}
         </div>
       ),
     },
@@ -375,6 +336,7 @@ export default function PayoutDatatable({ token, role }) {
                     { value: "PENDING", label: "Pending" },
                     { value: "PAID", label: "Paid" },
                     { value: "FAILED", label: "Failed" },
+                    { value: "PARTIALLY_REFUNDED", label: "Partially refunded" },
                     { value: "REFUNDED", label: "Refunded" },
                   ]}
                 />
@@ -423,6 +385,7 @@ export default function PayoutDatatable({ token, role }) {
                     { value: "PENDING", label: "Pending" },
                     { value: "PAID", label: "Paid" },
                     { value: "FAILED", label: "Failed" },
+                    { value: "PARTIALLY_REFUNDED", label: "Partially refunded" },
                     { value: "REFUNDED", label: "Refunded" },
                   ]}
                 />
@@ -582,54 +545,6 @@ export default function PayoutDatatable({ token, role }) {
           </div>
         )}
 
-        {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div
-              className="fixed inset-0 bg-gray-900/40"
-              onClick={() => setShowModal(false)}
-            ></div>
-
-            <form
-              onSubmit={confirmDelete}
-              className="relative z-10 w-full md:w-4/7 lg:w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-xl"
-              role="dialog"
-              aria-modal="true"
-            >
-              <div className="flex items-center justify-between">
-                <h5 className="text-xl font-medium text-gray-900">
-                  Delete Payout
-                </h5>
-                <button
-                  type="button"
-                  className="text-gray-400 transition hover:text-gray-600"
-                  onClick={() => setShowModal(false)}
-                  aria-label="Close"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <p className="mt-3 text-sm text-gray-600">
-                Are you sure you want to delete this payout?
-              </p>
-
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  type="button"
-                  className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancel
-                </button>
-                <SubmitButton
-                  isLoading={deleting}
-                  btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
-                  btnName="Delete"
-                />
-              </div>
-            </form>
-          </div>
-        )}
       </div>
     </>
   );

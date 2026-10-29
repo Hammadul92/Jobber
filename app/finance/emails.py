@@ -112,3 +112,45 @@ def send_invoice_paid_email(invoice):
         brand_name=business.name,
         brand_logo=business.logo,
     )
+
+
+def send_refund_issued_email(payout, refund):
+    """Tell the client a refund was issued for their invoice payment."""
+    invoice = payout.invoice
+    business = invoice.business
+    client = invoice.client
+    remaining = payout.amount - (payout.refunded_amount or 0)
+
+    subject = f"Refund issued for invoice {invoice.invoice_number}"
+    message = (
+        f"Hello {client.name},\n\n"
+        f"{business.name} refunded {refund.amount} {payout.currency} for invoice "
+        f"{invoice.invoice_number}.\n\n"
+        f"Total refunded: {payout.refunded_amount} {payout.currency}\n"
+        f"Payment kept: {remaining} {payout.currency}\n\n"
+        "Refunds usually reach your card within 5-10 business days.\n\n"
+        f"Thank you,\n{business.name}"
+    )
+
+    send_branded_email(
+        subject=subject,
+        text_body=message,
+        recipient_list=[client.user.email],
+        eyebrow="Refund issued",
+        heading="Your refund is on its way.",
+        paragraphs=[
+            f"Hello {client.name},",
+            f"{business.name} refunded part or all of your payment for invoice {invoice.invoice_number}.",
+        ],
+        details=[
+            {"label": "Invoice", "value": invoice.invoice_number},
+            {"label": "This refund", "value": f"{refund.amount} {payout.currency}"},
+            {"label": "Total refunded", "value": f"{payout.refunded_amount} {payout.currency}"},
+            {"label": "Payment kept", "value": f"{remaining} {payout.currency}"},
+        ],
+        notice="Refunds usually reach your card within 5-10 business days.",
+        signoff=f"{business.name} Team",
+        reply_to=[business.email],
+        brand_name=business.name,
+        brand_logo=business.logo,
+    )

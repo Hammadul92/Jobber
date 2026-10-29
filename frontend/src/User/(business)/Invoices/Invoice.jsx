@@ -504,6 +504,7 @@ export default function Invoice({ token, role }) {
                 serviceName={serviceName}
                 dueDate={dueDate}
                 paymentTerms={paymentTerms}
+                refundedAmount={invoiceData?.refunded_amount}
               />
             )}
           </div>
@@ -551,7 +552,9 @@ function CustomerView({
   serviceName,
   dueDate,
   paymentTerms,
+  refundedAmount,
 }) {
+  const hasRefund = Number.parseFloat(refundedAmount || 0) > 0;
   const calculatedTax = (
     (parseFloat(subtotal || 0) * parseFloat(taxRate || 0)) /
     100
@@ -580,6 +583,11 @@ function CustomerView({
           <p className="mt-2 text-3xl font-semibold tracking-tight">
             {formattedTotal}
           </p>
+          {hasRefund && (
+            <p className="mt-1 text-sm text-white/80">
+              Refunded {formatMoney(refundedAmount, currency)}
+            </p>
+          )}
         </div>
       </div>
 

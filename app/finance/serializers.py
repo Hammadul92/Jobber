@@ -86,6 +86,8 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
     has_paid_payout = serializers.SerializerMethodField()
     payout_id = serializers.SerializerMethodField()
 
+    refunded_amount = serializers.SerializerMethodField()
+
     class Meta:
         model = Invoice
         fields = [
@@ -109,6 +111,7 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
             "can_manage",
             "has_paid_payout",
             "payout_id",
+            "refunded_amount",
             "client_name",
             "client_company_name",
             "billing_street_address", "billing_city", "billing_province_state",
@@ -134,6 +137,11 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
 
     def get_line_items_locked(self, obj):
         return obj.line_items is not None
+
+    def get_refunded_amount(self, obj):
+        """Refunds leave the invoice paid; this shows how much was returned."""
+        total = sum((payout.refunded_amount or 0) for payout in obj.payouts.all())
+        return f"{total:.2f}"
 
     def validate(self, attrs):
         """Keep invoice amounts aligned with the saved item breakdown."""
@@ -231,6 +239,8 @@ class PayoutSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
         source="invoice.invoice_number", read_only=True
     )
     payout_total = serializers.SerializerMethodField()
+    refundable_amount = serializers.SerializerMethodField()
+    refunds = serializers.SerializerMethodField()
 
     class Meta:
         model = Payout
@@ -248,6 +258,8 @@ class PayoutSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             "status",
             "is_refunded",
             "refunded_amount",
+            "refundable_amount",
+            "refunds",
             "refund_reason",
             "processed_at",
             "refunded_at",
@@ -268,3 +280,17 @@ class PayoutSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
 
     def get_payout_total(self, obj):
         return f"{obj.amount:.2f} {obj.currency} (before Stripe fees)"
+
+    def get_refundable_amount(self, obj):
+        if obj.status not in ("PAID", "PARTIALLY_REFUNDED"):
+            return "0.00"
+        return f"{obj.amount - (obj.refunded_amount or 0):.2f}"
+
+    def get_refunds(self, obj):
+        return [
+            {
+                "id": refund.id, "amount": f"{refund.amount:.2f}", "reason": refund.reason,
+                "status": refund.status, "created_at": refund.created_at,
+            }
+            for refund in obj.refunds.all()
+        ]

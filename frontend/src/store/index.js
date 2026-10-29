@@ -190,7 +190,6 @@ export {
   useCreatePayoutMutation,
   useUpdatePayoutMutation,
   useReplacePayoutMutation,
-  useDeletePayoutMutation,
   useRefundPayoutMutation,
 } from "./apis/payoutApi";
 

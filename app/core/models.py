@@ -88,6 +88,14 @@ INVOICE_STATUS_CHOICES = [
 PAYOUT_STATUS_CHOICES = [
     ("PENDING", "Pending"),
     ("PAID", "Paid"),
+    ("PARTIALLY_REFUNDED", "Partially refunded"),
+    ("REFUNDED", "Refunded"),
+    ("FAILED", "Failed"),
+]
+
+REFUND_STATUS_CHOICES = [
+    ("PENDING", "Pending"),
+    ("SUCCEEDED", "Succeeded"),
     ("FAILED", "Failed"),
 ]
 
@@ -944,13 +952,15 @@ class Payout(SoftDeletableModel):
     )
 
     # Refund tracking
-    is_refunded = models.BooleanField(default=False)
+    is_refunded = models.BooleanField(
+        default=False, help_text="True once the full amount has been refunded.",
+    )
     refunded_amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         blank=True,
         null=True,
-        help_text="Amount refunded from this payout (if partial refund).",
+        help_text="Total refunded so far across all refunds.",
     )
     refund_reason = models.TextField(blank=True, null=True)
 
@@ -969,6 +979,24 @@ class Payout(SoftDeletableModel):
             f"Payout {self.id} for {self.invoice.invoice_number} "
             f"({self.get_status_display()})"
         )
+
+
+class PayoutRefund(models.Model):
+    """One Stripe refund against a payment; a payment may have several."""
+
+    payout = models.ForeignKey(Payout, related_name="refunds", on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    reason = models.TextField(blank=True, default="")
+    stripe_refund_id = models.CharField(max_length=255, unique=True)
+    status = models.CharField(max_length=10, choices=REFUND_STATUS_CHOICES, default="PENDING")
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return f"Refund {self.amount} {self.payout.currency} on payout {self.payout_id}"
 
 
 class UsedLoginToken(models.Model):

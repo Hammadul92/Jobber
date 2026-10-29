@@ -70,14 +70,6 @@ const payoutApi = createApi({
       ],
     }),
 
-    deletePayout: builder.mutation({
-      query: (id) => ({
-        url: `/payout/${id}/`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Payout"],
-    }),
-
     refundPayout: builder.mutation({
       query: ({ id, amount, reason }) => ({
         url: `/payout/${id}/refund/`,
@@ -98,7 +90,6 @@ export const {
   useCreatePayoutMutation,
   useUpdatePayoutMutation,
   useReplacePayoutMutation,
-  useDeletePayoutMutation,
   useRefundPayoutMutation,
 } = payoutApi;
 
