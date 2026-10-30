@@ -18,6 +18,7 @@ import { countries, provinces } from "../../../../constants/locations";
 import { formatDate } from "../../../../utils/formatDate";
 import Dropdown from "../../../../Components/ui/Dropdown";
 import RecordsTable from "../../../../Components/ui/RecordsTable";
+import RecordLink from "../../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../../Components/ui/BulkActionBar";
 import TablePagination from "../../../../Components/ui/TablePagination";
 import useServerTable from "../../../../hooks/useServerTable";
@@ -162,14 +163,27 @@ export default function ClientServicesData({
       sortKey: "service_name",
       width: isAllServicesView ? "13%" : isManager ? "17%" : "18%",
       className: "px-4 py-3 font-semibold text-slate-900",
-      render: (service) => service.service_name || "—",
+      render: (service) => (
+        <RecordLink
+          to={isManager ? `/user/business/service/${service.id}` : null}
+          className="text-slate-900"
+        >
+          {service.service_name || "—"}
+        </RecordLink>
+      ),
     },
     isAllServicesView && {
       key: "client",
       title: "Client",
       sortKey: "client__name",
       width: "10%",
-      render: (service) => service.client_name || "Client",
+      render: (service) => (
+        <RecordLink
+          to={isManager && service.client ? `/user/business/client/${service.client}` : null}
+        >
+          {service.client_name || "Client"}
+        </RecordLink>
+      ),
     },
     {
       key: "type",

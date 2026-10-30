@@ -84,10 +84,10 @@ const RecordsTable = memo(function RecordsTable({
           <thead className="bg-gray-50">
             <tr>
               {selection && (
-                <th scope="col" className="w-12 px-4 py-3">
+                <th scope="col" className="w-12 px-4 py-3 text-center align-middle">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 accent-[#ff6a00]"
+                    className="h-4 w-4 cursor-pointer rounded border-gray-300 align-middle accent-[#ff6a00]"
                     checked={allSelected}
                     ref={(input) => {
                       if (input) input.indeterminate = someSelected;
@@ -142,10 +142,10 @@ const RecordsTable = memo(function RecordsTable({
                   className="odd:bg-white even:bg-slate-50 hover:bg-slate-100"
                 >
                   {selection && (
-                    <td className="w-12 px-4 py-3">
+                    <td className="w-12 px-4 py-3 text-center align-middle">
                       <input
                         type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300 accent-[#ff6a00]"
+                        className="h-4 w-4 cursor-pointer rounded border-gray-300 align-middle accent-[#ff6a00]"
                         checked={selection.selectedIds.includes(rowKey(row))}
                         onChange={() => selection.onToggle(rowKey(row))}
                         aria-label="Select row"

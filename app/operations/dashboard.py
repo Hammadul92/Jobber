@@ -275,7 +275,8 @@ class DashboardView(APIView):
         return list(
             quotes.order_by("-updated_at", "-id")
             .values(
-                "id", "quote_number", "status", "created_at",
+                "id", "quote_number", "status", "created_at", "service_id",
+                client_id=F("service__client_id"),
                 client_name=F("service__client__name"),
                 service_name=F("service__service_name"),
                 amount=F("service__price"),
@@ -289,6 +290,7 @@ class DashboardView(APIView):
             invoices.order_by("-updated_at", "-id")
             .values(
                 "id", "invoice_number", "status", "due_date", "total_amount", "currency",
+                "client_id", "service_id",
                 client_name=F("client__name"),
                 service_name=F("service__service_name"),
             )[:RECENT_RECORDS_LIMIT]
@@ -302,6 +304,7 @@ class DashboardView(APIView):
                 "id": f"client-{row['id']}",
                 "title": "New client added",
                 "description": f"{row['name']} registered",
+                "to": f"/user/business/client/{row['id']}",
                 "date": row["created_at"],
             }
             for row in clients.order_by("-created_at", "-id").values("id", "name", "created_at")[
@@ -313,6 +316,7 @@ class DashboardView(APIView):
                 "id": f"quote-{row['id']}",
                 "title": "Quote approved" if row["status"] == "SIGNED" else "Quote sent",
                 "description": f"{row['quote_number']} for {row['client_name']}",
+                "to": f"/user/business/quote/{row['id']}",
                 "date": row["updated_at"],
             }
             for row in quotes.filter(status__in=("SIGNED", "SENT"))
@@ -326,6 +330,7 @@ class DashboardView(APIView):
                 "id": f"invoice-{row['id']}",
                 "title": "Invoice paid" if row["status"] == "PAID" else "Invoice sent",
                 "description": f"{row['invoice_number']} for {row['client_name']}",
+                "to": f"/user/business/invoice/{row['id']}",
                 "date": row["activity_at"],
             }
             for row in invoices.filter(status__in=("PAID", "SENT"))

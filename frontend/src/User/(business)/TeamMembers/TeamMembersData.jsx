@@ -8,6 +8,7 @@ import {
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
+import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
@@ -179,7 +180,11 @@ export default function TeamMembersData({ token, setAlert, onEdit }) {
       sortKey: "employee__name",
       width: "14%",
       className: "px-4 py-3 font-semibold text-slate-900",
-      render: (member) => member.employee_name || "—",
+      render: (member) => (
+        <RecordLink to={`/user/business/team-member/${member.id}`} className="text-slate-900">
+          {member.employee_name || "—"}
+        </RecordLink>
+      ),
     },
     {
       key: "role",

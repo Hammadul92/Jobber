@@ -18,6 +18,7 @@ import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
+import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
@@ -144,7 +145,11 @@ export default function ClientsDatatable({ token, showAddClient }) {
       title: "Client",
       sortKey: "name",
       className: "px-4 py-3 font-semibold text-slate-900",
-      render: clientNameOf,
+      render: (row) => (
+        <RecordLink to={`/user/business/client/${row.id}`} className="text-slate-900">
+          {clientNameOf(row)}
+        </RecordLink>
+      ),
     },
     {
       key: "email",

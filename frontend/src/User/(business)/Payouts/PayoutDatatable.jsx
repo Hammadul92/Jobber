@@ -6,6 +6,7 @@ import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import Select from "../../../Components/ui/Select";
 import RecordsTable from "../../../Components/ui/RecordsTable";
+import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
@@ -193,15 +194,34 @@ export default function PayoutDatatable({ token, role }) {
       title: "Invoice",
       sortKey: "invoice__invoice_number",
       className: "px-4 py-3 font-semibold text-slate-900",
-      render: (row) => row.invoice_number,
+      render: (row) => (
+        <RecordLink
+          to={row.invoice ? `/user/business/invoice/${row.invoice}` : null}
+          className="text-slate-900"
+        >
+          {row.invoice_number}
+        </RecordLink>
+      ),
     },
     {
       key: "client",
       title: "Client",
       sortKey: "invoice__client__name",
-      render: (row) => row.client_name,
+      render: (row) => (
+        <RecordLink to={row.client ? `/user/business/client/${row.client}` : null}>
+          {row.client_name}
+        </RecordLink>
+      ),
     },
-    { key: "service", title: "Service", render: (row) => row.service_name },
+    {
+      key: "service",
+      title: "Service",
+      render: (row) => (
+        <RecordLink to={row.service ? `/user/business/service/${row.service}` : null}>
+          {row.service_name}
+        </RecordLink>
+      ),
+    },
     {
       key: "total",
       title: "Payment Total",

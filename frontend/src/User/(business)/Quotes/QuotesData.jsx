@@ -9,6 +9,7 @@ import Select from "../../../Components/ui/Select";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
+import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
@@ -109,7 +110,20 @@ export default function QuotesData({ token, role, setAlert }) {
       sortKey: "quote_number",
       width: "12%",
       className: "whitespace-nowrap px-4 py-3 font-semibold text-slate-900",
-      render: (quote) => quote.quote_number,
+      render: (quote) => (
+        <RecordLink
+          to={
+            isManager
+              ? `/user/business/quote/${quote.id}`
+              : role === "CLIENT"
+                ? `/user/business/quote/sign/${quote.id}`
+                : null
+          }
+          className="text-slate-900"
+        >
+          {quote.quote_number}
+        </RecordLink>
+      ),
     },
     {
       key: "client",
@@ -117,24 +131,34 @@ export default function QuotesData({ token, role, setAlert }) {
       sortKey: "service__client__name",
       width: "14%",
       className: "whitespace-nowrap px-4 py-3 text-slate-700",
-      render: (quote) => quote.client_name || "—",
+      render: (quote) => (
+        <RecordLink
+          to={
+            isManager && quote.service_data?.client
+              ? `/user/business/client/${quote.service_data.client}`
+              : null
+          }
+        >
+          {quote.client_name || "—"}
+        </RecordLink>
+      ),
     },
     {
       key: "service",
       title: "Service",
       sortKey: "service__service_name",
       width: "12%",
-      render: (quote) =>
-        isManager && quote.service_data?.id ? (
-          <Link
-            to={`/user/business/service/${quote.service_data.id}`}
-            className="font-medium text-secondary hover:text-accent"
-          >
-            {quote.service_name}
-          </Link>
-        ) : (
-          quote.service_name || "—"
-        ),
+      render: (quote) => (
+        <RecordLink
+          to={
+            isManager && quote.service_data?.id
+              ? `/user/business/service/${quote.service_data.id}`
+              : null
+          }
+        >
+          {quote.service_name || "—"}
+        </RecordLink>
+      ),
     },
     {
       key: "address",

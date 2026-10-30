@@ -226,15 +226,20 @@ class DashboardApiTests(DashboardTestMixin, TestCase):
         self.assertEqual(quotes[0]["status"], "SIGNED")
         self.assertEqual(quotes[0]["client_name"], "alice")
         self.assertEqual(Decimal(quotes[0]["amount"]), Decimal("100.00"))
+        signed = Quote.objects.get(status="SIGNED")
+        self.assertEqual(quotes[0]["client_id"], signed.service.client_id)
+        self.assertEqual(quotes[0]["service_id"], signed.service_id)
 
         invoices = data["recent_invoices"]
         self.assertEqual(len(invoices), 5)
         self.assertNotIn("1000.00", [str(row["total_amount"]) for row in invoices])
+        self.assertTrue(all(row["client_id"] for row in invoices))
 
         activity = data["recent_activity"]
         self.assertLessEqual(len(activity), 10)
         self.assertEqual(activity[0]["id"], f"quote-{Quote.objects.get(status='SIGNED').pk}")
         self.assertEqual(activity[0]["title"], "Quote approved")
+        self.assertEqual(activity[0]["to"], f"/user/business/quote/{signed.pk}")
         dates = [item["date"] for item in activity]
         self.assertEqual(dates, sorted(dates, reverse=True))
         self.assertFalse(any("stranger" in item["description"] for item in activity))

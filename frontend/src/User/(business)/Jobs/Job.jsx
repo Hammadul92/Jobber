@@ -11,6 +11,7 @@ import {
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
+import RecordLink from "../../../Components/ui/RecordLink";
 import { formatDate } from "../../../utils/formatDate";
 import Select from "../../../Components/ui/Select";
 import Textarea from "../../../Components/ui/Textarea";
@@ -257,13 +258,27 @@ export default function Job({ token, role }) {
                   <span className="font-medium block text-sm text-gray-600">
                     Service:
                   </span>{" "}
-                  {serviceData.service_name}
+                  <RecordLink
+                    to={canEditJobDetails ? `/user/business/service/${serviceData.id}` : null}
+                    className="text-gray-800"
+                  >
+                    {serviceData.service_name}
+                  </RecordLink>
                 </p>
                 <p>
                   <span className="font-medium block text-sm text-gray-600">
                     Client:
                   </span>{" "}
-                  {serviceData.client_name || "—"}
+                  <RecordLink
+                    to={
+                      canEditJobDetails && serviceData.client
+                        ? `/user/business/client/${serviceData.client}`
+                        : null
+                    }
+                    className="text-gray-800"
+                  >
+                    {serviceData.client_name || "—"}
+                  </RecordLink>
                 </p>
                 <p>
                   <span className="font-medium block text-sm text-gray-600">

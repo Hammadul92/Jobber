@@ -12,6 +12,7 @@ import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
+import RecordLink from "../../../Components/ui/RecordLink";
 import { formatDate } from "../../../utils/formatDate";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import { formatAddress } from "../../../utils/formatAddress";
@@ -347,8 +348,28 @@ export default function Invoice({ token, role }) {
 
               <div className="mt-5 space-y-4 text-slate-700">
                 <SummaryRow label="Business" value={businessName} />
-                <SummaryRow label="Client" value={clientName} />
-                <SummaryRow label="Service" value={serviceName} />
+                <SummaryRow
+                  label="Client"
+                  value={
+                    <RecordLink
+                      to={invoiceData?.client ? `/user/business/client/${invoiceData.client}` : null}
+                      className="text-slate-900"
+                    >
+                      {clientName}
+                    </RecordLink>
+                  }
+                />
+                <SummaryRow
+                  label="Service"
+                  value={
+                    <RecordLink
+                      to={invoiceData?.service ? `/user/business/service/${invoiceData.service}` : null}
+                      className="text-slate-900"
+                    >
+                      {serviceName}
+                    </RecordLink>
+                  }
+                />
                 <SummaryRow label="Currency" value={currency} />
                 <SummaryRow
                   label="Created"

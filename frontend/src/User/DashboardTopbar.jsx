@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { LuBell, LuMessageSquare, LuSearch } from "react-icons/lu";
 
 const getFirstName = (user) => {
@@ -174,6 +175,18 @@ function DashboardTopbar({ user, notifications = [] }) {
                               >
                                 Mark as read
                               </button>
+                              {item.to && (
+                                <Link
+                                  to={item.to}
+                                  onClick={() => {
+                                    markNotificationAsRead(item.id);
+                                    setIsNotificationsOpen(false);
+                                  }}
+                                  className="text-xs font-medium text-secondary transition hover:text-accent"
+                                >
+                                  View
+                                </Link>
+                              )}
                             </div>
                           </div>
                         </div>

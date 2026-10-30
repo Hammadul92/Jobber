@@ -10,6 +10,7 @@ import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
+import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
@@ -255,20 +256,36 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
       title: "Invoice",
       sortKey: "invoice_number",
       className: "px-4 py-3 font-semibold text-slate-900",
-      render: (row) => row.invoice_number,
+      render: (row) => (
+        <RecordLink to={`/user/business/invoice/${row.id}`} className="text-slate-900">
+          {row.invoice_number}
+        </RecordLink>
+      ),
     },
     { key: "business", title: "Business", render: (row) => row.business_name },
     {
       key: "client",
       title: "Client",
       sortKey: "client__name",
-      render: (row) => row.client_name,
+      render: (row) => (
+        <RecordLink
+          to={isManager && row.client ? `/user/business/client/${row.client}` : null}
+        >
+          {row.client_name}
+        </RecordLink>
+      ),
     },
     {
       key: "service",
       title: "Service",
       sortKey: "service__service_name",
-      render: (row) => row.service_name,
+      render: (row) => (
+        <RecordLink
+          to={isManager && row.service ? `/user/business/service/${row.service}` : null}
+        >
+          {row.service_name}
+        </RecordLink>
+      ),
     },
     {
       key: "total",

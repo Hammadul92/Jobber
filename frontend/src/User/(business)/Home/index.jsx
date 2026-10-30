@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import RecordLink from "../../../Components/ui/RecordLink";
 import { useEffect, useMemo, useState } from "react";
 import {
   LuArrowDownRight,
@@ -455,7 +456,7 @@ function EmptyState({ message }) {
   );
 }
 
-function RecentRecords({ recentQuotes, recentInvoices, activeTab, setActiveTab }) {
+function RecentRecords({ recentQuotes, recentInvoices, activeTab, setActiveTab, isManager }) {
   const rows = activeTab === "quotes" ? recentQuotes : recentInvoices;
 
   return (
@@ -508,11 +509,28 @@ function RecentRecords({ recentQuotes, recentInvoices, activeTab, setActiveTab }
 
                 return (
                   <tr key={`${activeTab}-${row.id}`} className="text-sm border-t border-gray-100 text-slate-700">
-                    <td className="px-6 fon4t-medium py- text-accent">
-                      {isQuote ? row.quote_number : row.invoice_number}
+                    <td className="px-6 py-4 font-medium">
+                      <RecordLink
+                        to={`/user/business/${isQuote ? "quote" : "invoice"}/${row.id}`}
+                        className="text-accent"
+                      >
+                        {isQuote ? row.quote_number : row.invoice_number}
+                      </RecordLink>
                     </td>
-                    <td className="px-2 py-4">{row.client_name}</td>
-                    <td className="px-2 py-4">{row.service_name || "-"}</td>
+                    <td className="px-2 py-4">
+                      <RecordLink
+                        to={isManager && row.client_id ? `/user/business/client/${row.client_id}` : null}
+                      >
+                        {row.client_name}
+                      </RecordLink>
+                    </td>
+                    <td className="px-2 py-4">
+                      <RecordLink
+                        to={isManager && row.service_id ? `/user/business/service/${row.service_id}` : null}
+                      >
+                        {row.service_name || "-"}
+                      </RecordLink>
+                    </td>
                     <td className="px-2 py-4">{amount}</td>
                     <td className="px-2 py-4">
                       <StatusBadge
@@ -714,7 +732,7 @@ const JOB_STATUS_ROWS = [
 
 const EMPTY_LIST = [];
 
-export default function DashboardHome({ token, onRecentActivityChange }) {
+export default function DashboardHome({ token, user, onRecentActivityChange }) {
   const [chartRange, setChartRange] = useState("Monthly");
   const [recordsTab, setRecordsTab] = useState("quotes");
 
@@ -812,6 +830,7 @@ export default function DashboardHome({ token, onRecentActivityChange }) {
           recentInvoices={dashboardData.recentInvoices}
           activeTab={recordsTab}
           setActiveTab={setRecordsTab}
+          isManager={user?.role === "MANAGER"}
         />
       </section>
 

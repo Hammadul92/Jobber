@@ -245,6 +245,8 @@ class PayoutSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
     service_name = serializers.CharField(
         source="invoice.service.service_name", read_only=True
     )
+    client = serializers.IntegerField(source="invoice.client_id", read_only=True)
+    service = serializers.IntegerField(source="invoice.service_id", read_only=True)
     invoice_number = serializers.CharField(
         source="invoice.invoice_number", read_only=True
     )
@@ -258,7 +260,9 @@ class PayoutSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
             "id",
             "business",
             "business_name",
+            "client",
             "client_name",
+            "service",
             "service_name",
             "invoice",
             "invoice_number",

@@ -493,6 +493,12 @@ class InvoicePaymentWorkflowTests(TestCase):
         self.assertEqual(mail.outbox[0].to, [self.manager.email])
         self.assertIn(self.invoice.invoice_number, mail.outbox[0].subject)
 
+        self.client.force_authenticate(self.manager)
+        res = self.client.get(reverse("finance:payout-detail", args=[payout.pk]))
+        self.assertEqual(res.data["invoice"], self.invoice.pk)
+        self.assertEqual(res.data["client"], self.invoice.client_id)
+        self.assertEqual(res.data["service"], self.invoice.service_id)
+
     @patch("finance.views.stripe.PaymentIntent.create")
     def test_repaying_already_paid_invoice_is_blocked(
         self,

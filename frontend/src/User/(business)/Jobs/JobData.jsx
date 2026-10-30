@@ -10,6 +10,7 @@ import SubmitButton from "../../../Components/ui/SubmitButton";
 import Dropdown from "../../../Components/ui/Dropdown";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
+import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
@@ -108,21 +109,40 @@ export default function JobData({ token, role, setAlert }) {
       sortKey: "title",
       width: "20%",
       className: "px-4 py-3 font-semibold text-slate-900",
-      render: (job) => job.title || "—",
+      render: (job) => (
+        <RecordLink to={`/user/business/job/${job.id}`} className="text-slate-900">
+          {job.title || "—"}
+        </RecordLink>
+      ),
     },
     {
       key: "service",
       title: "Service",
       sortKey: "service__service_name",
       width: "20%",
-      render: (job) => job.service_name || "—",
+      render: (job) => (
+        <RecordLink
+          to={isManager && job.service ? `/user/business/service/${job.service}` : null}
+        >
+          {job.service_name || "—"}
+        </RecordLink>
+      ),
     },
     {
       key: "assigned",
       title: "Assigned To",
       sortKey: "assigned_to__employee__name",
       width: "20%",
-      render: (job) => job.assigned_to_name || "Unassigned",
+      render: (job) =>
+        job.assigned_to_name ? (
+          <RecordLink
+            to={isManager && job.assigned_to ? `/user/business/team-member/${job.assigned_to}` : null}
+          >
+            {job.assigned_to_name}
+          </RecordLink>
+        ) : (
+          "Unassigned"
+        ),
     },
     {
       key: "scheduled",

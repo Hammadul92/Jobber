@@ -9,6 +9,7 @@ import {
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
+import RecordLink from "../../../Components/ui/RecordLink";
 import { formatDate } from "../../../utils/formatDate";
 import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
@@ -295,7 +296,16 @@ export default function Quote({ token, role }) {
                 <div>
                   <p className="text-sm text-slate-500">Name</p>
                   <p className="text-base font-medium text-slate-800">
-                    {quoteData.client_name || client.name || "-"}
+                    <RecordLink
+                      to={
+                        role === "MANAGER" && serviceData.client
+                          ? `/user/business/client/${serviceData.client}`
+                          : null
+                      }
+                      className="text-slate-800"
+                    >
+                      {quoteData.client_name || client.name || "-"}
+                    </RecordLink>
                   </p>
                 </div>
               </div>

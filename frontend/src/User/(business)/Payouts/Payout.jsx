@@ -7,6 +7,7 @@ import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
 import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
+import RecordLink from "../../../Components/ui/RecordLink";
 import { formatDate } from "../../../utils/formatDate";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
@@ -136,8 +137,39 @@ export default function Payout({ token, role }) {
             </p>
 
             <div className="mt-5 space-y-4 text-slate-700">
-              <SummaryRow label="Client" value={payoutData?.client_name} />
-              <SummaryRow label="Service" value={payoutData?.service_name} />
+              <SummaryRow
+                label="Invoice"
+                value={
+                  <RecordLink
+                    to={payoutData?.invoice ? `/user/business/invoice/${payoutData.invoice}` : null}
+                    className="text-slate-900"
+                  >
+                    {payoutData?.invoice_number}
+                  </RecordLink>
+                }
+              />
+              <SummaryRow
+                label="Client"
+                value={
+                  <RecordLink
+                    to={payoutData?.client ? `/user/business/client/${payoutData.client}` : null}
+                    className="text-slate-900"
+                  >
+                    {payoutData?.client_name}
+                  </RecordLink>
+                }
+              />
+              <SummaryRow
+                label="Service"
+                value={
+                  <RecordLink
+                    to={payoutData?.service ? `/user/business/service/${payoutData.service}` : null}
+                    className="text-slate-900"
+                  >
+                    {payoutData?.service_name}
+                  </RecordLink>
+                }
+              />
               <SummaryRow
                 label="Processed"
                 value={
