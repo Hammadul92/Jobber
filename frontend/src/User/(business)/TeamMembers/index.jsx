@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import CreateTeamMemberForm from "./CreateTeamMemberForm";
 import TeamMembersData from "./TeamMembersData";
 import { useDispatch } from "react-redux";
@@ -12,7 +11,6 @@ import {
 export default function TeamMembers({ token, role, user }) {
   const [showModal, setShowModal] = useState(false);
   const [editTeamMember, setEditTeamMember] = useState(null);
-  const [alert, setAlert] = useState({ type: "", message: "" });
   const dispatch = useDispatch();
 
   const handleOpenCreate = useCallback(() => {
@@ -64,19 +62,11 @@ export default function TeamMembers({ token, role, user }) {
 
   return (
     <div className="space-y-6">
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
 
       <CreateTeamMemberForm
         token={token}
         showModal={showModal}
         setShowModal={setShowModal}
-        setAlert={setAlert}
         mode={editTeamMember ? "edit" : "create"}
         initialData={editTeamMember}
         currentUser={user}
@@ -84,7 +74,6 @@ export default function TeamMembers({ token, role, user }) {
 
       <TeamMembersData
         token={token}
-        setAlert={setAlert}
         onEdit={handleEditTeamMember}
       />
     </div>

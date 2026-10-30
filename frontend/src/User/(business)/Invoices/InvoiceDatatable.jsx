@@ -7,11 +7,11 @@ import {
   useBulkInvoicesMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
+import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import { formatDate } from "../../../utils/formatDate";
@@ -27,6 +27,7 @@ import {
   LuTrash2,
   LuX,
 } from "react-icons/lu";
+import useAlert from "../../../hooks/useAlert";
 
 const INITIAL_FILTERS = { status: "", due_from: "", due_to: "" };
 
@@ -39,22 +40,22 @@ const STATUS_OPTIONS = [
   { value: "CANCELLED", label: "Cancelled" },
 ];
 
-const plural = (count) => `${count} selected invoice${count === 1 ? "" : "s"}`;
-
 const BULK_ACTIONS = [
   {
     key: "send",
     label: "Send invoices",
     tone: "primary",
     confirmMessage: (count) =>
-      `Email ${plural(count)} to their clients? Drafts are sent and already-sent invoices are re-sent. Paid or cancelled invoices, and any whose due date has passed, are skipped.`,
+      `Email ${pluralize(count, "selected invoice")} to their clients? Drafts are sent and already-sent invoices are re-sent. Paid or cancelled invoices, and any whose due date has passed, are skipped.`,
+    successMessage: (count) => `${pluralize(count, "invoice")} sent.`,
   },
   {
     key: "delete",
     label: "Delete",
     tone: "danger",
     confirmMessage: (count) =>
-      `Delete ${plural(count)}? Paid or refunded invoices are kept.`,
+      `Delete ${pluralize(count, "selected invoice")}? Paid or refunded invoices are kept.`,
+    successMessage: (count) => `${pluralize(count, "invoice")} deleted.`,
   },
 ];
 
@@ -109,7 +110,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
   const [showDateRangeModal, setShowDateRangeModal] = useState(false);
   const [dateDraft, setDateDraft] = useState({ from: "", to: "" });
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
 
   const { data, isLoading, isFetching, error } = useFetchInvoicesPageQuery(
     table.queryArgs,
@@ -148,7 +149,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
         message: error?.data?.detail || "Failed to load invoice data.",
       });
     }
-  }, [error]);
+  }, [error, setAlert]);
 
   const handleDeleteClick = (id) => {
     setSelectedInvoiceId(id);
@@ -369,14 +370,6 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       <div className="space-y-6">
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-100 px-6 py-5">

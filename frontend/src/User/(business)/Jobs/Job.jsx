@@ -17,6 +17,7 @@ import Select from "../../../Components/ui/Select";
 import Textarea from "../../../Components/ui/Textarea";
 import Input from "../../../Components/ui/Input";
 import { LuUpload } from "react-icons/lu";
+import useAlert from "../../../hooks/useAlert";
 
 export default function Job({ token, role }) {
   const { id } = useParams();
@@ -49,7 +50,7 @@ export default function Job({ token, role }) {
   const [scheduledDate, setScheduledDate] = useState("");
   const [status, setStatus] = useState("");
   const [createdAt, setCreatedAt] = useState("");
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
   const [completionMessage, setCompletionMessage] = useState("");
 
   const [photoType, setPhotoType] = useState("BEFORE");
@@ -208,7 +209,6 @@ export default function Job({ token, role }) {
       <AlertDispatcher
         type="danger"
         message={error?.data?.detail || "Failed to load job details."}
-        onClose={() => setAlert({ type: "", message: "" })}
       />
     );
   }
@@ -222,13 +222,6 @@ export default function Job({ token, role }) {
           navigate("/user/business/jobs");
         }}
       />
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
 
       {/* Breadcrumb removed to match desired design */}
 

@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import CreateInvoiceForm from "./CreateInvoiceForm";
 import InvoiceDatatable from "./InvoiceDatatable";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import {
   registerTopbarActionHandler,
@@ -12,7 +11,6 @@ import {
 
 export default function Invoices({ token, role, business }) {
   const [showModal, setShowModal] = useState(false);
-  const [alert, setAlert] = useState({ type: "", message: "" });
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -50,20 +48,11 @@ export default function Invoices({ token, role, business }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       {role === "MANAGER" && (
         <CreateInvoiceForm
           token={token}
           showModal={showModal}
           setShowModal={setShowModal}
-          setAlert={setAlert}
           business={business}
         />
       )}
@@ -71,7 +60,6 @@ export default function Invoices({ token, role, business }) {
       <InvoiceDatatable
         role={role}
         token={token}
-        setAlert={setAlert}
         onAddInvoice={() => setShowModal(true)}
       />
     </>

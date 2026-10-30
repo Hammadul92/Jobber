@@ -14,6 +14,7 @@ import { invoiceApi } from "./apis/invoiceApi";
 import { payoutApi } from "./apis/payoutApi";
 import { dashboardApi } from "./apis/dashboardApi";
 import { topbarReducer } from "./topbarSlice";
+import { alertReducer } from "./alertSlice";
 
 const store = configureStore({
   reducer: {
@@ -31,6 +32,7 @@ const store = configureStore({
     [payoutApi.reducerPath]: payoutApi.reducer,
     [dashboardApi.reducerPath]: dashboardApi.reducer,
     topbar: topbarReducer,
+    alerts: alertReducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware({

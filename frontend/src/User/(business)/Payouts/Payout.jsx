@@ -10,6 +10,7 @@ import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordLink from "../../../Components/ui/RecordLink";
 import { formatDate } from "../../../utils/formatDate";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
+import useAlert from "../../../hooks/useAlert";
 
 const STATUS_STYLES = {
   PAID: "bg-emerald-100 text-emerald-700",
@@ -44,7 +45,7 @@ export default function Payout({ token, role }) {
   const [refundPayout, { isLoading: refunding }] = useRefundPayoutMutation();
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
 
   useEffect(() => {
     const serviceName = payoutData?.service_name;
@@ -94,7 +95,6 @@ export default function Payout({ token, role }) {
       <AlertDispatcher
         type="danger"
         message={error?.data?.detail || "Failed to load payout."}
-        onClose={() => setAlert({ type: "", message: "" })}
       />
     );
   }
@@ -108,14 +108,6 @@ export default function Payout({ token, role }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <h3 className="text-3xl font-medium tracking-tight text-slate-900">

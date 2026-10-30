@@ -1,7 +1,9 @@
 import { useAddBankAccountMutation, useDeleteBankingInformationMutation } from "../../store";
 import SubmitButton from "../../Components/ui/SubmitButton";
+import useAlert from "../../hooks/useAlert";
 
-export default function StripeOnboardingButton({ setAlert, connection, onDisconnect }) {
+export default function StripeOnboardingButton({ connection, onDisconnect }) {
+  const setAlert = useAlert();
   const [addBankAccount, { isLoading }] = useAddBankAccountMutation();
   const [deleteBankingInformation, { isLoading: reconnecting }] = useDeleteBankingInformationMutation();
   const needsReconnect = connection?.stripe_connection_status === "reconnect_required";

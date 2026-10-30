@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import CreateClientForm from "./CreateClientForm";
 import DataTable from "./ClientsDatatable";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import {
   registerTopbarActionHandler,
@@ -12,7 +11,6 @@ import {
 
 export default function Clients({ token }) {
   const [showModal, setShowModal] = useState(false);
-  const [alert, setAlert] = useState({ type: "", message: "" });
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -44,23 +42,13 @@ export default function Clients({ token }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       <CreateClientForm
         showModal={showModal}
         setShowModal={setShowModal}
-        setAlert={setAlert}
       />
 
       <DataTable
         token={token}
-        setAlert={setAlert}
         showAddClient={setShowModal}
       />
     </>

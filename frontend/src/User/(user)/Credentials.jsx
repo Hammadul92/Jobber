@@ -8,8 +8,10 @@ import {
   LuEyeOff,
   LuLock,
 } from "react-icons/lu";
+import useAlert from "../../hooks/useAlert";
 
-export default function Credentials({ setAlert }) {
+export default function Credentials() {
+  const setAlert = useAlert();
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

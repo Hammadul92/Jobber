@@ -13,6 +13,7 @@ import Dropdown from "../../../Components/ui/Dropdown";
 import Textarea from "../../../Components/ui/Textarea";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import PhoneInputField from "../../../Components/ui/PhoneInput";
+import useAlert from "../../../hooks/useAlert";
 
 function generateStrongPassword(length = 12) {
   const charset =
@@ -46,11 +47,11 @@ export default function CreateTeamMemberForm({
   token,
   showModal,
   setShowModal,
-  setAlert,
   mode = "create",
   initialData = null,
   currentUser = null,
 }) {
+  const setAlert = useAlert();
   const isEditMode = mode === "edit" && Boolean(initialData);
   const hasCurrentUserIdentity = Boolean(currentUser?.id || currentUser?.email);
   const currentUserEmail = String(currentUser?.email || "").toLowerCase();

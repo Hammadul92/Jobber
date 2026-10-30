@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import CreateJobForm from "./CreateJobForm";
 import JobData from "./JobData";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import {
   registerTopbarActionHandler,
@@ -12,7 +11,6 @@ import {
 
 export default function Jobs({ token, role }) {
   const [showModal, setShowModal] = useState(false);
-  const [alert, setAlert] = useState({ type: "", message: "" });
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -50,24 +48,15 @@ export default function Jobs({ token, role }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       {role === "MANAGER" && (
         <CreateJobForm
           token={token}
           showModal={showModal}
           setShowModal={setShowModal}
-          setAlert={setAlert}
         />
       )}
 
-      <JobData role={role} token={token} setAlert={setAlert} />
+      <JobData role={role} token={token} />
     </>
   );
 }

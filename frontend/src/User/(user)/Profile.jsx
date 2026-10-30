@@ -6,8 +6,10 @@ import { formatDate } from "../../utils/formatDate";
 import Input from "../../Components/ui/Input";
 import { LuCamera } from "react-icons/lu";
 import { syncPublicSession } from "../../utils/publicSession";
+import useAlert from "../../hooks/useAlert";
 
-export default function Profile({ token, setAlert }) {
+export default function Profile({ token }) {
+  const setAlert = useAlert();
   const {
     data: user,
     isFetching,

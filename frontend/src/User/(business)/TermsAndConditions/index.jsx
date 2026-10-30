@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import {
   registerTopbarActionHandler,
@@ -11,7 +10,6 @@ import ServiceTermsData from "./ServiceTermsData";
 
 export default function TermsAndConditions({ token }) {
   const [showModal, setShowModal] = useState(false);
-  const [alert, setAlert] = useState({ type: "", message: "" });
   const [editTemplate, setEditTemplate] = useState(null);
   const dispatch = useDispatch();
 
@@ -50,19 +48,11 @@ export default function TermsAndConditions({ token }) {
 
   return (
     <div className="space-y-4">
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
 
       <CreateServiceTermsForm
         token={token}
         showModal={showModal}
         setShowModal={setShowModal}
-        setAlert={setAlert}
         initialData={editTemplate}
         mode={editTemplate ? "edit" : "create"}
         setInitialData={setEditTemplate}
@@ -70,7 +60,6 @@ export default function TermsAndConditions({ token }) {
 
       <ServiceTermsData
         token={token}
-        setAlert={setAlert}
         onEdit={(template) => {
           setEditTemplate(template);
           setShowModal(true);

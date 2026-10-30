@@ -20,12 +20,12 @@ import Dropdown from "../../../../Components/ui/Dropdown";
 import RecordsTable from "../../../../Components/ui/RecordsTable";
 import RecordLink from "../../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../../Components/ui/BulkActionBar";
+import { pluralize } from "../../../../utils/pluralize";
 import TablePagination from "../../../../Components/ui/TablePagination";
 import useServerTable from "../../../../hooks/useServerTable";
+import useAlert from "../../../../hooks/useAlert";
 
 const FILTER_KEYS = ["service_type", "status", "country", "province_state"];
-
-const servicesLabel = (count) => `${count} service${count === 1 ? "" : "s"}`;
 
 const BULK_ACTIONS = [
   {
@@ -33,14 +33,17 @@ const BULK_ACTIONS = [
     label: "Resend questionnaire",
     tone: "primary",
     confirmMessage: (count) =>
-      `Email the questionnaire again for ${servicesLabel(count)}? Services whose questionnaire is already filled or bypassed are skipped.`,
+      `Email the questionnaire again for ${pluralize(count, "service")}? Services whose questionnaire is already filled or bypassed are skipped.`,
+    successMessage: (count) =>
+      `Questionnaire resent for ${pluralize(count, "service")}.`,
   },
   {
     key: "delete",
     label: "Delete",
     tone: "danger",
     confirmMessage: (count) =>
-      `Delete ${servicesLabel(count)}? Their quotes, jobs and invoices are removed too. This cannot be undone.`,
+      `Delete ${pluralize(count, "service")}? Their quotes, jobs and invoices are removed too. This cannot be undone.`,
+    successMessage: (count) => `${pluralize(count, "service")} deleted.`,
   },
 ];
 
@@ -48,8 +51,8 @@ export default function ClientServicesData({
   token,
   role,
   clientId,
-  setAlert,
 }) {
+  const setAlert = useAlert();
   const isManager = role === "MANAGER";
   const isAllServicesView = !clientId && isManager;
   const [deleteService, { isLoading: deleting }] = useDeleteServiceMutation();

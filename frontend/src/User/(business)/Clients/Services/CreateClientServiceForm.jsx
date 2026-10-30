@@ -9,6 +9,7 @@ import Textarea from "../../../../Components/ui/Textarea";
 import ServiceItemsEditor from "../../../../Components/ui/ServiceItemsEditor";
 import { getBillingAddressForService } from "../../../../utils/formatAddress";
 import ConfirmCustomerNotification from "../../../../Components/ui/ConfirmCustomerNotification";
+import useAlert from "../../../../hooks/useAlert";
 
 export default function CreateClientServiceForm({
   showModal,
@@ -18,10 +19,10 @@ export default function CreateClientServiceForm({
   clientName,
   clientBillingAddress,
   serviceOptions = [],
-  setAlert,
   mode = "create",
   initialData = null,
 }) {
+  const setAlert = useAlert();
   const isEditMode = mode === "edit" && Boolean(initialData);
   const lockToStatusOnly = isEditMode && initialData?.status !== "PENDING";
   const [serviceName, setServiceName] = useState("");

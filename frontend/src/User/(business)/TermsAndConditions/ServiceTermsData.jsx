@@ -15,8 +15,10 @@ import {
   LuTrash2,
 } from "react-icons/lu";
 import { CgClose } from "react-icons/cg";
+import useAlert from "../../../hooks/useAlert";
 
-export default function ServiceTermsData({ token, setAlert, onEdit }) {
+export default function ServiceTermsData({ token, onEdit }) {
+  const setAlert = useAlert();
   const [templates, setTemplates] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState(null);

@@ -10,16 +10,17 @@ import Input from "../../../Components/ui/Input";
 import Dropdown from "../../../Components/ui/Dropdown";
 import { CgClose } from "react-icons/cg";
 import { LuPlus } from "react-icons/lu";
+import useAlert from "../../../hooks/useAlert";
 
 export default function CreateServiceQuestionnairesForm({
   token,
   showModal,
   setShowModal,
-  setAlert,
   initialData = null,
   mode = "create",
   setInitialData = () => {},
 }) {
+  const setAlert = useAlert();
   const [serviceName, setServiceName] = useState("");
   const [isActive, setIsActive] = useState(true);
 
@@ -98,7 +99,7 @@ export default function CreateServiceQuestionnairesForm({
     e.preventDefault();
 
     if (!serviceName || questions.some((q) => !q.text.trim())) {
-      setAlert?.({
+      setAlert({
         type: "danger",
         message: "Please fill in all required fields.",
       });
@@ -118,7 +119,7 @@ export default function CreateServiceQuestionnairesForm({
           additional_questions_form: questions,
         }).unwrap();
 
-        setAlert?.({
+        setAlert({
           type: "success",
           message: "Service questionnaire updated successfully.",
         });
@@ -136,7 +137,7 @@ export default function CreateServiceQuestionnairesForm({
         additional_questions_form: questions,
       }).unwrap();
 
-      setAlert?.({
+      setAlert({
         type: "success",
         message: "Service questionnaire created successfully.",
       });
@@ -155,7 +156,7 @@ export default function CreateServiceQuestionnairesForm({
       setShowModal(false);
     } catch (err) {
       console.error("Error creating/updating questionnaire:", err);
-      setAlert?.({
+      setAlert({
         type: "danger",
         message:
           typeof err?.data === "object" && err.data !== null

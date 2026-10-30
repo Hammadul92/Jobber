@@ -4,17 +4,17 @@ import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import CreateQuoteForm from "./CreateQuoteForm";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import QuotesData from "./QuotesData";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import {
   registerTopbarActionHandler,
   unregisterTopbarActionHandler,
 } from "../../topbarActionRegistry";
+import useAlert from "../../../hooks/useAlert";
 
 export default function Quotes({ token, role }) {
   const [showModal, setShowModal] = useState(false);
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export default function Quotes({ token, role }) {
     if (!location.state?.quoteSent) return;
     setAlert({ type: "success", message: "Quote email sent successfully!" });
     navigate(location.pathname, { replace: true, state: null });
-  }, [location.pathname, location.state, navigate]);
+  }, [location.pathname, location.state, navigate, setAlert]);
 
   useEffect(() => {
     if (role === "MANAGER") {
@@ -59,25 +59,16 @@ export default function Quotes({ token, role }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       {role === "MANAGER" && (
         <CreateQuoteForm
           token={token}
           showModal={showModal}
           setShowModal={setShowModal}
-          setAlert={setAlert}
         />
       )}
 
       <div>
-        <QuotesData token={token} role={role} setAlert={setAlert} />
+        <QuotesData token={token} role={role} />
       </div>
     </>
   );

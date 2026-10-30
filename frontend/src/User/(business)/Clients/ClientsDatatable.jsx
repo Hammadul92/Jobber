@@ -15,13 +15,14 @@ import {
   useBulkClientsMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
+import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
+import useAlert from "../../../hooks/useAlert";
 
 const STATUS_OPTIONS = [
   { label: "All", value: "" },
@@ -29,28 +30,29 @@ const STATUS_OPTIONS = [
   { label: "Inactive", value: "false" },
 ];
 
-const clientsLabel = (count) => `${count} client${count === 1 ? "" : "s"}`;
-
 const BULK_ACTIONS = [
   {
     key: "activate",
     label: "Activate",
     tone: "primary",
     confirmMessage: (count) =>
-      `Activate ${clientsLabel(count)}? They will see this business's quotes and invoices again.`,
+      `Activate ${pluralize(count, "client")}? They will see this business's quotes and invoices again.`,
+    successMessage: (count) => `${pluralize(count, "client")} activated.`,
   },
   {
     key: "deactivate",
     label: "Deactivate",
     confirmMessage: (count) =>
-      `Deactivate ${clientsLabel(count)}? They will no longer see this business's quotes and invoices.`,
+      `Deactivate ${pluralize(count, "client")}? They will no longer see this business's quotes and invoices.`,
+    successMessage: (count) => `${pluralize(count, "client")} deactivated.`,
   },
   {
     key: "delete",
     label: "Delete",
     tone: "danger",
     confirmMessage: (count) =>
-      `Delete ${clientsLabel(count)}? Their services, quotes, jobs and invoices are removed too. This cannot be undone.`,
+      `Delete ${pluralize(count, "client")}? Their services, quotes, jobs and invoices are removed too. This cannot be undone.`,
+    successMessage: (count) => `${pluralize(count, "client")} deleted.`,
   },
 ];
 
@@ -63,7 +65,7 @@ const clientNameOf = (row) => row.client_name || row.name || "Client";
 export default function ClientsDatatable({ token, showAddClient }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState(null);
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [bulkLabels, setBulkLabels] = useState({});
 
@@ -104,7 +106,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
         message: error?.data?.detail || "Failed to load client data.",
       });
     }
-  }, [error]);
+  }, [error, setAlert]);
 
   const handleDeleteClick = (id) => {
     setSelectedClientId(id);
@@ -246,14 +248,6 @@ export default function ClientsDatatable({ token, showAddClient }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
         {stats.map(({ label, value }) => (
           <div

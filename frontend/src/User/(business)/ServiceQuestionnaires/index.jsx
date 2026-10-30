@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import CreateServiceQuestionnairesForm from "./CreateServiceQuestionnairesForm";
 import ServiceQuestionnairesData from "./ServiceQuestionnairesData";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import {
   registerTopbarActionHandler,
@@ -12,7 +11,6 @@ import {
 
 export default function Questionnaires({ token }) {
   const [showModal, setShowModal] = useState(false);
-  const [alert, setAlert] = useState({ type: "", message: "" });
   const [editQuestionnaire, setEditQuestionnaire] = useState(null);
   const dispatch = useDispatch();
 
@@ -51,19 +49,11 @@ export default function Questionnaires({ token }) {
 
   return (
     <div className="space-y-4">
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
 
       <CreateServiceQuestionnairesForm
         token={token}
         showModal={showModal}
         setShowModal={setShowModal}
-        setAlert={setAlert}
         initialData={editQuestionnaire}
         mode={editQuestionnaire ? "edit" : "create"}
         setInitialData={setEditQuestionnaire}
@@ -71,7 +61,6 @@ export default function Questionnaires({ token }) {
 
       <ServiceQuestionnairesData
         token={token}
-        setAlert={setAlert}
         onEdit={(q) => {
           setEditQuestionnaire(q);
           setShowModal(true);

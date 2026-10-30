@@ -2,6 +2,8 @@ import { memo, useLayoutEffect, useRef, useState } from "react";
 import { LuArrowDown, LuArrowUp, LuArrowUpDown } from "react-icons/lu";
 
 // Shared table shell keeps headers, row spacing, and empty states consistent.
+// Icons opt out of the global max-width rule, which would collapse them in
+// columns sized to their content.
 // Optional server features: columns with a sortKey become sortable when
 // ordering/onSort are passed, and `selection` adds a checkbox column.
 const RecordsTable = memo(function RecordsTable({
@@ -71,7 +73,7 @@ const RecordsTable = memo(function RecordsTable({
       <div ref={viewportRef} className="records-table-viewport overflow-x-auto">
         <table
           ref={tableRef}
-          className={`w-full min-w-full divide-y divide-gray-100 text-sm xl:text-base ${tableClassName}`}
+          className={`w-full min-w-full divide-y divide-gray-100 text-sm xl:text-base [&_svg]:max-w-none [&_svg]:shrink-0 ${tableClassName}`}
         >
           {columns.some((column) => column.width) && (
             <colgroup>

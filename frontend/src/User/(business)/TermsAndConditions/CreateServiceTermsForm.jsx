@@ -9,6 +9,7 @@ import Dropdown from "../../../Components/ui/Dropdown";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import RichTextEditor from "../../../Components/ui/RichTextEditor";
 import { CgClose } from "react-icons/cg";
+import useAlert from "../../../hooks/useAlert";
 
 const getPlainTextFromHtml = (html) => {
   if (!html) return "";
@@ -20,11 +21,11 @@ export default function CreateServiceTermsForm({
   token,
   showModal,
   setShowModal,
-  setAlert,
   initialData = null,
   mode = "create",
   setInitialData = () => {},
 }) {
+  const setAlert = useAlert();
   const [serviceName, setServiceName] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [content, setContent] = useState("");

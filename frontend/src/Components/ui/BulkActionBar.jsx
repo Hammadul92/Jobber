@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { LuX } from "react-icons/lu";
+import useAlert from "../../hooks/useAlert";
+import { pluralize } from "../../utils/pluralize";
 
 const TONES = {
   default:
@@ -8,9 +10,11 @@ const TONES = {
   danger: "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100",
 };
 
-// Selected-rows toolbar. Each action is confirmed in a prompt, then the
-// per-row results from the bulk endpoint are shown before closing.
+// Selected-rows toolbar. Each action is confirmed in a prompt; successes are
+// reported with a success alert, and rows that failed stay listed in the
+// prompt with their reasons.
 export default function BulkActionBar({ selectedCount, actions, onRun, onClear }) {
+  const setAlert = useAlert();
   const [pending, setPending] = useState(null);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState(null);
@@ -34,15 +38,27 @@ export default function BulkActionBar({ selectedCount, actions, onRun, onClear }
   const confirm = async () => {
     setRunning(true);
     try {
-      setResult(await onRun(pending.key));
+      const outcome = await onRun(pending.key);
+      if (outcome.succeeded > 0) {
+        setAlert({
+          type: "success",
+          message: pending.successMessage
+            ? pending.successMessage(outcome.succeeded)
+            : `${pending.label}: ${pluralize(outcome.succeeded, "row")} done.`,
+        });
+      }
+      if (outcome.failed > 0) setResult(outcome);
+      else close();
     } catch (err) {
-      setResult({
-        error:
+      setAlert({
+        type: "danger",
+        message:
           err?.data?.detail ||
           err?.data?.action ||
           err?.data?.ids ||
           "The action could not be run. Please try again.",
       });
+      close();
     } finally {
       setRunning(false);
     }
@@ -108,12 +124,7 @@ export default function BulkActionBar({ selectedCount, actions, onRun, onClear }
                     : `Apply "${pending.label}" to ${selectedCount} selected rows?`}
                 </p>
               )}
-              {result?.error && (
-                <p role="alert" className="text-rose-700">
-                  {String(result.error)}
-                </p>
-              )}
-              {result && !result.error && (
+              {result && (
                 <div role="status" className="space-y-2">
                   <p>
                     <span className="font-semibold text-emerald-700">

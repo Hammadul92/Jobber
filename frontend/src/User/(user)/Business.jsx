@@ -17,6 +17,7 @@ import { useFetchUserQuery } from "../../store";
 import { NavLink } from "react-router-dom";
 import { generateBusinessSlug } from "../../utils/businessSlug";
 import { PAYMENT_TERMS_OPTIONS } from "../../utils/paymentTerms";
+import useAlert from "../../hooks/useAlert";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
@@ -44,7 +45,8 @@ const STEP_FIELDS = {
   4: ["logo"],
 };
 
-export default function Business({ token, setAlert }) {
+export default function Business({ token }) {
+  const setAlert = useAlert();
   const [step, setStep] = useState(1);
   const totalSteps = 4;
 

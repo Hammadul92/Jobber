@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { payoutApi, useFetchPayoutsPageQuery } from "../../../store";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
 import Select from "../../../Components/ui/Select";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
+import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import {
@@ -18,6 +18,7 @@ import {
   LuSearch,
   LuX,
 } from "react-icons/lu";
+import useAlert from "../../../hooks/useAlert";
 
 const INITIAL_FILTERS = { status: "", processed_from: "", processed_to: "" };
 
@@ -37,7 +38,8 @@ const BULK_ACTIONS = [
     label: "Export selected (CSV)",
     confirmLabel: "Download CSV",
     confirmMessage: (count) =>
-      `Download ${count} selected payout${count === 1 ? "" : "s"} as a CSV file?`,
+      `Download ${pluralize(count, "selected payout")} as a CSV file?`,
+    successMessage: (count) => `${pluralize(count, "payout")} exported.`,
   },
 ];
 
@@ -101,7 +103,7 @@ export default function PayoutDatatable({ token, role }) {
   });
   const [showDateRangeModal, setShowDateRangeModal] = useState(false);
   const [dateDraft, setDateDraft] = useState({ from: "", to: "" });
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
 
   const { data, isLoading, isFetching, error } = useFetchPayoutsPageQuery(
     table.queryArgs,
@@ -122,7 +124,7 @@ export default function PayoutDatatable({ token, role }) {
         message: error?.data?.detail || "Failed to load payout data.",
       });
     }
-  }, [error]);
+  }, [error, setAlert]);
 
   const openDateRange = () => {
     setDateDraft({ from: processedFrom || "", to: processedTo || "" });
@@ -290,14 +292,6 @@ export default function PayoutDatatable({ token, role }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       <div className="space-y-6">
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-100 px-6 py-5">

@@ -14,8 +14,10 @@ import {
   LuTrash2,
 } from "react-icons/lu";
 import { CgClose } from "react-icons/cg";
+import useAlert from "../../../hooks/useAlert";
 
-export default function ServiceQuestionnairesData({ token, setAlert, onEdit }) {
+export default function ServiceQuestionnairesData({ token, onEdit }) {
+  const setAlert = useAlert();
   const [questionnaires, setQuestionnaires] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedId, setSelectedId] = useState(null);

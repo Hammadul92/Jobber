@@ -5,17 +5,29 @@ import { useDispatch } from "react-redux";
 import CreateClientServiceForm from "./CreateClientServiceForm";
 import { useFetchClientQuery, useFetchBusinessQuery } from "../../../../store";
 import ClientServicesData from "./ClientServicesData";
-import AlertDispatcher from "../../../../Components/ui/AlertDispatcher";
 import { setTopbar, resetTopbar } from "../../../../store/topbarSlice";
 import {
   registerTopbarActionHandler,
   unregisterTopbarActionHandler,
 } from "../../../topbarActionRegistry";
+import useAlert from "../../../../hooks/useAlert";
+
+const errorMessage = (error) =>
+  Array.isArray(error?.data)
+    ? error.data.join(", ")
+    : typeof error?.data === "object"
+      ? Object.entries(error.data)
+          .map(
+            ([field, messages]) =>
+              `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`,
+          )
+          .join(" | ")
+      : error?.data?.detail || "Something went wrong";
 
 export default function ClientServices({ token, role }) {
   const { id: clientId } = useParams();
   const [showModal, setShowModal] = useState(false);
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
   const dispatch = useDispatch();
 
   const handleOpenCreate = useCallback(() => {
@@ -75,22 +87,10 @@ export default function ClientServices({ token, role }) {
     };
   }, [dispatch, title, isManagerMode, role, loadingClient, clientError, handleOpenCreate]);
 
-  const displayError = (error) => {
-    const msg = Array.isArray(error?.data)
-      ? error.data.join(", ")
-      : typeof error?.data === "object"
-        ? Object.entries(error.data)
-            .map(
-              ([field, messages]) =>
-                `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`,
-            )
-            .join(" | ")
-        : error?.data?.detail || "Something went wrong";
-    setAlert({ type: "danger", message: msg });
-  };
-
-  if (clientError && !alert.message) displayError(clientError);
-  if (businessError && !alert.message) displayError(businessError);
+  const loadError = clientError || businessError;
+  useEffect(() => {
+    if (loadError) setAlert({ type: "danger", message: errorMessage(loadError) });
+  }, [loadError, setAlert]);
 
   return (
     <>
@@ -125,13 +125,6 @@ export default function ClientServices({ token, role }) {
         </div>
       )}
 
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
 
       {isManagerMode && role === "MANAGER" && (
         <CreateClientServiceForm
@@ -144,7 +137,6 @@ export default function ClientServices({ token, role }) {
           serviceOptions={business?.services_offered || []}
           loadingOptions={loadingBusiness}
           errorOptions={businessError}
-          setAlert={setAlert}
         />
       )}
 
@@ -152,7 +144,6 @@ export default function ClientServices({ token, role }) {
         token={token}
         role={role}
         clientId={isManagerMode ? clientId : null}
-        setAlert={setAlert}
       />
     </>
   );

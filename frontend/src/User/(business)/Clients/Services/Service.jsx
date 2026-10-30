@@ -8,7 +8,6 @@ import {
 } from "../../../../store";
 
 import SubmitButton from "../../../../Components/ui/SubmitButton";
-import AlertDispatcher from "../../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../../Components/ui/LoadingScreen";
 import Select from "../../../../Components/ui/Select";
 import Input from "../../../../Components/ui/Input";
@@ -16,6 +15,7 @@ import Textarea from "../../../../Components/ui/Textarea";
 import ServiceItemsEditor from "../../../../Components/ui/ServiceItemsEditor";
 import { countries, provinces } from "../../../../constants/locations";
 import { setTopbar, resetTopbar } from "../../../../store/topbarSlice";
+import useAlert from "../../../../hooks/useAlert";
 
 export default function Service({ token }) {
   const { id } = useParams();
@@ -49,7 +49,7 @@ export default function Service({ token }) {
   const [autoGenerateQuote, setAutoGenerateQuote] = useState(false);
   const [autoGenerateInvoices, setAutoGenerateInvoices] = useState(false);
 
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
 
   const statusTone = {
     PENDING: "bg-amber-100 text-amber-800",
@@ -119,7 +119,7 @@ export default function Service({ token }) {
         message: "Service updated successfully!",
       });
     }
-  }, [updateError, isSuccess, serviceData]);
+  }, [updateError, isSuccess, serviceData, setAlert]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -152,14 +152,6 @@ export default function Service({ token }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       <form
         onSubmit={handleSubmit}
         className="space-y-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:p-6"

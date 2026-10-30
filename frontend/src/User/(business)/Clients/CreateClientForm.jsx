@@ -2,17 +2,16 @@ import { useState } from "react";
 import { CgClose } from "react-icons/cg";
 import { LuBadgeInfo } from "react-icons/lu";
 import { useCreateClientMutation } from "../../../store";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import Input from "../../../Components/ui/Input";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import PhoneInputField from "../../../Components/ui/PhoneInput";
 import Dropdown from "../../../Components/ui/Dropdown";
 import { countries, provinces } from "../../../constants/locations";
+import useAlert from "../../../hooks/useAlert";
 
 export default function CreateClientForm({
   showModal,
   setShowModal,
-  setAlert: setParentAlert,
 }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -24,7 +23,7 @@ export default function CreateClientForm({
   const [billingProvince, setBillingProvince] = useState("");
   const [billingPostalCode, setBillingPostalCode] = useState("");
 
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
   const [createClient, { isLoading: isSubmitting }] =
     useCreateClientMutation();
 
@@ -48,7 +47,6 @@ export default function CreateClientForm({
         message: "Client added successfully.",
       };
       setAlert(success);
-      if (setParentAlert) setParentAlert(success);
       setName("");
       setPhone("");
       setEmail("");
@@ -73,14 +71,12 @@ export default function CreateClientForm({
         "Failed to create client. Please try again.";
       const danger = { type: "danger", message };
       setAlert(danger);
-      if (setParentAlert) setParentAlert(danger);
       console.error("Create client error:", err);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setAlert({ type: "", message: "" });
 
     if (!name || !email || !phone || !billingStreet || !billingCity || !billingCountry || !billingProvince || !billingPostalCode) {
       setAlert({ type: "danger", message: "Please fill all required fields." });
@@ -134,13 +130,6 @@ export default function CreateClientForm({
 
             <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5">
-                {alert.message && (
-                  <AlertDispatcher
-                    type={alert.type}
-                    message={alert.message}
-                    onClose={() => setAlert({ type: "", message: "" })}
-                  />
-                )}
 
                 <section>
                   <h6 className="text-xs font-bold uppercase tracking-[0.08em] text-slate-700">

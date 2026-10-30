@@ -1,13 +1,10 @@
-import { useState } from "react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import PayoutDatatable from "./PayoutDatatable";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 
 export default function Payouts({ token, role }) {
-  const [alert, setAlert] = useState({ type: "", message: "" });
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -27,15 +24,7 @@ export default function Payouts({ token, role }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
-      <PayoutDatatable role={role} token={token} setAlert={setAlert} />
+      <PayoutDatatable role={role} token={token} />
     </>
   );
 }

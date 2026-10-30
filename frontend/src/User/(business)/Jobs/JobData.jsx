@@ -12,11 +12,11 @@ import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
+import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import { LuPencilLine, LuSearch, LuTrash2 } from "react-icons/lu";
-
-const plural = (count) => `${count} job${count === 1 ? "" : "s"}`;
+import useAlert from "../../../hooks/useAlert";
 
 const BULK_ACTIONS = [
   {
@@ -24,20 +24,23 @@ const BULK_ACTIONS = [
     label: "Cancel jobs",
     tone: "default",
     confirmMessage: (count) =>
-      `Cancel ${plural(count)}? Completed jobs are skipped.`,
+      `Cancel ${pluralize(count, "job")}? Completed jobs are skipped.`,
+    successMessage: (count) => `${pluralize(count, "job")} cancelled.`,
   },
   {
     key: "delete",
     label: "Delete",
     tone: "danger",
     confirmMessage: (count) =>
-      `Delete ${plural(count)}? This cannot be undone.`,
+      `Delete ${pluralize(count, "job")}? This cannot be undone.`,
+    successMessage: (count) => `${pluralize(count, "job")} deleted.`,
   },
 ];
 
 const UNASSIGNED = "unassigned";
 
-export default function JobData({ token, role, setAlert }) {
+export default function JobData({ token, role }) {
+  const setAlert = useAlert();
   const isManager = role === "MANAGER";
   const table = useServerTable({ initialOrdering: "-created_at" });
   const { data, isLoading, isFetching, error } = useFetchJobsPageQuery(

@@ -9,7 +9,6 @@ import {
 } from "../../../store";
 import AcceptAndSignQuote from "./AcceptAndSignQuote";
 import QuoteSectionPopup from "./QuoteSectionPopup";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RichTextContent from "../../../Components/ui/RichTextContent";
@@ -26,6 +25,7 @@ import {
 import { formatAddress } from "../../../utils/formatAddress";
 import LineItemsTable from "../../../Components/ui/LineItemsTable";
 import { paymentTermsLabel } from "../../../utils/paymentTerms";
+import useAlert from "../../../hooks/useAlert";
 
 export default function SignQuote({ token, preview = false }) {
     const { id } = useParams();
@@ -42,7 +42,7 @@ export default function SignQuote({ token, preview = false }) {
     const [showDeclineModal, setShowDeclineModal] = useState(false);
     const [status, setStatus] = useState("");
     const [timeRemaining, setTimeRemaining] = useState("");
-    const [alert, setAlert] = useState({ type: "", message: "" });
+    const setAlert = useAlert();
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const [canToggleDescription, setCanToggleDescription] = useState(false);
     const [sectionPopup, setSectionPopup] = useState(null);
@@ -187,13 +187,6 @@ export default function SignQuote({ token, preview = false }) {
                         Back to Quotes
                     </Link>
                 </div>
-            )}
-            {alert.message && (
-                <AlertDispatcher
-                    type={alert.type}
-                    message={alert.message}
-                    onClose={() => setAlert({ type: "", message: "" })}
-                />
             )}
 
             <div className="bg-white border border-gray-200 shadow-sm rounded-2xl">

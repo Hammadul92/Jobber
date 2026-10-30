@@ -9,7 +9,6 @@ import DashboardTodos from "./DashboardTodos";
 import GoBackLink from "../Components/ui/GoBackLink";
 
 import Profile from "./(user)/Profile";
-import AlertDispatcher from "../Components/ui/AlertDispatcher";
 import Business from "./(user)/Business";
 import BankingInformation from "./(user)/BankingInformation";
 import Credentials from "./(user)/Credentials";
@@ -35,7 +34,6 @@ import Payouts from "./(business)/Payouts";
 import Payout from "./(business)/Payouts/Payout";
 
 export default function UserDashboard({ page, token, user }) {
-  const [alert, setAlert] = useState({ type: "", message: "" });
   const [dashboardNotifications, setDashboardNotifications] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -154,10 +152,10 @@ export default function UserDashboard({ page, token, user }) {
     switch (page) {
       case "profile":
         // User account tab
-        return <Profile token={token} user={user} setAlert={setAlert} />;
+        return <Profile token={token} user={user} />;
       case "business":
         // User account settings tab
-        return <Business token={token} user={user} setAlert={setAlert} />;
+        return <Business token={token} user={user} />;
       case "banking":
         // User account banking tab
         return <BankingInformation token={token} user={user} />;
@@ -276,13 +274,6 @@ export default function UserDashboard({ page, token, user }) {
       <SideNav user={user} businessRegistered={businessRegistered} />
 
       <main className="flex-1 min-h-screen overflow-auto pt-15 md:pt-14 lg:pt-0">
-        {alert.message && (
-          <AlertDispatcher
-            type={alert.type}
-            message={alert.message}
-            onClose={() => setAlert({ type: "", message: "" })}
-          />
-        )}
 
         {/* Topbar for desktop view */}
         {showBusinessTopbar && (

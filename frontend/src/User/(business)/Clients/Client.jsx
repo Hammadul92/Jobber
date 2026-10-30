@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useFetchClientQuery, useUpdateClientMutation } from "../../../store";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import Input from "../../../Components/ui/Input";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import PhoneInputField from "../../../Components/ui/PhoneInput";
@@ -10,12 +9,13 @@ import Dropdown from "../../../Components/ui/Dropdown";
 import { countries, provinces } from "../../../constants/locations";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import { resetTopbar, setTopbar } from "../../../store/topbarSlice";
+import useAlert from "../../../hooks/useAlert";
 
 export default function Client({ token }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -70,11 +70,10 @@ export default function Client({ token }) {
       type: "danger",
       message: error?.data?.detail || "Failed to load client details.",
     });
-  }, [error]);
+  }, [error, setAlert]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setAlert({ type: "", message: "" });
 
     if (!name.trim() || !email.trim() || !phone.trim()) {
       setAlert({
@@ -125,14 +124,6 @@ export default function Client({ token }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       <form
         onSubmit={handleSubmit}
         className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm md:p-6"

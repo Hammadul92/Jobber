@@ -10,13 +10,14 @@ import Select from "../../../Components/ui/Select";
 import Input from "../../../Components/ui/Input";
 import { LuX } from "react-icons/lu";
 import { PAYMENT_TERMS_OPTIONS } from "../../../utils/paymentTerms";
+import useAlert from "../../../hooks/useAlert";
 
 export default function CreateQuoteForm({
   token,
   showModal,
   setShowModal,
-  setAlert,
 }) {
+  const setAlert = useAlert();
   const [serviceId, setServiceId] = useState("");
   const [validUntil, setValidUntil] = useState("");
   const [paymentTerms, setPaymentTerms] = useState("");

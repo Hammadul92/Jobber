@@ -11,6 +11,7 @@ import {
   useFetchClientsQuery,
   useFetchServicesQuery,
 } from "../../../store";
+import useAlert from "../../../hooks/useAlert";
 
 function FieldLabel({ htmlFor, children }) {
   return (
@@ -27,9 +28,9 @@ export default function CreateInvoiceForm({
   token,
   showModal,
   setShowModal,
-  setAlert,
   business,
 }) {
+  const setAlert = useAlert();
   const [clientId, setClientId] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [dueDate, setDueDate] = useState("");

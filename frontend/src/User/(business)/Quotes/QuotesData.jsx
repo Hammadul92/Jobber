@@ -11,10 +11,12 @@ import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
+import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import { formatDate } from "../../../utils/formatDate";
 import { LuEye, LuPencil, LuSearch, LuTrash2 } from "react-icons/lu";
+import useAlert from "../../../hooks/useAlert";
 
 const QUOTE_STATUS_OPTIONS = ["DRAFT", "SENT", "SIGNED", "DECLINED", "EXPIRED"];
 
@@ -24,14 +26,16 @@ const BULK_ACTIONS = [
     label: "Send quotes",
     tone: "primary",
     confirmMessage: (count) =>
-      `Email ${count} selected quote${count === 1 ? "" : "s"} to the client? Signed or expired quotes are skipped.`,
+      `Email ${pluralize(count, "selected quote")} to the client? Signed or expired quotes are skipped.`,
+    successMessage: (count) => `${pluralize(count, "quote")} sent.`,
   },
   {
     key: "delete",
     label: "Delete",
     tone: "danger",
     confirmMessage: (count) =>
-      `Delete ${count} selected quote${count === 1 ? "" : "s"}? Signed quotes are kept.`,
+      `Delete ${pluralize(count, "selected quote")}? Signed quotes are kept.`,
+    successMessage: (count) => `${pluralize(count, "quote")} deleted.`,
   },
 ];
 
@@ -42,7 +46,8 @@ const getDisplayStatus = (quote) =>
     ? "EXPIRED"
     : quote.status;
 
-export default function QuotesData({ token, role, setAlert }) {
+export default function QuotesData({ token, role }) {
+  const setAlert = useAlert();
   const table = useServerTable({ initialOrdering: "-created_at" });
   const {
     data,

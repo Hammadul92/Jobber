@@ -6,11 +6,11 @@ import {
   useUpdateServiceMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import { useDispatch } from "react-redux";
+import useAlert from "../../../hooks/useAlert";
 
 export default function ServiceQuestionnaireForm(props) {
   const { id, serviceId, token: urlToken } = useParams();
@@ -36,7 +36,7 @@ export default function ServiceQuestionnaireForm(props) {
   const [updateService, { isLoading: saving }] = useUpdateServiceMutation();
   const [questions, setQuestions] = useState({});
   const [serviceName, setServiceName] = useState("");
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
   const [completionMessage, setCompletionMessage] = useState("");
 
   useEffect(() => {
@@ -143,7 +143,7 @@ export default function ServiceQuestionnaireForm(props) {
         message: "Failed to load questionnaire. Please try again later.",
       });
     }
-  }, [errorQ]);
+  }, [errorQ, setAlert]);
 
   if (loadingQ || loadingS)
     return <LoadingScreen />;
@@ -162,13 +162,6 @@ export default function ServiceQuestionnaireForm(props) {
         message={completionMessage}
         onClose={() => setCompletionMessage("")}
       />
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
 
       <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
         <form

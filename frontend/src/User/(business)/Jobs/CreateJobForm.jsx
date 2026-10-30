@@ -9,13 +9,14 @@ import SubmitButton from "../../../Components/ui/SubmitButton";
 import Select from "../../../Components/ui/Select";
 import Input from "../../../Components/ui/Input";
 import { LuInfo, LuX } from "react-icons/lu";
+import useAlert from "../../../hooks/useAlert";
 
 export default function CreateJobForm({
   token,
   showModal,
   setShowModal,
-  setAlert,
 }) {
+  const setAlert = useAlert();
   const [serviceId, setServiceId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");

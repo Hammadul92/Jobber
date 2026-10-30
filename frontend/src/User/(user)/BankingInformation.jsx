@@ -28,8 +28,10 @@ import {
   LuUnplug,
 } from "react-icons/lu";
 import { NavLink } from "react-router-dom";
+import useAlert from "../../hooks/useAlert";
 
-export default function BankingInformation({ token, setAlert = () => { } }) {
+export default function BankingInformation({ token }) {
+  const setAlert = useAlert();
   const [showBankForm, setShowBankForm] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -211,7 +213,6 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
                   </p>
                   <BankAccountForm
                     onSuccess={() => setShowBankForm(false)}
-                    setAlert={setAlert}
                     connection={activeBank}
                     onDisconnect={() => handleDeleteClick(activeBank.id)}
                   />
@@ -516,7 +517,6 @@ export default function BankingInformation({ token, setAlert = () => { } }) {
                 <Elements key={stripeConfig.publishable_key} stripe={stripePromise}>
                   <StripeCardForm
                     onSuccess={() => setShowCardForm(false)}
-                    setAlert={setAlert}
                   />
                 </Elements>
               )}

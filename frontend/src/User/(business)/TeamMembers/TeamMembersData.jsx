@@ -10,8 +10,10 @@ import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
+import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
+import useAlert from "../../../hooks/useAlert";
 
 const ROLE_OPTIONS = [
   { value: "", label: "All" },
@@ -31,7 +33,8 @@ const BULK_ACTIONS = [
     label: "Remove",
     tone: "danger",
     confirmMessage: (count) =>
-      `Remove ${count} team member${count === 1 ? "" : "s"} from your business?`,
+      `Remove ${pluralize(count, "team member")} from your business?`,
+    successMessage: (count) => `${pluralize(count, "team member")} removed.`,
   },
 ];
 
@@ -60,7 +63,8 @@ const getExpertiseTags = (expertise) =>
     .map((tag) => tag.trim())
     .filter(Boolean);
 
-export default function TeamMembersData({ token, setAlert, onEdit }) {
+export default function TeamMembersData({ token, onEdit }) {
+  const setAlert = useAlert();
   const [showModal, setShowModal] = useState(false);
   const [selectedTeamMemberId, setSelectedTeamMemberId] = useState(null);
   const [openFilter, setOpenFilter] = useState(null);

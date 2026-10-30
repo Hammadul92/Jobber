@@ -18,7 +18,6 @@ export default function TeamMember({ token }) {
   const [jobDuties, setJobDuties] = useState("");
   const [expertise, setExpertise] = useState("");
   const [joinedAt, setJoinedAt] = useState("");
-  const [alert, setAlert] = useState({ type: "", message: "" });
 
   const {
     data: teamMemberData,
@@ -70,7 +69,6 @@ export default function TeamMember({ token }) {
       <AlertDispatcher
         type="danger"
         message={error?.data?.detail || "Failed to load team member."}
-        onClose={() => setAlert({ type: "", message: "" })}
       />
     );
   }
@@ -80,14 +78,6 @@ export default function TeamMember({ token }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
-
       <div className="space-y-6 bg-white shadow-md rounded-2xl p-4 md:p-10">
         {/* Profile Photo Section */}
         <div>

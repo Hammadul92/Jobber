@@ -7,7 +7,6 @@ import {
   useSendQuoteMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordLink from "../../../Components/ui/RecordLink";
 import { formatDate } from "../../../utils/formatDate";
@@ -27,6 +26,7 @@ import { formatAddress } from "../../../utils/formatAddress";
 import LineItemsTable from "../../../Components/ui/LineItemsTable";
 import { PAYMENT_TERMS_OPTIONS, paymentTermsLabel } from "../../../utils/paymentTerms";
 import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerNotification";
+import useAlert from "../../../hooks/useAlert";
 
 export default function Quote({ token, role }) {
   const { id } = useParams();
@@ -45,7 +45,7 @@ export default function Quote({ token, role }) {
   const [paymentTerms, setPaymentTerms] = useState("");
   const [termsConditions, setTermsConditions] = useState("");
   const [notes, setNotes] = useState("");
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert();
   const [downloading, setDownloading] = useState(false);
   const [confirmSend, setConfirmSend] = useState(false);
 
@@ -204,13 +204,6 @@ export default function Quote({ token, role }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
       <ConfirmCustomerNotification
         open={role === "MANAGER" && confirmSend}
         detail={`Send quote ${quoteData.quote_number} to ${client.client_email || quoteData.client_name || "the customer"}.`}

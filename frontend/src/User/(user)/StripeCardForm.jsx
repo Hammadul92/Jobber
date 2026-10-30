@@ -5,8 +5,10 @@ import {
   useSavePaymentMethodMutation,
 } from "../../store";
 import SubmitButton from "../../Components/ui/SubmitButton";
+import useAlert from "../../hooks/useAlert";
 
-export default function StripeCardForm({ onSuccess, setAlert }) {
+export default function StripeCardForm({ onSuccess }) {
+  const setAlert = useAlert();
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);

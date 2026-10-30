@@ -10,7 +10,6 @@ import {
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
-import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordLink from "../../../Components/ui/RecordLink";
 import { formatDate } from "../../../utils/formatDate";
@@ -20,6 +19,7 @@ import LineItemsTable from "../../../Components/ui/LineItemsTable";
 import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerNotification";
 import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
 import { isInvoicePastDue, paymentTermsLabel } from "../../../utils/paymentTerms";
+import useAlert from "../../../hooks/useAlert";
 
 const STATUS_STYLES = {
   DRAFT: "bg-slate-100 text-slate-600",
@@ -88,7 +88,7 @@ export default function Invoice({ token, role }) {
   const [clientName, setClientName] = useState("");
   const [serviceName, setServiceName] = useState("");
   const [paidAt, setPaidAt] = useState("");
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const setAlert = useAlert({ autoDismiss: 0 });
   const [confirmAction, setConfirmAction] = useState(null);
   const [completionMessage, setCompletionMessage] = useState("");
 
@@ -242,14 +242,6 @@ export default function Invoice({ token, role }) {
 
   return (
     <>
-      {alert.message && (
-        <AlertDispatcher
-          type={alert.type}
-          message={alert.message}
-          autoDismiss={0}
-          onClose={() => setAlert({ type: "", message: "" })}
-        />
-      )}
       <ConfirmCustomerNotification
         open={role === "MANAGER" && Boolean(confirmAction)}
         detail={`Send invoice ${invoiceNumber || ""} to ${clientName || "the customer"}.`}
