@@ -157,8 +157,11 @@
   }
 }
 
-* {
-  max-width: 100%;
+/* In the base layer so max-w-* utilities can still narrow an element. */
+@layer base {
+  * {
+    max-width: 100%;
+  }
 }
 
 .primary {
