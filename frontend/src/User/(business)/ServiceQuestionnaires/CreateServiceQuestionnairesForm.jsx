@@ -11,6 +11,7 @@ import Dropdown from "../../../Components/ui/Dropdown";
 import { CgClose } from "react-icons/cg";
 import { LuPlus } from "react-icons/lu";
 import useAlert from "../../../hooks/useAlert";
+import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
 
 export default function CreateServiceQuestionnairesForm({
   token,
@@ -22,6 +23,7 @@ export default function CreateServiceQuestionnairesForm({
 }) {
   const setAlert = useAlert();
   const [serviceName, setServiceName] = useState("");
+  const [pendingRemoval, setPendingRemoval] = useState(null);
   const [isActive, setIsActive] = useState(true);
 
   const [questions, setQuestions] = useState([
@@ -225,6 +227,16 @@ export default function CreateServiceQuestionnairesForm({
         className="absolute right-0 top-0 z-10 h-dvh w-full md:w-4/6 lg:w-2/6 overflow-hidden border-l border-gray-200 bg-white shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
+        <ConfirmDialog
+          open={Boolean(pendingRemoval)}
+          title={pendingRemoval?.title}
+          message={pendingRemoval?.message}
+          onConfirm={() => {
+            pendingRemoval.run();
+            setPendingRemoval(null);
+          }}
+          onCancel={() => setPendingRemoval(null)}
+        />
         <form onSubmit={handleSubmit} className="flex h-full flex-col">
           <div className="border-b border-gray-100 px-6 py-5">
             <div className="flex items-start justify-between gap-3">
@@ -338,7 +350,13 @@ export default function CreateServiceQuestionnairesForm({
                       <button
                         type="button"
                         className="text-sm font-medium text-accent underline disabled:text-gray-400 disabled:cursor-not-allowed!"
-                        onClick={() => handleRemoveQuestion(index)}
+                        onClick={() =>
+                          setPendingRemoval({
+                            title: "Remove this question?",
+                            message: `Q${index + 1}${q.text ? ` "${q.text}"` : ""} and its options will be removed.`,
+                            run: () => handleRemoveQuestion(index),
+                          })
+                        }
                         disabled={questions.length <= 1}
                       >
                         Remove
@@ -449,8 +467,13 @@ export default function CreateServiceQuestionnairesForm({
                                   type="button"
                                   className="mb-6 rounded-lg border border-gray-200 px-2 py-1 text-sm text-gray-600 transition hover:bg-gray-50"
                                   onClick={() =>
-                                    handleRemoveOption(index, optIndex)
+                                    setPendingRemoval({
+                                      title: "Remove this option?",
+                                      message: `Option ${optIndex + 1}${opt ? ` "${opt}"` : ""} will be removed from Q${index + 1}.`,
+                                      run: () => handleRemoveOption(index, optIndex),
+                                    })
                                   }
+                                  aria-label={`Remove option ${optIndex + 1}`}
                                 >
                                   ✕
                                 </button>

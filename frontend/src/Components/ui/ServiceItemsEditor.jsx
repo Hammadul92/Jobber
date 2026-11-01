@@ -1,4 +1,8 @@
+import { useState } from "react";
+import ConfirmDialog from "./ConfirmDialog";
+
 export default function ServiceItemsEditor({ items, onChange, currency = "CAD", disabled = false }) {
+  const [pendingRemoval, setPendingRemoval] = useState(null);
   const update = (index, field, value) => {
     onChange(items.map((item, position) => position === index ? { ...item, [field]: value } : item));
   };
@@ -6,6 +10,16 @@ export default function ServiceItemsEditor({ items, onChange, currency = "CAD", 
 
   return (
     <section className="space-y-3" aria-label="Service items">
+      <ConfirmDialog
+        open={Boolean(pendingRemoval)}
+        title={pendingRemoval?.title}
+        message={pendingRemoval?.message}
+        onConfirm={() => {
+          pendingRemoval.run();
+          setPendingRemoval(null);
+        }}
+        onCancel={() => setPendingRemoval(null)}
+      />
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-slate-900">Service items <span className="font-normal text-slate-500">(optional)</span></h3>
@@ -20,7 +34,11 @@ export default function ServiceItemsEditor({ items, onChange, currency = "CAD", 
         <div key={index} className="rounded-2xl border border-gray-200 bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Item {index + 1}</span>
-            <button type="button" disabled={disabled} onClick={() => onChange(items.filter((_, position) => position !== index))}
+            <button type="button" disabled={disabled} onClick={() => setPendingRemoval({
+              title: "Remove this item?",
+              message: `"${item.title || `Item ${index + 1}`}" will be removed from this service.`,
+              run: () => onChange(items.filter((_, position) => position !== index)),
+            })}
               className="text-xs font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-50">Remove</button>
           </div>
           <div className="space-y-3">

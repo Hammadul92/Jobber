@@ -14,6 +14,7 @@ import Textarea from "../../../Components/ui/Textarea";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import PhoneInputField from "../../../Components/ui/PhoneInput";
 import useAlert from "../../../hooks/useAlert";
+import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
 
 function generateStrongPassword(length = 12) {
   const charset =
@@ -70,6 +71,7 @@ export default function CreateTeamMemberForm({
   const [jobDuties, setJobDuties] = useState("");
   const [skillInput, setSkillInput] = useState("");
   const [skills, setSkills] = useState([]);
+  const [pendingSkill, setPendingSkill] = useState(null);
   const [emailError, setEmailError] = useState("");
 
   const [createUser, { isLoading: isUserLoading }] = useCreateUserMutation();
@@ -294,6 +296,16 @@ export default function CreateTeamMemberForm({
           />
 
           <div className="absolute right-0 top-0 z-10 h-dvh w-full md:w-4/6 lg:w-2/6 overflow-hidden border-l border-gray-200 bg-white shadow-2xl">
+            <ConfirmDialog
+              open={Boolean(pendingSkill)}
+              title="Remove this skill?"
+              message={`"${pendingSkill}" will be removed from this team member's skills.`}
+              onConfirm={() => {
+                removeSkill(pendingSkill);
+                setPendingSkill(null);
+              }}
+              onCancel={() => setPendingSkill(null)}
+            />
             <form onSubmit={handleSubmit} className="flex h-full flex-col">
               <div className="border-b border-gray-100 px-6 py-5">
                 <div className="flex items-start justify-between gap-3">
@@ -460,7 +472,7 @@ export default function CreateTeamMemberForm({
                           <button
                             key={skill}
                             type="button"
-                            onClick={() => removeSkill(skill)}
+                            onClick={() => setPendingSkill(skill)}
                             className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-gray-200"
                             title="Remove skill"
                           >
