@@ -4,8 +4,6 @@ import {
   LuCheck,
   LuTrash2,
   LuPencil,
-  LuSearch,
-  LuSlidersHorizontal,
 } from "react-icons/lu";
 import {
   useFetchServicesPageQuery,
@@ -16,7 +14,10 @@ import SubmitButton from "../../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../../Components/ui/LoadingScreen";
 import { countries, provinces } from "../../../../constants/locations";
 import { formatDate } from "../../../../utils/formatDate";
-import Dropdown from "../../../../Components/ui/Dropdown";
+import TableToolbar, {
+  ToolbarSelect,
+  tableCardClass,
+} from "../../../../Components/ui/TableToolbar";
 import RecordsTable from "../../../../Components/ui/RecordsTable";
 import RecordLink from "../../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../../Components/ui/BulkActionBar";
@@ -149,7 +150,7 @@ export default function ClientServicesData({
     const allProvs = Object.values(provinces).flat();
     const list = countryFilter ? provinces[countryFilter] || [] : allProvs;
     // prepend All option
-    const merged = [{ value: "", label: "All" }, ...list];
+    const merged = [{ value: "", label: "All provinces/states" }, ...list];
     // dedupe by value
     const seen = new Set();
     return merged.filter((p) => {
@@ -299,125 +300,60 @@ export default function ClientServicesData({
 
   return (
     <>
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-100 p-4">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-              <LuSlidersHorizontal className="h-4 w-4 text-secondary" />
-              Filters
-            </div>
-            {isFiltered && (
-              <button
-                className="text-xs font-semibold text-secondary underline underline-offset-4"
-                onClick={clearFilters}
-                type="button"
-              >
-                Clear filters
-              </button>
-            )}
-          </div>
-          <div className="relative mb-3">
-            <LuSearch
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-              aria-hidden="true"
-            />
-            <input
-              type="search"
-              value={table.searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              placeholder={
-                isAllServicesView
-                  ? "Search by service, client or address"
-                  : "Search by service or address"
-              }
-              aria-label="Search services"
-              className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none"
-            />
-          </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div>
-              <label
-                htmlFor="type_filter"
-                className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-500"
-              >
-                Subscription type
-              </label>
-              <Dropdown
-                id="type_filter"
-                value={filters.service_type}
-                onChange={(value) => setFilter("service_type", value)}
-                placeholder="Subscription Type"
-                options={[
-                  { value: "", label: "All" },
-                  { value: "ONE_TIME", label: "One Time" },
-                  { value: "SUBSCRIPTION", label: "Subscription" },
-                ]}
-                buttonClassName="h-10 border-gray-200 bg-white"
-                menuClassName="max-h-64 overflow-auto"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="service_status_filter"
-                className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-500"
-              >
-                Status
-              </label>
-              <Dropdown
-                id="service_status_filter"
-                value={filters.status}
-                onChange={(value) => setFilter("status", value)}
-                options={[
-                  { value: "", label: "All statuses" },
-                  { value: "PENDING", label: "Pending" },
-                  { value: "ACTIVE", label: "Active" },
-                  { value: "COMPLETED", label: "Completed" },
-                  { value: "CANCELLED", label: "Cancelled" },
-                ]}
-                buttonClassName="h-10 border-gray-200 bg-white"
-                menuClassName="max-h-64 overflow-auto"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="country_filter"
-                className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-500"
-              >
-                Country
-              </label>
-              <Dropdown
-                id="country_filter"
-                value={countryFilter}
-                onChange={(value) => {
-                  setFilter("country", value);
-                  setFilter("province_state", "");
-                }}
-                placeholder="Country"
-                options={[{ value: "", label: "All" }, ...countries]}
-                buttonClassName="h-10 border-gray-200 bg-white"
-                menuClassName="max-h-64 overflow-auto"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="province_state"
-                className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-500"
-              >
-                Province/State
-              </label>
-              <Dropdown
-                id="province_state"
-                value={filters.province_state}
-                onChange={(value) => setFilter("province_state", value)}
-                placeholder="Province/State"
-                options={provinceOptions}
-                buttonClassName="h-10 border-gray-200 bg-white"
-                menuClassName="max-h-64 overflow-auto"
-                disabled={false}
-              />
-            </div>
-          </div>
-        </div>
+      <div className={tableCardClass}>
+        <TableToolbar
+          searchValue={table.searchInput}
+          onSearchChange={setSearchInput}
+          searchPlaceholder={
+            isAllServicesView
+              ? "Search service, client or address"
+              : "Search service or address"
+          }
+          isFiltered={isFiltered}
+          onClear={clearFilters}
+        >
+          <ToolbarSelect
+            id="type_filter"
+            label="Subscription type"
+            value={filters.service_type}
+            onChange={(value) => setFilter("service_type", value)}
+            options={[
+              { value: "", label: "All types" },
+              { value: "ONE_TIME", label: "One Time" },
+              { value: "SUBSCRIPTION", label: "Subscription" },
+            ]}
+          />
+          <ToolbarSelect
+            id="service_status_filter"
+            label="Status"
+            value={filters.status}
+            onChange={(value) => setFilter("status", value)}
+            options={[
+              { value: "", label: "All statuses" },
+              { value: "PENDING", label: "Pending" },
+              { value: "ACTIVE", label: "Active" },
+              { value: "COMPLETED", label: "Completed" },
+              { value: "CANCELLED", label: "Cancelled" },
+            ]}
+          />
+          <ToolbarSelect
+            id="country_filter"
+            label="Country"
+            value={countryFilter}
+            onChange={(value) => {
+              setFilter("country", value);
+              setFilter("province_state", "");
+            }}
+            options={[{ value: "", label: "All countries" }, ...countries]}
+          />
+          <ToolbarSelect
+            id="province_state"
+            label="Province/State"
+            value={filters.province_state}
+            onChange={(value) => setFilter("province_state", value)}
+            options={provinceOptions}
+          />
+        </TableToolbar>
         {isManager && (
           <BulkActionBar
             selectedCount={table.selectedIds.length}

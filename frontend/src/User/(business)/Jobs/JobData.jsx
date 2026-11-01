@@ -7,7 +7,11 @@ import {
   useFetchTeamMembersQuery,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
-import Dropdown from "../../../Components/ui/Dropdown";
+import TableToolbar, {
+  ToolbarDate,
+  ToolbarSelect,
+  tableCardClass,
+} from "../../../Components/ui/TableToolbar";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
@@ -15,7 +19,7 @@ import BulkActionBar from "../../../Components/ui/BulkActionBar";
 import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
-import { LuPencilLine, LuSearch, LuTrash2 } from "react-icons/lu";
+import { LuPencilLine, LuTrash2 } from "react-icons/lu";
 import useAlert from "../../../hooks/useAlert";
 
 const BULK_ACTIONS = [
@@ -227,155 +231,65 @@ export default function JobData({ token, role }) {
 
   return (
     <>
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-end gap-3 border-b border-gray-100 p-4">
-          <div className="flex-[2] min-w-60">
-            <label
-              htmlFor="jobs-search"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              Search
-            </label>
-            <div className="relative">
-              <LuSearch
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                aria-hidden="true"
-              />
-              <input
-                id="jobs-search"
-                type="search"
-                value={table.searchInput}
-                onChange={(e) => table.setSearchInput(e.target.value)}
-                placeholder="Job, service, client or team member"
-                className="h-11 w-full rounded-lg border border-gray-300 bg-white pl-9 pr-3 text-sm text-gray-900 focus:border-accent focus:outline-none"
-              />
-            </div>
-          </div>
-
+      <div className={tableCardClass}>
+        <TableToolbar
+          searchValue={table.searchInput}
+          onSearchChange={table.setSearchInput}
+          searchPlaceholder="Search job, service, client or team member"
+          isFiltered={table.hasActiveFilters}
+          onClear={table.resetFilters}
+        >
           {isManager && (
-            <div className="flex-1 min-w-50">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Assigned To
-              </label>
-              <Dropdown
-                id="jobs-assignedto-filter"
-                value={
-                  table.filters.unassigned
-                    ? UNASSIGNED
-                    : table.filters.assigned_to || ""
-                }
-                onChange={(value) => {
-                  table.setFilter("unassigned", value === UNASSIGNED ? "true" : "");
-                  table.setFilter("assigned_to", value === UNASSIGNED ? "" : value);
-                }}
-                placeholder="All team members"
-                options={[
-                  { value: "", label: "All team members" },
-                  { value: UNASSIGNED, label: "Unassigned" },
-                  ...teamMembers.map((member) => ({
-                    value: String(member.id),
-                    label: member.employee_name || `#${member.id}`,
-                  })),
-                ]}
-                buttonClassName="h-11 rounded-lg border-gray-300 px-4 text-sm text-gray-900"
-                menuClassName="rounded-lg"
-              />
-            </div>
-          )}
-
-          <div className="flex-1 min-w-50">
-            <label
-              htmlFor="jobs-status-filter"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              Status
-            </label>
-            <Dropdown
-              id="jobs-status-filter"
-              value={table.filters.status || ""}
-              onChange={(value) => table.setFilter("status", value)}
+            <ToolbarSelect
+              id="jobs-assignedto-filter"
+              label="Assigned to"
+              value={
+                table.filters.unassigned
+                  ? UNASSIGNED
+                  : table.filters.assigned_to || ""
+              }
+              onChange={(value) => {
+                table.setFilter("unassigned", value === UNASSIGNED ? "true" : "");
+                table.setFilter("assigned_to", value === UNASSIGNED ? "" : value);
+              }}
               options={[
-                { value: "", label: "All statuses" },
-                { value: "PENDING", label: "Pending" },
-                { value: "IN_PROGRESS", label: "In Progress" },
-                { value: "COMPLETED", label: "Completed" },
-                { value: "CANCELLED", label: "Cancelled" },
+                { value: "", label: "All team members" },
+                { value: UNASSIGNED, label: "Unassigned" },
+                ...teamMembers.map((member) => ({
+                  value: String(member.id),
+                  label: member.employee_name || `#${member.id}`,
+                })),
               ]}
-              buttonClassName="h-11 rounded-lg border-gray-300 px-4 text-sm text-gray-900"
-              menuClassName="rounded-lg"
             />
-          </div>
-
-          <div className="flex-1 min-w-50">
-            <label
-              htmlFor="jobdata-start-date"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              Start Date
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                id="jobdata-start-date"
-                value={table.filters.scheduled_from || ""}
-                onChange={(e) => table.setFilter("scheduled_from", e.target.value)}
-                placeholder="dd/mm/yyyy"
-                className="h-11 date-input-no-icon w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-900 transition focus:border-accent focus:outline-none"
-              />
-              <svg
-                className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer text-gray-400 transition hover:text-gray-600"
-                onClick={() =>
-                  document.getElementById("jobdata-start-date")?.showPicker()
-                }
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-          </div>
-
-          <div className="flex-1 min-w-50">
-            <label
-              htmlFor="jobdata-end-date"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              End Date
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                id="jobdata-end-date"
-                value={table.filters.scheduled_to || ""}
-                onChange={(e) => table.setFilter("scheduled_to", e.target.value)}
-                placeholder="dd/mm/yyyy"
-                className="h-11 date-input-no-icon w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-900 transition focus:border-accent focus:outline-none"
-              />
-              <svg
-                className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer text-gray-400 transition hover:text-gray-600"
-                onClick={() =>
-                  document.getElementById("jobdata-end-date")?.showPicker()
-                }
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
+          )}
+          <ToolbarSelect
+            id="jobs-status-filter"
+            label="Status"
+            value={table.filters.status}
+            onChange={(value) => table.setFilter("status", value)}
+            options={[
+              { value: "", label: "All statuses" },
+              { value: "PENDING", label: "Pending" },
+              { value: "IN_PROGRESS", label: "In Progress" },
+              { value: "COMPLETED", label: "Completed" },
+              { value: "CANCELLED", label: "Cancelled" },
+            ]}
+          />
+          <ToolbarDate
+            id="jobdata-start-date"
+            label="Scheduled from"
+            value={table.filters.scheduled_from}
+            max={table.filters.scheduled_to}
+            onChange={(value) => table.setFilter("scheduled_from", value)}
+          />
+          <ToolbarDate
+            id="jobdata-end-date"
+            label="Scheduled to"
+            value={table.filters.scheduled_to}
+            min={table.filters.scheduled_from}
+            onChange={(value) => table.setFilter("scheduled_to", value)}
+          />
+        </TableToolbar>
         {isManager && (
           <BulkActionBar
             selectedCount={table.selectedIds.length}

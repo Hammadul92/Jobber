@@ -4,9 +4,6 @@ import {
   LuPencil,
   LuTrash2,
   LuPlus,
-  LuSearch,
-  LuSlidersHorizontal,
-  LuX,
 } from "react-icons/lu";
 import { MdOutlineMiscellaneousServices } from "react-icons/md";
 import {
@@ -23,9 +20,14 @@ import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import useAlert from "../../../hooks/useAlert";
+import TableToolbar, {
+  TableStats,
+  ToolbarSelect,
+  tableCardClass,
+} from "../../../Components/ui/TableToolbar";
 
 const STATUS_OPTIONS = [
-  { label: "All", value: "" },
+  { label: "All statuses", value: "" },
   { label: "Active", value: "true" },
   { label: "Inactive", value: "false" },
 ];
@@ -66,7 +68,6 @@ export default function ClientsDatatable({ token, showAddClient }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState(null);
   const setAlert = useAlert();
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [bulkLabels, setBulkLabels] = useState({});
 
   const table = useServerTable({
@@ -244,139 +245,27 @@ export default function ClientsDatatable({ token, showAddClient }) {
 
   if (isLoading) return <LoadingScreen />;
 
-  const hasActiveFilters = table.filters.is_active !== "";
 
   return (
     <>
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-        {stats.map(({ label, value }) => (
-          <div
-            key={label}
-            className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm"
-          >
-            <p className="text-[0.95rem] font-medium text-slate-500">{label}</p>
-            <div className="mt-1 flex items-end">
-              <p className="text-4xl font-semibold leading-none text-slate-900">
-                {value}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <TableStats stats={stats} />
 
-      <div className="flex flex-col overflow-visible rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-200 bg-white px-4 py-4 md:px-5 rounded-t-2xl">
-          {/* Header: search and filter controls */}
-          <div className="flex flex-row items-center justify-between gap-1 md:gap-3 ">
-            <div className="relative min-w-0 flex-1">
-              <LuSearch className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                type="search"
-                value={table.searchInput}
-                onChange={(event) => table.setSearchInput(event.target.value)}
-                placeholder="Search clients by name, email, phone or company..."
-                aria-label="Search clients"
-                className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-12 pr-4 text-sm text-slate-700 placeholder:text-slate-400 shadow-sm focus:border-accent focus:outline-none"
-              />
-            </div>
-
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsFilterOpen((prev) => !prev)}
-                className="relative inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 md:px-6 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-gray-50"
-              >
-                <LuSlidersHorizontal className="h-4 w-4" />
-                <span className="hidden md:inline-flex">Filters</span>
-                {hasActiveFilters && (
-                  <span className="absolute top-2.5 md:top-3 left-1.5 md:left-3 ml-1 inline-flex h-2.5 w-2.5 rounded-full bg-orange-500" />
-                )}
-              </button>
-
-              {isFilterOpen && (
-                /* Filter dropdown panel */
-                <div className="absolute right-0 top-[calc(100%+10px)] z-30 w-64! max-w-[calc(100vw-1rem)]! overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] md:w-88">
-                  {/* Filter dropdown header */}
-                  <div className="flex items-center justify-between border-b border-gray-200 px-5 py-2 md:py-4">
-                    <h4 className="text-lg font-medium text-slate-900">
-                      Filters
-                    </h4>
-                    <button
-                      type="button"
-                      onClick={() => setIsFilterOpen(false)}
-                      className="text-slate-400 transition hover:text-slate-600"
-                      aria-label="Close filters"
-                    >
-                      <LuX className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  {/* Filter dropdown options */}
-                  <div className="px-5 py-4">
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500">
-                          Status
-                        </p>
-                        <div className="mt-3 space-y-2">
-                          {STATUS_OPTIONS.map((option) => {
-                            const isSelected =
-                              table.filters.is_active === option.value;
-
-                            return (
-                              <button
-                                key={option.value || "all"}
-                                type="button"
-                                onClick={() =>
-                                  table.setFilter("is_active", option.value)
-                                }
-                                className="flex w-full items-center justify-between rounded-2xl px-1 py-2 text-left"
-                              >
-                                <span className="flex items-center gap-3 text-slate-700">
-                                  <span
-                                    className={`inline-flex h-5 w-5 items-center justify-center rounded-full border ${isSelected ? "border-slate-500" : "border-slate-300"}`}
-                                  >
-                                    {isSelected ? (
-                                      <span className="h-3 w-3 rounded-full border-4 border-white bg-slate-500" />
-                                    ) : null}
-                                  </span>
-                                  <span className="text-base font-medium">
-                                    {option.label}
-                                  </span>
-                                </span>
-                                <span
-                                  className={`h-2.5 w-2.5 rounded-full ${option.value === "true" ? "bg-emerald-500" : option.value === "false" ? "bg-slate-400" : "bg-transparent"}`}
-                                />
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Filter dropdown actions */}
-                  <div className="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row">
-                    <button
-                      type="button"
-                      onClick={table.resetFilters}
-                      className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50"
-                    >
-                      Clear All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsFilterOpen(false)}
-                      className="flex-1 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow hover:bg-accentLight"
-                    >
-                      Done
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      <div className={tableCardClass}>
+        <TableToolbar
+          searchValue={table.searchInput}
+          onSearchChange={table.setSearchInput}
+          searchPlaceholder="Search name, email, phone or company"
+          isFiltered={table.hasActiveFilters}
+          onClear={table.resetFilters}
+        >
+          <ToolbarSelect
+            id="clients-status-filter"
+            label="Status"
+            value={table.filters.is_active}
+            onChange={(value) => table.setFilter("is_active", value)}
+            options={STATUS_OPTIONS}
+          />
+        </TableToolbar>
 
         <BulkActionBar
           selectedCount={table.selectedIds.length}

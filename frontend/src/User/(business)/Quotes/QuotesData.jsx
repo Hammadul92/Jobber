@@ -5,7 +5,10 @@ import {
   useDeleteQuoteMutation,
   useBulkQuotesMutation,
 } from "../../../store";
-import Select from "../../../Components/ui/Select";
+import TableToolbar, {
+  ToolbarSelect,
+  tableCardClass,
+} from "../../../Components/ui/TableToolbar";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
@@ -15,7 +18,7 @@ import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import { formatDate } from "../../../utils/formatDate";
-import { LuEye, LuPencil, LuSearch, LuTrash2 } from "react-icons/lu";
+import { LuEye, LuPencil, LuTrash2 } from "react-icons/lu";
 import useAlert from "../../../hooks/useAlert";
 
 const QUOTE_STATUS_OPTIONS = ["DRAFT", "SENT", "SIGNED", "DECLINED", "EXPIRED"];
@@ -271,44 +274,28 @@ export default function QuotesData({ token, role }) {
 
   return (
     <>
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-100 px-6 py-5">
-          <div className="grid gap-4 md:grid-cols-3 [&>div]:mb-0">
-            <label className="md:col-span-2">
-              <span className="mb-1 block text-sm font-medium text-slate-700">
-                Search
-              </span>
-              <span className="relative block">
-                <LuSearch
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                  aria-hidden="true"
-                />
-                <input
-                  type="search"
-                  value={table.searchInput}
-                  onChange={(event) => table.setSearchInput(event.target.value)}
-                  placeholder="Quote number, client or service"
-                  className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-slate-700 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                />
-              </span>
-            </label>
-
-            <Select
-              id="quotes-status-filter"
-              label="Status"
-              value={table.filters.status || ""}
-              onChange={(value) => table.setFilter("status", value)}
-              options={[
-                { value: "", label: "All Statuses" },
-                ...QUOTE_STATUS_OPTIONS.map((status) => ({
-                  value: status,
-                  label: status,
-                })),
-              ]}
-              fieldClass="h-11 rounded-lg border-gray-200 bg-white px-3 text-sm text-slate-700"
-            />
-          </div>
-        </div>
+      <div className={tableCardClass}>
+        <TableToolbar
+          searchValue={table.searchInput}
+          onSearchChange={table.setSearchInput}
+          searchPlaceholder="Search quote number, client or service"
+          isFiltered={table.hasActiveFilters}
+          onClear={table.resetFilters}
+        >
+          <ToolbarSelect
+            id="quotes-status-filter"
+            label="Status"
+            value={table.filters.status}
+            onChange={(value) => table.setFilter("status", value)}
+            options={[
+              { value: "", label: "All statuses" },
+              ...QUOTE_STATUS_OPTIONS.map((status) => ({
+                value: status,
+                label: status.charAt(0) + status.slice(1).toLowerCase(),
+              })),
+            ]}
+          />
+        </TableToolbar>
         {isManager && (
           <BulkActionBar
             selectedCount={table.selectedIds.length}

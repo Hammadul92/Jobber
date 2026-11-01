@@ -1,9 +1,14 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { payoutApi, useFetchPayoutsPageQuery } from "../../../store";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { formatDate } from "../../../utils/formatDate";
-import Select from "../../../Components/ui/Select";
+import TableToolbar, {
+  ToolbarDate,
+  ToolbarSelect,
+  tableCardClass,
+  toolbarButtonClass,
+} from "../../../Components/ui/TableToolbar";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
@@ -11,11 +16,9 @@ import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import {
-  LuCalendarDays,
   LuDownload,
   LuEye,
   LuFileText,
-  LuSearch,
   LuX,
 } from "react-icons/lu";
 import useAlert from "../../../hooks/useAlert";
@@ -23,7 +26,7 @@ import useAlert from "../../../hooks/useAlert";
 const INITIAL_FILTERS = { status: "", processed_from: "", processed_to: "" };
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Status" },
+  { value: "", label: "All statuses" },
   { value: "PENDING", label: "Pending" },
   { value: "PAID", label: "Paid" },
   { value: "FAILED", label: "Failed" },
@@ -101,8 +104,6 @@ export default function PayoutDatatable({ token, role }) {
     initialOrdering: "-created_at",
     initialFilters: INITIAL_FILTERS,
   });
-  const [showDateRangeModal, setShowDateRangeModal] = useState(false);
-  const [dateDraft, setDateDraft] = useState({ from: "", to: "" });
   const setAlert = useAlert();
 
   const { data, isLoading, isFetching, error } = useFetchPayoutsPageQuery(
@@ -125,30 +126,6 @@ export default function PayoutDatatable({ token, role }) {
       });
     }
   }, [error, setAlert]);
-
-  const openDateRange = () => {
-    setDateDraft({ from: processedFrom || "", to: processedTo || "" });
-    setShowDateRangeModal(true);
-  };
-
-  const handleDateRangeApply = () => {
-    if (dateDraft.from && dateDraft.to && dateDraft.from > dateDraft.to) {
-      setAlert({
-        type: "warning",
-        message: "Start date must be before end date.",
-      });
-      return;
-    }
-    table.setFilter("processed_from", dateDraft.from);
-    table.setFilter("processed_to", dateDraft.to);
-    setShowDateRangeModal(false);
-  };
-
-  const handleDateRangeClear = () => {
-    table.setFilter("processed_from", "");
-    table.setFilter("processed_to", "");
-    setShowDateRangeModal(false);
-  };
 
   // Without a page param the server returns every payout matching the
   // current search, filters and sort order.
@@ -266,111 +243,52 @@ export default function PayoutDatatable({ token, role }) {
     },
   ];
 
-  const searchInput = (
-    <div className="relative flex-1">
-      <LuSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-      <input
-        type="search"
-        value={table.searchInput}
-        onChange={(event) => table.setSearchInput(event.target.value)}
-        placeholder="Search invoice, client, or service"
-        className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-accent focus:ring-2 focus:ring-accent/20"
-      />
-    </div>
-  );
-
-  const dateRangeLabel =
-    processedFrom || processedTo
-      ? `Processed ${processedFrom ? formatDate(processedFrom) : "…"} – ${processedTo ? formatDate(processedTo) : "…"}`
-      : "Date Range";
-
-  const dateRangeButtonClass = `inline-flex h-10 items-center gap-2 rounded-xl border bg-white text-sm font-semibold transition hover:bg-gray-50 ${
-    processedFrom || processedTo
-      ? "border-accent text-accent"
-      : "border-gray-200 text-slate-600 hover:border-gray-300"
-  }`;
-
   return (
     <>
       <div className="space-y-6">
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="border-b border-gray-100 px-6 py-5">
-            <h4 className="text-xl font-medium text-slate-900">
-              Payout History
-            </h4>
-            <p className="mt-1 text-sm text-slate-500">
-              View processed payouts, related invoices, and available refund
-              actions.
-            </p>
-
-            <div className="mt-6 flex flex-col gap-3 lg:hidden">
-              {searchInput}
-
-              <div className="gap-2 grid grid-cols-1 md:grid-cols-4">
-                <button
-                  type="button"
-                  onClick={openDateRange}
-                  className={`${dateRangeButtonClass} w-full justify-center px-3`}
-                >
-                  <LuCalendarDays className="h-4 w-4 text-slate-400" />
-                  <span className="truncate">{dateRangeLabel}</span>
-                </button>
-
-                <Select
-                  id="payout-status-filter-mobile"
-                  label=""
-                  value={table.filters.status}
-                  onChange={(value) => table.setFilter("status", value)}
-                  fieldClass="h-10 text-sm"
-                  options={STATUS_OPTIONS}
-                />
-
-                <button
-                  type="button"
-                  onClick={handleExport}
-                  disabled={exporting}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50 disabled:opacity-60"
-                >
-                  <LuDownload className="h-4 w-4" />
-                  <span className="truncate">Export</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-6 hidden lg:flex lg:flex-row lg:items-end gap-3">
-              {searchInput}
-
-              <button
-                type="button"
-                onClick={openDateRange}
-                className={`${dateRangeButtonClass} px-4`}
-              >
-                <LuCalendarDays className="h-4 w-4 text-slate-400" />
-                {dateRangeLabel}
-              </button>
-
-              <div className="min-w-40">
-                <Select
-                  id="payout-status-filter"
-                  label=""
-                  value={table.filters.status}
-                  onChange={(value) => table.setFilter("status", value)}
-                  fieldClass="h-10 text-sm"
-                  options={STATUS_OPTIONS}
-                />
-              </div>
-
+        <div className={tableCardClass}>
+          <TableToolbar
+            title="Payout History"
+            description="View processed payouts, related invoices, and available refund actions."
+            searchValue={table.searchInput}
+            onSearchChange={table.setSearchInput}
+            searchPlaceholder="Search invoice, client or service"
+            isFiltered={table.hasActiveFilters}
+            onClear={table.resetFilters}
+            actions={
               <button
                 type="button"
                 onClick={handleExport}
                 disabled={exporting}
-                className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50 disabled:opacity-60"
+                className={toolbarButtonClass}
               >
                 <LuDownload className="h-4 w-4" />
                 Export
               </button>
-            </div>
-          </div>
+            }
+          >
+            <ToolbarSelect
+              id="payout-status-filter"
+              label="Status"
+              value={table.filters.status}
+              onChange={(value) => table.setFilter("status", value)}
+              options={STATUS_OPTIONS}
+            />
+            <ToolbarDate
+              id="payout-processed-from"
+              label="Processed from"
+              value={processedFrom}
+              max={processedTo}
+              onChange={(value) => table.setFilter("processed_from", value)}
+            />
+            <ToolbarDate
+              id="payout-processed-to"
+              label="Processed to"
+              value={processedTo}
+              min={processedFrom}
+              onChange={(value) => table.setFilter("processed_to", value)}
+            />
+          </TableToolbar>
 
           {isManager && (
             <BulkActionBar
@@ -446,86 +364,6 @@ export default function PayoutDatatable({ token, role }) {
             }
           />
         </div>
-
-        {showDateRangeModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div
-              className="fixed inset-0 bg-gray-900/40"
-              onClick={() => setShowDateRangeModal(false)}
-            ></div>
-
-            <div className="relative z-50 w-full md:w-4/7 lg:w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-              <h3 className="text-lg font-semibold text-slate-900">
-                Filter by Date Range
-              </h3>
-              <p className="mt-1 text-sm text-slate-500">
-                Show payouts processed between these dates.
-              </p>
-
-              <div className="mt-6 space-y-4">
-                <div>
-                  <label
-                    htmlFor="payout-processed-from"
-                    className="block text-sm font-semibold text-slate-700"
-                  >
-                    Start Date
-                  </label>
-                  <input
-                    id="payout-processed-from"
-                    type="date"
-                    value={dateDraft.from}
-                    onChange={(e) =>
-                      setDateDraft((draft) => ({ ...draft, from: e.target.value }))
-                    }
-                    className="mt-2 h-10 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="payout-processed-to"
-                    className="block text-sm font-semibold text-slate-700"
-                  >
-                    End Date
-                  </label>
-                  <input
-                    id="payout-processed-to"
-                    type="date"
-                    value={dateDraft.to}
-                    onChange={(e) =>
-                      setDateDraft((draft) => ({ ...draft, to: e.target.value }))
-                    }
-                    className="mt-2 h-10 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleDateRangeClear}
-                  className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50"
-                >
-                  Clear
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowDateRangeModal(false)}
-                  className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDateRangeApply}
-                  className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90"
-                >
-                  Apply
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

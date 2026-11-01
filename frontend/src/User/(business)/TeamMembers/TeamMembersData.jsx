@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { LuSearch, LuFilter, LuTrash2, LuPencilLine } from "react-icons/lu";
+import { LuTrash2, LuPencilLine } from "react-icons/lu";
 import {
   useFetchTeamMembersPageQuery,
   useBulkTeamMembersMutation,
@@ -14,15 +14,20 @@ import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import useAlert from "../../../hooks/useAlert";
+import TableToolbar, {
+  TableStats,
+  ToolbarSelect,
+  tableCardClass,
+} from "../../../Components/ui/TableToolbar";
 
 const ROLE_OPTIONS = [
-  { value: "", label: "All" },
+  { value: "", label: "All roles" },
   { value: "MANAGER", label: "Manager" },
   { value: "EMPLOYEE", label: "Employee" },
 ];
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All" },
+  { value: "", label: "All statuses" },
   { value: "true", label: "Active" },
   { value: "false", label: "Pending" },
 ];
@@ -67,7 +72,6 @@ export default function TeamMembersData({ token, onEdit }) {
   const setAlert = useAlert();
   const [showModal, setShowModal] = useState(false);
   const [selectedTeamMemberId, setSelectedTeamMemberId] = useState(null);
-  const [openFilter, setOpenFilter] = useState(null);
 
   const table = useServerTable();
   const { data, isLoading, isFetching, error } = useFetchTeamMembersPageQuery(
@@ -96,17 +100,6 @@ export default function TeamMembersData({ token, onEdit }) {
       });
     }
   }, [error, setAlert]);
-
-  useEffect(() => {
-    const handleClickOutside = () => setOpenFilter(null);
-    if (openFilter) {
-      document.addEventListener("click", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [openFilter]);
 
   const members = useMemo(
     () =>
@@ -293,112 +286,34 @@ export default function TeamMembersData({ token, onEdit }) {
       </div>
     );
 
-  const buttonClass =
-    "relative inline-flex h-8 md:h-10 lg:h-12 items-center gap-2 rounded-lg md:rounded-xl border border-gray-300 bg-white px-3 md:px-5 text-base font-medium text-slate-700 transition hover:border-gray-400";
-
-  const dropdownClass =
-    "absolute right-0 top-[calc(100%+6px)] z-20 space-y-1.5 min-w-48 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg";
-
-  const filterMenus = [
-    { key: "role", label: "Role", options: ROLE_OPTIONS, dot: "bg-accent" },
-    {
-      key: "is_active",
-      label: "Status",
-      options: STATUS_OPTIONS,
-      dot: "bg-orange-500",
-    },
-  ];
-
   return (
     <>
       <div className="space-y-5">
-        <div className="grid grid-cols-3 gap-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-xl border border-gray-200 bg-white px-5 py-5"
-            >
-              <p className="mb-1 text-base font-light text-slate-600">
-                {stat.label}
-              </p>
-              <p className="text-3xl font-semibold text-slate-900">
-                {stat.value}
-              </p>
-            </div>
-          ))}
-        </div>
+        <TableStats stats={stats} />
 
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="border-b border-gray-100 p-5">
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
-              <div className="relative w-full xl:flex-1">
-                <LuSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="search"
-                  value={table.searchInput}
-                  onChange={(event) => table.setSearchInput(event.target.value)}
-                  placeholder="Search name, email, phone or duties..."
-                  className="h-12 w-full rounded-xl border border-gray-300 bg-gray-50 pl-11 pr-3 text-lg text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
-                />
-              </div>
-
-              <div className="flex justify-between md:justify-start md:flex-wrap items-center gap-2.5 md:gap-3">
-                {filterMenus.map((menu) => {
-                  const current = table.filters[menu.key] || "";
-                  return (
-                    <div
-                      key={menu.key}
-                      className="relative"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      <button
-                        type="button"
-                        className={buttonClass}
-                        onClick={() =>
-                          setOpenFilter((open) =>
-                            open === menu.key ? null : menu.key,
-                          )
-                        }
-                      >
-                        <LuFilter className="h-4 w-4 md:h-5 md:w-5" />
-                        {menu.label}
-                        {current ? (
-                          <span
-                            className={`absolute left-1.5 md:left-3.5 top-0.5 md:top-1.5 lg:top-2.5 h-2.5 w-2.5 rounded-full ${menu.dot}`}
-                            aria-hidden="true"
-                          />
-                        ) : null}
-                      </button>
-                      {openFilter === menu.key && (
-                        <div className={dropdownClass}>
-                          {menu.options.map((option) => (
-                            <button
-                              key={option.value}
-                              type="button"
-                              className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm ${
-                                current === option.value
-                                  ? "bg-slate-100 text-slate-900"
-                                  : "text-slate-700 hover:bg-slate-100"
-                              }`}
-                              onClick={() => {
-                                table.setFilter(menu.key, option.value);
-                                setOpenFilter(null);
-                              }}
-                            >
-                              <span>{option.label}</span>
-                              {current === option.value ? (
-                                <span>✓</span>
-                              ) : null}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+        <div className={tableCardClass}>
+          <TableToolbar
+            searchValue={table.searchInput}
+            onSearchChange={table.setSearchInput}
+            searchPlaceholder="Search name, email, phone or duties"
+            isFiltered={table.hasActiveFilters}
+            onClear={table.resetFilters}
+          >
+            <ToolbarSelect
+              id="team-role-filter"
+              label="Role"
+              value={table.filters.role}
+              onChange={(value) => table.setFilter("role", value)}
+              options={ROLE_OPTIONS}
+            />
+            <ToolbarSelect
+              id="team-status-filter"
+              label="Status"
+              value={table.filters.is_active}
+              onChange={(value) => table.setFilter("is_active", value)}
+              options={STATUS_OPTIONS}
+            />
+          </TableToolbar>
           <BulkActionBar
             selectedCount={table.selectedIds.length}
             actions={BULK_ACTIONS.map((action) => ({

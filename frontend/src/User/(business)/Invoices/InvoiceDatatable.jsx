@@ -16,14 +16,17 @@ import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import { formatDate } from "../../../utils/formatDate";
 import { isInvoicePastDue } from "../../../utils/paymentTerms";
-import Select from "../../../Components/ui/Select";
+import TableToolbar, {
+  ToolbarDate,
+  ToolbarSelect,
+  tableCardClass,
+  toolbarButtonClass,
+} from "../../../Components/ui/TableToolbar";
 import {
-  LuCalendarDays,
   LuDownload,
   LuEye,
   LuFileText,
   LuPlus,
-  LuSearch,
   LuTrash2,
   LuX,
 } from "react-icons/lu";
@@ -32,7 +35,7 @@ import useAlert from "../../../hooks/useAlert";
 const INITIAL_FILTERS = { status: "", due_from: "", due_to: "" };
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Status" },
+  { value: "", label: "All statuses" },
   { value: "DRAFT", label: "Draft" },
   { value: "SENT", label: "Sent" },
   { value: "OVERDUE", label: "Overdue" },
@@ -107,8 +110,6 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
     initialFilters: INITIAL_FILTERS,
   });
   const [showModal, setShowModal] = useState(false);
-  const [showDateRangeModal, setShowDateRangeModal] = useState(false);
-  const [dateDraft, setDateDraft] = useState({ from: "", to: "" });
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
   const setAlert = useAlert();
 
@@ -186,30 +187,6 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
     rows.find((row) => String(row.id) === String(id))?.invoice_number ||
     `#${id}`;
 
-  const openDateRange = () => {
-    setDateDraft({ from: dueFrom || "", to: dueTo || "" });
-    setShowDateRangeModal(true);
-  };
-
-  const handleDateRangeApply = () => {
-    if (dateDraft.from && dateDraft.to && dateDraft.from > dateDraft.to) {
-      setAlert({
-        type: "warning",
-        message: "Start date must be before end date.",
-      });
-      return;
-    }
-    table.setFilter("due_from", dateDraft.from);
-    table.setFilter("due_to", dateDraft.to);
-    setShowDateRangeModal(false);
-  };
-
-  const handleDateRangeClear = () => {
-    table.setFilter("due_from", "");
-    table.setFilter("due_to", "");
-    setShowDateRangeModal(false);
-  };
-
   // Without a page param the server returns every invoice matching the
   // current search, filters and sort order.
   const handleExport = async () => {
@@ -230,11 +207,6 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
       });
     }
   };
-
-  const dateRangeLabel =
-    dueFrom || dueTo
-      ? `Due ${dueFrom ? formatDate(dueFrom) : "…"} – ${dueTo ? formatDate(dueTo) : "…"}`
-      : "Date Range";
 
   const statusBadge = (status) => {
     if (status === "PAID") return "bg-emerald-100 text-emerald-700";
@@ -349,105 +321,52 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
     return <LoadingScreen />;
   }
 
-  const searchInput = (
-    <div className="relative flex-1">
-      <LuSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-      <input
-        type="search"
-        value={table.searchInput}
-        onChange={(event) => table.setSearchInput(event.target.value)}
-        placeholder="Search invoice, client, or service"
-        className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-accent focus:ring-2 focus:ring-accent/20"
-      />
-    </div>
-  );
-
-  const dateRangeButtonClass = `inline-flex h-10 items-center gap-2 rounded-xl border bg-white text-sm font-semibold transition hover:bg-gray-50 ${
-    dueFrom || dueTo
-      ? "border-accent text-accent"
-      : "border-gray-200 text-slate-600 hover:border-gray-300"
-  }`;
-
   return (
     <>
       <div className="space-y-6">
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="border-b border-gray-100 px-6 py-5">
-            <h4 className="text-xl font-medium text-slate-900">
-              Invoice History
-            </h4>
-            <p className="mt-1 text-sm text-slate-500">
-              Review billing, due dates, payment status, and invoice actions.
-            </p>
-
-            <div className="mt-6 flex flex-col gap-3 lg:hidden">
-              {searchInput}
-
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-4">
-                <button
-                  type="button"
-                  onClick={openDateRange}
-                  className={`${dateRangeButtonClass} w-full justify-center px-3`}
-                >
-                  <LuCalendarDays className="h-4 w-4 text-slate-400" />
-                  <span className="truncate">{dateRangeLabel}</span>
-                </button>
-
-                <Select
-                  id="invoice-status-filter-mobile"
-                  label=""
-                  value={statusFilterValue}
-                  onChange={setStatusFilter}
-                  fieldClass="h-10 text-sm"
-                  options={STATUS_OPTIONS}
-                />
-
-                <button
-                  type="button"
-                  onClick={handleExport}
-                  disabled={exporting}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50 disabled:opacity-60"
-                >
-                  <LuDownload className="h-4 w-4" />
-                  <span className="truncate">Export</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-6 hidden lg:flex lg:flex-row lg:items-end gap-3">
-              {searchInput}
-
-              <button
-                type="button"
-                onClick={openDateRange}
-                className={`${dateRangeButtonClass} px-4`}
-              >
-                <LuCalendarDays className="h-4 w-4 text-slate-400" />
-                {dateRangeLabel}
-              </button>
-
-              <div className="min-w-44">
-                <Select
-                  id="invoice-status-filter"
-                  label=""
-                  value={statusFilterValue}
-                  onChange={setStatusFilter}
-                  fieldClass="h-10 text-sm"
-                  options={STATUS_OPTIONS}
-                />
-              </div>
-
+        <div className={tableCardClass}>
+          <TableToolbar
+            title="Invoice History"
+            description="Review billing, due dates, payment status, and invoice actions."
+            searchValue={table.searchInput}
+            onSearchChange={table.setSearchInput}
+            searchPlaceholder="Search invoice, client or service"
+            isFiltered={table.hasActiveFilters}
+            onClear={table.resetFilters}
+            actions={
               <button
                 type="button"
                 onClick={handleExport}
                 disabled={exporting}
-                className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50 disabled:opacity-60"
+                className={toolbarButtonClass}
               >
                 <LuDownload className="h-4 w-4" />
                 Export
               </button>
-            </div>
-          </div>
+            }
+          >
+            <ToolbarSelect
+              id="invoice-status-filter"
+              label="Status"
+              value={statusFilterValue}
+              onChange={setStatusFilter}
+              options={STATUS_OPTIONS}
+            />
+            <ToolbarDate
+              id="invoice-due-from"
+              label="Due from"
+              value={dueFrom}
+              max={dueTo}
+              onChange={(value) => table.setFilter("due_from", value)}
+            />
+            <ToolbarDate
+              id="invoice-due-to"
+              label="Due to"
+              value={dueTo}
+              min={dueFrom}
+              onChange={(value) => table.setFilter("due_to", value)}
+            />
+          </TableToolbar>
 
           {isManager && (
             <BulkActionBar
@@ -528,104 +447,6 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
             }
           />
         </div>
-
-        {showDateRangeModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <div
-              className="fixed inset-0 bg-gray-900/40"
-              onClick={() => setShowDateRangeModal(false)}
-            ></div>
-
-            <div className="relative z-50 w-full md:w-4/7 lg:w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-900">
-                    Filter by Due Date
-                  </h3>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Show invoices due between these dates.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowDateRangeModal(false)}
-                  className="text-slate-400 transition hover:text-slate-600"
-                  aria-label="Close date range dialog"
-                >
-                  <LuX className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="mt-6 space-y-4">
-                <div>
-                  <label
-                    htmlFor="invoice-due-from"
-                    className="block text-sm font-semibold text-slate-700"
-                  >
-                    Start Date
-                  </label>
-                  <input
-                    id="invoice-due-from"
-                    type="date"
-                    value={dateDraft.from}
-                    onChange={(event) =>
-                      setDateDraft((draft) => ({
-                        ...draft,
-                        from: event.target.value,
-                      }))
-                    }
-                    className="mt-2 h-10 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="invoice-due-to"
-                    className="block text-sm font-semibold text-slate-700"
-                  >
-                    End Date
-                  </label>
-                  <input
-                    id="invoice-due-to"
-                    type="date"
-                    value={dateDraft.to}
-                    onChange={(event) =>
-                      setDateDraft((draft) => ({
-                        ...draft,
-                        to: event.target.value,
-                      }))
-                    }
-                    className="mt-2 h-10 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={handleDateRangeClear}
-                  className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50"
-                >
-                  Clear
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowDateRangeModal(false)}
-                  className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDateRangeApply}
-                  className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90"
-                >
-                  Apply
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
