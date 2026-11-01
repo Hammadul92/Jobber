@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import SignaturePad from "react-signature-pad-wrapper";
 import SubmitButton from "../../../Components/ui/SubmitButton";
-import { LuPenTool, LuSignature, LuShieldCheck, LuX } from "react-icons/lu";
+import { LuPenTool, LuShieldCheck, LuX } from "react-icons/lu";
 
 export default function AcceptAndSignQuote({
   setShowSignModal,
   handleSignSubmit,
   signing,
 }) {
-  const [signatureData, setSignatureData] = useState(null);
+  const [hasSignature, setHasSignature] = useState(false);
+  const [error, setError] = useState("");
   const sigPadRef = useRef(null);
 
   useEffect(() => {
@@ -19,30 +20,32 @@ export default function AcceptAndSignQuote({
     };
   }, []);
 
+  // Track drawing so the status badge updates without a separate save step.
+  useEffect(() => {
+    const pad = sigPadRef.current?.instance;
+    if (!pad) return undefined;
+    const handleEndStroke = () => {
+      setHasSignature(true);
+      setError("");
+    };
+    pad.addEventListener("endStroke", handleEndStroke);
+    return () => pad.removeEventListener("endStroke", handleEndStroke);
+  }, []);
+
   const clearSignature = () => {
     sigPadRef.current.clear();
-    setSignatureData(null);
-  };
-
-  const saveSignature = () => {
-    if (sigPadRef.current.isEmpty()) {
-      alert("Please draw your signature before saving.");
-      return;
-    }
-    const dataUrl = sigPadRef.current.toDataURL();
-    setSignatureData(dataUrl);
+    setHasSignature(false);
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
-    if (!signatureData) {
-      alert("Please save your signature before submitting.");
+    if (signing) return;
+    if (!sigPadRef.current || sigPadRef.current.isEmpty()) {
+      setError("Please draw your signature before submitting.");
       return;
     }
-    if (!signing) handleSignSubmit({ signature: signatureData });
+    handleSignSubmit({ signature: sigPadRef.current.toDataURL() });
   };
-
-  const isSubmitDisabled = !signatureData;
 
   return (
     <div
@@ -103,14 +106,6 @@ export default function AcceptAndSignQuote({
                   >
                     Clear
                   </button>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 rounded-xl border border-[#ff6a00] px-3 py-1.5 text-[#ff6a00] transition hover:bg-[#ff6a00] hover:text-white"
-                    onClick={saveSignature}
-                  >
-                    <LuSignature className="h-4 w-4" />
-                    Save Signature
-                  </button>
                 </div>
               </div>
 
@@ -155,27 +150,21 @@ export default function AcceptAndSignQuote({
                 </div>
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="mt-3 flex flex-wrap items-center gap-3">
                 <div
                   className={`inline-flex items-center gap-2 rounded-lg px-3 py-1 text-[11px] font-semibold ${
-                    signatureData
+                    hasSignature
                       ? "bg-emerald-100 text-emerald-700"
                       : "bg-amber-100 text-amber-700"
                   }`}
                 >
                   <LuShieldCheck className="h-3.5 w-3.5" />
-                  {signatureData ? "Signature saved" : "Signature required"}
+                  {hasSignature ? "Signature ready" : "Signature required"}
                 </div>
-
-                {signatureData && (
-                  <div className="flex min-w-0 flex-wrap items-center gap-2 text-[13px] text-slate-700">
-                    <span className="font-semibold">Saved Signature Preview:</span>
-                    <img
-                      src={signatureData}
-                      alt="Signature Preview"
-                      className="h-12 max-w-32 rounded-lg border border-slate-200 bg-white object-contain p-2 shadow-sm"
-                    />
-                  </div>
+                {error && (
+                  <p className="text-[12px] font-semibold text-rose-600" role="alert">
+                    {error}
+                  </p>
                 )}
               </div>
             </div>
@@ -192,8 +181,7 @@ export default function AcceptAndSignQuote({
             <SubmitButton
               isLoading={signing}
               btnClass="rounded-xl bg-[#ff6a00] px-4 py-2 text-[13px] text-white shadow-sm transition hover:bg-[#ff7a1f]"
-              btnName="Submit"
-              isDisabled={isSubmitDisabled}
+              btnName="Accept & Sign"
             />
           </div>
         </form>
