@@ -103,7 +103,7 @@ export default function DashboardTodos({ token, user, business }) {
                     key={todo.id}
                     to={todo.to}
                     onClick={() => setIsOpen(false)}
-                    className="group flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 transition hover:border-orange-200 hover:bg-orange-50"
+                    className="group flex items-start gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 transition hover:border-orange-200 hover:bg-orange-50"
                   >
                     <span
                       className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${

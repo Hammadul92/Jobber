@@ -170,7 +170,7 @@ export default function ServiceQuestionnaireForm(props) {
         >
           {Object.entries(questions).map(([key, q], index) => (
             <div
-              className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4"
+              className="rounded-2xl border border-gray-200 bg-white p-4"
               key={key}
             >
               <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">

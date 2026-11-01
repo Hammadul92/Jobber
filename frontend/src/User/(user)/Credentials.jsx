@@ -166,7 +166,7 @@ export default function Credentials() {
             <span>Contains at least one special character</span>
           </li>
         </ul>
-        <p className="text-center text-lg text-gray-400 bg-gray-100 p-6 rounded-xl mt-6 italic">
+        <p className="text-center text-lg text-gray-400 border border-gray-200 bg-white p-6 rounded-xl mt-6 italic">
           Your password must satisfy all of the above to be considered strong.
         </p>
       </div>

@@ -242,7 +242,7 @@ export default function ServiceQuestionnairesData({ token, onEdit }) {
                   (q, index) => (
                     <div
                       key={`${previewQuestionnaire.id}-${index}`}
-                      className="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-xs"
+                      className="rounded-2xl border border-gray-200 bg-white p-4 shadow-xs"
                     >
                       <div className="mb-3 flex items-start justify-between gap-3">
                         <label className="text-sm font-semibold text-slate-900">

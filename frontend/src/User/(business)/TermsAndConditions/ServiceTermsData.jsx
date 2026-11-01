@@ -229,7 +229,7 @@ export default function ServiceTermsData({ token, onEdit }) {
             </div>
 
             <div className="max-h-[75vh] overflow-y-auto px-6 py-5">
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-7 text-slate-700">
+              <div className="rounded-2xl border border-gray-200 bg-white p-4 text-sm leading-7 text-slate-700">
                 <RichTextContent html={previewTemplate.content} />
               </div>
             </div>

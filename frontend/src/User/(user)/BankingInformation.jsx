@@ -197,7 +197,7 @@ export default function BankingInformation({ token }) {
             {/* Body */}
             <div className="border-t border-gray-200 p-4 md:px-10 md:py-8">
               {!isBankConnected || showBankForm ? (
-                <div className="flex flex-col items-center rounded-2xl border border-gray-100 bg-gray-50/60 px-5 py-8 text-center md:py-10">
+                <div className="flex flex-col items-center rounded-2xl border border-gray-200 bg-white px-5 py-8 text-center md:py-10">
                   <div className="mb-4 rounded-2xl bg-white p-3 text-secondary shadow-sm">
                     <LuLandmark className="text-2xl" />
                   </div>
@@ -431,7 +431,7 @@ export default function BankingInformation({ token }) {
                 </button>
               </>
             ) : (
-              <div className="w-full flex flex-wrap items-center justify-between gap-3 text-sm bg-background p-3 rounded-xl text-gray-800">
+              <div className="w-full flex flex-wrap items-center justify-between gap-3 text-sm border border-gray-200 bg-white p-3 rounded-xl text-gray-800">
                 <span>
                   <strong>{activeCard.card_brand?.toUpperCase()}</strong> ••••
                   •••• •••• {activeCard.card_last4}

@@ -17,7 +17,7 @@ export default function ServiceItemsEditor({ items, onChange, currency = "CAD", 
         </button>
       </div>
       {items.map((item, index) => (
-        <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div key={index} className="rounded-2xl border border-gray-200 bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Item {index + 1}</span>
             <button type="button" disabled={disabled} onClick={() => onChange(items.filter((_, position) => position !== index))}

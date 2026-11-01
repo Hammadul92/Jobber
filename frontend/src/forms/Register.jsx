@@ -151,13 +151,13 @@ export default function Register() {
               strong.
             </p>
             <div className="mt-6 grid grid-cols-2 gap-4 text-sm text-gray-600">
-              <div className="rounded-xl bg-slate-50 border border-gray-100 p-4">
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
                 <p className="font-semibold text-secondary mb-1">Need a tip?</p>
                 <p>
                   Add a phrase you remember plus a symbol, e.g., Coffee@Dawn24.
                 </p>
               </div>
-              <div className="rounded-xl bg-slate-50 border border-gray-100 p-4">
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
                 <p className="font-semibold text-secondary mb-1">
                   We respect privacy
                 </p>

@@ -450,7 +450,7 @@ function RevenueOverview({ chartData, chartRange, setChartRange }) {
 
 function EmptyState({ message }) {
   return (
-    <div className="flex items-center justify-center px-6 text-base text-center border border-gray-200 border-dashed min-h-48 rounded-2xl bg-slate-50 text-slate-500">
+    <div className="flex items-center justify-center px-6 text-base text-center border border-gray-200 border-dashed min-h-48 rounded-2xl bg-white text-slate-500">
       {message}
     </div>
   );

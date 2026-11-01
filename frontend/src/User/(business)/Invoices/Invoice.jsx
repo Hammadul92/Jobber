@@ -594,7 +594,7 @@ function CustomerView({
       </div>
 
       <div className={`grid gap-4 px-6 py-6 ${paymentTerms ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+        <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
             Service
           </p>
@@ -602,7 +602,7 @@ function CustomerView({
             {serviceName}
           </p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+        <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
             Due Date
           </p>
@@ -611,12 +611,12 @@ function CustomerView({
           </p>
         </div>
         {paymentTerms && (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+          <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Payment Terms</p>
             <p className="mt-2 text-lg font-semibold text-slate-900">{paymentTermsLabel(paymentTerms)}</p>
           </div>
         )}
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+        <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
             Status
           </p>
@@ -648,7 +648,7 @@ function CustomerView({
 
       <div className="border-t border-slate-100 px-6 py-6">
         {notes && (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+          <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4">
             <h6 className="text-sm font-semibold text-slate-900">Notes</h6>
             <p className="mt-2 text-sm leading-6 text-slate-600">{notes}</p>
           </div>
