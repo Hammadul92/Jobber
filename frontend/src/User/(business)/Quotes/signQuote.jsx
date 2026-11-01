@@ -7,6 +7,8 @@ import {
     useFetchQuoteQuery,
     useSignQuoteMutation,
 } from "../../../store";
+import { useDispatch } from "react-redux";
+import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import AcceptAndSignQuote from "./AcceptAndSignQuote";
 import QuoteSectionPopup from "./QuoteSectionPopup";
 import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
@@ -21,6 +23,7 @@ import useAlert from "../../../hooks/useAlert";
 
 export default function SignQuote({ token, preview = false }) {
     const { id } = useParams();
+    const dispatch = useDispatch();
 
     const {
         data: quote,
@@ -43,6 +46,21 @@ export default function SignQuote({ token, preview = false }) {
     useEffect(() => {
         if (quote) setStatus(quote.status);
     }, [quote]);
+
+    // The preview explains itself in the title bar, beside the back arrow.
+    useEffect(() => {
+        if (!preview) return undefined;
+        dispatch(
+            setTopbar({
+                title: "Client view preview",
+                description: "This quote is read only.",
+                action: null,
+            }),
+        );
+        return () => {
+            dispatch(resetTopbar());
+        };
+    }, [dispatch, preview]);
 
     useEffect(() => {
         if (!quote?.valid_until) return;
@@ -184,15 +202,6 @@ export default function SignQuote({ token, preview = false }) {
 
     return (
         <>
-            {preview && (
-                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm text-slate-700">
-                    <span><strong>Client view preview.</strong> This quote is read only.</span>
-                    <Link to="/user/business/quotes" className="font-semibold text-accent hover:underline">
-                        Back to Quotes
-                    </Link>
-                </div>
-            )}
-
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <div className="space-y-6 p-4 md:p-6">
                     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-6">
