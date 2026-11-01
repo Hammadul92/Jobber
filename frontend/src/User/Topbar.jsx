@@ -1,39 +1,67 @@
 import { useMemo, Fragment } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, matchPath, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { LuChevronRight, LuPlus, LuUserPlus } from "react-icons/lu";
 import { getTopbarActionHandler } from "./topbarActionRegistry";
 import { getPublicSiteHomeUrl } from "../utils/publicSite";
 import GoBackLink from "../Components/ui/GoBackLink";
 
-const SEGMENT_LABELS = {
-  user: "User",
-  home: "Home",
+// Breadcrumb trail for each workspace page, after the business crumb. Each
+// step is [label, path, page]; a step links to its path (":id"/":serviceId"
+// filled from the URL) when the viewer's role can open that page.
+const BUSINESS_TRAILS = {
+  home: [],
+  clients: [["Clients"]],
+  "client/:id": [["Clients", "clients", "clients"], ["Client"]],
+  "client/:id/services": [
+    ["Clients", "clients", "clients"],
+    ["Client", "client/:id", "client"],
+    ["Services"],
+  ],
+  services: [["Services"]],
+  "service/:id": [["Services", "services", "client-services"], ["Service"]],
+  "service-questionnaires": [["Questionnaires"]],
+  "service-questionnaire/:id": [
+    ["Questionnaires", "service-questionnaires", "service-questionnaires"],
+    ["Questionnaire"],
+  ],
+  "service-questionnaire/:id/form": [
+    ["Questionnaires", "service-questionnaires", "service-questionnaires"],
+    ["Questionnaire", "service-questionnaire/:id", "service-questionnaires"],
+    ["Form"],
+  ],
+  "service-questionnaire/:id/form/:serviceId": [
+    ["Services", "services", "client-services"],
+    ["Service", "service/:serviceId", "service"],
+    ["Questionnaire"],
+  ],
+  "terms-and-conditions": [["Terms & Conditions"]],
+  quotes: [["Quotes"]],
+  "quote/:id": [["Quotes", "quotes", "quotes"], ["Quote"]],
+  "quote/:id/preview": [
+    ["Quotes", "quotes", "quotes"],
+    ["Quote", "quote/:id", "quote"],
+    ["Client Preview"],
+  ],
+  "quote/sign/:id": [["Quotes", "quotes", "quotes"], ["Review & Sign"]],
+  jobs: [["Jobs"]],
+  "job/:id": [["Jobs", "jobs", "jobs"], ["Job"]],
+  invoices: [["Invoices"]],
+  "invoice/:id": [["Invoices", "invoices", "invoices"], ["Invoice"]],
+  payouts: [["Payouts"]],
+  "payout/:id": [["Payouts", "payouts", "payouts"], ["Payout"]],
+  "team-members": [["Team Members"]],
+  "team-member/:id": [["Team Members", "team-members", "team-members"], ["Team Member"]],
+};
+
+const ACCOUNT_LABELS = {
   profile: "Profile",
   business: "Business",
   banking: "Banking",
   credentials: "Credentials",
-  "team-members": "Team Members",
-  "team-member": "Team Member",
-  clients: "Clients",
-  client: "Client",
-  services: "Services",
-  service: "Service",
-  "service-questionnaires": "Questionnaires",
-  "service-questionnaire": "Questionnaire",
-  "terms-and-conditions": "Terms & Conditions",
-  quotes: "Quotes",
-  quote: "Quote",
-  jobs: "Jobs",
-  job: "Job",
-  payouts: "Payouts",
-  payout: "Payout",
-  invoices: "Invoices",
-  invoice: "Invoice",
-  settings: "Settings",
 };
 
-function Topbar({ businessName, backFallback }) {
+function Topbar({ businessName, backFallback, canAccess }) {
   const { title, description, action } = useSelector((state) => state.topbar);
   const location = useLocation();
   const actionHandler = action?.key ? getTopbarActionHandler(action.key) : null;
@@ -44,69 +72,40 @@ function Topbar({ businessName, backFallback }) {
     "user-plus": LuUserPlus,
   };
 
-  const toTitle = (segment) =>
-    segment
-      .split("-")
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ");
-
-  const isDynamicSegment = (segment) =>
-    /^\d+$/.test(segment) ||
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      segment,
-    );
-
   const breadcrumbItems = useMemo(() => {
-    const businessLabel = businessName || "Dashboard";
-    const segments = location.pathname.split("/").filter(Boolean);
-
-    if (!segments.length) {
-      return [{ label: "Contractorz", href: publicSiteHomeUrl }];
-    }
-
     const items = [{ label: "Contractorz", href: publicSiteHomeUrl }];
+    const { pathname } = location;
 
-    if (segments[0] !== "user") {
-      const label =
-        SEGMENT_LABELS[segments[0]] || toTitle(decodeURIComponent(segments[0]));
-      items.push({ label });
+    const accountPage = matchPath("/user/:section", pathname)?.params.section;
+    if (accountPage && ACCOUNT_LABELS[accountPage]) {
+      items.push({ label: "Account" }, { label: ACCOUNT_LABELS[accountPage] });
       return items;
     }
 
-    // /user/profile, /user/banking, etc.
-    if (segments[1] && segments[1] !== "business") {
-      items.push({ label: "Account", to: "/user/profile" });
+    const isHome = Boolean(matchPath("/user/business/home", pathname));
+    items.push({
+      label: businessName || "Dashboard",
+      to: isHome ? undefined : "/user/business/home",
+    });
 
-      let path = "/user";
-      for (let i = 1; i < segments.length; i += 1) {
-        const segment = decodeURIComponent(segments[i]);
-        if (isDynamicSegment(segment)) continue;
-
-        path += `/${segment}`;
-        const label = SEGMENT_LABELS[segment] || toTitle(segment);
-        const isLast = i === segments.length - 1;
-        items.push({ label, to: isLast ? undefined : path });
-      }
-
-      return items;
-    }
-
-    // /user/business/... workspace pages
-    items.push({ label: businessLabel, to: "/user/business/home" });
-
-    let path = "/user/business";
-    for (let i = 2; i < segments.length; i += 1) {
-      const segment = decodeURIComponent(segments[i]);
-      if (isDynamicSegment(segment)) continue;
-
-      path += `/${segment}`;
-      const label = SEGMENT_LABELS[segment] || toTitle(segment);
-      const isLast = i === segments.length - 1;
-      items.push({ label, to: isLast ? undefined : path });
+    for (const [pattern, trail] of Object.entries(BUSINESS_TRAILS)) {
+      const match = matchPath(`/user/business/${pattern}`, pathname);
+      if (!match) continue;
+      trail.forEach(([label, path, page], idx) => {
+        const isLast = idx === trail.length - 1;
+        const canLink = path && !isLast && (!canAccess || canAccess(page));
+        items.push({
+          label,
+          to: canLink
+            ? `/user/business/${path.replace(/:(\w+)/g, (_, key) => match.params[key])}`
+            : undefined,
+        });
+      });
+      break;
     }
 
     return items;
-  }, [location.pathname, businessName, publicSiteHomeUrl]);
+  }, [location, businessName, publicSiteHomeUrl, canAccess]);
 
   return (
     <div className="bg-white md:p-8 md:pr-12 lg:p-8 lg:pr-14 px-4 py-4 border-b border-gray-300 w-full">

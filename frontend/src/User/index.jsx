@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useFetchBusinessesQuery } from "../store";
 import MobileTopbar from "./MobileTopbar";
@@ -105,6 +105,14 @@ export default function UserDashboard({ page, token, user }) {
       { page: "invoices", roles: ["CLIENT", "MANAGER"] },
     ],
     [],
+  );
+
+  const canAccess = useCallback(
+    (pageName) => {
+      const rule = accessRules.find((r) => r.page === pageName);
+      return !rule || rule.roles.includes(user?.role);
+    },
+    [accessRules, user?.role],
   );
 
   // Handle authentication and access control
@@ -286,6 +294,7 @@ export default function UserDashboard({ page, token, user }) {
               <Topbar
                 businessName={business?.name || "Dashboard"}
                 backFallback={backFallback}
+                canAccess={canAccess}
               />
             )}
           </div>
