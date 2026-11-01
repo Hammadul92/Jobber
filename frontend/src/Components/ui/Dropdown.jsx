@@ -24,6 +24,7 @@ export default function Dropdown({
   buttonClassName = "",
   menuClassName = "",
   menuMaxHeight = "240px",
+  textClassName = "text-base",
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -107,7 +108,7 @@ export default function Dropdown({
         <span className="flex min-w-0 items-center gap-3">
           {LeftIcon && <LeftIcon className="h-5 w-5 text-slate-400" />}
           <span
-            className={`truncate text-base ${selectedOption ? "text-slate-700" : "text-slate-400"}`}
+            className={`truncate ${textClassName} ${selectedOption ? "text-slate-700" : "text-slate-400"}`}
           >
             {selectedOption?.label || placeholder}
           </span>

@@ -64,6 +64,21 @@ class ListingTests(TestCase):
 
         self.assertEqual(self.api.get(reverse("operations:job-list"), {"scheduled_from": "nope"}).status_code, 400)
 
+    def test_quotes_filter_by_valid_until_range_terms_and_type(self):
+        Quote.objects.filter(pk=self.quotes[0].pk).update(
+            valid_until=date.today() + timedelta(days=20), payment_terms="NET_30",
+        )
+        Service.objects.filter(pk=self.services[1].pk).update(service_type="SUBSCRIPTION")
+
+        def ids(params):
+            return sorted(row["id"] for row in self.api.get(QUOTES_URL, params).data)
+
+        later = (date.today() + timedelta(days=10)).isoformat()
+        self.assertEqual(ids({"valid_from": later}), [self.quotes[0].pk])
+        self.assertEqual(ids({"valid_to": later}), sorted([self.quotes[1].pk, self.quotes[2].pk]))
+        self.assertEqual(ids({"payment_terms": "NET_30"}), [self.quotes[0].pk])
+        self.assertEqual(ids({"service_type": "SUBSCRIPTION"}), [self.quotes[1].pk])
+
     def test_deactivated_clients_stay_listed(self):
         self.api.post(reverse("operations:client-bulk"), {"action": "deactivate", "ids": [self.clients[0].pk]},
                       format="json")

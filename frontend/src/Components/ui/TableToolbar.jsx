@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { LuSearch, LuX } from "react-icons/lu";
 import Dropdown from "./Dropdown";
 
@@ -46,6 +47,8 @@ export default function TableToolbar({
   actions,
   children,
 }) {
+  const searchId = useId();
+
   return (
     <div className="border-b border-gray-200 px-4 py-5 md:px-6">
       {title && (
@@ -59,24 +62,25 @@ export default function TableToolbar({
 
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
         <div className="min-w-0 sm:min-w-64 sm:flex-[2]">
-          <label className={labelClass}>
+          <label htmlFor={searchId} className={labelClass}>
             Search
-            <span className="relative mt-1 block font-normal normal-case">
-              <LuSearch
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                aria-hidden="true"
-              />
-              <input
-                type="search"
-                value={searchValue}
-                onChange={(event) => onSearchChange(event.target.value)}
-                placeholder={searchPlaceholder}
-                className={`h-10 w-full rounded-xl border bg-white pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 ${
-                  searchValue ? activeFieldClass : "border-gray-200"
-                }`}
-              />
-            </span>
           </label>
+          <div className="relative">
+            <LuSearch
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              aria-hidden="true"
+            />
+            <input
+              id={searchId}
+              type="search"
+              value={searchValue}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder={searchPlaceholder}
+              className={`block h-10 w-full appearance-none rounded-xl border bg-white pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 ${
+                searchValue ? activeFieldClass : "border-gray-200"
+              }`}
+            />
+          </div>
         </div>
 
         {children}
@@ -117,7 +121,8 @@ export function ToolbarSelect({ id, label, value, options, onChange }) {
         onChange={onChange}
         placeholder={label}
         buttonClassName={`h-10! rounded-xl px-3 text-sm ${value ? activeFieldClass : ""}`}
-        menuClassName="z-40"
+        menuClassName="z-40 text-sm"
+        textClassName="text-sm"
         menuMaxHeight="16rem"
       />
     </div>

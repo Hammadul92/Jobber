@@ -65,14 +65,15 @@ export default function ClientServicesData({
   // Managers can scope the list to one client; clients only see their own.
   const clientFilter = role === "CLIENT" ? "" : String(clientId || "");
   const table = useServerTable({
+    storageKey: "services",
     initialOrdering: "-created_at",
     initialFilters: {
       service_type: "",
       status: "",
       country: "",
       province_state: "",
-      client: clientFilter,
     },
+    fixedFilters: { client: clientFilter },
   });
   const {
     data,

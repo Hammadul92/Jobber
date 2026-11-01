@@ -106,6 +106,7 @@ function downloadCsv(filename, rows) {
 
 export default function InvoiceDatatable({ token, role, onAddInvoice }) {
   const table = useServerTable({
+    storageKey: "invoices",
     initialOrdering: "-created_at",
     initialFilters: INITIAL_FILTERS,
   });

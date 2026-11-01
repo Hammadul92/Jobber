@@ -6,6 +6,7 @@ import {
   useBulkQuotesMutation,
 } from "../../../store";
 import TableToolbar, {
+  ToolbarDate,
   ToolbarSelect,
   tableCardClass,
 } from "../../../Components/ui/TableToolbar";
@@ -20,6 +21,7 @@ import useServerTable from "../../../hooks/useServerTable";
 import { formatDate } from "../../../utils/formatDate";
 import { LuEye, LuPencil, LuTrash2 } from "react-icons/lu";
 import useAlert from "../../../hooks/useAlert";
+import { PAYMENT_TERMS_OPTIONS } from "../../../utils/paymentTerms";
 
 const QUOTE_STATUS_OPTIONS = ["DRAFT", "SENT", "SIGNED", "DECLINED", "EXPIRED"];
 
@@ -51,7 +53,10 @@ const getDisplayStatus = (quote) =>
 
 export default function QuotesData({ token, role }) {
   const setAlert = useAlert();
-  const table = useServerTable({ initialOrdering: "-created_at" });
+  const table = useServerTable({
+    storageKey: "quotes",
+    initialOrdering: "-created_at",
+  });
   const {
     data,
     isLoading,
@@ -295,6 +300,41 @@ export default function QuotesData({ token, role }) {
               })),
             ]}
           />
+          <ToolbarSelect
+            id="quotes-type-filter"
+            label="Service type"
+            value={table.filters.service_type}
+            onChange={(value) => table.setFilter("service_type", value)}
+            options={[
+              { value: "", label: "All types" },
+              { value: "ONE_TIME", label: "One Time" },
+              { value: "SUBSCRIPTION", label: "Subscription" },
+            ]}
+          />
+          <ToolbarSelect
+            id="quotes-terms-filter"
+            label="Payment terms"
+            value={table.filters.payment_terms}
+            onChange={(value) => table.setFilter("payment_terms", value)}
+            options={[
+              { value: "", label: "All payment terms" },
+              ...PAYMENT_TERMS_OPTIONS,
+            ]}
+          />
+          <ToolbarDate
+            id="quotes-valid-from"
+            label="Valid from"
+            value={table.filters.valid_from}
+            max={table.filters.valid_to}
+            onChange={(value) => table.setFilter("valid_from", value)}
+          />
+          <ToolbarDate
+            id="quotes-valid-to"
+            label="Valid to"
+            value={table.filters.valid_to}
+            min={table.filters.valid_from}
+            onChange={(value) => table.setFilter("valid_to", value)}
+          />
         </TableToolbar>
         {isManager && (
           <BulkActionBar
@@ -333,7 +373,7 @@ export default function QuotesData({ token, role }) {
               </h5>
               <p className="mt-2 text-sm text-slate-500">
                 {table.hasActiveFilters
-                  ? "Try a different search or status."
+                  ? "Try a different search or filter."
                   : "Create a quote to start tracking pricing and approvals."}
               </p>
             </div>

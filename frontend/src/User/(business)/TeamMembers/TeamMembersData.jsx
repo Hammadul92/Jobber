@@ -73,7 +73,7 @@ export default function TeamMembersData({ token, onEdit }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedTeamMemberId, setSelectedTeamMemberId] = useState(null);
 
-  const table = useServerTable();
+  const table = useServerTable({ storageKey: "team-members" });
   const { data, isLoading, isFetching, error } = useFetchTeamMembersPageQuery(
     table.queryArgs,
     { skip: !token },

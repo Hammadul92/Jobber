@@ -71,6 +71,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
   const [bulkLabels, setBulkLabels] = useState({});
 
   const table = useServerTable({
+    storageKey: "clients",
     initialOrdering: "-created_at",
     initialFilters: { is_active: "" },
   });

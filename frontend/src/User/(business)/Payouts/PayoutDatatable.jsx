@@ -101,6 +101,7 @@ function downloadCsv(filename, rows) {
 
 export default function PayoutDatatable({ token, role }) {
   const table = useServerTable({
+    storageKey: "payouts",
     initialOrdering: "-created_at",
     initialFilters: INITIAL_FILTERS,
   });

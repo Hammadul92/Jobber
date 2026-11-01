@@ -46,7 +46,10 @@ const UNASSIGNED = "unassigned";
 export default function JobData({ token, role }) {
   const setAlert = useAlert();
   const isManager = role === "MANAGER";
-  const table = useServerTable({ initialOrdering: "-created_at" });
+  const table = useServerTable({
+    storageKey: "jobs",
+    initialOrdering: "-created_at",
+  });
   const { data, isLoading, isFetching, error } = useFetchJobsPageQuery(
     table.queryArgs,
     { skip: !token },

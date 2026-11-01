@@ -397,6 +397,12 @@ class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
     search_fields = ["quote_number", "service__service_name", "service__client__name"]
     ordering_fields = ["quote_number", "service__client__name", "service__service_name", "status", "valid_until",
                        "created_at"]
+    filter_fields = {
+        "service_type": "service__service_type",
+        "payment_terms": "payment_terms",
+        "valid_from": "valid_until__gte",
+        "valid_to": "valid_until__lte",
+    }
     bulk_actions = {"send": "send_quote", "delete": "destroy"}
 
     def get_queryset(self):
