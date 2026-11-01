@@ -117,14 +117,14 @@ function Topbar({ businessName, backFallback, canAccess }) {
                 {crumb.href ? (
                   <a
                     href={crumb.href}
-                    className={`font-normal ${idx === 1 || idx === breadcrumbItems.length - 1 ? "text-secondary" : "text-accent hover:text-accentLight"}`}
+                    className="font-normal text-accent hover:text-accentLight"
                   >
                     {crumb.label}
                   </a>
                 ) : crumb.to ? (
                   <Link
                     to={crumb.to}
-                    className={`font-normal ${idx === 1 || idx === breadcrumbItems.length - 1 ? "text-secondary" : "text-accent hover:text-accentLight"}`}
+                    className="font-normal text-accent hover:text-accentLight"
                   >
                     {crumb.label}
                   </Link>
