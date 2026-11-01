@@ -6,7 +6,6 @@ import DashboardTopbar from "./DashboardTopbar";
 import Topbar from "./Topbar";
 import SideNav from "./SideNav";
 import DashboardTodos from "./DashboardTodos";
-import GoBackLink from "../Components/ui/GoBackLink";
 
 import Profile from "./(user)/Profile";
 import Business from "./(user)/Business";
@@ -284,13 +283,15 @@ export default function UserDashboard({ page, token, user }) {
                 notifications={dashboardNotifications}
               />
             ) : (
-              <Topbar businessName={business?.name || "Dashboard"} />
+              <Topbar
+                businessName={business?.name || "Dashboard"}
+                backFallback={backFallback}
+              />
             )}
           </div>
         )}
 
         <div className="px-4 pt-8 pb-4 md:px-12 md:pt-12 lg:pb-12 lg:p-12 lg:pr-14">
-          {backFallback && <GoBackLink fallback={backFallback} />}
           {renderTab()}
         </div>
         <DashboardTodos token={token} user={user} business={business} />

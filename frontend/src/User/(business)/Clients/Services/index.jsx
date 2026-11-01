@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { LuMapPin, LuPlus, LuX } from "react-icons/lu";
+import { useParams } from "react-router-dom";
+import { LuMapPin, LuPlus } from "react-icons/lu";
 import { useDispatch } from "react-redux";
 import CreateClientServiceForm from "./CreateClientServiceForm";
 import { useFetchClientQuery, useFetchBusinessQuery } from "../../../../store";
@@ -120,23 +120,14 @@ export default function ClientServices({ token, role }) {
         )}
       </div>
 
-      <div className="flex items-start gap-4">
-        <div className="space-y-1 text-right">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-            Billing address
-          </p>
-          <p className="inline-flex items-center gap-2 text-sm text-slate-700">
-            <LuMapPin className="h-4 w-4 text-slate-400" />
-            {billingAddress || "Not provided"}
-          </p>
-        </div>
-        <Link
-          to="/user/business/clients"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-gray-100 hover:text-slate-700"
-          aria-label="Close"
-        >
-          <LuX className="h-5 w-5" />
-        </Link>
+      <div className="space-y-1 text-right">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+          Billing address
+        </p>
+        <p className="inline-flex items-center gap-2 text-sm text-slate-700">
+          <LuMapPin className="h-4 w-4 text-slate-400" />
+          {billingAddress || "Not provided"}
+        </p>
       </div>
     </div>
   ) : null;

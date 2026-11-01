@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { LuChevronRight, LuPlus, LuUserPlus } from "react-icons/lu";
 import { getTopbarActionHandler } from "./topbarActionRegistry";
 import { getPublicSiteHomeUrl } from "../utils/publicSite";
+import GoBackLink from "../Components/ui/GoBackLink";
 
 const SEGMENT_LABELS = {
   user: "User",
@@ -32,7 +33,7 @@ const SEGMENT_LABELS = {
   settings: "Settings",
 };
 
-function Topbar({ businessName }) {
+function Topbar({ businessName, backFallback }) {
   const { title, description, action } = useSelector((state) => state.topbar);
   const location = useLocation();
   const actionHandler = action?.key ? getTopbarActionHandler(action.key) : null;
@@ -142,12 +143,19 @@ function Topbar({ businessName }) {
         </ol>
       </nav>
 
-      <div className={`${title ? "flex" : "hidden"} items-start justify-between gap-y-2 mt-3`}>
-        <div className="md:ml-6">
-          <h3 className="text-2xl md:text-4xl font-medium text-primary">
-            {title}
-          </h3>
-          <p className="text-sm md:text-base text-gray-500">{description}</p>
+      <div className={`${title || backFallback ? "flex" : "hidden"} items-start justify-between gap-y-2 mt-3`}>
+        <div className="flex min-w-0 items-start gap-3 md:ml-6">
+          {backFallback && (
+            <div className="pt-0.5 md:pt-1">
+              <GoBackLink fallback={backFallback} />
+            </div>
+          )}
+          <div className="min-w-0">
+            <h3 className="text-2xl md:text-4xl font-medium text-primary">
+              {title}
+            </h3>
+            <p className="text-sm md:text-base text-gray-500">{description}</p>
+          </div>
         </div>
 
         <div className="ml-auto">
