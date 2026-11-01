@@ -311,6 +311,47 @@ class InvoicePaymentWorkflowTests(TestCase):
         self.invoice.refresh_from_db()
         self.assertEqual(self.invoice.status, "SENT")
 
+    def test_owner_can_reverse_a_manual_mark_paid(self):
+        self.client.force_authenticate(self.manager)
+        detail = reverse("finance:invoice-detail", args=[self.invoice.pk])
+        unpaid_url = reverse("finance:invoice-mark-unpaid", args=[self.invoice.pk])
+        self.invoice.sent_at = timezone.now()
+        self.invoice.save(update_fields=["sent_at"])
+
+        self.assertEqual(self.client.patch(detail, {"status": "PAID"}, format="json").status_code, 200)
+        self.invoice.refresh_from_db()
+        self.assertIsNotNone(self.invoice.paid_at)
+
+        res = self.client.patch(detail, {"status": "SENT"}, format="json")
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("status", res.data)
+
+        with patch("finance.views.emails.send_invoice_email") as send_email:
+            res = self.client.post(unpaid_url)
+        self.assertEqual(res.status_code, 200, res.data)
+        send_email.assert_not_called()
+        self.invoice.refresh_from_db()
+        self.assertEqual((self.invoice.status, self.invoice.paid_at), ("SENT", None))
+        self.assertEqual(self.client.post(unpaid_url).status_code, 400)
+
+    def test_card_paid_invoice_cannot_be_marked_unpaid(self):
+        Invoice.objects.filter(pk=self.invoice.pk).update(status="PAID", paid_at=timezone.now())
+        Payout.objects.create(
+            business=self.business, invoice=self.invoice, amount=self.invoice.total_amount,
+            currency=self.invoice.currency, status="PAID", processed_at=timezone.now(),
+        )
+        self.client.force_authenticate(self.manager)
+        res = self.client.post(reverse("finance:invoice-mark-unpaid", args=[self.invoice.pk]))
+        self.assertEqual(res.status_code, 400)
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, "PAID")
+
+    def test_customer_cannot_mark_invoice_unpaid(self):
+        Invoice.objects.filter(pk=self.invoice.pk).update(status="PAID", paid_at=timezone.now())
+        self.client.force_authenticate(self.client_user)
+        res = self.client.post(reverse("finance:invoice-mark-unpaid", args=[self.invoice.pk]))
+        self.assertEqual(res.status_code, 403)
+
     def test_business_owner_is_customer_when_viewing_another_business_invoice(self):
         self.client_user.role = "MANAGER"
         self.client_user.save(update_fields=["role"])

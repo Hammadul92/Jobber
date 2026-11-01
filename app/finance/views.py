@@ -452,6 +452,29 @@ class InvoiceViewSet(ListingMixin, viewsets.ModelViewSet):
             raise DRFValidationError({"detail": "Paid invoices cannot be deleted."})
         instance.soft_delete(user=self.request.user)
 
+    @action(detail=True, methods=["post"], url_path="mark-unpaid")
+    def mark_unpaid(self, request, pk=None):
+        """Reverse a manual Mark Paid; card payments are reversed by refunding the payout."""
+        invoice = self.get_object()
+        if invoice.business.owner_id != request.user.pk:
+            raise PermissionDenied("Only the business owner can update invoices.")
+        with transaction.atomic():
+            invoice = Invoice.objects.select_for_update().get(pk=invoice.pk)
+            if invoice.status != "PAID":
+                return Response(
+                    {"detail": "Only paid invoices can be marked unpaid."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if invoice.payouts.filter(status__in=("PAID", "PARTIALLY_REFUNDED", "REFUNDED")).exists():
+                return Response(
+                    {"detail": "This invoice was paid by card. Refund the payout instead."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            invoice.status = "SENT" if invoice.sent_at else "DRAFT"
+            invoice.paid_at = None
+            invoice.save(update_fields=["status", "paid_at", "updated_at"])
+        return Response(self.get_serializer(invoice).data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["post"], url_path="send-invoice")
     def send_invoice(self, request, pk=None):
         """Send or resend a payable invoice with a fresh client login link."""

@@ -186,6 +186,8 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
             due_date = attrs.get("due_date", self.instance.due_date)
             if due_date is not None and due_date < business_local_date(business):
                 raise serializers.ValidationError({"due_date": "Update the past due date before sending."})
+        if self.instance and self.instance.status == "PAID" and attrs.get("status", "PAID") != "PAID":
+            raise serializers.ValidationError({"status": "Use Mark Unpaid to reverse a payment."})
         if self.instance and (self.instance.status in ("PAID", "CANCELLED") or
                               self.instance.payouts.filter(status="PAID").exists()):
             if any(key in attrs for key in ("payment_terms", "due_date")):
