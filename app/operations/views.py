@@ -52,15 +52,13 @@ def create_auto_quote_for_service(service):
     if service.service_quotes.filter(is_active=True).exclude(status="DECLINED").exists():
         return
     terms_template = get_active_service_terms_template(service)
-    if not terms_template:
-        raise ValidationError({"service_name": "No active terms and conditions template exists for this service."})
     Quote.objects.create(
         service=service,
         line_items=service_line_items(service),
         currency=service.currency,
         valid_until=timezone.now().date() + timedelta(days=2),
         payment_terms=service.business.default_payment_terms,
-        general_terms_conditions=terms_template.content,
+        general_terms_conditions=terms_template.content if terms_template else "",
         terms_conditions="",
         notes="Auto-generated.",
         status="DRAFT",
@@ -489,6 +487,18 @@ class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
                 {"detail": "This quote has expired. Update the Valid Until date before sending."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        if not (quote.general_terms_conditions or "").strip():
+            terms_template = get_active_service_terms_template(quote.service)
+            if not terms_template:
+                return Response(
+                    {"detail": (
+                        f"Add an active terms and conditions template for "
+                        f"\"{quote.service.service_name}\" before sending this quote."
+                    )},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            quote.general_terms_conditions = terms_template.content
+            quote.save(update_fields=["general_terms_conditions"])
         try:
             if quote.line_items is None:
                 quote.line_items = service_line_items(quote.service)

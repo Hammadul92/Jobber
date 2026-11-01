@@ -227,7 +227,7 @@ function MobileTopbar({ role, businessName, user }) {
 
       <nav
         id="mobile-nav"
-        className={`absolute top-0 left-0 h-screen w-4/5 md:w-2/5 max-w-sm p-2 transition-transform duration-300 ease-out ${isMenuOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"}`}
+        className={`absolute top-0 left-0 h-dvh w-4/5 md:w-2/5 max-w-sm p-2 transition-transform duration-300 ease-out ${isMenuOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"}`}
         aria-hidden={!isMenuOpen}
       >
         <div className="flex flex-col h-full p-3 overflow-y-auto bg-white shadow-md rounded-3xl overscroll-contain">

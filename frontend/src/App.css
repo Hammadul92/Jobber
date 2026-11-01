@@ -164,6 +164,33 @@
   }
 }
 
+/* iOS Safari gives date/time inputs an intrinsic min-width that ignores
+   w-full, pushing them past narrow forms; appearance:none also lets an empty
+   one keep its height. Unlayered so it wins over utility classes. */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  min-height: 2.5rem;
+}
+
+input::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+/* iOS zooms the page when a field under 16px is focused and doesn't zoom back,
+   leaving forms wider than the screen. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 .primary {
   @apply px-6 py-2 bg-accent rounded-xl text-white font-semibold cursor-pointer hover:bg-accentLight hover:scale-[1.02] transition-all duration-300;
 }

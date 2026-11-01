@@ -88,7 +88,7 @@ export default function CreateQuoteForm({
     <>
       {showModal && (
         <div
-          className="fixed inset-0 z-50 h-screen"
+          className="fixed inset-0 z-50 h-dvh"
           role="dialog"
           aria-modal="true"
           onClick={() => setShowModal(false)}
@@ -101,7 +101,7 @@ export default function CreateQuoteForm({
           />
 
           <div
-            className="absolute right-0 top-0 z-10 flex h-screen w-full md:w-4/6 lg:w-2/6 max-w-105 flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl sm:max-w-120"
+            className="absolute right-0 top-0 z-10 flex h-dvh w-full md:w-4/6 lg:w-2/6 max-w-105 flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl sm:max-w-120"
             onClick={(event) => event.stopPropagation()}
           >
             <form onSubmit={handleSubmit} className="flex h-full flex-col">

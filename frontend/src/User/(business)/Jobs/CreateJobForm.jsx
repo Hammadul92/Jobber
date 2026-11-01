@@ -82,7 +82,7 @@ export default function CreateJobForm({
           />
 
           <div
-            className="absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl"
+            className="absolute right-0 top-0 flex h-dvh w-full flex-col overflow-hidden bg-white shadow-2xl"
             style={{ maxWidth: "560px" }}
             role="dialog"
             aria-modal="true"

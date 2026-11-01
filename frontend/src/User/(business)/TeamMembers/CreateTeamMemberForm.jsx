@@ -282,7 +282,7 @@ export default function CreateTeamMemberForm({
     <>
       {showModal && (
         <div
-          className="fixed inset-0 z-40 h-screen"
+          className="fixed inset-0 z-40 h-dvh"
           role="dialog"
           aria-modal="true"
         >
@@ -293,7 +293,7 @@ export default function CreateTeamMemberForm({
             aria-label="Close add member modal"
           />
 
-          <div className="absolute right-0 top-0 z-10 h-screen w-full md:w-4/6 lg:w-2/6 overflow-hidden border-l border-gray-200 bg-white shadow-2xl">
+          <div className="absolute right-0 top-0 z-10 h-dvh w-full md:w-4/6 lg:w-2/6 overflow-hidden border-l border-gray-200 bg-white shadow-2xl">
             <form onSubmit={handleSubmit} className="flex h-full flex-col">
               <div className="border-b border-gray-100 px-6 py-5">
                 <div className="flex items-start justify-between gap-3">
@@ -327,7 +327,7 @@ export default function CreateTeamMemberForm({
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-6 py-5">
+              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                 <section>
                   <h6 className="text-xs font-bold uppercase tracking-[0.08em] text-slate-700">
                     Personal Information

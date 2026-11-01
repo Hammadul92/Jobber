@@ -211,7 +211,7 @@ export default function CreateInvoiceForm({
           />
 
           <div
-            className="absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl md:w-4/6 lg:w-2/6"
+            className="absolute right-0 top-0 flex h-dvh w-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl md:w-4/6 lg:w-2/6"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between border-b border-gray-100 px-6 pt-5 pb-4">

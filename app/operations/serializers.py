@@ -600,27 +600,6 @@ class ServiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
                     "questionnaire for the selected service name."
                 )
 
-        if should_require_service_templates:
-            has_terms_template = business.service_terms_templates.filter(
-                service_name=service_name,
-                is_active=True,
-            ).exists()
-            if not has_terms_template:
-                errors["service_name"] = (
-                    "Cannot create this service because there is no active "
-                    "terms and conditions template for the selected service name."
-                )
-
-        will_auto_quote = data.get("auto_generate_quote", getattr(self.instance, "auto_generate_quote", False))
-        if bypass and will_auto_quote:
-            has_quote = self.instance and self.instance.service_quotes.filter(is_active=True).exclude(
-                status="DECLINED",
-            ).exists()
-            if not has_quote and not business.service_terms_templates.filter(
-                service_name=service_name, is_active=True,
-            ).exists():
-                errors["bypass_questionnaire"] = "An active terms template is required to generate a quote."
-
         if not self.instance and data.get("status") == "ACTIVE" and not bypass and not data.get("filled_questionnaire"):
             errors["status"] = "Cannot activate this service until the questionnaire is completed or bypassed."
 
@@ -656,32 +635,6 @@ class ServiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
                 if not has_questionnaire:
                     errors["filled_questionnaire"] = (
                         "No active questionnaire found for this service."
-                    )
-
-                will_auto_generate_quote = data.get(
-                    "auto_generate_quote",
-                    getattr(self.instance, "auto_generate_quote", False),
-                )
-                has_active_quote = (
-                    self.instance.service_quotes.filter(is_active=True)
-                    .exclude(status="DECLINED")
-                    .exists()
-                )
-                has_terms_template = business.service_terms_templates.filter(
-                    service_name=service_name,
-                    is_active=True,
-                ).exists()
-                if (
-                    will_auto_generate_quote
-                    and not has_active_quote
-                    and not has_terms_template
-                ):
-                    errors.setdefault(
-                        "filled_questionnaire",
-                        (
-                            "No active terms and conditions template exists "
-                            "for this service."
-                        ),
                     )
 
         # Prevent duplicate address for same service_name within a business
@@ -740,6 +693,7 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
     service_data = ServiceSerializer(source="service", read_only=True)
     client = ClientSerializer(source="service.client", read_only=True)
     combined_terms_conditions = serializers.SerializerMethodField()
+    terms_missing = serializers.SerializerMethodField()
     line_items = serializers.SerializerMethodField()
     quoted_total = serializers.SerializerMethodField()
     quoted_subtotal = serializers.SerializerMethodField()
@@ -767,13 +721,13 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
             "service_name", "client_name", "business_name", "valid_until",
             "payment_terms",
             "status", "signed_at", "signature", "general_terms_conditions",
-            "terms_conditions", "combined_terms_conditions",
+            "terms_conditions", "combined_terms_conditions", "terms_missing",
             "notes", "line_items", "quoted_subtotal", "quoted_tax_rate", "quoted_tax_label",
             "quoted_tax_amount", "quoted_total", "quoted_currency", "is_active", "created_at", "updated_at",
         ]
         read_only_fields = [
             "id", "quote_number", "status", "general_terms_conditions",
-            "combined_terms_conditions", "is_active", "created_at", "updated_at",
+            "combined_terms_conditions", "terms_missing", "is_active", "created_at", "updated_at",
         ]
 
     def validate_valid_until(self, value):
@@ -809,6 +763,18 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
 
         return attrs
 
+    def get_terms_missing(self, obj):
+        """True when the quote has no general terms and none can be picked up at send time."""
+        if (obj.general_terms_conditions or "").strip():
+            return False
+        service = obj.service
+        templates = getattr(service.business, "active_terms_templates", None)
+        if templates is None:
+            return not service.business.service_terms_templates.filter(
+                service_name=service.service_name, is_active=True,
+            ).exists()
+        return not any(template.service_name == service.service_name for template in templates)
+
     def get_combined_terms_conditions(self, obj):
         general_terms = (obj.general_terms_conditions or "").strip()
         additional_terms = (obj.terms_conditions or "").strip()
@@ -842,21 +808,12 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         service = validated_data["service"]
+        # Drafts may be created without terms; sending stays blocked until a template exists.
         template = service.business.service_terms_templates.filter(
             service_name=service.service_name,
             is_active=True,
         ).first()
-        if not template:
-            raise serializers.ValidationError(
-                {
-                    "service": (
-                        "No active terms and conditions template exists for "
-                        "this service."
-                    )
-                }
-            )
-
-        validated_data["general_terms_conditions"] = template.content
+        validated_data["general_terms_conditions"] = template.content if template else ""
         validated_data["line_items"] = service_line_items(service)
         validated_data["currency"] = service.currency
         return super().create(validated_data)

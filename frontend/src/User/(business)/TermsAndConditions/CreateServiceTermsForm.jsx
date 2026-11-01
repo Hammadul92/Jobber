@@ -140,11 +140,11 @@ export default function CreateServiceTermsForm({
 
   return (
     <div
-      className="fixed h-screen inset-0 z-50 flex items-start justify-end bg-black/50 px-3"
+      className="fixed h-dvh inset-0 z-50 flex items-start justify-end bg-black/50 px-3"
       onClick={() => setShowModal(false)}
     >
       <div
-        className="absolute right-0 top-0 z-10 h-screen w-full overflow-hidden border-l border-gray-200 bg-white shadow-2xl md:w-5/6 lg:w-3/5 xl:w-2/5"
+        className="absolute right-0 top-0 z-10 h-dvh w-full overflow-hidden border-l border-gray-200 bg-white shadow-2xl md:w-5/6 lg:w-3/5 xl:w-2/5"
         onClick={(event) => event.stopPropagation()}
       >
         <form onSubmit={handleSubmit} className="flex h-full flex-col">

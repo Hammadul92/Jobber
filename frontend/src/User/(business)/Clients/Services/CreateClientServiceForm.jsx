@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { LuInfo, LuX } from "react-icons/lu";
-import { useCreateServiceMutation, useUpdateServiceMutation } from "../../../../store";
+import {
+  useCreateServiceMutation,
+  useFetchServiceTermsTemplatesQuery,
+  useUpdateServiceMutation,
+} from "../../../../store";
 import SubmitButton from "../../../../Components/ui/SubmitButton";
 import { countries, provinces } from "../../../../constants/locations";
 import Dropdown from "../../../../Components/ui/Dropdown";
@@ -41,6 +45,15 @@ export default function CreateClientServiceForm({
   const [provinceState, setProvinceState] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [sameAsBilling, setSameAsBilling] = useState(false);
+  const { data: termsTemplates } = useFetchServiceTermsTemplatesQuery(undefined, {
+    skip: !showModal,
+  });
+  const isTermsMissing =
+    Boolean(serviceName) &&
+    Array.isArray(termsTemplates) &&
+    !termsTemplates.some(
+      (template) => template.service_name === serviceName && template.is_active !== false,
+    );
   const billingAddress = getBillingAddressForService(clientBillingAddress);
   const hasBillingAddress = Boolean(billingAddress);
 
@@ -209,7 +222,7 @@ export default function CreateClientServiceForm({
           />
 
           <div
-            className="absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl"
+            className="absolute right-0 top-0 flex h-dvh w-full flex-col overflow-hidden bg-white shadow-2xl"
             style={{ maxWidth: "520px" }}
           >
             <div className="shrink-0 border-b border-gray-200 px-6 py-4">
@@ -266,6 +279,14 @@ export default function CreateClientServiceForm({
                         buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
                         disabled={lockToStatusOnly}
                       />
+                      {isTermsMissing && (
+                        <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+                          <LuInfo className="mt-px h-4 w-4 shrink-0" />
+                          No Terms and Conditions exist for this service. You can still
+                          add it, but quotes for it can&apos;t be sent until Terms and
+                          Conditions are added.
+                        </div>
+                      )}
                     </div>
 
                       <div>
@@ -410,7 +431,6 @@ export default function CreateClientServiceForm({
                           </label>
                           <p className="text-xs text-slate-500">
                             Add this service without requiring or sending a client questionnaire.
-                            Terms and conditions still apply.
                           </p>
                         </div>
                       )}

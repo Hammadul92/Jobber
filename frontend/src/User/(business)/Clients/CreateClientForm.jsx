@@ -97,7 +97,7 @@ export default function CreateClientForm({
             aria-label="Close add client drawer"
           />
 
-          <div className="absolute right-0 top-0 z-10 flex h-screen min-h-0 w-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl md:w-4/6 lg:w-2/6">
+          <div className="absolute right-0 top-0 z-10 flex h-dvh min-h-0 w-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl md:w-4/6 lg:w-2/6">
             <div className="shrink-0 border-b border-gray-100 px-6 py-5">
               <div className="flex items-start justify-between gap-3">
                 <div>

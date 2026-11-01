@@ -60,11 +60,13 @@ export default function Dropdown({
       }
     };
 
-    document.addEventListener("mousedown", handleOutsideClick);
+    // pointerdown, not mousedown: iOS Safari skips mouse events for taps on
+    // non-clickable areas, so taps outside the menu would never close it.
+    document.addEventListener("pointerdown", handleOutsideClick);
     document.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("pointerdown", handleOutsideClick);
       document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen]);
@@ -80,7 +82,13 @@ export default function Dropdown({
       ref={wrapperRef}
       className={`relative ${className}`}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) {
+        // Safari doesn't focus tapped buttons, so tapping an option blurs the
+        // toggle with no relatedTarget; closing then would unmount the option
+        // before its click lands. Taps outside are handled by pointerdown.
+        if (
+          event.relatedTarget &&
+          !event.currentTarget.contains(event.relatedTarget)
+        ) {
           setIsOpen(false);
         }
       }}

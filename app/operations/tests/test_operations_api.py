@@ -401,7 +401,8 @@ class QuoteInvoiceAutomationTests(TestCase):
     @patch("operations.views.emails.send_quote_email")
     def test_sending_quote_snapshots_tax_and_exposes_payable_total(self, send_email):
         self.quote.tax_rate = None
-        self.quote.save(update_fields=["tax_rate"])
+        self.quote.general_terms_conditions = "General terms."
+        self.quote.save(update_fields=["tax_rate", "general_terms_conditions"])
         self.client.force_authenticate(self.owner)
 
         response = self.client.post(quote_send_url(self.quote.id))
@@ -772,8 +773,8 @@ class ServiceTermsTemplateApiTests(TestCase):
             ],
         )
 
-    def test_create_service_requires_active_terms_template(self):
-        """Test service creation fails without an active terms template."""
+    def test_create_service_allowed_without_terms_template(self):
+        """Test service creation succeeds without an active terms template."""
         payload = {
             "client": self.client_record.id,
             "business": self.business.id,
@@ -794,8 +795,7 @@ class ServiceTermsTemplateApiTests(TestCase):
 
         res = self.client.post(SERVICES_URL, payload)
 
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("service_name", res.data)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
     def test_create_terms_template_accepts_formatted_html_content(self):
         """Test Quill-formatted terms content is accepted and stored."""
@@ -1229,14 +1229,15 @@ class WorkflowRegressionTests(TestCase):
         )
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_bypass_does_not_skip_terms_requirement(self):
+    def test_bypass_with_auto_quote_drafts_quote_without_terms(self):
         self.client.force_authenticate(self.manager)
         res = self.client.post(
-            SERVICES_URL, self.service_payload(bypass_questionnaire=True, auto_generate_quote=False),
+            SERVICES_URL, self.service_payload(bypass_questionnaire=True, auto_generate_quote=True),
         )
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("terms and conditions", str(res.data))
-        self.assertFalse(Service.objects.exists())
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+        quote = Quote.objects.get(service_id=res.data["id"])
+        self.assertEqual(quote.status, "DRAFT")
+        self.assertEqual(quote.general_terms_conditions, "")
 
     def test_questionnaire_remains_required_by_default(self):
         questionnaire, _ = self.create_questionnaire_and_terms()
@@ -1922,8 +1923,8 @@ class WorkflowRegressionTests(TestCase):
         self.assertEqual(Service.objects.get(id=service_id).is_active, True)
         self.assertEqual(mock_questionnaire_email.call_count, 1)
 
-    def test_deleted_terms_blocks_auto_quote_generation(self):
-        """Test deleted general terms stop questionnaire-driven auto quotes."""
+    def test_deleted_terms_allows_draft_quote_but_blocks_sending(self):
+        """Test missing general terms still draft the quote but block sending it."""
         _, terms_template = self.create_questionnaire_and_terms()
         service = self.create_service()
         terms_template.soft_delete(user=self.manager)
@@ -1935,11 +1936,24 @@ class WorkflowRegressionTests(TestCase):
             format="json",
         )
 
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("filled_questionnaire", res.data)
-        service.refresh_from_db()
-        self.assertIsNone(service.filled_questionnaire)
-        self.assertFalse(Quote.objects.filter(service=service).exists())
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        quote = Quote.objects.get(service=service)
+        self.assertEqual(quote.status, "DRAFT")
+        self.assertEqual(quote.general_terms_conditions, "")
+
+        self.client.force_authenticate(self.manager)
+        quote_res = self.client.get(quote_detail_url(quote.id))
+        self.assertTrue(quote_res.data["terms_missing"])
+
+        send_res = self.client.post(quote_send_url(quote.id))
+        self.assertEqual(send_res.status_code, status.HTTP_400_BAD_REQUEST)
+        quote.refresh_from_db()
+        self.assertEqual(quote.status, "DRAFT")
+
+    @patch("operations.views.emails.send_quote_email")
+    def test_sending_quote_picks_up_terms_added_after_draft(self, mock_send_email):
+        """Test a draft without terms takes the template added before sending."""
+        service = self.create_service(filled_questionnaire={"Room size": "Large"})
 
         self.client.force_authenticate(self.manager)
         quote_res = self.client.post(
@@ -1948,10 +1962,23 @@ class WorkflowRegressionTests(TestCase):
                 "service": service.id,
                 "valid_until": date.today() + timedelta(days=2),
                 "payment_terms": "NET_15",
-                "terms_conditions": "Additional terms.",
             },
         )
-        self.assertEqual(quote_res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(quote_res.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(quote_res.data["terms_missing"])
+
+        ServiceTermsTemplate.objects.create(
+            business=self.business,
+            service_name="Flooring",
+            content="Late general terms.",
+        )
+        send_res = self.client.post(quote_send_url(quote_res.data["id"]))
+
+        self.assertEqual(send_res.status_code, status.HTTP_200_OK)
+        quote = Quote.objects.get(id=quote_res.data["id"])
+        self.assertEqual(quote.status, "SENT")
+        self.assertEqual(quote.general_terms_conditions, "Late general terms.")
+        mock_send_email.assert_called_once()
 
     def test_terms_edit_after_sent_quote_keeps_quote_snapshot(self):
         """Test sent quotes keep their general terms snapshot after edits."""

@@ -173,8 +173,10 @@ export default function Quote({ token, role }) {
   const isRequiredFieldsMissing = !validUntil || !quoteData.payment_terms;
   const isExpired = new Date(validUntil) < new Date();
 
+  const isTermsMissing = Boolean(quoteData.terms_missing);
+
   const disableSendBtn =
-    isSigned || isExpired || isInactiveClient || isServiceInactive || isRequiredFieldsMissing;
+    isSigned || isExpired || isInactiveClient || isServiceInactive || isRequiredFieldsMissing || isTermsMissing;
 
   const disableReasons = [];
   if (isSigned) disableReasons.push("This quote has already been signed and cannot be resent.");
@@ -184,6 +186,10 @@ export default function Quote({ token, role }) {
   if (isServiceInactive) disableReasons.push("The linked service is inactive. Please ensure it is active.");
   if (isRequiredFieldsMissing)
     disableReasons.push("Save the Valid Until date and Payment Terms before sending.");
+  if (isTermsMissing && !isSigned)
+    disableReasons.push(
+      `No Terms and Conditions exist for "${quoteData.service_name}". Add them under Terms and Conditions before sending.`,
+    );
 
   const statusColor =
     quoteData.status === "SIGNED"

@@ -218,11 +218,11 @@ export default function CreateServiceQuestionnairesForm({
 
   return (
     <div
-      className="fixed inset-0 z-50 h-screen flex items-start justify-end bg-black/50 px-3"
+      className="fixed inset-0 z-50 h-dvh flex items-start justify-end bg-black/50 px-3"
       onClick={() => setShowModal(false)}
     >
       <div
-        className="absolute right-0 top-0 z-10 h-screen w-full md:w-4/6 lg:w-2/6 overflow-hidden border-l border-gray-200 bg-white shadow-2xl"
+        className="absolute right-0 top-0 z-10 h-dvh w-full md:w-4/6 lg:w-2/6 overflow-hidden border-l border-gray-200 bg-white shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <form onSubmit={handleSubmit} className="flex h-full flex-col">
