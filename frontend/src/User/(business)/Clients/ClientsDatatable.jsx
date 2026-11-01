@@ -20,8 +20,10 @@ import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import useAlert from "../../../hooks/useAlert";
+import { countries, provinces } from "../../../constants/locations";
 import TableToolbar, {
   TableStats,
+  ToolbarDate,
   ToolbarSelect,
   tableCardClass,
 } from "../../../Components/ui/TableToolbar";
@@ -31,6 +33,10 @@ const STATUS_OPTIONS = [
   { label: "Active", value: "true" },
   { label: "Inactive", value: "false" },
 ];
+
+const ALL_PROVINCES = Object.values(provinces)
+  .flat()
+  .filter((option, index, list) => list.findIndex((other) => other.value === option.value) === index);
 
 const BULK_ACTIONS = [
   {
@@ -73,7 +79,15 @@ export default function ClientsDatatable({ token, showAddClient }) {
   const table = useServerTable({
     storageKey: "clients",
     initialOrdering: "-created_at",
-    initialFilters: { is_active: "" },
+    initialFilters: {
+      is_active: "",
+      payment_method: "",
+      questionnaires: "",
+      billing_country: "",
+      billing_province_state: "",
+      created_from: "",
+      created_to: "",
+    },
   });
   const {
     data,
@@ -265,6 +279,64 @@ export default function ClientsDatatable({ token, showAddClient }) {
             value={table.filters.is_active}
             onChange={(value) => table.setFilter("is_active", value)}
             options={STATUS_OPTIONS}
+          />
+          <ToolbarSelect
+            id="clients-payment-filter"
+            label="Payment method"
+            value={table.filters.payment_method}
+            onChange={(value) => table.setFilter("payment_method", value)}
+            options={[
+              { value: "", label: "All payment methods" },
+              { value: "card", label: "Card on file" },
+              { value: "none", label: "No payment method" },
+            ]}
+          />
+          <ToolbarSelect
+            id="clients-questionnaire-filter"
+            label="Questionnaires"
+            value={table.filters.questionnaires}
+            onChange={(value) => table.setFilter("questionnaires", value)}
+            options={[
+              { value: "", label: "All questionnaires" },
+              { value: "pending", label: "Pending answers" },
+              { value: "complete", label: "All answered" },
+            ]}
+          />
+          <ToolbarSelect
+            id="clients-country-filter"
+            label="Country"
+            value={table.filters.billing_country}
+            onChange={(value) => {
+              table.setFilter("billing_country", value);
+              table.setFilter("billing_province_state", "");
+            }}
+            options={[{ value: "", label: "All countries" }, ...countries]}
+          />
+          <ToolbarSelect
+            id="clients-province-filter"
+            label="Province/State"
+            value={table.filters.billing_province_state}
+            onChange={(value) => table.setFilter("billing_province_state", value)}
+            options={[
+              { value: "", label: "All provinces/states" },
+              ...(table.filters.billing_country
+                ? provinces[table.filters.billing_country] || []
+                : ALL_PROVINCES),
+            ]}
+          />
+          <ToolbarDate
+            id="clients-created-from"
+            label="Added from"
+            value={table.filters.created_from}
+            max={table.filters.created_to}
+            onChange={(value) => table.setFilter("created_from", value)}
+          />
+          <ToolbarDate
+            id="clients-created-to"
+            label="Added to"
+            value={table.filters.created_to}
+            min={table.filters.created_from}
+            onChange={(value) => table.setFilter("created_to", value)}
           />
         </TableToolbar>
 

@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from core.models import Business, Client, Invoice, Quote, Service, TeamMember
+from core.models import BankingInformation, Business, Client, Invoice, Quote, Service, TeamMember
 
 QUOTES_URL = reverse("operations:quote-list")
 QUOTES_BULK_URL = reverse("operations:quote-bulk")
@@ -78,6 +78,23 @@ class ListingTests(TestCase):
         self.assertEqual(ids({"valid_to": later}), sorted([self.quotes[1].pk, self.quotes[2].pk]))
         self.assertEqual(ids({"payment_terms": "NET_30"}), [self.quotes[0].pk])
         self.assertEqual(ids({"service_type": "SUBSCRIPTION"}), [self.quotes[1].pk])
+
+    def test_clients_filter_by_payment_method_questionnaires_and_location(self):
+        BankingInformation.objects.create(
+            client=self.clients[0], payment_method_type="CARD", stripe_customer_id="cus", stripe_payment_method_id="pm",
+        )
+        Client.objects.filter(pk=self.clients[1].pk).update(billing_country="US", billing_province_state="WA")
+        Service.objects.filter(pk=self.services[2].pk).update(filled_questionnaire={"Size": "Large"})
+
+        def ids(params):
+            return sorted(row["id"] for row in self.api.get(CLIENTS_URL, params).data)
+
+        self.assertEqual(ids({"payment_method": "card"}), [self.clients[0].pk])
+        self.assertEqual(ids({"payment_method": "none"}), sorted([self.clients[1].pk, self.clients[2].pk]))
+        self.assertEqual(ids({"billing_country": "US", "billing_province_state": "WA"}), [self.clients[1].pk])
+        self.assertEqual(ids({"questionnaires": "complete"}), [self.clients[2].pk])
+        self.assertEqual(ids({"questionnaires": "pending"}), sorted([self.clients[0].pk, self.clients[1].pk]))
+        self.assertEqual(len(ids({"created_from": date.today().isoformat()})), 3)
 
     def test_deactivated_clients_stay_listed(self):
         self.api.post(reverse("operations:client-bulk"), {"action": "deactivate", "ids": [self.clients[0].pk]},

@@ -6,7 +6,7 @@ from datetime import timedelta
 
 from django.db import transaction
 from django.http import FileResponse
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -21,6 +21,7 @@ from core.permissions import ClientLimitedWrite
 from taggit.models import Tag
 
 from core.models import (
+    BankingInformation,
     Business,
     Client,
     Invoice,
@@ -174,13 +175,36 @@ class ClientViewSet(ListingMixin, viewsets.ModelViewSet):
     queryset = Client.objects.select_related("user").prefetch_related(*serializers.client_prefetches())
     search_fields = ["name", "phone", "user__email", "company_name"]
     ordering_fields = ["name", "user__email", "phone", "is_active", "created_at"]
-    filter_fields = {"is_active": "is_active"}
+    filter_fields = {
+        "is_active": "is_active",
+        "billing_country": "billing_country",
+        "billing_province_state": "billing_province_state",
+        "created_from": "created_at__date__gte",
+        "created_to": "created_at__date__lte",
+    }
     bulk_actions = {"activate": "bulk_activate", "deactivate": "bulk_deactivate", "delete": "destroy"}
 
     def get_queryset(self):
         """Retrieve clients for authenticated user."""
         user = self.request.user
         qs = super().get_queryset()
+
+        params = self.request.query_params
+        has_card = Exists(BankingInformation.objects.filter(
+            client=OuterRef("pk"), is_active=True, payment_method_type="CARD",
+        ))
+        if params.get("payment_method") == "card":
+            qs = qs.filter(has_card)
+        elif params.get("payment_method") == "none":
+            qs = qs.filter(~has_card)
+        # Matches the questionnaires column: services that need answers but have none yet.
+        has_pending_questionnaire = Exists(Service.objects.filter(
+            client=OuterRef("pk"), is_active=True, bypass_questionnaire=False,
+        ).filter(Q(filled_questionnaire__isnull=True) | Q(filled_questionnaire={})))
+        if params.get("questionnaires") == "pending":
+            qs = qs.filter(has_pending_questionnaire)
+        elif params.get("questionnaires") == "complete":
+            qs = qs.filter(~has_pending_questionnaire)
 
         if user.role == "ADMIN":
             return qs
