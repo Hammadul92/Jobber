@@ -8,6 +8,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlsplit
 import stripe
 
 from django.conf import settings
@@ -37,6 +38,7 @@ from core.models import (
     ServiceTermsTemplate,
     TeamMember,
 )
+from user.utils import generate_magic_login_token, verify_magic_login_token
 
 from operations.serializers import BusinessSerializer, QuoteSerializer
 from finance.serializers import InvoiceSerializer
@@ -397,6 +399,40 @@ class QuoteInvoiceAutomationTests(TestCase):
         self.assertEqual(invoice.subtotal, Decimal("100.00"))
         self.assertEqual(invoice.tax_amount, Decimal("5.00"))
         self.assertEqual(invoice.total_amount, Decimal("105.00"))
+
+    def test_quote_login_link_lasts_until_valid_until(self):
+        token = generate_magic_login_token(self.client_user, quote=self.quote)
+        url = reverse("user:magic-login")
+
+        far_future = timezone.now() + timedelta(days=30)
+        with patch("django.core.signing.time.time", return_value=far_future.timestamp()):
+            self.assertEqual(verify_magic_login_token(token), self.client_user)
+        self.assertEqual(self.client.post(url, {"token": token}).status_code, 200)
+        self.assertEqual(self.client.post(url, {"token": token}).status_code, 200)
+
+        self.quote.valid_until = timezone.localdate()
+        self.quote.save(update_fields=["valid_until"])
+        self.assertEqual(verify_magic_login_token(token), self.client_user)
+
+        self.quote.valid_until = timezone.localdate() - timedelta(days=1)
+        self.quote.save(update_fields=["valid_until"])
+        self.assertIsNone(verify_magic_login_token(token))
+        self.assertEqual(self.client.post(url, {"token": token}).status_code, 400)
+
+        self.quote.valid_until = timezone.localdate() + timedelta(days=5)
+        self.quote.save(update_fields=["valid_until"])
+        self.assertEqual(verify_magic_login_token(token), self.client_user)
+
+    @patch("operations.emails.send_branded_email")
+    def test_quote_email_link_is_bound_to_quote(self, send):
+        from operations.emails import send_quote_email
+
+        send_quote_email(self.quote)
+        link = send.call_args.kwargs["action_url"]
+        token = parse_qs(urlsplit(link).query)["token"][0]
+        self.quote.valid_until = timezone.localdate() - timedelta(days=1)
+        self.quote.save(update_fields=["valid_until"])
+        self.assertIsNone(verify_magic_login_token(token))
 
     @patch("operations.views.emails.send_quote_email")
     def test_sending_quote_snapshots_tax_and_exposes_payable_total(self, send_email):

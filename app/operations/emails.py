@@ -8,7 +8,7 @@ from user.utils import generate_magic_login_token
 
 def send_quote_email(quote):
     """Send quotation email to client."""
-    magic_token = generate_magic_login_token(quote.service.client.user)
+    magic_token = generate_magic_login_token(quote.service.client.user, quote=quote)
     sign_link = f"{settings.FRONTEND_URL}/user/business/quote/sign/{quote.id}/?token={magic_token}"
     subtotal, tax_label, tax_amount, total = quote_tax_details(quote)
     currency = quote.currency or quote.service.currency
@@ -54,7 +54,7 @@ def send_quote_email(quote):
         ],
         action_label="Review and Sign Quote",
         action_url=sign_link,
-        notice="This secure link signs you in automatically and expires in 7 days.",
+        notice=f"This secure link signs you in automatically and works until the quote expires on {quote.valid_until}.",
         signoff=f"The {quote.service.business.name} Team",
         reply_to=[quote.service.business.email],
         brand_name=quote.service.business.name,

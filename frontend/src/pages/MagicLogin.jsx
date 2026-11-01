@@ -10,7 +10,7 @@ import { useMagicLoginMutation } from "../store";
  *
  * Flow:
  *   1. Extract token from search params.
- *   2. POST to /api/user/magic-login/ with the token (each link works once).
+ *   2. POST to /api/user/magic-login/ with the token (links are reusable until they expire).
  *   3. On success the mutation stores the auth token in localStorage.
  *   4. Redirect the user to the protected questionnaire form.
  */

@@ -997,10 +997,3 @@ class PayoutRefund(models.Model):
 
     def __str__(self):
         return f"Refund {self.amount} {self.payout.currency} on payout {self.payout_id}"
-
-
-class UsedLoginToken(models.Model):
-    """IDs of emailed login links that have already been used."""
-
-    jti = models.CharField(max_length=64, unique=True)
-    used_at = models.DateTimeField(auto_now_add=True, db_index=True)

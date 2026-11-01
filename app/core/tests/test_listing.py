@@ -36,7 +36,7 @@ class ListingTests(TestCase):
                 province_state="AB", postal_code="T2T2T2",
             ))
         self.quotes = [
-            Quote.objects.create(service=service, payment_terms="NET_15",
+            Quote.objects.create(service=service, payment_terms="NET_15", general_terms_conditions="Terms",
                                  valid_until=date.today() + timedelta(days=5))
             for service in self.services
         ]
