@@ -52,6 +52,7 @@ export default function ClientServicesData({
   token,
   role,
   clientId,
+  header,
 }) {
   const setAlert = useAlert();
   const isManager = role === "MANAGER";
@@ -302,6 +303,11 @@ export default function ClientServicesData({
   return (
     <>
       <div className={tableCardClass}>
+        {header && (
+          <div className="border-b border-gray-200 px-4 py-5 md:px-6">
+            {header}
+          </div>
+        )}
         <TableToolbar
           searchValue={table.searchInput}
           onSearchChange={setSearchInput}

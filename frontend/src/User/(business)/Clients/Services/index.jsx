@@ -98,6 +98,49 @@ export default function ClientServices({ token, role }) {
     .filter(Boolean)
     .join(", ");
 
+  const clientHeader = isManagerMode ? (
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+          Client
+        </p>
+        <h3 className="text-2xl font-semibold text-primary">
+          {client?.client_name || "Pending client"}
+        </h3>
+        {client && (
+          <span
+            className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase ${
+              isClientActive
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            {isClientActive ? "Active" : "Inactive"}
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-start gap-4">
+        <div className="space-y-1 text-right">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+            Billing address
+          </p>
+          <p className="inline-flex items-center gap-2 text-sm text-slate-700">
+            <LuMapPin className="h-4 w-4 text-slate-400" />
+            {billingAddress || "Not provided"}
+          </p>
+        </div>
+        <Link
+          to="/user/business/clients"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-gray-100 hover:text-slate-700"
+          aria-label="Close"
+        >
+          <LuX className="h-5 w-5" />
+        </Link>
+      </div>
+    </div>
+  ) : null;
+
   const loadError = clientError || businessError;
   useEffect(() => {
     if (loadError) setAlert({ type: "danger", message: errorMessage(loadError) });
@@ -105,51 +148,6 @@ export default function ClientServices({ token, role }) {
 
   return (
     <>
-      {isManagerMode && (
-        <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-                Client
-              </p>
-              <h3 className="text-2xl font-semibold text-primary">
-                {client?.client_name || "Pending client"}
-              </h3>
-              {client && (
-                <span
-                  className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase ${
-                    isClientActive
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {isClientActive ? "Active" : "Inactive"}
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="space-y-1 text-right">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-                  Billing address
-                </p>
-                <p className="inline-flex items-center gap-2 text-sm text-slate-700">
-                  <LuMapPin className="h-4 w-4 text-slate-400" />
-                  {billingAddress || "Not provided"}
-                </p>
-              </div>
-              <Link
-                to="/user/business/clients"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-gray-100 hover:text-slate-700"
-                aria-label="Close"
-              >
-                <LuX className="h-5 w-5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
       {isManagerMode && role === "MANAGER" && (
         <CreateClientServiceForm
           showModal={showModal}
@@ -168,6 +166,7 @@ export default function ClientServices({ token, role }) {
         token={token}
         role={role}
         clientId={isManagerMode ? clientId : null}
+        header={clientHeader}
       />
     </>
   );
