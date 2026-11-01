@@ -22,7 +22,6 @@ import useServerTable from "../../../hooks/useServerTable";
 import useAlert from "../../../hooks/useAlert";
 import { countries, provinces } from "../../../constants/locations";
 import TableToolbar, {
-  TableStats,
   ToolbarDate,
   ToolbarSelect,
   tableCardClass,
@@ -64,9 +63,6 @@ const BULK_ACTIONS = [
   },
 ];
 
-// One-row page requests: only the counts are used for the summary cards.
-const COUNT_ARGS = { page: 1, page_size: 1 };
-
 const isActiveClient = (row) => row.is_active === true || row.is_active === "True";
 const clientNameOf = (row) => row.client_name || row.name || "Client";
 
@@ -95,25 +91,11 @@ export default function ClientsDatatable({ token, showAddClient }) {
     isFetching,
     error,
   } = useFetchClientsPageQuery(table.queryArgs, { skip: !token });
-  const { data: totalData } = useFetchClientsPageQuery(COUNT_ARGS, {
-    skip: !token,
-  });
-  const { data: activeData } = useFetchClientsPageQuery(
-    { ...COUNT_ARGS, is_active: true },
-    { skip: !token },
-  );
 
   const [deleteClient, { isLoading: deleting }] = useDeleteClientMutation();
   const [bulkClients] = useBulkClientsMutation();
 
   const rows = data?.results || [];
-  const totalClients = totalData?.count ?? 0;
-  const activeClients = activeData?.count ?? 0;
-  const stats = [
-    { label: "Total Clients", value: totalClients },
-    { label: "Active", value: activeClients },
-    { label: "Inactive", value: Math.max(0, totalClients - activeClients) },
-  ];
 
   useEffect(() => {
     if (error) {
@@ -260,11 +242,8 @@ export default function ClientsDatatable({ token, showAddClient }) {
 
   if (isLoading) return <LoadingScreen />;
 
-
   return (
     <>
-      <TableStats stats={stats} />
-
       <div className={tableCardClass}>
         <TableToolbar
           searchValue={table.searchInput}

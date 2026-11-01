@@ -34,7 +34,7 @@ export function TableStats({ stats }) {
 
 // Matches the form fields on detail pages: uppercase label above an h-10 field.
 const labelClass = "mb-1 block text-sm font-semibold uppercase text-gray-500";
-const fieldWrapClass = "min-w-0 sm:min-w-44 sm:flex-1";
+const fieldWrapClass = "min-w-0";
 
 export default function TableToolbar({
   title,
@@ -60,8 +60,8 @@ export default function TableToolbar({
         </div>
       )}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
-        <div className="min-w-0 sm:min-w-64 sm:flex-[2]">
+      <div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+        <div className="min-w-0 sm:col-span-2">
           <label htmlFor={searchId} className={labelClass}>
             Search
           </label>
