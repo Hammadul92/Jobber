@@ -12,16 +12,8 @@ import QuoteSectionPopup from "./QuoteSectionPopup";
 import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RichTextContent from "../../../Components/ui/RichTextContent";
-import { formatDate } from "../../../utils/formatDate";
-import {
-    LuCalendarDays,
-    LuClock3,
-    LuMail,
-    LuMapPin,
-    LuPhone,
-    LuUser,
-    LuFileText,
-} from "react-icons/lu";
+import { endOfDate, formatDate } from "../../../utils/formatDate";
+import { LuClock3 } from "react-icons/lu";
 import { formatAddress } from "../../../utils/formatAddress";
 import LineItemsTable from "../../../Components/ui/LineItemsTable";
 import { paymentTermsLabel } from "../../../utils/paymentTerms";
@@ -57,7 +49,7 @@ export default function SignQuote({ token, preview = false }) {
 
         const interval = setInterval(() => {
             const now = new Date();
-            const endTime = new Date(quote.valid_until);
+            const endTime = endOfDate(quote.valid_until);
             const diff = endTime - now;
 
             if (diff <= 0) {
@@ -174,9 +166,21 @@ export default function SignQuote({ token, preview = false }) {
     const client = quote.client || {};
     const serviceData = quote.service_data || {};
     const isFinalized = ["SIGNED", "DECLINED"].includes(status);
-    const validUntilLabel = quote.valid_until
-        ? new Date(quote.valid_until).toLocaleString()
-        : "-";
+    const isClientActive = String(client.is_active) === "True" || client.is_active === true;
+    const statusTone = {
+        SENT: "bg-blue-100 text-blue-700",
+        SIGNED: "bg-emerald-100 text-emerald-700",
+        DECLINED: "bg-rose-100 text-rose-700",
+    };
+    const serviceAddress = [
+        serviceData.street_address,
+        serviceData.city,
+        serviceData.province_state,
+        serviceData.country,
+        serviceData.postal_code,
+    ]
+        .filter(Boolean)
+        .join(", ");
 
     return (
         <>
@@ -189,212 +193,129 @@ export default function SignQuote({ token, preview = false }) {
                 </div>
             )}
 
-            <div className="bg-white border border-gray-200 shadow-sm rounded-2xl">
-                <div className="rounded-t-2xl grid gap-4 border-b border-gray-200 bg-linear-to-r from-accent/10 from-0% to-transparent to-100% px-6 py-5 md:grid-cols-[1fr_auto] lg:items-start">
-                    <div>
-                        <h3 className="text-2xl font-semibold tracking-tight md:text-3xl text-slate-900">
-                            {quote.business_name}
-                        </h3>
-                        <p className="mt-1 text-sm md:text-base text-slate-500">
-                            Quote # {quote.quote_number}
-                        </p>
-                        {quote.payment_terms && (
-                            <p className="mt-2 text-sm font-medium text-slate-700">
-                                Payment Terms: {paymentTermsLabel(quote.payment_terms)}
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <div className="space-y-6 p-4 md:p-6">
+                    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-6">
+                        <div className="space-y-1">
+                            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+                                Quote from {quote.business_name}
                             </p>
-                        )}
-                    </div>
-
-                    <div className="text-right">
-                        <p className="text-sm font-semibold text-slate-500">Valid Until</p>
-                        <p className="text-sm font-medium md:text-base text-slate-800">
-                            {validUntilLabel}
-                        </p>
-                        {quote.valid_until && status === "SENT" && (
-                            <div
-                                className={`md:mt-2 inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold ${timeRemaining === "Expired"
-                                    ? "bg-rose-100 text-rose-700"
-                                    : "bg-emerald-100 text-emerald-700"
-                                    }`}
-                            >
-                                <LuClock3 className="h-3.5 w-3.5" />
-                                {timeRemaining === "Expired"
-                                    ? "This quote has expired"
-                                    : `Time left: ${timeRemaining}`}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 px-6 py-6 lg:grid-cols-5">
-                    <div className="rounded-2xl border border-gray-200 bg-background p-4 lg:col-span-2">
-                            <div className="flex items-center justify-between gap-3 mb-3">
-                                <h4 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-600">
-                                    Client Details
-                                </h4>
-                                {String(client.is_active) === "True" || client.is_active === true ? (
-                                    <span className="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-700">
-                                        ACTIVE
-                                    </span>
-                                ) : (
-                                    <span className="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-rose-100 text-rose-700">
-                                        INACTIVE
+                            <h3 className="text-2xl font-semibold text-primary">
+                                {quote.quote_number}
+                            </h3>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase ${statusTone[status] || "bg-gray-100 text-gray-700"}`}>
+                                    {status}
+                                </span>
+                                {quote.payment_terms && (
+                                    <span className="rounded-full bg-secondary/10 px-3 py-1 text-[11px] font-semibold uppercase text-secondary">
+                                        {paymentTermsLabel(quote.payment_terms)}
                                     </span>
                                 )}
                             </div>
+                        </div>
 
-                            <div className="space-y-4 text-slate-700">
-                                <div className="flex items-start gap-3">
-                                    <LuUser className="w-4 h-4 mt-1 shrink-0 text-slate-400" />
-                                    <div>
-                                        <p className="text-sm text-slate-500">Name</p>
-                                        <p className="text-base font-medium text-slate-800">
-                                            {quote.client_name || client.name || "-"}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <LuMail className="w-4 h-4 mt-1 shrink-0 text-slate-400" />
-                                    <div>
-                                        <p className="text-sm text-slate-500">Email</p>
-                                        <p className="text-base font-medium text-slate-800">
-                                            {client.client_email || client.email || "-"}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <LuPhone className="w-4 h-4 mt-1 shrink-0 text-slate-400" />
-                                    <div>
-                                        <p className="text-sm text-slate-500">Phone</p>
-                                        <p className="text-base font-medium text-slate-800">
-                                            {client.client_phone || client.phone || "-"}
-                                        </p>
-                                    </div>
-                                </div>
-                                {client.company_name && (
-                                    <div><p className="text-sm text-slate-500">Company</p><p className="text-base font-medium text-slate-800">{client.company_name}</p></div>
-                                )}
-                                <div className="flex items-start gap-3">
-                                    <LuMapPin className="w-4 h-4 mt-1 shrink-0 text-slate-400" />
-                                    <div><p className="text-sm text-slate-500">Billing Address</p><p className="text-base font-medium text-slate-800">{formatAddress(client, "billing")}</p></div>
-                                </div>
-                            </div>
-                    </div>
-
-                    <div className="p-4 border border-gray-200 lg:col-span-3 rounded-2xl bg-background">
-                        <h4 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-600">
-                            Service Details
-                        </h4>
-
-                        <div className="mt-4 space-y-4 text-slate-700">
-                            <div>
-                                <p className="text-sm text-slate-500">Service Name</p>
-                                <p className="text-base font-semibold text-slate-900">
-                                    <Link
-                                        to={`/user/business/service/${serviceData.id}`}
-                                        className="transition hover:text-[#ff6a00]"
-                                    >
-                                        {serviceData.service_name || "-"}
-                                    </Link>
-                                </p>
-                            </div>
-
-                            {serviceData.description && serviceData.items?.length > 0 && (
-                                <div>
-                                    <p className="text-sm text-slate-500">Description</p>
-                                    <div className="mt-1">
-                                        <p
-                                            ref={descriptionRef}
-                                            className={`text-base font-medium text-justify text-slate-900 ${isDescriptionExpanded ? "" : "line-clamp-3"
-                                                }`}
-                                        >
-                                            {serviceData.description}
-                                        </p>
-                                        <div className="text-right">
-                                            {canToggleDescription && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setIsDescriptionExpanded((value) => !value)
-                                                    }
-                                                    className="text-sm underline transition text-accent decoration-accent/50 underline-offset-2 hover:text-accent-light"
-                                                >
-                                                    {isDescriptionExpanded ? "View Less" : "View More"}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                        <div className="flex flex-col gap-2 text-slate-800 sm:items-end">
+                            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+                                Valid Until
+                            </p>
+                            <p className="text-xl font-medium text-slate-900">
+                                {quote.valid_until ? formatDate(quote.valid_until) : "-"}
+                            </p>
+                            {quote.valid_until && status === "SENT" && timeRemaining && (
+                                <span
+                                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase ${timeRemaining === "Expired"
+                                        ? "bg-rose-100 text-rose-700"
+                                        : "bg-emerald-100 text-emerald-700"
+                                        }`}
+                                >
+                                    <LuClock3 className="h-3.5 w-3.5" />
+                                    {timeRemaining === "Expired"
+                                        ? "Expired"
+                                        : `${timeRemaining} left`}
+                                </span>
                             )}
-
-                            <p className="text-sm text-slate-600">Service Type: {serviceData.service_type || "-"}</p>
-
-                            <div>
-                                <p className="text-sm text-slate-500">Billing Cycle</p>
-                                <p className="text-base font-medium">
-                                    {serviceData.billing_cycle || "—"}
-                                </p>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 text-slate-800">
-                                <div className="flex items-start gap-3">
-                                    <LuCalendarDays className="w-4 h-4 mt-1 shrink-0 text-slate-400" />
-                                    <div>
-                                        <p className="text-sm text-slate-500">Start Date</p>
-                                        <p className="text-base font-medium">
-                                            {serviceData.start_date
-                                                ? new Date(serviceData.start_date).toLocaleDateString()
-                                                : "—"}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <LuCalendarDays className="w-4 h-4 mt-1 shrink-0 text-slate-400" />
-                                    <div>
-                                        <p className="text-sm text-slate-500">End Date</p>
-                                        <p className="text-base font-medium">
-                                            {serviceData.end_date
-                                                ? new Date(serviceData.end_date).toLocaleDateString()
-                                                : "—"}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start gap-3">
-                                <LuMapPin className="w-4 h-4 mt-1 shrink-0 text-slate-400" />
-                                <div>
-                                    <p className="text-sm text-slate-500">Service Address</p>
-                                    <p className="text-base font-medium text-slate-800">
-                                        {[
-                                            serviceData.street_address,
-                                            serviceData.city,
-                                            serviceData.province_state,
-                                            serviceData.country,
-                                            serviceData.postal_code,
-                                        ]
-                                            .filter(Boolean)
-                                            .join(", ") || "-"}
-                                    </p>
-                                </div>
-                            </div>
-
                         </div>
                     </div>
 
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                            <h4 className="text-base font-semibold text-slate-900">Client Details</h4>
+                            <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase ${isClientActive ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                                {isClientActive ? "Active" : "Inactive"}
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                            <InfoField label="Name" value={quote.client_name || client.name} />
+                            <InfoField label="Email" value={client.client_email || client.email} />
+                            <InfoField label="Phone" value={client.client_phone || client.phone} />
+                            {client.company_name && <InfoField label="Company" value={client.company_name} />}
+                            <InfoField label="Billing Address" value={formatAddress(client, "billing")} wide />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h4 className="text-base font-semibold text-slate-900">Service Details</h4>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                            <InfoField
+                                label="Service"
+                                value={
+                                    <Link
+                                        to={`/user/business/service/${serviceData.id}`}
+                                        className="transition hover:text-accent"
+                                    >
+                                        {serviceData.service_name || "-"}
+                                    </Link>
+                                }
+                            />
+                            <InfoField
+                                label="Service Type"
+                                value={serviceData.service_type === "SUBSCRIPTION" ? "Subscription" : serviceData.service_type ? "One Time" : ""}
+                            />
+                            <InfoField label="Billing Cycle" value={serviceData.billing_cycle} />
+                            <InfoField
+                                label="Dates"
+                                value={
+                                    serviceData.start_date
+                                        ? `${formatDate(serviceData.start_date)}${serviceData.end_date ? ` – ${formatDate(serviceData.end_date)}` : ""}`
+                                        : ""
+                                }
+                            />
+                            <InfoField label="Service Address" value={serviceAddress} wide />
+                        </div>
+
+                        {serviceData.description && serviceData.items?.length > 0 && (
+                            <div>
+                                <p className="mb-1 text-sm font-semibold uppercase text-gray-500">Description</p>
+                                <p
+                                    ref={descriptionRef}
+                                    className={`text-sm text-slate-700 ${isDescriptionExpanded ? "" : "line-clamp-3"}`}
+                                >
+                                    {serviceData.description}
+                                </p>
+                                {canToggleDescription && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsDescriptionExpanded((value) => !value)}
+                                        className="mt-1 text-sm font-semibold text-accent hover:underline"
+                                    >
+                                        {isDescriptionExpanded ? "View Less" : "View More"}
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
                     {isFinalized && (
-                        <div className={`rounded-xl px-4 py-3 lg:col-span-5 ${status === "DECLINED"
+                        <div className={`rounded-xl px-4 py-3 ${status === "DECLINED"
                             ? "border border-rose-200 bg-rose-50 text-rose-800"
                             : "border border-emerald-200 bg-emerald-50 text-emerald-800"
                             }`}
                         >
                             {status === "SIGNED" ? (
                                 <div>
-                                    <p className="mb-2 font-semibold uppercase">This quote has been signed successfully.</p>
-                                    <p className="mb-1">Signed on: <strong>{formatDate(quote.signed_at)}</strong></p>
-                                    <p className="mb-1">Signed by: <strong>{quote.client.client_name}</strong></p>
+                                    <p className="mb-2 font-semibold">This quote has been signed.</p>
+                                    <p className="mb-1 text-sm">Signed on <strong>{formatDate(quote.signed_at)}</strong> by <strong>{quote.client.client_name}</strong></p>
                                     {quote.signature && (
                                         <img
                                             src={quote.signature.startsWith("http")
@@ -408,14 +329,14 @@ export default function SignQuote({ token, preview = false }) {
                             ) : (
                                 <p className="text-sm">
                                     This quote has been <strong>declined</strong>
-                                    {quote.signed_at && <> on <strong>{new Date(quote.signed_at).toLocaleString()}</strong></>}
+                                    {quote.signed_at && <> on <strong>{formatDate(quote.signed_at)}</strong></>}
                                 </p>
                             )}
                         </div>
                     )}
 
-                    <section className="rounded-2xl border border-gray-200 bg-background p-4 lg:col-span-5" aria-labelledby="quote-service-items-heading">
-                        <h4 id="quote-service-items-heading" className="mb-4 text-sm font-semibold uppercase tracking-[0.08em] text-slate-600">
+                    <section className="space-y-4" aria-labelledby="quote-service-items-heading">
+                        <h4 id="quote-service-items-heading" className="text-base font-semibold text-slate-900">
                             Service Items
                         </h4>
                         <LineItemsTable
@@ -429,7 +350,7 @@ export default function SignQuote({ token, preview = false }) {
                             billingCycle={serviceData.billing_cycle}
                         />
                         {status === "SENT" && quote.quoted_tax_rate == null && (
-                            <p className="mt-3 text-sm text-amber-700">This older quote does not state tax. Please ask the business to resend it before signing.</p>
+                            <p className="text-sm text-amber-700">This older quote does not state tax. Please ask the business to resend it before signing.</p>
                         )}
                     </section>
                 </div>
@@ -474,7 +395,7 @@ export default function SignQuote({ token, preview = false }) {
                     )}
                 </QuoteSectionPopup>
 
-                <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 px-6 py-4">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 px-4 py-4 md:px-6">
                     <div className="flex flex-wrap gap-3">
                         {serviceData.service_questionnaires?.id ? (
                             <Link
@@ -595,5 +516,14 @@ export default function SignQuote({ token, preview = false }) {
                 </div>
             )}
         </>
+    );
+}
+
+function InfoField({ label, value, wide = false }) {
+    return (
+        <div className={wide ? "sm:col-span-2" : ""}>
+            <p className="mb-1 text-sm font-semibold uppercase text-gray-500">{label}</p>
+            <div className="text-sm font-medium text-slate-900">{value || "-"}</div>
+        </div>
     );
 }

@@ -31,3 +31,11 @@ export function formatDate(dateInput, showHours = true) {
 
   return date.toLocaleString("en-US", options);
 }
+
+// A date-only value such as a quote's Valid Until lasts through that whole
+// local day; this returns the moment it ends (the next local midnight).
+export function endOfDate(dateString) {
+  if (!dateString) return null;
+  const [year, month, day] = String(dateString).slice(0, 10).split("-").map(Number);
+  return new Date(year, month - 1, day + 1);
+}

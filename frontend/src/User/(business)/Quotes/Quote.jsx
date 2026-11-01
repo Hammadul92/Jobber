@@ -9,7 +9,7 @@ import {
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordLink from "../../../Components/ui/RecordLink";
-import { formatDate } from "../../../utils/formatDate";
+import { endOfDate, formatDate } from "../../../utils/formatDate";
 import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
 import RichTextContent from "../../../Components/ui/RichTextContent";
@@ -171,7 +171,7 @@ export default function Quote({ token, role }) {
     client.is_active === false || client.is_active === "False";
   const isServiceInactive = serviceData.status !== "ACTIVE";
   const isRequiredFieldsMissing = !validUntil || !quoteData.payment_terms;
-  const isExpired = new Date(validUntil) < new Date();
+  const isExpired = Boolean(validUntil) && endOfDate(validUntil) <= new Date();
 
   const isTermsMissing = Boolean(quoteData.terms_missing);
 
