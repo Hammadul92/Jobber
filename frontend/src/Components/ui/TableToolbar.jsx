@@ -79,7 +79,7 @@ export default function TableToolbar({
   };
 
   return (
-    <div className="border-b border-gray-200 px-4 py-4 md:px-6">
+    <div className="@container border-b border-gray-200 px-4 py-4 md:px-6">
       {title && (
         <div className="mb-4">
           <h4 className="text-xl font-semibold text-primary">{title}</h4>
@@ -152,7 +152,7 @@ export default function TableToolbar({
       </div>
 
       {hasFilters && filtersOpen && (
-        <div className="mt-4 grid grid-cols-1 items-end gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        <div className="mt-4 grid grid-cols-1 items-end gap-3 @sm:grid-cols-2 @xl:grid-cols-3 @4xl:grid-cols-6">
           {children}
         </div>
       )}
