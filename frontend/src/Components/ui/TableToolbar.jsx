@@ -34,7 +34,7 @@ export function TableStats({ stats }) {
 
 // Matches the form fields on detail pages: uppercase label above an h-10 field.
 const labelClass = "mb-1 block text-sm font-semibold uppercase text-gray-500";
-const fieldWrapClass = "min-w-0 w-full sm:w-48";
+const fieldWrapClass = "min-w-0";
 
 // One open/closed preference shared by every table, so collapsing filters
 // sticks across pages and reloads.
@@ -152,7 +152,9 @@ export default function TableToolbar({
       </div>
 
       {hasFilters && filtersOpen && (
-        <div className="mt-4 flex flex-wrap items-end gap-3">{children}</div>
+        <div className="mt-4 grid grid-cols-1 items-end gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+          {children}
+        </div>
       )}
     </div>
   );
