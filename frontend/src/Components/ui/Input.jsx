@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { FaEyeSlash, FaEye } from "react-icons/fa";
+import DatePicker from "./DatePicker";
 
 const PHONE_REGEX = /^\+1\s?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
 
@@ -82,7 +83,20 @@ export default function Input({
           {label} {isRequired && <span className="text-accent">*</span>}
         </label>
       )}
-      {isPassword ? (
+      {type === "date" ? (
+        <DatePicker
+          id={id}
+          value={value}
+          onChange={onChange}
+          min={min}
+          max={max}
+          required={isRequired}
+          disabled={isDisabled}
+          // Callers size date fields through fieldClass; keep only the height
+          // so the picker's joined input and calendar button stay intact.
+          inputClassName={/\bh-11\b/.test(fieldClass || "") ? "h-11!" : ""}
+        />
+      ) : isPassword ? (
         <div className="flex">
           <input
             type={showPassword ? "text" : "password"}

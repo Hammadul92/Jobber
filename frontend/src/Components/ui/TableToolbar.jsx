@@ -1,5 +1,6 @@
 import { Children, useId, useState } from "react";
 import { LuChevronDown, LuSearch, LuSlidersHorizontal, LuX } from "react-icons/lu";
+import DatePicker from "./DatePicker";
 import Dropdown from "./Dropdown";
 
 // Shared chrome for dashboard tables: the card, its stat tiles, and one
@@ -188,16 +189,13 @@ export function ToolbarDate({ id, label, value, onChange, min, max }) {
       <label htmlFor={id} className={labelClass}>
         {label}
       </label>
-      <input
+      <DatePicker
         id={id}
-        type="date"
         value={value || ""}
         min={min || undefined}
         max={max || undefined}
-        onChange={(event) => onChange(event.target.value)}
-        className={`h-10 w-full rounded-xl border bg-white px-3 text-sm text-slate-700 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 ${
-          value ? activeFieldClass : "border-gray-200"
-        }`}
+        onChange={onChange}
+        highlighted={Boolean(value)}
       />
     </div>
   );
