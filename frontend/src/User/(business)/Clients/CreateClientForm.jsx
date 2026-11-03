@@ -8,6 +8,7 @@ import PhoneInputField from "../../../Components/ui/PhoneInput";
 import Dropdown from "../../../Components/ui/Dropdown";
 import { countries, provinces } from "../../../constants/locations";
 import useAlert from "../../../hooks/useAlert";
+import { apiErrorMessage } from "../../../utils/apiError";
 
 export default function CreateClientForm({
   showModal,
@@ -58,17 +59,7 @@ export default function CreateClientForm({
       setBillingPostalCode("");
       setShowModal(false);
     } catch (err) {
-      const message =
-        err?.data?.detail ||
-        (err?.data && typeof err.data === "object"
-          ? Object.entries(err.data)
-              .map(([key, value]) => {
-                const text = Array.isArray(value) ? value.join(", ") : value;
-                return key === "non_field_errors" ? text : `${key}: ${text}`;
-              })
-              .join(" | ")
-          : err?.message) ||
-        "Failed to create client. Please try again.";
+      const message = apiErrorMessage(err, "Failed to create client. Please try again.");
       const danger = { type: "danger", message };
       setAlert(danger);
       console.error("Create client error:", err);

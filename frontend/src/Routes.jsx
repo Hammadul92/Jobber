@@ -348,6 +348,10 @@ function MainApp() {
             }
           />
           <Route
+            path="trash"
+            element={<UserDashboard page="trash" token={token} user={user} />}
+          />
+          <Route
             path="team-member/:id"
             element={
               <UserDashboard page="team-member" token={token} user={user} />

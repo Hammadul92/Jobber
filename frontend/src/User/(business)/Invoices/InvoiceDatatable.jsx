@@ -6,7 +6,6 @@ import {
   useDeleteInvoiceMutation,
   useBulkInvoicesMutation,
 } from "../../../store";
-import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
@@ -31,6 +30,11 @@ import {
   LuX,
 } from "react-icons/lu";
 import useAlert from "../../../hooks/useAlert";
+import { formatMoney } from "../../../utils/formatMoney";
+import { downloadCsv } from "../../../utils/csv";
+import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
+import TrashLink from "../../../Components/ui/TrashLink";
+import DeleteRecordMessage from "../../../Components/ui/DeleteRecordMessage";
 
 const INITIAL_FILTERS = { status: "", due_from: "", due_to: "" };
 
@@ -56,15 +60,20 @@ const BULK_ACTIONS = [
     key: "delete",
     label: "Delete",
     tone: "danger",
-    confirmMessage: (count) =>
-      `Delete ${pluralize(count, "selected invoice")}? Paid or refunded invoices are kept.`,
-    successMessage: (count) => `${pluralize(count, "invoice")} deleted.`,
+    confirmContent: (labels) => (
+      <DeleteRecordMessage
+        kind="invoice"
+        names={labels}
+        note="Paid or refunded invoices are skipped and stay as they are."
+      />
+    ),
+    successMessage: (count) => `${pluralize(count, "invoice")} moved to Trash.`,
   },
 ];
 
 const displayStatus = (row) => (isInvoicePastDue(row) ? "OVERDUE" : row.status);
 
-function downloadCsv(filename, rows) {
+function exportInvoicesCsv(filename, rows) {
   const headers = [
     "Invoice",
     "Business",
@@ -85,23 +94,7 @@ function downloadCsv(filename, rows) {
     row.due_date ? formatDate(row.due_date) : "",
   ]);
 
-  const csv = [headers, ...csvRows]
-    .map((row) =>
-      row
-        .map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`)
-        .join(","),
-    )
-    .join("\n");
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  downloadCsv(filename, headers, csvRows);
 }
 
 export default function InvoiceDatatable({ token, role, onAddInvoice }) {
@@ -125,24 +118,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
 
   const rows = data?.results || [];
   const isManager = role === "MANAGER";
-  const currency = rows.find((row) => row.currency)?.currency || "USD";
   const { due_from: dueFrom, due_to: dueTo } = table.filters;
-
-  const formatMoney = (amount) => {
-    const symbol =
-      currency === "CAD" || currency === "USD"
-        ? "$"
-        : currency === "EUR"
-          ? "€"
-          : currency === "GBP"
-            ? "£"
-            : `${currency} `;
-
-    return `${symbol}${new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(Number(amount || 0))}`;
-  };
 
   useEffect(() => {
     if (error) {
@@ -158,13 +134,15 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
     setShowModal(true);
   };
 
-  const confirmDelete = async (event) => {
-    event.preventDefault();
+  const confirmDelete = async () => {
     if (!selectedInvoiceId) return;
 
     try {
       await deleteInvoice(selectedInvoiceId).unwrap();
-      setAlert({ type: "success", message: "Invoice deleted successfully!" });
+      setAlert({
+        type: "success",
+        message: `Invoice ${invoiceNumberFor(selectedInvoiceId)} moved to Trash.`,
+      });
       setShowModal(false);
       setSelectedInvoiceId(null);
     } catch (err) {
@@ -184,6 +162,8 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
     return result;
   };
 
+  const pendingInvoice = rows.find((row) => row.id === selectedInvoiceId);
+
   const invoiceNumberFor = (id) =>
     rows.find((row) => String(row.id) === String(id))?.invoice_number ||
     `#${id}`;
@@ -200,7 +180,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
         setAlert({ type: "warning", message: "There are no invoices to export." });
         return;
       }
-      downloadCsv("invoices.csv", allRows);
+      exportInvoicesCsv("invoices.csv", allRows);
     } catch (err) {
       setAlert({
         type: "danger",
@@ -265,7 +245,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
       key: "total",
       title: "Total",
       sortKey: "total_amount",
-      render: (row) => formatMoney(row.total_amount),
+      render: (row) => formatMoney(row.total_amount, row.currency),
     },
     {
       key: "status",
@@ -335,15 +315,18 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
             isFiltered={table.hasActiveFilters}
             onClear={table.resetFilters}
             actions={
-              <button
-                type="button"
-                onClick={handleExport}
-                disabled={exporting}
-                className={toolbarButtonClass}
-              >
-                <LuDownload className="h-4 w-4" />
-                Export
-              </button>
+              <>
+                {isManager && <TrashLink resource="invoices" />}
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  disabled={exporting}
+                  className={toolbarButtonClass}
+                >
+                  <LuDownload className="h-4 w-4" />
+                  Export
+                </button>
+              </>
             }
           >
             <ToolbarSelect
@@ -372,6 +355,7 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
           {isManager && (
             <BulkActionBar
               selectedCount={table.selectedIds.length}
+              selectedIds={table.selectedIds}
               actions={BULK_ACTIONS.map((action) => ({
                 ...action,
                 describeRow: invoiceNumberFor,
@@ -449,54 +433,29 @@ export default function InvoiceDatatable({ token, role, onAddInvoice }) {
           />
         </div>
 
-        {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div
-              className="fixed inset-0 bg-gray-900/40"
-              onClick={() => setShowModal(false)}
-            ></div>
-
-            <form
-              onSubmit={confirmDelete}
-              className="relative z-10 w-full md:w-4/7 lg:w-2/7 max-w-lg rounded-2xl bg-white p-6 shadow-xl space-y-5"
-              role="dialog"
-              aria-modal="true"
-            >
-              <div className="flex items-center justify-between">
-                <h5 className="text-xl font-medium text-gray-900">
-                  Delete Invoice
-                </h5>
-                <button
-                  type="button"
-                  className="text-gray-400 transition hover:text-gray-600"
-                  onClick={() => setShowModal(false)}
-                  aria-label="Close"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <p className="mt-3 text-sm text-gray-600">
-                Are you sure you want to delete this invoice?
-              </p>
-
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  type="button"
-                  className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancel
-                </button>
-                <SubmitButton
-                  isLoading={deleting}
-                  btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
-                  btnName="Delete"
-                />
-              </div>
-            </form>
-          </div>
-        )}
+        <ConfirmDialog
+          open={showModal}
+          title="Delete Invoice"
+          message={
+            pendingInvoice && (
+              <DeleteRecordMessage
+                kind="invoice"
+                name={`Invoice ${pendingInvoice.invoice_number}`}
+                detail={[
+                  pendingInvoice.client_name,
+                  pendingInvoice.service_name,
+                  formatMoney(pendingInvoice.total_amount, pendingInvoice.currency),
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              />
+            )
+          }
+          confirmLabel="Delete"
+          isLoading={deleting}
+          onConfirm={confirmDelete}
+          onCancel={() => setShowModal(false)}
+        />
       </div>
     </>
   );

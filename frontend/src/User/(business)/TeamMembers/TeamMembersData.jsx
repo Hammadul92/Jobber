@@ -5,7 +5,6 @@ import {
   useBulkTeamMembersMutation,
   useDeleteTeamMemberMutation,
 } from "../../../store";
-import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
@@ -19,6 +18,9 @@ import TableToolbar, {
   ToolbarSelect,
   tableCardClass,
 } from "../../../Components/ui/TableToolbar";
+import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
+import TrashLink from "../../../Components/ui/TrashLink";
+import DeleteRecordMessage from "../../../Components/ui/DeleteRecordMessage";
 
 const ROLE_OPTIONS = [
   { value: "", label: "All roles" },
@@ -32,14 +34,24 @@ const STATUS_OPTIONS = [
   { value: "false", label: "Pending" },
 ];
 
+// Their jobs are kept; the server unassigns them so they can be handed on.
+const TEAM_MEMBER_DEPENDENTS =
+  "Jobs assigned to them are kept but become unassigned, so you can assign them to someone else.";
+
 const BULK_ACTIONS = [
   {
     key: "delete",
     label: "Remove",
     tone: "danger",
-    confirmMessage: (count) =>
-      `Remove ${pluralize(count, "team member")} from your business?`,
-    successMessage: (count) => `${pluralize(count, "team member")} removed.`,
+    confirmContent: (labels) => (
+      <DeleteRecordMessage
+        kind="team member"
+        names={labels}
+        alsoDeletes={TEAM_MEMBER_DEPENDENTS}
+      />
+    ),
+    successMessage: (count) =>
+      `${pluralize(count, "team member")} moved to Trash.`,
   },
 ];
 
@@ -68,7 +80,7 @@ const getExpertiseTags = (expertise) =>
     .map((tag) => tag.trim())
     .filter(Boolean);
 
-export default function TeamMembersData({ token, onEdit }) {
+export default function TeamMembersData({ token, onEdit, role }) {
   const setAlert = useAlert();
   const [showModal, setShowModal] = useState(false);
   const [selectedTeamMemberId, setSelectedTeamMemberId] = useState(null);
@@ -135,8 +147,7 @@ export default function TeamMembersData({ token, onEdit }) {
     setShowModal(true);
   };
 
-  const confirmDelete = async (e) => {
-    e.preventDefault();
+  const confirmDelete = async () => {
     if (!selectedTeamMemberId) return;
 
     try {
@@ -145,7 +156,7 @@ export default function TeamMembersData({ token, onEdit }) {
       setSelectedTeamMemberId(null);
       setAlert({
         type: "success",
-        message: "Team member deleted successfully.",
+        message: `Team member “${memberNameFor(selectedTeamMemberId)}” moved to Trash.`,
       });
     } catch (err) {
       setAlert({
@@ -165,6 +176,10 @@ export default function TeamMembersData({ token, onEdit }) {
     table.clearSelection();
     return result;
   };
+
+  const pendingMember = members.find(
+    (member) => member.id === selectedTeamMemberId,
+  );
 
   const memberNameFor = (id) =>
     members.find((member) => String(member.id) === String(id))
@@ -298,6 +313,7 @@ export default function TeamMembersData({ token, onEdit }) {
             searchPlaceholder="Search name, email, phone or duties"
             isFiltered={table.hasActiveFilters}
             onClear={table.resetFilters}
+            actions={role === "MANAGER" && <TrashLink resource="team-members" />}
           >
             <ToolbarSelect
               id="team-role-filter"
@@ -316,6 +332,7 @@ export default function TeamMembersData({ token, onEdit }) {
           </TableToolbar>
           <BulkActionBar
             selectedCount={table.selectedIds.length}
+            selectedIds={table.selectedIds}
             actions={BULK_ACTIONS.map((action) => ({
               ...action,
               describeRow: memberNameFor,
@@ -368,48 +385,24 @@ export default function TeamMembersData({ token, onEdit }) {
         </div>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <form
-            onSubmit={confirmDelete}
-            className="max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-6"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <h5 className="text-xl font-medium text-primary">
-                Delete Team Member
-              </h5>
-              <button
-                type="button"
-                className="text-2xl text-gray-500 hover:text-gray-800"
-                onClick={() => setShowModal(false)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            <p className="text-gray-700">
-              Are you sure you want to delete this team member?
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
-                onClick={() => setShowModal(false)}
-                disabled={deleting}
-              >
-                Cancel
-              </button>
-              <SubmitButton
-                isLoading={deleting}
-                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
-                btnName="Delete"
-              />
-            </div>
-          </form>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showModal}
+        title="Delete Team Member"
+        message={
+          pendingMember && (
+            <DeleteRecordMessage
+              kind="team member"
+              name={pendingMember.employee_name || pendingMember.employee_email}
+              detail={pendingMember.employee_name ? pendingMember.employee_email : ""}
+              alsoDeletes={TEAM_MEMBER_DEPENDENTS}
+            />
+          )
+        }
+        confirmLabel="Delete"
+        isLoading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowModal(false)}
+      />
     </>
   );
 }

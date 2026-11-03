@@ -1,34 +1,8 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getBaseUrl } from "./baseConfig";
+import { api, changed, prefixed } from "./api";
 import { clearPublicSession } from "../../utils/publicSession";
 
-const rawBaseQuery = fetchBaseQuery({
-  baseUrl: `${getBaseUrl()}/user`,
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers.set("authorization", `Token ${token}`);
-    }
-    return headers;
-  },
-});
-
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
-  if (result?.error?.status === 401) {
-    localStorage.removeItem("token");
-    clearPublicSession();
-    const currentPath = window.location.pathname + window.location.search;
-    window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
-  }
-  return result;
-};
-
-const userApi = createApi({
-  reducerPath: "userApi",
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ["CurrentUser"],
-  endpoints: (builder) => ({
+const userApi = api.injectEndpoints({
+  endpoints: prefixed("/user", (builder) => ({
     createUser: builder.mutation({
       query: (data) => ({
         url: "/create/",
@@ -63,6 +37,7 @@ const userApi = createApi({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: changed("CurrentUser"),
     }),
     fetchUser: builder.query({
       query: () => ({
@@ -114,7 +89,7 @@ const userApi = createApi({
         }
       },
     }),
-  }),
+  })),
 });
 
 export const {

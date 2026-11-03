@@ -14,6 +14,7 @@ import ServiceItemsEditor from "../../../../Components/ui/ServiceItemsEditor";
 import { getBillingAddressForService } from "../../../../utils/formatAddress";
 import ConfirmCustomerNotification from "../../../../Components/ui/ConfirmCustomerNotification";
 import useAlert from "../../../../hooks/useAlert";
+import { apiErrorMessage } from "../../../../utils/apiError";
 
 export default function CreateClientServiceForm({
   showModal,
@@ -153,16 +154,7 @@ export default function CreateClientServiceForm({
       resetForm();
       setShowModal(false);
     } catch (err) {
-      const msg = Array.isArray(err?.data)
-        ? err.data.join(", ")
-        : typeof err?.data === "object"
-          ? Object.entries(err.data)
-              .map(
-                ([field, messages]) =>
-                  `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`,
-              )
-              .join(" | ")
-          : err?.data?.detail || `Failed to ${isEditMode ? "update" : "create"} service.`;
+      const msg = apiErrorMessage(err, `Failed to ${isEditMode ? "update" : "create"} service.`);
       setAlert({
         type: "danger",
         message: msg,

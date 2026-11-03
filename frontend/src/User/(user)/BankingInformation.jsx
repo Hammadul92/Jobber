@@ -11,7 +11,6 @@ import {
   useCheckBankAccountMutation,
   useFetchStripeConfigQuery,
 } from "../../store";
-import SubmitButton from "../../Components/ui/SubmitButton";
 import LoadingScreen from "../../Components/ui/LoadingScreen";
 import {
   LuShieldCheck,
@@ -29,6 +28,7 @@ import {
 } from "react-icons/lu";
 import { NavLink } from "react-router-dom";
 import useAlert from "../../hooks/useAlert";
+import ConfirmDialog from "../../Components/ui/ConfirmDialog";
 
 export default function BankingInformation({ token }) {
   const setAlert = useAlert();
@@ -109,13 +109,26 @@ export default function BankingInformation({ token }) {
 
   const hasBusiness = Array.isArray(businesses) && businesses.length > 0;
 
+  const pendingPaymentMethod = bankingInfo.find(
+    (item) => item.id === selectedPaymentId,
+  );
+  const describePaymentMethod = (item) =>
+    item.payment_method_type === "CARD"
+      ? `${item.card_brand?.toUpperCase() || "Card"} ending in ${item.card_last4}${
+          item.card_exp_month
+            ? `, expires ${formatExpiry(item.card_exp_month, item.card_exp_year)}`
+            : ""
+        }`
+      : `${item.bank_name || "Bank account"}${
+          item.account_number_last4 ? ` ending in ${item.account_number_last4}` : ""
+        }`;
+
   const handleDeleteClick = (id) => {
     setSelectedPaymentId(id);
     setShowModal(true);
   };
 
-  const confirmDelete = async (e) => {
-    e.preventDefault();
+  const confirmDelete = async () => {
     if (!selectedPaymentId) return;
 
     try {
@@ -525,39 +538,25 @@ export default function BankingInformation({ token }) {
         </div>
       )}
 
-      {showModal && (
-        <form
-          onSubmit={confirmDelete}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="max-w-lg w-2/7 rounded-xl bg-white shadow-xl space-y-5">
-            <div className="border-b border-gray-50 px-5 py-4">
-              <h5 className="text-xl font-medium text-gray-900">
-                Delete Payment Method
-              </h5>
+      <ConfirmDialog
+        open={showModal}
+        title="Delete Payment Method"
+        message={
+          pendingPaymentMethod && (
+            <div className="space-y-3">
+              <p>This payment method will be removed from your account:</p>
+              <p className="rounded-xl border border-rose-100 bg-rose-50/60 px-3 py-2 font-semibold text-slate-900">
+                {describePaymentMethod(pendingPaymentMethod)}
+              </p>
+              <p>You will need to add it again to use it for payments.</p>
             </div>
-            <div className="px-5 py-4 text-sm text-gray-700">
-              Are you sure you want to delete this payment method?
-            </div>
-            <div className="flex items-center justify-end gap-3 border-t border-gray-50 px-5 py-4">
-              <button
-                type="button"
-                className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-              <SubmitButton
-                isLoading={deleting}
-                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
-                btnName="Delete"
-              />
-            </div>
-          </div>
-        </form>
-      )}
+          )
+        }
+        confirmLabel="Delete"
+        isLoading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowModal(false)}
+      />
     </>
   );
 }

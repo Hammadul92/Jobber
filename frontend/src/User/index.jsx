@@ -31,6 +31,7 @@ import Invoices from "./(business)/Invoices";
 import Invoice from "./(business)/Invoices/Invoice";
 import Payouts from "./(business)/Payouts";
 import Payout from "./(business)/Payouts/Payout";
+import Trash from "./(business)/Trash";
 
 export default function UserDashboard({ page, token, user }) {
   const [dashboardNotifications, setDashboardNotifications] = useState([]);
@@ -76,6 +77,7 @@ export default function UserDashboard({ page, token, user }) {
         "invoice",
         "payouts",
         "payout",
+        "trash",
       ]),
     [],
   );
@@ -103,6 +105,7 @@ export default function UserDashboard({ page, token, user }) {
       { page: "job", roles: ["CLIENT", "MANAGER", "EMPLOYEE"] },
       { page: "payouts", roles: ["MANAGER"] },
       { page: "invoices", roles: ["CLIENT", "MANAGER"] },
+      { page: "trash", roles: ["MANAGER"] },
     ],
     [],
   );
@@ -263,6 +266,9 @@ export default function UserDashboard({ page, token, user }) {
       case "payout":
         // Single payout tab
         return <Payout token={token} role={user?.role} business={business} />;
+      case "trash":
+        // Deleted records, restorable by the owner
+        return <Trash token={token} />;
       default:
         // Fallback for unknown page
         return null;

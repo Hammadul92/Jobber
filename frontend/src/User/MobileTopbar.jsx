@@ -15,6 +15,7 @@ import {
   LuCreditCard,
   LuKey,
   LuScrollText,
+  LuTrash2,
 } from "react-icons/lu";
 import { RiDashboardLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
@@ -86,6 +87,12 @@ function MobileTopbar({ role, businessName, user }) {
         name: "Payouts",
         path: "/user/business/payouts",
         icon: LuArrowUpRight,
+        is_visible: role === "MANAGER",
+      },
+      {
+        name: "Trash",
+        path: "/user/business/trash",
+        icon: LuTrash2,
         is_visible: role === "MANAGER",
       },
     ],

@@ -18,6 +18,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from core.listing import ListingMixin
+from core.trash import TrashMixin
 from core.permissions import ClientLimitedWrite
 from taggit.models import Tag
 
@@ -175,8 +176,16 @@ class BusinessViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ClientViewSet(ListingMixin, viewsets.ModelViewSet):
+class ClientViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
     """View for manage clients APIs."""
+
+    trash_select_related = ("user",)
+
+    def trash_label(self, obj):
+        return obj.name or obj.user.email
+
+    def trash_detail(self, obj):
+        return " · ".join(part for part in (obj.company_name, obj.user.email) if part)
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
@@ -246,8 +255,16 @@ class ClientViewSet(ListingMixin, viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-class TeamMemberViewSet(ListingMixin, viewsets.ModelViewSet):
+class TeamMemberViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
     """View for manage team member APIs."""
+
+    trash_select_related = ("employee",)
+
+    def trash_label(self, obj):
+        return obj.employee.name or obj.employee.email
+
+    def trash_detail(self, obj):
+        return obj.employee.email
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
@@ -283,8 +300,17 @@ class TeamMemberViewSet(ListingMixin, viewsets.ModelViewSet):
         instance.soft_delete(user=self.request.user)
 
 
-class ServiceViewSet(ListingMixin, viewsets.ModelViewSet):
+class ServiceViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
     """View for manage services APIs."""
+
+    trash_select_related = ("client",)
+
+    def trash_label(self, obj):
+        return obj.service_name
+
+    def trash_detail(self, obj):
+        address = ", ".join(part for part in (obj.street_address, obj.city) if part)
+        return " · ".join(part for part in (obj.client.name, address) if part)
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
@@ -451,8 +477,16 @@ class ServiceViewSet(ListingMixin, viewsets.ModelViewSet):
         instance.soft_delete(user=self.request.user)
 
 
-class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
+class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
     """View for manage quote APIs."""
+
+    trash_select_related = ("service", "service__client")
+
+    def trash_label(self, obj):
+        return obj.quote_number
+
+    def trash_detail(self, obj):
+        return f"{obj.service.service_name} · {obj.service.client.name}"
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
@@ -698,8 +732,13 @@ class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
         )
 
 
-class ServiceQuestionnaireViewSet(viewsets.ModelViewSet):
+class ServiceQuestionnaireViewSet(TrashMixin, viewsets.ModelViewSet):
     """View for manage service questionnaires APIs."""
+
+    search_fields = ["service_name"]
+
+    def trash_label(self, obj):
+        return f"{obj.service_name} questionnaire"
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
@@ -721,8 +760,16 @@ class ServiceQuestionnaireViewSet(viewsets.ModelViewSet):
         instance.soft_delete(user=self.request.user)
 
 
-class ServiceTermsTemplateViewSet(viewsets.ModelViewSet):
+class ServiceTermsTemplateViewSet(TrashMixin, viewsets.ModelViewSet):
     """View for managing service terms template APIs."""
+
+    search_fields = ["service_name", "content"]
+
+    def trash_label(self, obj):
+        return f"{obj.service_name} terms"
+
+    def trash_detail(self, obj):
+        return obj.content if len(obj.content) <= 80 else f"{obj.content[:80]}…"
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]
@@ -753,8 +800,18 @@ class ServiceTermsTemplateViewSet(viewsets.ModelViewSet):
         instance.soft_delete(user=self.request.user)
 
 
-class JobViewSet(ListingMixin, viewsets.ModelViewSet):
+class JobViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
     """ViewSet for managing jobs related to services."""
+
+    trash_select_related = ("service", "service__client")
+
+    def trash_label(self, obj):
+        return obj.title
+
+    def trash_detail(self, obj):
+        when = timezone.localtime(obj.scheduled_date)
+        scheduled = f"{when:%b} {when.day}, {when.year}"
+        return f"{obj.service.service_name} · {obj.service.client.name} · {scheduled}"
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ClientLimitedWrite]

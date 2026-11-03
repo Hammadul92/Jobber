@@ -1,32 +1,7 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getBaseUrl } from "./baseConfig";
+import { api, changed, prefixed } from "./api";
 
-const rawBaseQuery = fetchBaseQuery({
-  baseUrl: `${getBaseUrl()}/finance`,
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers.set("authorization", `Token ${token}`);
-    }
-    return headers;
-  },
-});
-
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
-  if (result?.error?.status === 401) {
-    localStorage.removeItem("token");
-    const currentPath = window.location.pathname + window.location.search;
-    window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
-  }
-  return result;
-};
-
-const bankingInformationApi = createApi({
-  reducerPath: "bankingInformationApi",
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ["BankingInformation"],
-  endpoints: (builder) => ({
+const bankingInformationApi = api.injectEndpoints({
+  endpoints: prefixed("/finance", (builder) => ({
     fetchStripeConfig: builder.query({
       query: () => "/banking-information/stripe-config/",
       keepUnusedDataFor: 0,
@@ -36,38 +11,12 @@ const bankingInformationApi = createApi({
       providesTags: ["BankingInformation"],
     }),
 
-    fetchBankingInformation: builder.query({
-      query: (id) => `/banking-information/${id}/`,
-      providesTags: (result, error, id) => [{ type: "BankingInformation", id }],
-    }),
-
-    createBankingInformation: builder.mutation({
-      query: (data) => ({
-        url: "/banking-information/",
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: ["BankingInformation"],
-    }),
-
-    updateBankingInformation: builder.mutation({
-      query: (data) => ({
-        url: `/banking-information/${data.id}/`,
-        method: "PATCH",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [
-        "BankingInformation",
-        { type: "BankingInformation", id: arg.id },
-      ],
-    }),
-
     deleteBankingInformation: builder.mutation({
       query: (id) => ({
         url: `/banking-information/${id}/`,
         method: "DELETE",
       }),
-      invalidatesTags: ["BankingInformation"],
+      invalidatesTags: changed("BankingInformation"),
     }),
 
     createSetupIntent: builder.mutation({
@@ -83,7 +32,7 @@ const bankingInformationApi = createApi({
         method: "POST",
         body: { payment_method_id },
       }),
-      invalidatesTags: ["BankingInformation"],
+      invalidatesTags: changed("BankingInformation"),
     }),
     addBankAccount: builder.mutation({
       query: (data) => ({
@@ -91,24 +40,21 @@ const bankingInformationApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["BankingInformation"],
+      invalidatesTags: changed("BankingInformation"),
     }),
     checkBankAccount: builder.mutation({
       query: () => ({
         url: "/banking-information/check-bank-account/",
         method: "POST",
       }),
-      invalidatesTags: ["BankingInformation"],
+      invalidatesTags: changed("BankingInformation"),
     }),
-  }),
+  })),
 });
 
 export const {
   useFetchStripeConfigQuery,
   useFetchBankingInformationListQuery,
-  useFetchBankingInformationQuery,
-  useCreateBankingInformationMutation,
-  useUpdateBankingInformationMutation,
   useDeleteBankingInformationMutation,
   useCreateSetupIntentMutation,
   useSavePaymentMethodMutation,

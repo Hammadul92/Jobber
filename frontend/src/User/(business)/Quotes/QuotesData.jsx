@@ -10,7 +10,6 @@ import TableToolbar, {
   ToolbarSelect,
   tableCardClass,
 } from "../../../Components/ui/TableToolbar";
-import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
@@ -22,6 +21,9 @@ import { formatDate } from "../../../utils/formatDate";
 import { LuEye, LuPencil, LuTrash2 } from "react-icons/lu";
 import useAlert from "../../../hooks/useAlert";
 import { PAYMENT_TERMS_OPTIONS } from "../../../utils/paymentTerms";
+import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
+import TrashLink from "../../../Components/ui/TrashLink";
+import DeleteRecordMessage from "../../../Components/ui/DeleteRecordMessage";
 
 const QUOTE_STATUS_OPTIONS = ["DRAFT", "SENT", "SIGNED", "DECLINED", "EXPIRED"];
 
@@ -38,9 +40,14 @@ const BULK_ACTIONS = [
     key: "delete",
     label: "Delete",
     tone: "danger",
-    confirmMessage: (count) =>
-      `Delete ${pluralize(count, "selected quote")}? Signed quotes are kept.`,
-    successMessage: (count) => `${pluralize(count, "quote")} deleted.`,
+    confirmContent: (labels) => (
+      <DeleteRecordMessage
+        kind="quote"
+        names={labels}
+        note="Signed quotes are skipped and stay as they are."
+      />
+    ),
+    successMessage: (count) => `${pluralize(count, "quote")} moved to Trash.`,
   },
 ];
 
@@ -88,12 +95,14 @@ export default function QuotesData({ token, role }) {
     setShowModal(true);
   };
 
-  const confirmDelete = async (e) => {
-    e.preventDefault();
+  const confirmDelete = async () => {
     if (!selectedQuoteId) return;
     try {
       await deleteQuote(selectedQuoteId).unwrap();
-      setAlert({ type: "success", message: "Quote deleted successfully!" });
+      setAlert({
+        type: "success",
+        message: `Quote ${quoteNumberFor(selectedQuoteId)} moved to Trash.`,
+      });
       setShowModal(false);
       setSelectedQuoteId(null);
     } catch (err) {
@@ -111,6 +120,8 @@ export default function QuotesData({ token, role }) {
     table.clearSelection();
     return result;
   };
+
+  const pendingQuote = quotes.find((quote) => quote.id === selectedQuoteId);
 
   const quoteNumberFor = (id) =>
     quotes.find((quote) => String(quote.id) === String(id))?.quote_number ||
@@ -286,6 +297,7 @@ export default function QuotesData({ token, role }) {
           searchPlaceholder="Search quote number, client or service"
           isFiltered={table.hasActiveFilters}
           onClear={table.resetFilters}
+          actions={isManager && <TrashLink resource="quotes" />}
         >
           <ToolbarSelect
             id="quotes-status-filter"
@@ -339,6 +351,7 @@ export default function QuotesData({ token, role }) {
         {isManager && (
           <BulkActionBar
             selectedCount={table.selectedIds.length}
+            selectedIds={table.selectedIds}
             actions={BULK_ACTIONS.map((action) => ({
               ...action,
               describeRow: quoteNumberFor,
@@ -393,49 +406,25 @@ export default function QuotesData({ token, role }) {
         />
       </div>
 
-      {showModal && (
-        <form
-          onSubmit={confirmDelete}
-          className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h5 className="text-xl font-medium text-gray-900">
-                Delete Quote
-              </h5>
-              <button
-                type="button"
-                className="text-2xl text-gray-600 transition hover:text-gray-900"
-                onClick={() => setShowModal(false)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-            <div className="px-5 py-4 text-gray-700">
-              <p className="mb-0">
-                Are you sure you want to delete this quote?
-              </p>
-            </div>
-            <div className="flex justify-end gap-3 px-5 py-4">
-              <button
-                type="button"
-                className="inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 transition bg-white border border-gray-200 rounded-xl hover:bg-gray-50"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-              <SubmitButton
-                isLoading={deleting}
-                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
-                btnName="Delete"
-              />
-            </div>
-          </div>
-        </form>
-      )}
+      <ConfirmDialog
+        open={showModal}
+        title="Delete Quote"
+        message={
+          pendingQuote && (
+            <DeleteRecordMessage
+              kind="quote"
+              name={`Quote ${pendingQuote.quote_number}`}
+              detail={[pendingQuote.service_name, pendingQuote.client_name]
+                .filter(Boolean)
+                .join(" · ")}
+            />
+          )
+        }
+        confirmLabel="Delete"
+        isLoading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowModal(false)}
+      />
     </>
   );
 }

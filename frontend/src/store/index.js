@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
+import { api } from "./apis/api";
 import { userApi } from "./apis/userApi";
 import { businessApi } from "./apis/businessApi";
 import { clientApi } from "./apis/clientApi";
@@ -13,56 +14,34 @@ import { bankingInformationApi } from "./apis/bankingInformationApi";
 import { invoiceApi } from "./apis/invoiceApi";
 import { payoutApi } from "./apis/payoutApi";
 import { dashboardApi } from "./apis/dashboardApi";
+import { trashApi } from "./apis/trashApi";
 import { topbarReducer } from "./topbarSlice";
 import { alertReducer } from "./alertSlice";
 
 const store = configureStore({
   reducer: {
-    [userApi.reducerPath]: userApi.reducer,
-    [businessApi.reducerPath]: businessApi.reducer,
-    [clientApi.reducerPath]: clientApi.reducer,
-    [teamMemberApi.reducerPath]: teamMemberApi.reducer,
-    [serviceApi.reducerPath]: serviceApi.reducer,
-    [quoteApi.reducerPath]: quoteApi.reducer,
-    [serviceQuestionnaireApi.reducerPath]: serviceQuestionnaireApi.reducer,
-    [serviceTermsTemplateApi.reducerPath]: serviceTermsTemplateApi.reducer,
-    [jobApi.reducerPath]: jobApi.reducer,
-    [bankingInformationApi.reducerPath]: bankingInformationApi.reducer,
-    [invoiceApi.reducerPath]: invoiceApi.reducer,
-    [payoutApi.reducerPath]: payoutApi.reducer,
-    [dashboardApi.reducerPath]: dashboardApi.reducer,
+    // One API for every slice, so related records refresh together.
+    [api.reducerPath]: api.reducer,
     topbar: topbarReducer,
     alerts: alertReducer,
   },
-  middleware: (getDefaultMiddleware) => {
-    return getDefaultMiddleware({
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
       serializableCheck: {
         warnAfter: 128,
       },
       immutableCheck: {
         warnAfter: 128,
       },
-    })
-      .concat(userApi.middleware)
-      .concat(businessApi.middleware)
-      .concat(clientApi.middleware)
-      .concat(serviceQuestionnaireApi.middleware)
-      .concat(serviceTermsTemplateApi.middleware)
-      .concat(teamMemberApi.middleware)
-      .concat(serviceApi.middleware)
-      .concat(quoteApi.middleware)
-      .concat(jobApi.middleware)
-      .concat(bankingInformationApi.middleware)
-      .concat(invoiceApi.middleware)
-      .concat(payoutApi.middleware)
-      .concat(dashboardApi.middleware);
-  },
+    }).concat(api.middleware),
 });
 
 setupListeners(store.dispatch);
 
 export {
   store,
+  api,
+  trashApi,
   userApi,
   businessApi,
   clientApi,
@@ -94,11 +73,9 @@ export {
 export {
   useFetchBusinessesQuery,
   useFetchServiceOptionsQuery,
-  useFetchBusinessMarqueeLogosQuery,
   useFetchBusinessQuery,
   useCreateBusinessMutation,
   useUpdateBusinessMutation,
-  useDeleteBusinessMutation,
 } from "./apis/businessApi";
 
 export {
@@ -129,7 +106,6 @@ export {
   useCreateServiceMutation,
   useUpdateServiceMutation,
   useDeleteServiceMutation,
-  useResendQuestionnaireMutation,
 } from "./apis/serviceApi";
 
 export {
@@ -154,14 +130,12 @@ export {
 
 export {
   useFetchServiceTermsTemplatesQuery,
-  useFetchServiceTermsTemplateQuery,
   useCreateServiceTermsTemplateMutation,
   useUpdateServiceTermsTemplateMutation,
   useDeleteServiceTermsTemplateMutation,
 } from "./apis/serviceTermsTemplateApi";
 
 export {
-  useFetchJobsQuery,
   useFetchJobsPageQuery,
   useBulkJobsMutation,
   useFetchJobQuery,
@@ -169,19 +143,12 @@ export {
   useUpdateJobMutation,
   useDeleteJobMutation,
   useFetchJobPhotosQuery,
-  useFetchJobPhotoQuery,
   useCreateJobPhotoMutation,
-  useUpdateJobPhotoMutation,
-  useReplaceJobPhotoMutation,
-  useDeleteJobPhotoMutation,
 } from "./apis/jobApi";
 
 export {
   useFetchBankingInformationListQuery,
   useFetchStripeConfigQuery,
-  useFetchBankingInformationQuery,
-  useCreateBankingInformationMutation,
-  useUpdateBankingInformationMutation,
   useDeleteBankingInformationMutation,
   useCreateSetupIntentMutation,
   useSavePaymentMethodMutation,
@@ -190,13 +157,11 @@ export {
 } from "./apis/bankingInformationApi";
 
 export {
-  useFetchInvoicesQuery,
   useFetchInvoicesPageQuery,
   useBulkInvoicesMutation,
   useFetchInvoiceQuery,
   useCreateInvoiceMutation,
   useUpdateInvoiceMutation,
-  useReplaceInvoiceMutation,
   useDeleteInvoiceMutation,
   useMakePaymentMutation,
   useSendInvoiceMutation,
@@ -204,13 +169,8 @@ export {
 } from "./apis/invoiceApi";
 
 export {
-  useFetchPayoutsQuery,
   useFetchPayoutsPageQuery,
-  useBulkPayoutsMutation,
   useFetchPayoutQuery,
-  useCreatePayoutMutation,
-  useUpdatePayoutMutation,
-  useReplacePayoutMutation,
   useRefundPayoutMutation,
 } from "./apis/payoutApi";
 
@@ -218,5 +178,12 @@ export {
   useFetchDashboardQuery,
   useFetchDashboardTodosQuery,
 } from "./apis/dashboardApi";
+
+export {
+  useFetchTrashQuery,
+  useRestoreRecordMutation,
+  useRestoreRecordsMutation,
+  TRASH_RESOURCES,
+} from "./apis/trashApi";
 
 export { topbarReducer } from "./topbarSlice";

@@ -1,32 +1,7 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getBaseUrl } from "./baseConfig";
+import { api, changed, movedToOrFromTrash, prefixed } from "./api";
 
-const rawBaseQuery = fetchBaseQuery({
-  baseUrl: `${getBaseUrl()}/ops`,
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers.set("authorization", `Token ${token}`);
-    }
-    return headers;
-  },
-});
-
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
-  if (result?.error?.status === 401) {
-    localStorage.removeItem("token");
-    const currentPath = window.location.pathname + window.location.search;
-    window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
-  }
-  return result;
-};
-
-const clientApi = createApi({
-  reducerPath: "clientApi",
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ["Client"],
-  endpoints: (builder) => ({
+const clientApi = api.injectEndpoints({
+  endpoints: prefixed("/ops", (builder) => ({
     // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
     fetchClientsPage: builder.query({
       query: (params) => ({ url: "/client/", params }),
@@ -38,7 +13,7 @@ const clientApi = createApi({
         method: "POST",
         body: { action, ids },
       }),
-      invalidatesTags: ["Client"],
+      invalidatesTags: movedToOrFromTrash("Client"),
     }),
     fetchClients: builder.query({
       query: () => "/client/",
@@ -56,7 +31,7 @@ const clientApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Client"],
+      invalidatesTags: changed("Client"),
     }),
 
     updateClient: builder.mutation({
@@ -65,10 +40,7 @@ const clientApi = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        "Client",
-        { type: "Client", id: arg.id },
-      ],
+      invalidatesTags: changed("Client"),
     }),
 
     deleteClient: builder.mutation({
@@ -76,9 +48,9 @@ const clientApi = createApi({
         url: `/client/${id}/`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Client"],
+      invalidatesTags: movedToOrFromTrash("Client"),
     }),
-  }),
+  })),
 });
 
 export const {

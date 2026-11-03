@@ -6,7 +6,6 @@ import {
   useDeleteJobMutation,
   useFetchTeamMembersQuery,
 } from "../../../store";
-import SubmitButton from "../../../Components/ui/SubmitButton";
 import TableToolbar, {
   ToolbarDate,
   ToolbarSelect,
@@ -21,6 +20,9 @@ import TablePagination from "../../../Components/ui/TablePagination";
 import useServerTable from "../../../hooks/useServerTable";
 import { LuPencilLine, LuTrash2 } from "react-icons/lu";
 import useAlert from "../../../hooks/useAlert";
+import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
+import TrashLink from "../../../Components/ui/TrashLink";
+import DeleteRecordMessage from "../../../Components/ui/DeleteRecordMessage";
 
 const BULK_ACTIONS = [
   {
@@ -35,9 +37,14 @@ const BULK_ACTIONS = [
     key: "delete",
     label: "Delete",
     tone: "danger",
-    confirmMessage: (count) =>
-      `Delete ${pluralize(count, "job")}? This cannot be undone.`,
-    successMessage: (count) => `${pluralize(count, "job")} deleted.`,
+    confirmContent: (labels) => (
+      <DeleteRecordMessage
+        kind="job"
+        names={labels}
+        alsoDeletes="Their before and after photos move to Trash with them."
+      />
+    ),
+    successMessage: (count) => `${pluralize(count, "job")} moved to Trash.`,
   },
 ];
 
@@ -84,20 +91,21 @@ export default function JobData({ token, role }) {
   const jobTitleFor = (id) =>
     jobs.find((job) => String(job.id) === String(id))?.title || `#${id}`;
 
+  const pendingJob = jobs.find((job) => job.id === selectedJobId);
+
   const handleDeleteClick = (id) => {
     setSelectedJobId(id);
     setShowModal(true);
   };
 
-  const confirmDelete = async (e) => {
-    e.preventDefault();
+  const confirmDelete = async () => {
     if (!selectedJobId) return;
 
     try {
       await deleteJob(selectedJobId).unwrap();
       setAlert({
         type: "success",
-        message: "Job deleted successfully!",
+        message: `Job “${jobTitleFor(selectedJobId)}” moved to Trash.`,
       });
     } catch (err) {
       const msg =
@@ -241,6 +249,7 @@ export default function JobData({ token, role }) {
           searchPlaceholder="Search job, service, client or team member"
           isFiltered={table.hasActiveFilters}
           onClear={table.resetFilters}
+          actions={isManager && <TrashLink resource="jobs" />}
         >
           {isManager && (
             <ToolbarSelect
@@ -296,6 +305,7 @@ export default function JobData({ token, role }) {
         {isManager && (
           <BulkActionBar
             selectedCount={table.selectedIds.length}
+            selectedIds={table.selectedIds}
             actions={BULK_ACTIONS.map((action) => ({
               ...action,
               describeRow: jobTitleFor,
@@ -343,52 +353,31 @@ export default function JobData({ token, role }) {
         />
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="fixed inset-0 bg-gray-900/40"
-            onClick={() => setShowModal(false)}
-          ></div>
-
-          <form
-            onSubmit={confirmDelete}
-            className="relative z-10 w-full md:w-4/7 lg:w-2/7 max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-6"
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="flex items-center justify-between">
-              <h5 className="text-xl font-medium text-gray-900">Delete Job</h5>
-              <button
-                type="button"
-                className="text-gray-400 transition hover:text-gray-600"
-                onClick={() => setShowModal(false)}
-                aria-label="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            <p className="mt-3 text-gray-600">
-              Are you sure you want to delete this job?
-            </p>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-              <SubmitButton
-                isLoading={deleting}
-                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
-                btnName="Delete"
-              />
-            </div>
-          </form>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showModal}
+        title="Delete Job"
+        message={
+          pendingJob && (
+            <DeleteRecordMessage
+              kind="job"
+              name={pendingJob.title}
+              detail={[
+                pendingJob.service_name,
+                pendingJob.assigned_to_name,
+                pendingJob.scheduled_date &&
+                  new Date(pendingJob.scheduled_date).toLocaleDateString(),
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+              alsoDeletes="Its before and after photos move to Trash with it."
+            />
+          )
+        }
+        confirmLabel="Delete"
+        isLoading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowModal(false)}
+      />
     </>
   );
 }

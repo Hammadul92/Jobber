@@ -22,6 +22,8 @@ import {
   LuX,
 } from "react-icons/lu";
 import useAlert from "../../../hooks/useAlert";
+import { formatMoney } from "../../../utils/formatMoney";
+import { downloadCsv } from "../../../utils/csv";
 
 const INITIAL_FILTERS = { status: "", processed_from: "", processed_to: "" };
 
@@ -46,22 +48,13 @@ const BULK_ACTIONS = [
   },
 ];
 
-const formatMoney = (value, currency = "CAD") => {
-  const amount = Number.parseFloat(value || 0);
-  const currencyLabel = currency || "CAD";
-  return `$${new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number.isFinite(amount) ? amount : 0)} ${currencyLabel}`;
-};
-
 const getPayoutTotal = (row) => {
   const grossAmount = Number.parseFloat(row?.amount || 0);
   const currency = row?.currency || "CAD";
   return `${formatMoney(grossAmount, currency)} (before Stripe fees)`;
 };
 
-function downloadCsv(filename, rows) {
+function exportPayoutsCsv(filename, rows) {
   const headers = [
     "Invoice",
     "Client",
@@ -80,23 +73,7 @@ function downloadCsv(filename, rows) {
     row.processed_at ? formatDate(row.processed_at) : "",
   ]);
 
-  const csv = [headers, ...csvRows]
-    .map((row) =>
-      row
-        .map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`)
-        .join(","),
-    )
-    .join("\n");
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  downloadCsv(filename, headers, csvRows);
 }
 
 export default function PayoutDatatable({ token, role }) {
@@ -140,7 +117,7 @@ export default function PayoutDatatable({ token, role }) {
         setAlert({ type: "warning", message: "There are no payouts to export." });
         return;
       }
-      downloadCsv("payouts.csv", allRows);
+      exportPayoutsCsv("payouts.csv", allRows);
     } catch (err) {
       setAlert({
         type: "danger",
@@ -153,7 +130,7 @@ export default function PayoutDatatable({ token, role }) {
   // always on the current page.
   const runBulkAction = async () => {
     const selected = rows.filter((row) => table.selectedIds.includes(row.id));
-    downloadCsv("payouts-selected.csv", selected);
+    exportPayoutsCsv("payouts-selected.csv", selected);
     table.clearSelection();
     return { succeeded: selected.length, failed: 0, results: [] };
   };

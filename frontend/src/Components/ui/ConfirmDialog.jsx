@@ -1,12 +1,15 @@
 import { useEffect, useRef } from "react";
 
-// Small yes/no prompt for destructive actions such as removing an item from a
-// form. Cancel is focused first and Escape cancels.
+// Yes/no prompt for destructive actions (deleting a record, removing an item
+// from a form). Cancel is focused first and Escape cancels; while isLoading the
+// buttons are disabled and the confirm button shows loadingLabel.
 export default function ConfirmDialog({
   open,
   title = "Are you sure?",
   message,
   confirmLabel = "Remove",
+  loadingLabel = "Deleting...",
+  isLoading = false,
   onConfirm,
   onCancel,
 }) {
@@ -16,11 +19,11 @@ export default function ConfirmDialog({
     if (!open) return undefined;
     cancelButtonRef.current?.focus();
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") onCancel();
+      if (event.key === "Escape" && !isLoading) onCancel();
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, onCancel]);
+  }, [open, isLoading, onCancel]);
 
   if (!open) return null;
 
@@ -38,25 +41,27 @@ export default function ConfirmDialog({
           {title}
         </h2>
         {message && (
-          <p id="confirm-dialog-message" className="mt-3 text-sm text-slate-700">
+          <div id="confirm-dialog-message" className="mt-3 text-sm text-slate-700">
             {message}
-          </p>
+          </div>
         )}
         <div className="mt-6 flex justify-end gap-3">
           <button
             ref={cancelButtonRef}
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-gray-50"
+            disabled={isLoading}
+            className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-gray-50 disabled:opacity-60"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100"
+            disabled={isLoading}
+            className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 disabled:opacity-60"
           >
-            {confirmLabel}
+            {isLoading ? loadingLabel : confirmLabel}
           </button>
         </div>
       </div>
