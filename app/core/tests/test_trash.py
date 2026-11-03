@@ -49,12 +49,18 @@ class TrashTests(TestCase):
         return self.api.post(reverse(f"operations:{resource}-bulk-restore"), {"ids": ids}, format="json")
 
     def test_deleted_rows_move_to_the_trash_with_a_readable_label(self):
-        self.assertEqual(self.api.delete(reverse("operations:client-detail", args=[self.client_record.pk])).status_code, 204)
+        response = self.api.delete(
+            reverse("operations:client-detail", args=[self.client_record.pk])
+        )
+        self.assertEqual(response.status_code, 204)
 
         page = self.trash("client").data
         self.assertEqual(page["count"], 1)
         row = page["results"][0]
-        self.assertEqual((row["label"], row["detail"]), ("Alice", "Acme · alice@example.com"))
+        self.assertEqual(
+            (row["label"], row["detail"]),
+            ("Alice", "Acme · alice@example.com"),
+        )
         self.assertEqual(row["deleted_by"], "Owner")
         self.assertEqual(row["blocked_reason"], "")
 
