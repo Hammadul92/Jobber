@@ -1,32 +1,7 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getBaseUrl } from "./baseConfig";
+import { api, changed, movedToOrFromTrash, prefixed } from "./api";
 
-const rawBaseQuery = fetchBaseQuery({
-  baseUrl: `${getBaseUrl()}/finance`,
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers.set("authorization", `Token ${token}`);
-    }
-    return headers;
-  },
-});
-
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
-  if (result?.error?.status === 401) {
-    localStorage.removeItem("token");
-    const currentPath = window.location.pathname + window.location.search;
-    window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
-  }
-  return result;
-};
-
-const invoiceApi = createApi({
-  reducerPath: "invoiceApi",
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ["Invoice"],
-  endpoints: (builder) => ({
+const invoiceApi = api.injectEndpoints({
+  endpoints: prefixed("/finance", (builder) => ({
     // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
     fetchInvoicesPage: builder.query({
       query: (params) => ({ url: "/invoice/", params }),
@@ -38,34 +13,7 @@ const invoiceApi = createApi({
         method: "POST",
         body: { action, ids },
       }),
-      invalidatesTags: ["Invoice"],
-    }),
-    fetchInvoices: builder.query({
-      query: (params) => {
-        let url = "/invoice/";
-
-        if (params) {
-          const searchParams = new URLSearchParams();
-
-          if (typeof params === "string" || typeof params === "number") {
-            searchParams.set("service", params);
-          } else {
-            Object.entries(params).forEach(([key, value]) => {
-              if (value !== undefined && value !== null && value !== "") {
-                searchParams.set(key, value);
-              }
-            });
-          }
-
-          const queryString = searchParams.toString();
-          if (queryString) {
-            url += `?${queryString}`;
-          }
-        }
-
-        return url;
-      },
-      providesTags: ["Invoice"],
+      invalidatesTags: movedToOrFromTrash("Invoice"),
     }),
 
     fetchInvoice: builder.query({
@@ -79,7 +27,7 @@ const invoiceApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Invoice"],
+      invalidatesTags: changed("Invoice"),
     }),
 
     updateInvoice: builder.mutation({
@@ -88,22 +36,7 @@ const invoiceApi = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: (result, error, data) => [
-        "Invoice",
-        { type: "Invoice", id: data.id },
-      ],
-    }),
-
-    replaceInvoice: builder.mutation({
-      query: (data) => ({
-        url: `/invoice/${data.id}/`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, data) => [
-        "Invoice",
-        { type: "Invoice", id: data.id },
-      ],
+      invalidatesTags: changed("Invoice"),
     }),
 
     deleteInvoice: builder.mutation({
@@ -111,7 +44,7 @@ const invoiceApi = createApi({
         url: `/invoice/${id}/`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Invoice"],
+      invalidatesTags: movedToOrFromTrash("Invoice"),
     }),
 
     sendInvoice: builder.mutation({
@@ -119,10 +52,7 @@ const invoiceApi = createApi({
         url: `/invoice/${id}/send-invoice/`,
         method: "POST",
       }),
-      invalidatesTags: (result, error, id) => [
-        "Invoice",
-        { type: "Invoice", id },
-      ],
+      invalidatesTags: changed("Invoice"),
     }),
 
     markInvoiceUnpaid: builder.mutation({
@@ -130,10 +60,7 @@ const invoiceApi = createApi({
         url: `/invoice/${id}/mark-unpaid/`,
         method: "POST",
       }),
-      invalidatesTags: (result, error, id) => [
-        "Invoice",
-        { type: "Invoice", id },
-      ],
+      invalidatesTags: changed("Invoice"),
     }),
 
     makePayment: builder.mutation({
@@ -141,22 +68,17 @@ const invoiceApi = createApi({
         url: `/invoice/${id}/make-payment/`,
         method: "POST",
       }),
-      invalidatesTags: (result, error, id) => [
-        "Invoice",
-        { type: "Invoice", id },
-      ],
+      invalidatesTags: changed("Invoice"),
     }),
-  }),
+  })),
 });
 
 export const {
-  useFetchInvoicesQuery,
   useFetchInvoicesPageQuery,
   useBulkInvoicesMutation,
   useFetchInvoiceQuery,
   useCreateInvoiceMutation,
   useUpdateInvoiceMutation,
-  useReplaceInvoiceMutation,
   useDeleteInvoiceMutation,
   useMakePaymentMutation,
   useSendInvoiceMutation,

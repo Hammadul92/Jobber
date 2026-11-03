@@ -21,6 +21,7 @@ import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerN
 import TransactionCompleteNotice from "../../../Components/ui/TransactionCompleteNotice";
 import { isInvoicePastDue, paymentTermsLabel } from "../../../utils/paymentTerms";
 import useAlert from "../../../hooks/useAlert";
+import { formatMoney } from "../../../utils/formatMoney";
 
 const STATUS_STYLES = {
   DRAFT: "bg-slate-100 text-slate-600",
@@ -38,27 +39,6 @@ const ACTION_BTN_STYLES = {
   unpaid: `${ACTION_BTN_BASE} border border-accent bg-white text-accent hover:bg-orange-50`,
   cancel: `${ACTION_BTN_BASE} border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100`,
 };
-
-const CURRENCY_SYMBOLS = {
-  CAD: "$",
-  USD: "$",
-  EUR: "€",
-  GBP: "£",
-};
-
-function formatMoney(value, currency = "CAD") {
-  const amount = Number.parseFloat(value || 0);
-  const formattedAmount = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number.isFinite(amount) ? amount : 0);
-  const symbol = CURRENCY_SYMBOLS[currency];
-  const currencyLabel = currency || "CAD";
-
-  return symbol
-    ? `${symbol}${formattedAmount} ${currencyLabel}`
-    : `${formattedAmount} ${currencyLabel}`.trim();
-}
 
 export default function Invoice({ token, role }) {
   const { id } = useParams();

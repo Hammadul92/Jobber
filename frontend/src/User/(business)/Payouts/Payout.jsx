@@ -11,6 +11,7 @@ import RecordLink from "../../../Components/ui/RecordLink";
 import { formatDate } from "../../../utils/formatDate";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import useAlert from "../../../hooks/useAlert";
+import { formatMoney } from "../../../utils/formatMoney";
 
 const STATUS_STYLES = {
   PAID: "bg-emerald-100 text-emerald-700",
@@ -19,15 +20,6 @@ const STATUS_STYLES = {
   FAILED: "bg-rose-100 text-rose-700",
   PENDING: "bg-slate-100 text-slate-600",
 };
-
-function formatMoney(value, currency = "CAD") {
-  const amount = Number.parseFloat(value || 0);
-  const currencyLabel = currency || "CAD";
-  return `$${new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number.isFinite(amount) ? amount : 0)} ${currencyLabel}`;
-}
 
 export default function Payout({ token, role }) {
   const { id } = useParams();

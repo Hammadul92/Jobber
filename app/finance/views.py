@@ -16,6 +16,7 @@ from rest_framework.exceptions import APIException, PermissionDenied, Validation
 from rest_framework.response import Response
 
 from core.listing import ListingMixin
+from core.trash import TrashMixin
 from core.permissions import ClientLimitedWrite
 
 from core.models import BankingInformation, Business, Client, Invoice, Payout, PayoutRefund
@@ -356,8 +357,16 @@ class BankingInformationViewSet(viewsets.ModelViewSet):
             )
 
 
-class InvoiceViewSet(ListingMixin, viewsets.ModelViewSet):
+class InvoiceViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
     """ViewSet for managing invoices."""
+
+    trash_select_related = ("client",)
+
+    def trash_label(self, obj):
+        return obj.invoice_number
+
+    def trash_detail(self, obj):
+        return f"{obj.client.name} · {obj.currency} {obj.total_amount:,.2f}"
 
     serializer_class = serializers.InvoiceSerializer
     queryset = Invoice.objects.select_related(
@@ -375,7 +384,7 @@ class InvoiceViewSet(ListingMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         """Return invoices linked to the logged-in user."""
         user = self.request.user
-        invoices = self.queryset.filter(is_active=True).annotate(
+        invoices = super().get_queryset().filter(is_active=True).annotate(
             client_has_card=Exists(usable_cards_for_user(OuterRef("client__user_id"))),
         )
         if self.action in ("update", "partial_update"):

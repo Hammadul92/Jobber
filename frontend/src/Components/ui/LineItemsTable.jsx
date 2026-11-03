@@ -1,5 +1,7 @@
+import { formatMoney } from "../../utils/formatMoney";
+
 export default function LineItemsTable({ items = [], currency = "CAD", subtotal, taxRate, taxLabel = "Tax", taxAmount, total, billingCycle }) {
-  const money = (value) => `$${Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
+  const money = (value) => formatMoney(value, currency);
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200" aria-label="Service price breakdown">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500"><span>Service item</span><span>Price</span></div>

@@ -3,7 +3,6 @@ import {
   useFetchServiceQuestionnairesQuery,
   useDeleteServiceQuestionnaireMutation,
 } from "../../../store";
-import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import {
   LuCircleAlert,
@@ -15,6 +14,9 @@ import {
 } from "react-icons/lu";
 import { CgClose } from "react-icons/cg";
 import useAlert from "../../../hooks/useAlert";
+import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
+import TrashLink from "../../../Components/ui/TrashLink";
+import DeleteRecordMessage from "../../../Components/ui/DeleteRecordMessage";
 
 export default function ServiceQuestionnairesData({ token, onEdit }) {
   const setAlert = useAlert();
@@ -59,15 +61,18 @@ export default function ServiceQuestionnairesData({ token, onEdit }) {
     setShowModal(true);
   };
 
-  const confirmDelete = async (e) => {
-    e.preventDefault();
+  const pendingQuestionnaire = questionnaires.find((q) => q.id === selectedId);
+
+  const confirmDelete = async () => {
     if (!selectedId) return;
 
     try {
       await deleteServiceQuestionnaire(selectedId).unwrap();
       setAlert({
         type: "success",
-        message: "Service questionnaire deleted successfully!",
+        message: pendingQuestionnaire
+          ? `${pendingQuestionnaire.service_name} questionnaire moved to Trash.`
+          : "Questionnaire moved to Trash.",
       });
       setShowModal(false);
       setSelectedId(null);
@@ -142,10 +147,11 @@ export default function ServiceQuestionnairesData({ token, onEdit }) {
           </div>
         </div>
 
-        <div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h4 className="text-2xl md:text-3xl font-semibold text-primary">
             Service Questionnaires
           </h4>
+          <TrashLink resource="questionnaires" />
         </div>
 
         {questionnaires.length === 0 ? (
@@ -326,44 +332,29 @@ export default function ServiceQuestionnairesData({ token, onEdit }) {
         </div>
       )}
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-3">
-          <form
-            onSubmit={confirmDelete}
-            className="max-w-md rounded-2xl bg-white p-6 shadow-lg space-y-8"
-          >
-            <div className="flex items-start justify-between">
-              <h5 className="text-xl font-medium text-slate-900">
-                Delete Service Questionnaire
-              </h5>
-              <button
-                type="button"
-                className="text-lg text-gray-500 transition hover:text-gray-700"
-                onClick={() => setShowModal(false)}
-              >
-                ✕
-              </button>
-            </div>
-            <p className="mt-3 text-sm text-gray-700">
-              Are you sure you want to delete this service questionnaire?
-            </p>
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                type="button"
-                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-              <SubmitButton
-                isLoading={deleting}
-                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
-                btnName="Delete"
-              />
-            </div>
-          </form>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showModal}
+        title="Delete Questionnaire"
+        message={
+          pendingQuestionnaire && (
+            <DeleteRecordMessage
+              kind="questionnaire"
+              name={`${pendingQuestionnaire.service_name} questionnaire`}
+              detail={(() => {
+                const count = Array.isArray(pendingQuestionnaire.additional_questions_form)
+                  ? pendingQuestionnaire.additional_questions_form.length
+                  : 0;
+                return count ? `${count} question${count === 1 ? "" : "s"}` : "";
+              })()}
+              note={`New ${pendingQuestionnaire.service_name} services will no longer send this questionnaire to clients.`}
+            />
+          )
+        }
+        confirmLabel="Delete"
+        isLoading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowModal(false)}
+      />
     </>
   );
 }

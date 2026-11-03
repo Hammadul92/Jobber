@@ -11,6 +11,7 @@ import Input from "../../../Components/ui/Input";
 import { LuX } from "react-icons/lu";
 import { PAYMENT_TERMS_OPTIONS } from "../../../utils/paymentTerms";
 import useAlert from "../../../hooks/useAlert";
+import { apiErrorMessage } from "../../../utils/apiError";
 
 export default function CreateQuoteForm({
   token,
@@ -68,17 +69,7 @@ export default function CreateQuoteForm({
     } catch (err) {
       const message =
         err?.data?.service?.[0] ||
-        err?.data?.detail ||
-        (err?.data && typeof err.data === "object"
-          ? Object.entries(err.data)
-              .map(([key, value]) =>
-                `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
-              )
-              .join(" | ")
-          : "") ||
-        err?.error ||
-        (typeof err?.data === "string" ? err.data : "") ||
-        "Something went wrong while creating the quote. Please try again.";
+        apiErrorMessage(err, "Something went wrong while creating the quote. Please try again.");
 
       setAlert({ type: "danger", message });
     }

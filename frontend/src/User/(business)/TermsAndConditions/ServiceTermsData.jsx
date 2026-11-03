@@ -3,7 +3,6 @@ import {
   useDeleteServiceTermsTemplateMutation,
   useFetchServiceTermsTemplatesQuery,
 } from "../../../store";
-import SubmitButton from "../../../Components/ui/SubmitButton";
 import RichTextContent from "../../../Components/ui/RichTextContent";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import {
@@ -16,6 +15,9 @@ import {
 } from "react-icons/lu";
 import { CgClose } from "react-icons/cg";
 import useAlert from "../../../hooks/useAlert";
+import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
+import TrashLink from "../../../Components/ui/TrashLink";
+import DeleteRecordMessage from "../../../Components/ui/DeleteRecordMessage";
 
 export default function ServiceTermsData({ token, onEdit }) {
   const setAlert = useAlert();
@@ -48,15 +50,18 @@ export default function ServiceTermsData({ token, onEdit }) {
     }
   }, [error, setAlert]);
 
-  const handleDelete = async (e) => {
-    e.preventDefault();
+  const pendingTemplate = templates.find(
+    (template) => template.id === selectedId,
+  );
+
+  const handleDelete = async () => {
     if (!selectedId) return;
 
     try {
       await deleteServiceTermsTemplate(selectedId).unwrap();
       setAlert({
         type: "success",
-        message: "Service terms deleted successfully!",
+        message: `${pendingTemplate?.service_name || "Service"} terms moved to Trash.`,
       });
       setShowDeleteModal(false);
       setSelectedId(null);
@@ -130,10 +135,11 @@ export default function ServiceTermsData({ token, onEdit }) {
           </div>
         </div>
 
-        <div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h4 className="text-2xl font-semibold text-primary md:text-3xl">
             Service Terms & Conditions
           </h4>
+          <TrashLink resource="terms" />
         </div>
 
         {templates.length === 0 ? (
@@ -249,35 +255,23 @@ export default function ServiceTermsData({ token, onEdit }) {
         </div>
       )}
 
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-3">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <h5 className="text-lg font-semibold text-slate-900">
-              Delete Terms Template
-            </h5>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Are you sure you want to delete this service terms template?
-            </p>
-            <form onSubmit={handleDelete} className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setSelectedId(null);
-                }}
-              >
-                Cancel
-              </button>
-              <SubmitButton
-                isLoading={deleting}
-                btnClass="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-700"
-                btnName="Delete"
-              />
-            </form>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showDeleteModal}
+        title="Delete Terms Template"
+        message={
+          pendingTemplate && (
+            <DeleteRecordMessage
+              kind="terms template"
+              name={`${pendingTemplate.service_name} terms & conditions`}
+              note="Quotes that already include these terms keep them."
+            />
+          )
+        }
+        confirmLabel="Delete"
+        isLoading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </>
   );
 }

@@ -1,32 +1,7 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getBaseUrl } from "./baseConfig";
+import { api, changed, movedToOrFromTrash, prefixed } from "./api";
 
-const rawBaseQuery = fetchBaseQuery({
-  baseUrl: `${getBaseUrl()}/ops`,
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers.set("authorization", `Token ${token}`);
-    }
-    return headers;
-  },
-});
-
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
-  if (result?.error?.status === 401) {
-    localStorage.removeItem("token");
-    const currentPath = window.location.pathname + window.location.search;
-    window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
-  }
-  return result;
-};
-
-const quoteApi = createApi({
-  reducerPath: "quoteApi",
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ["Quote"],
-  endpoints: (builder) => ({
+const quoteApi = api.injectEndpoints({
+  endpoints: prefixed("/ops", (builder) => ({
     // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
     fetchQuotesPage: builder.query({
       query: (params) => ({ url: "/quote/", params }),
@@ -38,7 +13,7 @@ const quoteApi = createApi({
         method: "POST",
         body: { action, ids },
       }),
-      invalidatesTags: ["Quote"],
+      invalidatesTags: movedToOrFromTrash("Quote"),
     }),
     fetchQuotes: builder.query({
       query: () => "/quote/",
@@ -54,7 +29,7 @@ const quoteApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Quote"],
+      invalidatesTags: changed("Quote"),
     }),
     updateQuote: builder.mutation({
       query: (data) => ({
@@ -62,24 +37,21 @@ const quoteApi = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        "Quote",
-        { type: "Quote", id: arg.id },
-      ],
+      invalidatesTags: changed("Quote"),
     }),
     deleteQuote: builder.mutation({
       query: (id) => ({
         url: `/quote/${id}/`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Quote"],
+      invalidatesTags: movedToOrFromTrash("Quote"),
     }),
     sendQuote: builder.mutation({
       query: (id) => ({
         url: `/quote/${id}/send-quote/`,
         method: "POST",
       }),
-      invalidatesTags: (result, error, id) => ["Quote", { type: "Quote", id }],
+      invalidatesTags: changed("Quote"),
     }),
     signQuote: builder.mutation({
       query: ({ id, formData }) => ({
@@ -87,12 +59,9 @@ const quoteApi = createApi({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        "Quote",
-        { type: "Quote", id },
-      ],
+      invalidatesTags: changed("Quote"),
     }),
-  }),
+  })),
 });
 
 export const {

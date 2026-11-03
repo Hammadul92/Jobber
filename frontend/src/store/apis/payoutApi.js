@@ -1,47 +1,10 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getBaseUrl } from "./baseConfig";
+import { api, changed, prefixed } from "./api";
 
-const rawBaseQuery = fetchBaseQuery({
-  baseUrl: `${getBaseUrl()}/finance`,
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers.set("authorization", `Token ${token}`);
-    }
-    return headers;
-  },
-});
-
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
-  if (result?.error?.status === 401) {
-    localStorage.removeItem("token");
-    const currentPath = window.location.pathname + window.location.search;
-    window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
-  }
-  return result;
-};
-
-const payoutApi = createApi({
-  reducerPath: "payoutApi",
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ["Payout"],
-  endpoints: (builder) => ({
+const payoutApi = api.injectEndpoints({
+  endpoints: prefixed("/finance", (builder) => ({
     // One server-filtered page for tables: { page, page_size, ordering, search, ...filters }.
     fetchPayoutsPage: builder.query({
       query: (params) => ({ url: "/payout/", params }),
-      providesTags: ["Payout"],
-    }),
-    bulkPayouts: builder.mutation({
-      query: ({ action, ids }) => ({
-        url: "/payout/bulk/",
-        method: "POST",
-        body: { action, ids },
-      }),
-      invalidatesTags: ["Payout"],
-    }),
-    fetchPayouts: builder.query({
-      query: () => "/payout/",
       providesTags: ["Payout"],
     }),
 
@@ -50,61 +13,20 @@ const payoutApi = createApi({
       providesTags: (result, error, id) => [{ type: "Payout", id }],
     }),
 
-    createPayout: builder.mutation({
-      query: (data) => ({
-        url: "/payout/",
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: ["Payout"],
-    }),
-
-    updatePayout: builder.mutation({
-      query: (data) => ({
-        url: `/payout/${data.id}/`,
-        method: "PATCH",
-        body: data,
-      }),
-      invalidatesTags: (result, error, data) => [
-        "Payout",
-        { type: "Payout", id: data.id },
-      ],
-    }),
-
-    replacePayout: builder.mutation({
-      query: (data) => ({
-        url: `/payout/${data.id}/`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, data) => [
-        "Payout",
-        { type: "Payout", id: data.id },
-      ],
-    }),
-
     refundPayout: builder.mutation({
       query: ({ id, amount, reason }) => ({
         url: `/payout/${id}/refund/`,
         method: "POST",
         body: { amount, reason },
       }),
-      invalidatesTags: (result, error, { id }) => [
-        "Payout",
-        { type: "Payout", id },
-      ],
+      invalidatesTags: changed("Payout"),
     }),
-  }),
+  })),
 });
 
 export const {
-  useFetchPayoutsQuery,
   useFetchPayoutsPageQuery,
-  useBulkPayoutsMutation,
   useFetchPayoutQuery,
-  useCreatePayoutMutation,
-  useUpdatePayoutMutation,
-  useReplacePayoutMutation,
   useRefundPayoutMutation,
 } = payoutApi;
 
