@@ -20,7 +20,7 @@ export default function CreateQuoteForm({
   const setAlert = useAlert();
   const [serviceId, setServiceId] = useState("");
   const [validUntil, setValidUntil] = useState("");
-  const [paymentTerms, setPaymentTerms] = useState("");
+  const [paymentTerms, setPaymentTerms] = useState("UPFRONT");
   const [termsConditions, setTermsConditions] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -61,7 +61,7 @@ export default function CreateQuoteForm({
       setAlert({ type: "success", message: "Quote created successfully!" });
       setServiceId("");
       setValidUntil("");
-      setPaymentTerms("");
+      setPaymentTerms("UPFRONT");
       setTermsConditions("");
       setNotes("");
       setShowModal(false);

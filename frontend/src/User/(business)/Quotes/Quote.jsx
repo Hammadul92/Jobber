@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
   useFetchQuoteQuery,
+  useUpdateServiceMutation,
   useUpdateQuoteMutation,
   useSendQuoteMutation,
 } from "../../../store";
@@ -39,6 +40,7 @@ export default function Quote({ token, role }) {
     error,
   } = useFetchQuoteQuery(id, { skip: !token });
   const [updateQuote, { isLoading: updating }] = useUpdateQuoteMutation();
+  const [updateService, { isLoading: activatingService }] = useUpdateServiceMutation();
   const [sendQuote, { isLoading: sending }] = useSendQuoteMutation();
 
   const [validUntil, setValidUntil] = useState("");
@@ -99,8 +101,14 @@ export default function Quote({ token, role }) {
   };
 
   const handleSendQuote = async () => {
-    if (sending) return;
+    if (sending || activatingService) return;
     try {
+      if (quoteData.service_data?.status !== "ACTIVE") {
+        await updateService({
+          id: quoteData.service_data.id,
+          status: "ACTIVE",
+        }).unwrap();
+      }
       await sendQuote(id).unwrap();
       navigate("/user/business/quotes", {
         replace: true,
@@ -109,7 +117,12 @@ export default function Quote({ token, role }) {
     } catch (err) {
       setAlert({
         type: "danger",
-        message: err?.data?.detail || "Failed to send quote email. Please try again.",
+        message:
+          err?.data?.detail ||
+          (Array.isArray(err?.data?.status)
+            ? err.data.status[0]
+            : err?.data?.status) ||
+          "Failed to send quote email. Please try again.",
       });
     } finally {
       setConfirmSend(false);
@@ -176,14 +189,15 @@ export default function Quote({ token, role }) {
   const isTermsMissing = Boolean(quoteData.terms_missing);
 
   const disableSendBtn =
-    isSigned || isExpired || isInactiveClient || isServiceInactive || isRequiredFieldsMissing || isTermsMissing;
+    isSigned || isExpired || isInactiveClient || isRequiredFieldsMissing || isTermsMissing;
 
   const disableReasons = [];
   if (isSigned) disableReasons.push("This quote has already been signed and cannot be resent.");
   if (isExpired && !isSigned)
     disableReasons.push('This quote has expired. Please update the "Valid Until" date before sending.');
   if (isInactiveClient) disableReasons.push("The client is inactive. Reactivate the client before sending.");
-  if (isServiceInactive) disableReasons.push("The linked service is inactive. Please ensure it is active.");
+  if (isServiceInactive)
+    disableReasons.push("The linked service is inactive. It will be activated when you send this quote.");
   if (isRequiredFieldsMissing)
     disableReasons.push("Save the Valid Until date and Payment Terms before sending.");
   if (isTermsMissing && !isSigned)
@@ -212,10 +226,14 @@ export default function Quote({ token, role }) {
     <>
       <ConfirmCustomerNotification
         open={role === "MANAGER" && confirmSend}
-        detail={`Send quote ${quoteData.quote_number} to ${client.client_email || quoteData.client_name || "the customer"}.`}
+        detail={
+          isServiceInactive
+            ? `Activate ${serviceData.service_name || "the linked service"}, then send quote ${quoteData.quote_number} to ${client.client_email || quoteData.client_name || "the customer"}.`
+            : `Send quote ${quoteData.quote_number} to ${client.client_email || quoteData.client_name || "the customer"}.`
+        }
         onYes={handleSendQuote}
         onNo={() => setConfirmSend(false)}
-        isLoading={sending}
+        isLoading={sending || activatingService}
       />
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -248,20 +266,26 @@ export default function Quote({ token, role }) {
             type="button"
             className={`${btnPrimary} min-w-43 justify-center`}
             onClick={() => setConfirmSend(true)}
-            disabled={disableSendBtn || sending}
+            disabled={disableSendBtn || sending || activatingService}
           >
-            {sending && (
+            {(sending || activatingService) && (
               <span
                 className="h-5 w-5 animate-spin rounded-full border-2 border-white/50 border-t-white"
                 aria-hidden="true"
               />
             )}
-            {sending ? "Sending Quote..." : "Send Quote"}
+            {sending || activatingService
+              ? activatingService
+                ? "Activating Service..."
+                : "Sending Quote..."
+              : isServiceInactive
+                ? "Activate Service & Send Quote"
+                : "Send Quote"}
           </button>
         ) : null}
       </div>
 
-      {disableSendBtn && !isSigned && (
+      {disableReasons.length > 0 && !isSigned && (
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
           <p className="font-semibold">Note:</p>
           <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
