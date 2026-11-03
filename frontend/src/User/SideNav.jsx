@@ -14,24 +14,14 @@ import {
   LuCreditCard,
   LuKey,
   LuScrollText,
+  LuTrash2,
 } from "react-icons/lu";
 import { RiDashboardLine } from "react-icons/ri";
 import {
   useFetchBusinessesQuery,
   useFetchUserQuery,
   useLogoutUserMutation,
-  userApi,
-  businessApi,
-  clientApi,
-  serviceQuestionnaireApi,
-  serviceTermsTemplateApi,
-  teamMemberApi,
-  serviceApi,
-  quoteApi,
-  jobApi,
-  bankingInformationApi,
-  invoiceApi,
-  payoutApi,
+  api,
 } from "../store";
 
 // Unified Sidebar for both UserAccount and UserDashboard
@@ -120,6 +110,7 @@ export default function SideNav({ user, businessRegistered }) {
       },
       { name: "Jobs", path: "/user/business/jobs", icon: LuBriefcase },
       { name: "Payouts", path: "/user/business/payouts", icon: LuArrowUpRight },
+      { name: "Trash", path: "/user/business/trash", icon: LuTrash2 },
     ],
     CLIENT: [
       { name: "Services", path: "/user/business/services", icon: LuFileText },
@@ -171,20 +162,7 @@ export default function SideNav({ user, businessRegistered }) {
 
   const handleLogout = async () => {
     await logoutUser();
-    [
-      userApi,
-      businessApi,
-      clientApi,
-      serviceQuestionnaireApi,
-      serviceTermsTemplateApi,
-      teamMemberApi,
-      serviceApi,
-      quoteApi,
-      jobApi,
-      bankingInformationApi,
-      invoiceApi,
-      payoutApi,
-    ].forEach((api) => dispatch(api.util.resetApiState()));
+    dispatch(api.util.resetApiState());
 
     localStorage.removeItem("token");
     navigate("/sign-in");

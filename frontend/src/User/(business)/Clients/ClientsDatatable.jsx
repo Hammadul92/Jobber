@@ -11,7 +11,6 @@ import {
   useDeleteClientMutation,
   useBulkClientsMutation,
 } from "../../../store";
-import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
 import RecordLink from "../../../Components/ui/RecordLink";
@@ -26,6 +25,9 @@ import TableToolbar, {
   ToolbarSelect,
   tableCardClass,
 } from "../../../Components/ui/TableToolbar";
+import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
+import TrashLink from "../../../Components/ui/TrashLink";
+import DeleteRecordMessage from "../../../Components/ui/DeleteRecordMessage";
 
 const STATUS_OPTIONS = [
   { label: "All statuses", value: "" },
@@ -36,6 +38,9 @@ const STATUS_OPTIONS = [
 const ALL_PROVINCES = Object.values(provinces)
   .flat()
   .filter((option, index, list) => list.findIndex((other) => other.value === option.value) === index);
+
+const CLIENT_DEPENDENTS =
+  "Their services, quotes, jobs, invoices and saved payment methods move to Trash with them.";
 
 const BULK_ACTIONS = [
   {
@@ -57,9 +62,14 @@ const BULK_ACTIONS = [
     key: "delete",
     label: "Delete",
     tone: "danger",
-    confirmMessage: (count) =>
-      `Delete ${pluralize(count, "client")}? Their services, quotes, jobs and invoices are removed too. This cannot be undone.`,
-    successMessage: (count) => `${pluralize(count, "client")} deleted.`,
+    confirmContent: (labels) => (
+      <DeleteRecordMessage
+        kind="client"
+        names={labels}
+        alsoDeletes={CLIENT_DEPENDENTS}
+      />
+    ),
+    successMessage: (count) => `${pluralize(count, "client")} moved to Trash.`,
   },
 ];
 
@@ -111,13 +121,21 @@ export default function ClientsDatatable({ token, showAddClient }) {
     setShowModal(true);
   };
 
-  const confirmDelete = async (e) => {
-    e.preventDefault();
+  const clientLabelFor = (id) => {
+    const row = rows.find((item) => String(item.id) === String(id));
+    return row ? clientNameOf(row) : bulkLabels[String(id)] || `#${id}`;
+  };
+  const pendingClient = rows.find((row) => row.id === selectedClientId);
+
+  const confirmDelete = async () => {
     if (!selectedClientId) return;
 
     try {
       await deleteClient(selectedClientId).unwrap();
-      setAlert({ type: "success", message: "Client deleted successfully!" });
+      setAlert({
+        type: "success",
+        message: `Client “${clientLabelFor(selectedClientId)}” moved to Trash.`,
+      });
       setShowModal(false);
       setSelectedClientId(null);
     } catch (err) {
@@ -251,6 +269,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
           searchPlaceholder="Search name, email, phone or company"
           isFiltered={table.hasActiveFilters}
           onClear={table.resetFilters}
+          actions={<TrashLink resource="clients" />}
         >
           <ToolbarSelect
             id="clients-status-filter"
@@ -321,9 +340,10 @@ export default function ClientsDatatable({ token, showAddClient }) {
 
         <BulkActionBar
           selectedCount={table.selectedIds.length}
+          selectedIds={table.selectedIds}
           actions={BULK_ACTIONS.map((action) => ({
             ...action,
-            describeRow: (id) => bulkLabels[String(id)] || `#${id}`,
+            describeRow: clientLabelFor,
           }))}
           onRun={runBulkAction}
           onClear={table.clearSelection}
@@ -386,46 +406,26 @@ export default function ClientsDatatable({ token, showAddClient }) {
       </div>
 
       {/* Delete Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <form
-            onSubmit={confirmDelete}
-            className="min-w-md rounded-xl bg-white p-6 shadow-2xl space-y-5"
-            role="dialog"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <h5 className="text-xl font-medium text-primary">
-                Delete Client
-              </h5>
-              <button
-                type="button"
-                className="text-gray-400 text-2xl transition hover:text-gray-600"
-                onClick={() => setShowModal(false)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            <p className="text-gray-600">This action cannot be undone.</p>
-
-            <div className="flex items-center justify-end gap-3">
-              <button
-                type="button"
-                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-              <SubmitButton
-                isLoading={deleting}
-                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
-                btnName="Delete"
-              />
-            </div>
-          </form>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showModal}
+        title="Delete Client"
+        message={
+          pendingClient && (
+            <DeleteRecordMessage
+              kind="client"
+              name={clientNameOf(pendingClient)}
+              detail={[pendingClient.client_email, pendingClient.client_phone]
+                .filter(Boolean)
+                .join(" · ")}
+              alsoDeletes={CLIENT_DEPENDENTS}
+            />
+          )
+        }
+        confirmLabel="Delete"
+        isLoading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowModal(false)}
+      />
     </>
   );
 }

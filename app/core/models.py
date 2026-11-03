@@ -157,14 +157,18 @@ class SoftDeletableModel(models.Model):
     class Meta:
         abstract = True
 
-    def soft_delete(self, user=None, cascade=True):
-        """Soft delete the object and optionally its related dependents."""
+    def soft_delete(self, user=None, cascade=True, deleted_at=None):
+        """Soft delete the object and optionally its related dependents.
+
+        Dependents share the parent's deleted_at, so a later restore can tell
+        them apart from records that were deleted on their own.
+        """
         if self.is_deleted:
             return
 
         self.is_deleted = True
         self.deleted_by = user
-        self.deleted_at = timezone.now()
+        self.deleted_at = deleted_at or timezone.now()
         self.save(update_fields=["is_deleted", "deleted_by", "deleted_at"])
 
         if cascade:
@@ -176,46 +180,61 @@ class SoftDeletableModel(models.Model):
                     continue
 
                 if isinstance(related_manager, models.Model):
-                    related_manager.soft_delete(user=user, cascade=True)
+                    if hasattr(related_manager, "soft_delete"):
+                        related_manager.soft_delete(user=user, cascade=True, deleted_at=self.deleted_at)
                 else:
                     for obj in related_manager.all():
                         if hasattr(obj, "soft_delete"):
-                            obj.soft_delete(user=user, cascade=True)
+                            obj.soft_delete(user=user, cascade=True, deleted_at=self.deleted_at)
 
     def restore(self, cascade=True):
-        """
-        Restore a soft-deleted object and optionally
-        its related dependents.
+        """Restore a soft-deleted object and the dependents deleted with it.
+
+        Dependents that were deleted separately, before this object, stay in
+        the trash so a restore never brings back something removed on purpose.
         """
         if not self.is_deleted:
             return
 
+        deleted_at = self.deleted_at
         self.is_deleted = False
         self.deleted_by = None
         self.deleted_at = None
         self.save(update_fields=["is_deleted", "deleted_by", "deleted_at"])
 
-        if cascade:
-            for related in self._meta.related_objects:
-                related_name = related.get_accessor_name()
-                related_manager = getattr(self, related_name, None)
-                if related_manager is None:
-                    continue
+        if not cascade:
+            return
+        for related in self._meta.related_objects:
+            related_model = related.related_model
+            if not issubclass(related_model, SoftDeletableModel) or related.many_to_many:
+                continue
+            dependents = related_model.all_objects.filter(
+                **{related.field.name: self, "is_deleted": True}
+            )
+            if deleted_at:
+                dependents = dependents.filter(deleted_at__gte=deleted_at)
+            for obj in dependents:
+                obj.restore(cascade=True)
 
-                if isinstance(related_manager, models.Model):
-                    related_manager.restore(cascade=True)
-                else:
-                    related_model = related.related_model
-                    if hasattr(related_model, "all_objects"):
-                        related_objects = related_model.all_objects.filter(
-                            **{related.field.name: self}
-                        )
-                    else:
-                        related_objects = related_manager.all()
+    def deleted_owner(self):
+        """Return the soft-deleted record this one belongs to, if any.
 
-                    for obj in related_objects:
-                        if hasattr(obj, "restore"):
-                            obj.restore(cascade=True)
+        Only owning relations (on_delete=CASCADE) count: a job still makes
+        sense when its assignee is gone, but a service needs its client.
+        """
+        for field in self._meta.concrete_fields:
+            if not field.many_to_one or field.remote_field.on_delete is not models.CASCADE:
+                continue
+            parent_model = field.related_model
+            if not issubclass(parent_model, SoftDeletableModel):
+                continue
+            parent_id = getattr(self, field.attname)
+            if parent_id is None:
+                continue
+            parent = parent_model.all_objects.filter(pk=parent_id, is_deleted=True).first()
+            if parent is not None:
+                return parent
+        return None
 
 
 class ActiveManager(models.Manager):
@@ -697,6 +716,18 @@ class TeamMember(SoftDeletableModel):
 
     class Meta:
         unique_together = ("business", "employee")
+
+    def soft_delete(self, user=None, cascade=True, deleted_at=None):
+        """Remove the member but keep their jobs, now unassigned.
+
+        Jobs belong to their service, not their assignee, so removing someone
+        from the team must not trash scheduled work. When the member goes as
+        part of a larger delete (deleted_at passed down, e.g. the business),
+        the jobs go with that delete and come back with its restore.
+        """
+        if deleted_at is None and not self.is_deleted:
+            self.assigned_jobs.update(assigned_to=None, updated_at=timezone.now())
+        super().soft_delete(user=user, cascade=cascade, deleted_at=deleted_at)
 
     def __str__(self):
         return f"{self.employee.name} @ {self.business.name}"

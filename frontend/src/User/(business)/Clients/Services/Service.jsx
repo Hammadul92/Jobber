@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { LuInfo } from "react-icons/lu";
 import { useDispatch } from "react-redux";
 import {
@@ -16,6 +16,7 @@ import ServiceItemsEditor from "../../../../Components/ui/ServiceItemsEditor";
 import { countries, provinces } from "../../../../constants/locations";
 import { setTopbar, resetTopbar } from "../../../../store/topbarSlice";
 import useAlert from "../../../../hooks/useAlert";
+import { formatMoney } from "../../../../utils/formatMoney";
 
 export default function Service({ token }) {
   const { id } = useParams();
@@ -56,16 +57,6 @@ export default function Service({ token }) {
     ACTIVE: "bg-green-100 text-green-800",
     COMPLETED: "bg-blue-100 text-blue-800",
     CANCELLED: "bg-red-100 text-red-800",
-  };
-
-  const formatMoney = (value, fallbackCurrency = "CAD") => {
-    const amount = Number.parseFloat(value || 0);
-    const safeAmount = Number.isFinite(amount) ? amount : 0;
-
-    return `$${new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(safeAmount)} ${fallbackCurrency || "CAD"}`;
   };
 
   useEffect(() => {

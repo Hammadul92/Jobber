@@ -75,6 +75,7 @@ export default function TeamMembers({ token, role, user }) {
       <TeamMembersData
         token={token}
         onEdit={handleEditTeamMember}
+        role={role}
       />
     </div>
   );

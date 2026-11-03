@@ -1,32 +1,7 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getBaseUrl } from "./baseConfig";
+import { api, changed, movedToOrFromTrash, prefixed } from "./api";
 
-const rawBaseQuery = fetchBaseQuery({
-  baseUrl: `${getBaseUrl()}/ops`,
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers.set("authorization", `Token ${token}`);
-    }
-    return headers;
-  },
-});
-
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
-  if (result?.error?.status === 401) {
-    localStorage.removeItem("token");
-    const currentPath = window.location.pathname + window.location.search;
-    window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
-  }
-  return result;
-};
-
-const serviceQuestionnaireApi = createApi({
-  reducerPath: "serviceQuestionnaireApi",
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ["ServiceQuestionnaire"],
-  endpoints: (builder) => ({
+const serviceQuestionnaireApi = api.injectEndpoints({
+  endpoints: prefixed("/ops", (builder) => ({
     fetchServiceQuestionnaires: builder.query({
       query: () => "/service-questionnaire/",
       providesTags: ["ServiceQuestionnaire"],
@@ -43,7 +18,7 @@ const serviceQuestionnaireApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["ServiceQuestionnaire"],
+      invalidatesTags: changed("ServiceQuestionnaire"),
     }),
     updateServiceQuestionnaire: builder.mutation({
       query: (data) => ({
@@ -51,19 +26,16 @@ const serviceQuestionnaireApi = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        "ServiceQuestionnaire",
-        { type: "ServiceQuestionnaire", id: arg.id },
-      ],
+      invalidatesTags: changed("ServiceQuestionnaire"),
     }),
     deleteServiceQuestionnaire: builder.mutation({
       query: (id) => ({
         url: `/service-questionnaire/${id}/`,
         method: "DELETE",
       }),
-      invalidatesTags: ["ServiceQuestionnaire"],
+      invalidatesTags: movedToOrFromTrash("ServiceQuestionnaire"),
     }),
-  }),
+  })),
 });
 
 export const {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { LuMapPin, LuPlus } from "react-icons/lu";
+import { LuMapPin } from "react-icons/lu";
 import { useDispatch } from "react-redux";
 import CreateClientServiceForm from "./CreateClientServiceForm";
 import { useFetchClientQuery, useFetchBusinessQuery } from "../../../../store";
@@ -11,18 +11,7 @@ import {
   unregisterTopbarActionHandler,
 } from "../../../topbarActionRegistry";
 import useAlert from "../../../../hooks/useAlert";
-
-const errorMessage = (error) =>
-  Array.isArray(error?.data)
-    ? error.data.join(", ")
-    : typeof error?.data === "object"
-      ? Object.entries(error.data)
-          .map(
-            ([field, messages]) =>
-              `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`,
-          )
-          .join(" | ")
-      : error?.data?.detail || "Something went wrong";
+import { apiErrorMessage } from "../../../../utils/apiError";
 
 export default function ClientServices({ token, role }) {
   const { id: clientId } = useParams();
@@ -134,7 +123,7 @@ export default function ClientServices({ token, role }) {
 
   const loadError = clientError || businessError;
   useEffect(() => {
-    if (loadError) setAlert({ type: "danger", message: errorMessage(loadError) });
+    if (loadError) setAlert({ type: "danger", message: apiErrorMessage(loadError) });
   }, [loadError, setAlert]);
 
   return (

@@ -12,8 +12,9 @@ const TONES = {
 
 // Selected-rows toolbar. Each action is confirmed in a prompt; successes are
 // reported with a success alert, and rows that failed stay listed in the
-// prompt with their reasons.
-export default function BulkActionBar({ selectedCount, actions, onRun, onClear }) {
+// prompt with their reasons. An action with confirmContent(labels) gets the
+// selected rows' labels (from describeRow) so the prompt can name them.
+export default function BulkActionBar({ selectedCount, selectedIds, actions, onRun, onClear }) {
   const setAlert = useAlert();
   const [pending, setPending] = useState(null);
   const [running, setRunning] = useState(false);
@@ -117,13 +118,16 @@ export default function BulkActionBar({ selectedCount, actions, onRun, onClear }
             </div>
 
             <div className="px-5 py-4 text-sm text-gray-700">
-              {!result && (
-                <p>
-                  {pending.confirmMessage
-                    ? pending.confirmMessage(selectedCount)
-                    : `Apply "${pending.label}" to ${selectedCount} selected rows?`}
-                </p>
-              )}
+              {!result &&
+                (pending.confirmContent && selectedIds ? (
+                  pending.confirmContent(selectedIds.map(pending.describeRow || ((id) => `#${id}`)))
+                ) : (
+                  <p>
+                    {pending.confirmMessage
+                      ? pending.confirmMessage(selectedCount)
+                      : `Apply "${pending.label}" to ${selectedCount} selected rows?`}
+                  </p>
+                ))}
               {result && (
                 <div role="status" className="space-y-2">
                   <p>

@@ -1,41 +1,10 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getBaseUrl } from "./baseConfig";
+import { api, changed, movedToOrFromTrash, prefixed } from "./api";
 
-const rawBaseQuery = fetchBaseQuery({
-  baseUrl: `${getBaseUrl()}/ops`,
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers.set("authorization", `Token ${token}`);
-    }
-    return headers;
-  },
-});
-
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
-  if (result?.error?.status === 401) {
-    localStorage.removeItem("token");
-    const currentPath = window.location.pathname + window.location.search;
-    window.location.href = `/sign-in?next=${encodeURIComponent(currentPath)}`;
-  }
-  return result;
-};
-
-const serviceTermsTemplateApi = createApi({
-  reducerPath: "serviceTermsTemplateApi",
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ["ServiceTermsTemplate"],
-  endpoints: (builder) => ({
+const serviceTermsTemplateApi = api.injectEndpoints({
+  endpoints: prefixed("/ops", (builder) => ({
     fetchServiceTermsTemplates: builder.query({
       query: () => "/service-terms-template/",
       providesTags: ["ServiceTermsTemplate"],
-    }),
-    fetchServiceTermsTemplate: builder.query({
-      query: (id) => `/service-terms-template/${id}/`,
-      providesTags: (result, error, id) => [
-        { type: "ServiceTermsTemplate", id },
-      ],
     }),
     createServiceTermsTemplate: builder.mutation({
       query: (data) => ({
@@ -43,7 +12,7 @@ const serviceTermsTemplateApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["ServiceTermsTemplate"],
+      invalidatesTags: changed("ServiceTermsTemplate"),
     }),
     updateServiceTermsTemplate: builder.mutation({
       query: (data) => ({
@@ -51,24 +20,20 @@ const serviceTermsTemplateApi = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        "ServiceTermsTemplate",
-        { type: "ServiceTermsTemplate", id: arg.id },
-      ],
+      invalidatesTags: changed("ServiceTermsTemplate"),
     }),
     deleteServiceTermsTemplate: builder.mutation({
       query: (id) => ({
         url: `/service-terms-template/${id}/`,
         method: "DELETE",
       }),
-      invalidatesTags: ["ServiceTermsTemplate"],
+      invalidatesTags: movedToOrFromTrash("ServiceTermsTemplate"),
     }),
-  }),
+  })),
 });
 
 export const {
   useFetchServiceTermsTemplatesQuery,
-  useFetchServiceTermsTemplateQuery,
   useCreateServiceTermsTemplateMutation,
   useUpdateServiceTermsTemplateMutation,
   useDeleteServiceTermsTemplateMutation,

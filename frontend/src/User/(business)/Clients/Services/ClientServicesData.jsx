@@ -10,7 +10,6 @@ import {
   useDeleteServiceMutation,
   useBulkServicesMutation,
 } from "../../../../store";
-import SubmitButton from "../../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../../Components/ui/LoadingScreen";
 import { countries, provinces } from "../../../../constants/locations";
 import { formatDate } from "../../../../utils/formatDate";
@@ -25,6 +24,9 @@ import { pluralize } from "../../../../utils/pluralize";
 import TablePagination from "../../../../Components/ui/TablePagination";
 import useServerTable from "../../../../hooks/useServerTable";
 import useAlert from "../../../../hooks/useAlert";
+import ConfirmDialog from "../../../../Components/ui/ConfirmDialog";
+import TrashLink from "../../../../Components/ui/TrashLink";
+import DeleteRecordMessage from "../../../../Components/ui/DeleteRecordMessage";
 
 const FILTER_KEYS = ["service_type", "status", "country", "province_state"];
 
@@ -42,9 +44,14 @@ const BULK_ACTIONS = [
     key: "delete",
     label: "Delete",
     tone: "danger",
-    confirmMessage: (count) =>
-      `Delete ${pluralize(count, "service")}? Their quotes, jobs and invoices are removed too. This cannot be undone.`,
-    successMessage: (count) => `${pluralize(count, "service")} deleted.`,
+    confirmContent: (labels) => (
+      <DeleteRecordMessage
+        kind="service"
+        names={labels}
+        alsoDeletes="Their quotes, jobs and invoices move to Trash with them."
+      />
+    ),
+    successMessage: (count) => `${pluralize(count, "service")} moved to Trash.`,
   },
 ];
 
@@ -106,12 +113,25 @@ export default function ClientServicesData({
     setShowModal(true);
   };
 
-  const confirmDelete = async (e) => {
-    e.preventDefault();
+  const serviceLabelFor = (id) => {
+    const service = services.find((item) => String(item.id) === String(id));
+    if (!service) return bulkLabels[String(id)] || `#${id}`;
+    return service.client_name
+      ? `${service.service_name} for ${service.client_name}`
+      : service.service_name || `#${id}`;
+  };
+  const pendingService = services.find(
+    (service) => service.id === selectedServiceId,
+  );
+
+  const confirmDelete = async () => {
     if (!selectedServiceId) return;
     try {
       await deleteService(selectedServiceId).unwrap();
-      setAlert({ type: "success", message: "Service deleted successfully!" });
+      setAlert({
+        type: "success",
+        message: `Service “${serviceLabelFor(selectedServiceId)}” moved to Trash.`,
+      });
     } catch (err) {
       const msg =
         err?.data?.detail || "Failed to delete service. Please try again.";
@@ -318,6 +338,7 @@ export default function ClientServicesData({
           }
           isFiltered={isFiltered}
           onClear={clearFilters}
+          actions={isManager && <TrashLink resource="services" />}
         >
           <ToolbarSelect
             id="type_filter"
@@ -364,9 +385,10 @@ export default function ClientServicesData({
         {isManager && (
           <BulkActionBar
             selectedCount={table.selectedIds.length}
+            selectedIds={table.selectedIds}
             actions={BULK_ACTIONS.map((action) => ({
               ...action,
-              describeRow: (id) => bulkLabels[String(id)] || `#${id}`,
+              describeRow: serviceLabelFor,
             }))}
             onRun={runBulkAction}
             onClear={table.clearSelection}
@@ -412,48 +434,31 @@ export default function ClientServicesData({
       </div>
 
       {/* DELETE MODAL */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <form
-            onSubmit={confirmDelete}
-            className="w-2/7 max-w-md rounded-xl bg-white p-6 shadow-2xl space-y-5"
-            role="dialog"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <h5 className="text-xl font-medium text-primary">
-                Delete Service
-              </h5>
-              <button
-                type="button"
-                className="text-2xl text-gray-400 transition hover:text-gray-600"
-                onClick={() => setShowModal(false)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            <div>
-              <p className="text-gray-600">This cannot be undone.</p>
-            </div>
-
-            <div className="flex items-center justify-end gap-3">
-              <button
-                type="button"
-                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-              <SubmitButton
-                isLoading={deleting}
-                btnClass="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
-                btnName="Delete"
-              />
-            </div>
-          </form>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showModal}
+        title="Delete Service"
+        message={
+          pendingService && (
+            <DeleteRecordMessage
+              kind="service"
+              name={pendingService.service_name}
+              detail={[
+                pendingService.client_name,
+                [pendingService.street_address, pendingService.city]
+                  .filter(Boolean)
+                  .join(", "),
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+              alsoDeletes="Its quotes, jobs and invoices move to Trash with it."
+            />
+          )
+        }
+        confirmLabel="Delete"
+        isLoading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowModal(false)}
+      />
     </>
   );
 }
