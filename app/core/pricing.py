@@ -2,6 +2,8 @@
 
 from decimal import Decimal
 
+from core.quote_snapshots import signed_snapshot_section
+
 
 def business_tax_label(business):
     """Use an explicit label or a safe jurisdiction-aware default."""
@@ -55,6 +57,15 @@ def quote_line_items(quote):
     """Use the saved quote terms, falling back for quotes made before snapshots."""
     if getattr(quote, "line_items", None) is not None:
         return [dict(item) for item in quote.line_items]
+    snapshot = signed_snapshot_section(quote, "service")
+    if snapshot is not None:
+        if snapshot.get("items"):
+            return [dict(item) for item in snapshot["items"]]
+        return [{
+            "title": snapshot.get("service_name", "Service"),
+            "description": snapshot.get("description", ""),
+            "price": str(snapshot.get("price", "0.00")),
+        }]
     return service_line_items(quote.service)
 
 

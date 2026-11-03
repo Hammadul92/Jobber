@@ -202,6 +202,11 @@ export default function SignQuote({ token, preview = false }) {
 
     return (
         <>
+            {!preview && quote.revision_required && (
+                <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    This quote was revised after service details changed. The business must resend it before you can respond.
+                </div>
+            )}
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <div className="space-y-6 p-4 md:p-6">
                     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-6">
@@ -443,7 +448,7 @@ export default function SignQuote({ token, preview = false }) {
                                 type="button"
                                 className="inline-flex items-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed! disabled:opacity-75"
                                 onClick={() => setShowDeclineModal(true)}
-                                disabled={signing || timeRemaining === "Expired" || isFinalized}
+                                disabled={signing || timeRemaining === "Expired" || status !== "SENT" || isFinalized || quote.revision_required}
                             >
                                 Decline
                             </button>
@@ -451,7 +456,7 @@ export default function SignQuote({ token, preview = false }) {
                                 type="button"
                                 className="inline-flex items-center rounded-xl bg-[#ff6a00] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#ff7a1f] disabled:cursor-not-allowed! disabled:opacity-75"
                                 onClick={() => setShowSignModal(true)}
-                                disabled={signing || timeRemaining === "Expired" || status !== "SENT" || isFinalized || quote.quoted_tax_rate == null}
+                                disabled={signing || timeRemaining === "Expired" || status !== "SENT" || isFinalized || quote.revision_required || quote.quoted_tax_rate == null}
                             >
                                 Accept & Sign
                             </button>

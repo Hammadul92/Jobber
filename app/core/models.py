@@ -731,6 +731,9 @@ class Quote(SoftDeletableModel):
     currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, blank=True, null=True)
     tax_rate = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     tax_label = models.CharField(max_length=30, blank=True, default="")
+    revision = models.PositiveIntegerField(default=1)
+    revision_required = models.BooleanField(default=False)
+    signed_snapshot = models.JSONField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

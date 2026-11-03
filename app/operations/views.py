@@ -2,6 +2,7 @@
 Views for operations APIs.
 """
 
+from copy import deepcopy
 from datetime import timedelta
 
 from django.db import transaction
@@ -34,8 +35,16 @@ from core.models import (
     Quote,
 )
 from core.pricing import business_tax_label, line_items_total, quote_line_items, service_line_items, tax_amount_for
+from core.quote_snapshots import build_signed_quote_snapshot
 from operations import serializers, emails
 from operations.pdf import build_signed_quote_pdf
+
+
+QUOTE_MATERIAL_SERVICE_FIELDS = (
+    "service_name", "description", "items", "price", "currency",
+    "billing_cycle", "service_type", "start_date", "end_date",
+    "street_address", "city", "country", "province_state", "postal_code",
+)
 
 
 def get_active_service_terms_template(service):
@@ -299,18 +308,55 @@ class ServiceViewSet(ListingMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
-        instance = self.get_object()
+        candidate = self.get_object()
+        instance = self.get_queryset().select_for_update().get(pk=candidate.pk)
+        self.check_object_permissions(request, instance)
         prev_filled_questionnaire = instance.filled_questionnaire
         prev_status = instance.status
+        previous_quote_values = {
+            field: deepcopy(getattr(instance, field))
+            for field in QUOTE_MATERIAL_SERVICE_FIELDS
+        }
 
         response = super().update(request, *args, **kwargs)
         instance.refresh_from_db()
 
-        # Drafts follow service edits until they are sent to a client.
-        for draft in instance.service_quotes.filter(status="DRAFT", is_active=True):
-            draft.line_items = service_line_items(instance)
-            draft.currency = instance.currency
-            draft.save(update_fields=["line_items", "currency"])
+        changed_quote_fields = {
+            field for field, previous in previous_quote_values.items()
+            if previous != getattr(instance, field)
+        }
+        revised_quote_ids = []
+        returned_to_draft_ids = []
+        if changed_quote_fields:
+            # Unsigned quotes follow material service edits. A quote already
+            # delivered to the client becomes a draft and must be resent.
+            for quote in instance.service_quotes.select_for_update().filter(
+                status__in=("DRAFT", "SENT"), is_active=True,
+            ):
+                was_sent = quote.status == "SENT"
+                quote.line_items = service_line_items(instance)
+                quote.currency = instance.currency
+                update_fields = ["line_items", "currency", "updated_at"]
+
+                if "service_name" in changed_quote_fields:
+                    template = get_active_service_terms_template(instance)
+                    quote.general_terms_conditions = template.content if template else ""
+                    update_fields.append("general_terms_conditions")
+
+                if was_sent:
+                    quote.status = "DRAFT"
+                    quote.revision += 1
+                    quote.revision_required = True
+                    quote.tax_rate = None
+                    quote.tax_label = ""
+                    update_fields.extend([
+                        "status", "revision", "revision_required",
+                        "tax_rate", "tax_label",
+                    ])
+                    returned_to_draft_ids.append(quote.id)
+
+                quote.save(update_fields=update_fields)
+                revised_quote_ids.append(quote.id)
 
         # This is idempotent and also repairs a missing draft on later updates.
         create_auto_quote_for_service(instance)
@@ -328,6 +374,8 @@ class ServiceViewSet(ListingMixin, viewsets.ModelViewSet):
             create_auto_invoice_for_service(instance)
 
         response.data = self.get_serializer(instance).data
+        response.data["revised_quote_ids"] = revised_quote_ids
+        response.data["quotes_returned_to_draft"] = returned_to_draft_ids
         return response
 
     @action(detail=True, methods=["post"], url_path="resend-questionnaire")
@@ -507,6 +555,11 @@ class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
                 {"detail": "A signed quote cannot be resent or repriced."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        if quote.status == "DECLINED":
+            return Response(
+                {"detail": "A declined quote cannot be resent. Create a new quote instead."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if not quote.payment_terms:
             return Response(
                 {"payment_terms": ["Choose payment terms before sending this quote."]},
@@ -536,7 +589,11 @@ class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
                 quote.currency = quote.service.currency
             quote.tax_rate = quote.service.business.tax_rate
             quote.tax_label = business_tax_label(quote.service.business)
-            quote.save(update_fields=["line_items", "currency", "tax_rate", "tax_label"])
+            quote.revision_required = False
+            quote.save(update_fields=[
+                "line_items", "currency", "tax_rate", "tax_label",
+                "revision_required",
+            ])
             emails.send_quote_email(quote)
             quote.status = "SENT"
             quote.save(update_fields=["status"])
@@ -551,11 +608,15 @@ class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
             )
 
     @action(detail=True, methods=["post"], url_path="sign-quote")
+    @transaction.atomic
     def sign_quote(self, request, pk=None):
         """Endpoint for client to accept (sign) or decline a quote."""
         user = request.user
         try:
-            quote = self.get_object()
+            candidate = self.get_object()
+            Service.objects.select_for_update().get(pk=candidate.service_id)
+            quote = self.get_queryset().select_for_update().get(pk=candidate.pk)
+            self.check_object_permissions(request, quote)
         except Quote.DoesNotExist:
             return Response(
                 {"detail": "Quote not found."},
@@ -580,6 +641,12 @@ class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
         if quote.status in ["SIGNED", "DECLINED"]:
             return Response(
                 {"detail": f"Quote already {quote.status.lower()}."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if quote.status != "SENT" or quote.revision_required:
+            return Response(
+                {"detail": "This quote has unpublished changes. Ask the business to resend it before responding."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -608,13 +675,17 @@ class QuoteViewSet(ListingMixin, viewsets.ModelViewSet):
             quote.signed_at = timezone.now()
             quote.status = "SIGNED"
             quote.signature = signature
+            quote.signed_snapshot = build_signed_quote_snapshot(quote)
 
         elif new_status == "DECLINED":
             quote.status = "DECLINED"
             quote.signed_at = timezone.now()
             quote.signature = None
 
-        quote.save(update_fields=["status", "signed_at", "signature", "line_items", "currency"])
+        quote.save(update_fields=[
+            "status", "signed_at", "signature", "line_items", "currency",
+            "signed_snapshot",
+        ])
 
         if new_status == "SIGNED":
             create_auto_invoice_for_service(quote.service)

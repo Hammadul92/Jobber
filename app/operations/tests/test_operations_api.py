@@ -38,6 +38,7 @@ from core.models import (
     ServiceTermsTemplate,
     TeamMember,
 )
+from core.pricing import service_line_items
 from user.utils import generate_magic_login_token, verify_magic_login_token
 
 from operations.serializers import BusinessSerializer, QuoteSerializer
@@ -1220,6 +1221,346 @@ class WorkflowRegressionTests(TestCase):
             filled_questionnaire=payload.get("filled_questionnaire"),
             bypass_questionnaire=payload.get("bypass_questionnaire", False),
         )
+
+    def test_material_service_edit_updates_draft_quote(self):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            payment_terms="UPFRONT",
+            status="DRAFT",
+            line_items=[{"title": "Old", "description": "", "price": "100.00"}],
+            currency="CAD",
+        )
+        items = [{"title": "Revised work", "description": "Updated", "price": "175.00"}]
+        self.client.force_authenticate(self.manager)
+
+        response = self.client.patch(
+            service_detail_url(service.id), {"items": items, "currency": "USD"}, format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        quote.refresh_from_db()
+        self.assertEqual(quote.status, "DRAFT")
+        self.assertEqual(quote.line_items, items)
+        self.assertEqual(quote.currency, "USD")
+        self.assertFalse(quote.revision_required)
+        self.assertEqual(quote.revision, 1)
+        self.assertEqual(response.data["revised_quote_ids"], [quote.id])
+        self.assertEqual(response.data["quotes_returned_to_draft"], [])
+
+    def test_material_service_edit_revises_sent_unsigned_quote(self):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            payment_terms="UPFRONT",
+            status="SENT",
+            line_items=[{"title": "Old", "description": "", "price": "100.00"}],
+            currency="CAD",
+            tax_rate=Decimal("5.00"),
+            tax_label="GST",
+        )
+        items = [{"title": "Revised work", "description": "Updated", "price": "225.00"}]
+        self.client.force_authenticate(self.manager)
+
+        response = self.client.patch(
+            service_detail_url(service.id), {"items": items}, format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        quote.refresh_from_db()
+        self.assertEqual(quote.status, "DRAFT")
+        self.assertEqual(quote.line_items, items)
+        self.assertTrue(quote.revision_required)
+        self.assertEqual(quote.revision, 2)
+        self.assertIsNone(quote.tax_rate)
+        self.assertEqual(quote.tax_label, "")
+        self.assertEqual(response.data["quotes_returned_to_draft"], [quote.id])
+
+    def test_price_only_service_edit_updates_unsigned_quote_total(self):
+        service = self.create_service(auto_generate_quote=False, price="100.00")
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            payment_terms="UPFRONT",
+            status="SENT",
+            line_items=service_line_items(service),
+            currency="CAD",
+            tax_rate=Decimal("5.00"),
+            tax_label="GST",
+        )
+        self.client.force_authenticate(self.manager)
+
+        response = self.client.patch(
+            service_detail_url(service.id), {"price": "275.00"}, format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        service.refresh_from_db()
+        quote.refresh_from_db()
+        quote_data = QuoteSerializer(quote).data
+        self.assertEqual(service.price, Decimal("275.00"))
+        self.assertEqual(quote.status, "DRAFT")
+        self.assertEqual(quote.line_items[0]["price"], "275.00")
+        self.assertEqual(quote_data["quoted_subtotal"], "275.00")
+        self.assertTrue(quote.revision_required)
+
+    def test_status_only_service_edit_does_not_revise_sent_quote(self):
+        service = self.create_service(
+            auto_generate_quote=False,
+            filled_questionnaire={"Room size": "Large"},
+        )
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            payment_terms="UPFRONT",
+            status="SENT",
+            line_items=service_line_items(service),
+            tax_rate=Decimal("5.00"),
+        )
+        self.client.force_authenticate(self.manager)
+
+        response = self.client.patch(
+            service_detail_url(service.id), {"status": "ACTIVE"}, format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        quote.refresh_from_db()
+        self.assertEqual(quote.status, "SENT")
+        self.assertFalse(quote.revision_required)
+        self.assertEqual(response.data["revised_quote_ids"], [])
+
+    def test_client_edits_appear_on_unsigned_quote_without_recreating_it(self):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            status="SENT",
+            tax_rate=Decimal("5.00"),
+        )
+        self.client.force_authenticate(self.manager)
+
+        response = self.client.patch(
+            reverse("operations:client-detail", args=[self.client_record.id]),
+            {
+                "client_name": "Updated Client",
+                "company_name": "Updated Company",
+                "billing_street_address": "55 Updated Billing Road",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        quote.refresh_from_db()
+        data = QuoteSerializer(quote).data
+        self.assertEqual(quote.status, "SENT")
+        self.assertEqual(data["client_name"], "Updated Client")
+        self.assertEqual(data["client"]["company_name"], "Updated Company")
+        self.assertEqual(data["client"]["billing_street_address"], "55 Updated Billing Road")
+
+    def test_multiple_draft_edits_only_increment_revision_after_each_send(self):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            payment_terms="UPFRONT",
+            general_terms_conditions="Terms.",
+            status="SENT",
+            line_items=service_line_items(service),
+            tax_rate=Decimal("5.00"),
+        )
+        self.client.force_authenticate(self.manager)
+
+        self.client.patch(service_detail_url(service.id), {"price": "150.00"}, format="json")
+        self.client.patch(service_detail_url(service.id), {"price": "175.00"}, format="json")
+        quote.refresh_from_db()
+        self.assertEqual(quote.revision, 2)
+
+        with patch("operations.views.emails.send_quote_email"):
+            self.client.post(quote_send_url(quote.id))
+        self.client.patch(service_detail_url(service.id), {"price": "200.00"}, format="json")
+        quote.refresh_from_db()
+        self.assertEqual(quote.revision, 3)
+        self.assertEqual(quote.status, "DRAFT")
+
+    def test_material_service_edit_does_not_mutate_signed_quote(self):
+        service = self.create_service(auto_generate_quote=False)
+        original_items = [{"title": "Agreed work", "description": "", "price": "100.00"}]
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            status="SIGNED",
+            signed_at=timezone.now(),
+            line_items=original_items,
+            revision=4,
+        )
+        self.client.force_authenticate(self.manager)
+
+        response = self.client.patch(
+            service_detail_url(service.id),
+            {"items": [{"title": "Changed work", "description": "", "price": "999.00"}]},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        quote.refresh_from_db()
+        self.assertEqual(quote.status, "SIGNED")
+        self.assertEqual(quote.line_items, original_items)
+        self.assertEqual(quote.revision, 4)
+        self.assertEqual(response.data["revised_quote_ids"], [])
+
+    def test_revised_quote_cannot_be_signed_until_resent(self):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            payment_terms="UPFRONT",
+            status="SENT",
+            line_items=service_line_items(service),
+            tax_rate=Decimal("5.00"),
+        )
+        self.client.force_authenticate(self.manager)
+        self.client.patch(service_detail_url(service.id), {"price": "150.00"}, format="json")
+
+        response = self.sign_quote_as_client(quote)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("resend", response.data["detail"].lower())
+        quote.refresh_from_db()
+        self.assertEqual(quote.status, "DRAFT")
+        self.assertFalse(bool(quote.signature))
+
+    @patch("operations.views.emails.send_quote_email")
+    def test_resending_revised_quote_publishes_it_again(self, send_email):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            payment_terms="UPFRONT",
+            general_terms_conditions="Terms.",
+            status="DRAFT",
+            revision=2,
+            revision_required=True,
+            line_items=service_line_items(service),
+        )
+        self.client.force_authenticate(self.manager)
+
+        response = self.client.post(quote_send_url(quote.id))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        quote.refresh_from_db()
+        self.assertEqual(quote.status, "SENT")
+        self.assertFalse(quote.revision_required)
+        self.assertEqual(quote.revision, 2)
+        self.assertIsNotNone(quote.tax_rate)
+        send_email.assert_called_once()
+
+    def test_declined_quote_cannot_be_resent(self):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            payment_terms="UPFRONT",
+            status="DECLINED",
+        )
+        self.client.force_authenticate(self.manager)
+
+        response = self.client.post(quote_send_url(quote.id))
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("declined", response.data["detail"].lower())
+
+    @patch("operations.views.emails.send_signed_quote_copy_email")
+    @patch("operations.views.emails.send_quote_signed_email")
+    def test_signed_quote_uses_immutable_related_record_snapshot(self, owner_email, client_email):
+        service = self.create_service(
+            auto_generate_quote=False,
+            filled_questionnaire={"Room size": "Large"},
+        )
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            payment_terms="UPFRONT",
+            general_terms_conditions="Terms.",
+            status="SENT",
+            line_items=service_line_items(service),
+            currency="CAD",
+            tax_rate=Decimal("5.00"),
+            tax_label="GST",
+        )
+        original_client_name = self.client_record.name
+        original_service_name = service.service_name
+        original_business_name = self.business.name
+
+        response = self.sign_quote_as_client(quote)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        quote.refresh_from_db()
+        self.assertEqual(quote.signed_snapshot["client"]["client_name"], original_client_name)
+
+        self.client_record.name = "Changed Client"
+        self.client_record.company_name = "Changed Company"
+        self.client_record.billing_street_address = "999 Changed Road"
+        self.client_record.save()
+        service.service_name = "Changed Service"
+        service.street_address = "999 Changed Service Road"
+        service.status = "ACTIVE"
+        service.save()
+        self.business.name = "Changed Business"
+        self.business.save()
+
+        data = QuoteSerializer(Quote.objects.get(pk=quote.pk)).data
+        self.assertEqual(data["client_name"], original_client_name)
+        self.assertEqual(data["service_name"], original_service_name)
+        self.assertEqual(data["business_name"], original_business_name)
+        self.assertNotEqual(data["client"]["billing_street_address"], "999 Changed Road")
+        self.assertNotEqual(data["service_data"]["street_address"], "999 Changed Service Road")
+        self.assertEqual(data["service_data"]["status"], "ACTIVE")
+
+    def test_legacy_signed_quote_without_snapshot_falls_back_to_live_records(self):
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            status="SIGNED",
+            signed_at=timezone.now(),
+            signed_snapshot=None,
+        )
+        self.client_record.name = "Legacy Current Name"
+        self.client_record.save(update_fields=["name", "updated_at"])
+
+        data = QuoteSerializer(quote).data
+
+        self.assertEqual(data["client_name"], "Legacy Current Name")
+
+    def test_service_name_change_refreshes_draft_general_terms(self):
+        self.business.services_offered.add("Painting")
+        ServiceQuestionnaire.objects.create(
+            business=self.business,
+            service_name="Painting",
+            additional_questions_form=[],
+        )
+        ServiceTermsTemplate.objects.create(
+            business=self.business,
+            service_name="Painting",
+            content="Painting terms.",
+        )
+        service = self.create_service(auto_generate_quote=False)
+        quote = Quote.objects.create(
+            service=service,
+            valid_until=date.today() + timedelta(days=2),
+            status="DRAFT",
+            general_terms_conditions="Flooring terms.",
+        )
+        self.client.force_authenticate(self.manager)
+
+        response = self.client.patch(
+            service_detail_url(service.id), {"service_name": "Painting"}, format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        quote.refresh_from_db()
+        self.assertEqual(quote.general_terms_conditions, "Painting terms.")
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     @patch("operations.views.emails.send_service_questionnaire_email")

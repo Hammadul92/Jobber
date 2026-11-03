@@ -32,6 +32,7 @@ from core.models import (
     Service,
     TeamMember,
 )
+from core.quote_snapshots import signed_snapshot_section
 
 
 class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
@@ -690,8 +691,8 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
     """ Serializer for quotes."""
     owned_relations = ("service",)
 
-    service_data = ServiceSerializer(source="service", read_only=True)
-    client = ClientSerializer(source="service.client", read_only=True)
+    service_data = serializers.SerializerMethodField()
+    client = serializers.SerializerMethodField()
     combined_terms_conditions = serializers.SerializerMethodField()
     terms_missing = serializers.SerializerMethodField()
     line_items = serializers.SerializerMethodField()
@@ -701,18 +702,9 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
     quoted_tax_label = serializers.SerializerMethodField()
     quoted_tax_amount = serializers.SerializerMethodField()
     quoted_currency = serializers.SerializerMethodField()
-    service_name = serializers.CharField(
-        source="service.service_name",
-        read_only=True
-    )
-    client_name = serializers.CharField(
-        source="service.client.name",
-        read_only=True
-    )
-    business_name = serializers.CharField(
-        source="service.business.name",
-        read_only=True
-    )
+    service_name = serializers.SerializerMethodField()
+    client_name = serializers.SerializerMethodField()
+    business_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Quote
@@ -723,12 +715,40 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
             "status", "signed_at", "signature", "general_terms_conditions",
             "terms_conditions", "combined_terms_conditions", "terms_missing",
             "notes", "line_items", "quoted_subtotal", "quoted_tax_rate", "quoted_tax_label",
-            "quoted_tax_amount", "quoted_total", "quoted_currency", "is_active", "created_at", "updated_at",
+            "quoted_tax_amount", "quoted_total", "quoted_currency", "revision",
+            "revision_required", "is_active", "created_at", "updated_at",
         ]
         read_only_fields = [
             "id", "quote_number", "status", "general_terms_conditions",
-            "combined_terms_conditions", "terms_missing", "is_active", "created_at", "updated_at",
+            "combined_terms_conditions", "terms_missing", "revision",
+            "revision_required", "is_active", "created_at", "updated_at",
         ]
+
+    def get_service_data(self, obj):
+        current = dict(ServiceSerializer(obj.service, context=self.context).data)
+        snapshot = signed_snapshot_section(obj, "service")
+        if snapshot is not None:
+            current.update(snapshot)
+        return current
+
+    def get_client(self, obj):
+        current = dict(ClientSerializer(obj.service.client, context=self.context).data)
+        snapshot = signed_snapshot_section(obj, "client")
+        if snapshot is not None:
+            current.update(snapshot)
+        return current
+
+    def get_service_name(self, obj):
+        snapshot = signed_snapshot_section(obj, "service")
+        return snapshot.get("service_name", "") if snapshot is not None else obj.service.service_name
+
+    def get_client_name(self, obj):
+        snapshot = signed_snapshot_section(obj, "client")
+        return snapshot.get("client_name", "") if snapshot is not None else obj.service.client.name
+
+    def get_business_name(self, obj):
+        snapshot = signed_snapshot_section(obj, "business")
+        return snapshot.get("name", "") if snapshot is not None else obj.service.business.name
 
     def validate_valid_until(self, value):
         if value < timezone.now().date():

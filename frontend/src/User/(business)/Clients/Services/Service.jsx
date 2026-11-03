@@ -27,7 +27,7 @@ export default function Service({ token }) {
   });
   const [
     updateService,
-    { isLoading: updating, error: updateError, isSuccess },
+    { isLoading: updating, error: updateError },
   ] = useUpdateServiceMutation();
 
   const [serviceName, setServiceName] = useState("");
@@ -113,18 +113,13 @@ export default function Service({ token }) {
         updateError?.data?.status ||
         "Failed to update service.";
       setAlert({ type: "danger", message });
-    } else if (isSuccess) {
-      setAlert({
-        type: "success",
-        message: "Service updated successfully!",
-      });
     }
-  }, [updateError, isSuccess, serviceData, setAlert]);
+  }, [updateError, serviceData, setAlert]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await updateService({
+      const updatedService = await updateService({
         id,
         service_name: serviceName,
         description,
@@ -142,7 +137,14 @@ export default function Service({ token }) {
         country,
         postal_code: postalCode,
       }).unwrap();
-      navigate(`/user/business/client/${serviceData.client}/services`);
+      const revisedCount = updatedService?.quotes_returned_to_draft?.length || 0;
+      setAlert({
+        type: "success",
+        message: revisedCount
+          ? `Service updated. ${revisedCount} sent quote${revisedCount === 1 ? " was" : "s were"} returned to draft and must be resent.`
+          : "Service updated successfully!",
+      });
+      navigate("/user/business/services");
     } catch (err) {
       setAlert({ type: "danger", message: `Failed to update service: ${err}` });
     }

@@ -12,6 +12,7 @@ from reportlab.platypus import (
 )
 
 from core.pricing import quote_line_items, quote_tax_details
+from core.quote_snapshots import signed_snapshot_section
 from operations.pdf_content import parse_pdf_content
 
 
@@ -42,6 +43,26 @@ def _billing_address(client):
         client.billing_province_state, client.billing_country,
         client.billing_postal_code,
     ]))
+
+
+def _snapshot_address(snapshot, record):
+    if snapshot:
+        return ", ".join(filter(None, [
+            snapshot.get("street_address"), snapshot.get("city"),
+            snapshot.get("province_state"), snapshot.get("country"),
+            snapshot.get("postal_code"),
+        ]))
+    return _address(record)
+
+
+def _snapshot_billing_address(snapshot, client):
+    if snapshot:
+        return ", ".join(filter(None, [
+            snapshot.get("billing_street_address"), snapshot.get("billing_city"),
+            snapshot.get("billing_province_state"), snapshot.get("billing_country"),
+            snapshot.get("billing_postal_code"),
+        ]))
+    return _billing_address(client)
 
 
 def _styles():
@@ -153,9 +174,30 @@ def build_signed_quote_pdf(quote):
     )
     styles = _styles()
     service = quote.service
-    quoted_currency = getattr(quote, "currency", None) or service.currency
     business = service.business
     client = service.client
+    service_snapshot = signed_snapshot_section(quote, "service")
+    client_snapshot = signed_snapshot_section(quote, "client")
+    business_snapshot = signed_snapshot_section(quote, "business")
+    quoted_currency = (
+        getattr(quote, "currency", None)
+        or (service_snapshot or {}).get("currency")
+        or service.currency
+    )
+    business_name = (business_snapshot or {}).get("name", business.name)
+    business_phone = (business_snapshot or {}).get("phone", business.phone)
+    business_email = (business_snapshot or {}).get("email", business.email)
+    client_name = (client_snapshot or {}).get("client_name", client.name)
+    client_company = (client_snapshot or {}).get("company_name", client.company_name)
+    client_email = (client_snapshot or {}).get("client_email", client.user.email)
+    client_phone = (client_snapshot or {}).get("client_phone", client.phone)
+    service_name = (service_snapshot or {}).get("service_name", service.service_name)
+    service_description = (service_snapshot or {}).get("description", service.description or "")
+    service_items = (
+        service_snapshot.get("items", [])
+        if service_snapshot is not None
+        else (getattr(service, "items", None) or [])
+    )
     # SimpleDocTemplate's content frame has 6pt inner padding on each side.
     content_left = document.leftMargin + 6
     content_right = LETTER[0] - document.rightMargin - 6
@@ -194,7 +236,7 @@ def build_signed_quote_pdf(quote):
             f"Payment terms: {escape(quote.get_payment_terms_display())}", styles["meta"],
         ))
     header = Table(
-        [[_paragraph(business.name, styles["title"]), metadata]],
+        [[_paragraph(business_name, styles["title"]), metadata]],
         colWidths=[width * 0.64, width * 0.36],
     )
     header.setStyle(TableStyle([
@@ -208,17 +250,17 @@ def build_signed_quote_pdf(quote):
 
     business_details = [
         _paragraph("BUSINESS DETAILS", styles["label"]),
-        _paragraph(f"Address: {_text(_address(business))}", styles["body"]),
-        _paragraph(f"Phone: {_text(business.phone)}", styles["body"]),
-        _paragraph(f"Email: {_text(business.email)}", styles["body"]),
+        _paragraph(f"Address: {_text(_snapshot_address(business_snapshot, business))}", styles["body"]),
+        _paragraph(f"Phone: {_text(business_phone)}", styles["body"]),
+        _paragraph(f"Email: {_text(business_email)}", styles["body"]),
     ]
     client_details = [
         _paragraph("PREPARED FOR", styles["label"]),
-        _paragraph(client.name, styles["name"]),
-        *([_paragraph(service.client.company_name, styles["body"])] if service.client.company_name else []),
-        _paragraph(client.user.email, styles["body"]),
-        _paragraph(client.phone, styles["body"]),
-        _paragraph(f"Billing address: {_text(_billing_address(service.client))}", styles["body"]),
+        _paragraph(client_name, styles["name"]),
+        *([_paragraph(client_company, styles["body"])] if client_company else []),
+        _paragraph(client_email, styles["body"]),
+        _paragraph(client_phone, styles["body"]),
+        _paragraph(f"Billing address: {_text(_snapshot_billing_address(client_snapshot, client))}", styles["body"]),
     ]
     contacts = Table([[business_details, client_details]], colWidths=[width / 2] * 2)
     contacts.setStyle(TableStyle([
@@ -230,10 +272,10 @@ def build_signed_quote_pdf(quote):
     ]))
 
     service_details = [
-        _paragraph(service.service_name, styles["name"]),
-        _paragraph(f"Service address: {_text(_address(service))}", styles["body"]),
+        _paragraph(service_name, styles["name"]),
+        _paragraph(f"Service address: {_text(_snapshot_address(service_snapshot, service))}", styles["body"]),
     ]
-    service_type = getattr(service, "service_type", None)
+    service_type = (service_snapshot or {}).get("service_type", getattr(service, "service_type", None))
     if service_type:
         service_details.append(_paragraph(
             service_type.replace("_", " ").title(), styles["small"],
@@ -272,7 +314,7 @@ def build_signed_quote_pdf(quote):
             _paragraph(f"{tax_label.upper()} ({quote.tax_rate}%)", styles["label"]),
             _paragraph(f"${tax_amount:,.2f} {quoted_currency}", styles["label_right"]),
         ])
-    billing_cycle = getattr(service, "billing_cycle", "")
+    billing_cycle = (service_snapshot or {}).get("billing_cycle", getattr(service, "billing_cycle", ""))
     period = " / month" if billing_cycle == "MONTHLY" else ""
     rows.append([
         _paragraph("QUOTED TOTAL" + period.upper(), styles["label"]),
@@ -296,8 +338,8 @@ def build_signed_quote_pdf(quote):
     story = [header, Spacer(1, 15), contacts, Spacer(1, 15), summary, Spacer(1, 12), pricing, Spacer(1, 4)]
     if len(items) > 1:
         story.append(CondPageBreak(260))
-    if service.description and getattr(service, "items", None):
-        story.extend(_section("Service Description", service.description, styles))
+    if service_description and service_items:
+        story.extend(_section("Service Description", service_description, styles))
     story.extend(_section(
         "General terms and conditions",
         quote.general_terms_conditions or "No general terms provided.", styles,
@@ -311,8 +353,8 @@ def build_signed_quote_pdf(quote):
 
     acceptance_details = [
         Paragraph("SIGNED AND ACCEPTED", styles["signed"]), Spacer(1, 5),
-        _paragraph(client.name, styles["name"]),
-        _paragraph(f"Signed by {_text(client.name)} on {signed_at}", styles["body"]),
+        _paragraph(client_name, styles["name"]),
+        _paragraph(f"Signed by {_text(client_name)} on {signed_at}", styles["body"]),
     ]
     signature_details = [_paragraph("CLIENT SIGNATURE", styles["label"])]
     if quote.signature:

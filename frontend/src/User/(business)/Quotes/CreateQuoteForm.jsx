@@ -187,7 +187,7 @@ export default function CreateQuoteForm({
                     label="Notes"
                     value={notes}
                     onChange={setNotes}
-                    isRequired={true}
+                    isRequired={false}
                     fieldClass="h-28 rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
                     rows={5}
                     placeholder="Optional notes or invoice description......."

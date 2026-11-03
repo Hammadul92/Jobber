@@ -86,6 +86,54 @@ class SignedQuotePdfTests(SimpleTestCase):
         self.assertIn("SIGNED AND ACCEPTED", text)
         self.assertIn(b"/Subtype /Image", pdf.getvalue())
 
+    def test_signed_pdf_uses_related_record_snapshot_after_live_records_change(self):
+        self.quote.status = "SIGNED"
+        self.quote.signed_snapshot = {
+            "version": 1,
+            "business": {
+                "name": "Snapshot Business",
+                "phone": "snapshot-business-phone",
+                "email": "snapshot-business@example.test",
+                "street_address": "1 Snapshot Business Road",
+                "city": "Edmonton", "province_state": "AB",
+                "country": "CA", "postal_code": "T5J 1N3",
+            },
+            "client": {
+                "client_name": "Snapshot Client",
+                "client_email": "snapshot-client@example.test",
+                "client_phone": "snapshot-client-phone",
+                "company_name": "Snapshot Company",
+                "billing_street_address": "2 Snapshot Billing Road",
+                "billing_city": "Calgary", "billing_province_state": "AB",
+                "billing_country": "CA", "billing_postal_code": "T2P 9Z9",
+            },
+            "service": {
+                "service_name": "Snapshot Flooring",
+                "description": "Snapshot description.",
+                "items": [{"title": "Saved item", "description": "", "price": "2300.00"}],
+                "currency": "CAD", "service_type": "ONE_TIME",
+                "billing_cycle": None,
+                "street_address": "3 Snapshot Service Road",
+                "city": "Calgary", "province_state": "AB",
+                "country": "CA", "postal_code": "T2P 1J9",
+            },
+        }
+        self.business.name = "Changed Live Business"
+        self.service.client.name = "Changed Live Client"
+        self.service.service_name = "Changed Live Service"
+
+        _, text = self.render()
+
+        self.assertIn("Snapshot Business", text)
+        self.assertIn("Snapshot Client", text)
+        self.assertIn("Snapshot Company", text)
+        self.assertIn("Snapshot Flooring", text)
+        self.assertIn("2 Snapshot Billing Road", text)
+        self.assertIn("3 Snapshot Service Road", text)
+        self.assertNotIn("Changed Live Business", text)
+        self.assertNotIn("Changed Live Client", text)
+        self.assertNotIn("Changed Live Service", text)
+
     def test_pdf_shows_agreed_payment_terms(self):
         self.quote.payment_terms = "NET_30"
         self.quote.get_payment_terms_display = lambda: "Net 30 days"

@@ -100,15 +100,30 @@ export default function Quote({ token, role }) {
     }
   };
 
-  const handleSendQuote = async () => {
-    if (sending || activatingService) return;
+  const handleActivateService = async () => {
+    if (activatingService || !quoteData.service_data?.id) return;
     try {
-      if (quoteData.service_data?.status !== "ACTIVE") {
-        await updateService({
-          id: quoteData.service_data.id,
-          status: "ACTIVE",
-        }).unwrap();
-      }
+      await updateService({
+        id: quoteData.service_data.id,
+        status: "ACTIVE",
+      }).unwrap();
+      setAlert({ type: "success", message: "Service activated successfully!" });
+    } catch (err) {
+      setAlert({
+        type: "danger",
+        message:
+          err?.data?.detail ||
+          (Array.isArray(err?.data?.status)
+            ? err.data.status[0]
+            : err?.data?.status) ||
+          "Failed to activate the service. Please try again.",
+      });
+    }
+  };
+
+  const handleSendQuote = async () => {
+    if (sending) return;
+    try {
       await sendQuote(id).unwrap();
       navigate("/user/business/quotes", {
         replace: true,
@@ -180,6 +195,7 @@ export default function Quote({ token, role }) {
   const serviceData = quoteData.service_data || {};
 
   const isSigned = quoteData.status === "SIGNED";
+  const isDeclined = quoteData.status === "DECLINED";
   const isInactiveClient =
     client.is_active === false || client.is_active === "False";
   const isServiceInactive = serviceData.status !== "ACTIVE";
@@ -189,15 +205,19 @@ export default function Quote({ token, role }) {
   const isTermsMissing = Boolean(quoteData.terms_missing);
 
   const disableSendBtn =
-    isSigned || isExpired || isInactiveClient || isRequiredFieldsMissing || isTermsMissing;
+    isSigned || isDeclined || isExpired || isInactiveClient || isServiceInactive || isRequiredFieldsMissing || isTermsMissing;
 
   const disableReasons = [];
   if (isSigned) disableReasons.push("This quote has already been signed and cannot be resent.");
+  if (isDeclined)
+    disableReasons.push("This quote was declined and cannot be resent. Create a new quote instead.");
   if (isExpired && !isSigned)
     disableReasons.push('This quote has expired. Please update the "Valid Until" date before sending.');
   if (isInactiveClient) disableReasons.push("The client is inactive. Reactivate the client before sending.");
   if (isServiceInactive)
-    disableReasons.push("The linked service is inactive. It will be activated when you send this quote.");
+    disableReasons.push("The linked service is inactive. Activate it before sending this quote.");
+  if (quoteData.revision_required)
+    disableReasons.push("Service details changed after this quote was sent. Review and resend the revised quote.");
   if (isRequiredFieldsMissing)
     disableReasons.push("Save the Valid Until date and Payment Terms before sending.");
   if (isTermsMissing && !isSigned)
@@ -226,14 +246,10 @@ export default function Quote({ token, role }) {
     <>
       <ConfirmCustomerNotification
         open={role === "MANAGER" && confirmSend}
-        detail={
-          isServiceInactive
-            ? `Activate ${serviceData.service_name || "the linked service"}, then send quote ${quoteData.quote_number} to ${client.client_email || quoteData.client_name || "the customer"}.`
-            : `Send quote ${quoteData.quote_number} to ${client.client_email || quoteData.client_name || "the customer"}.`
-        }
+        detail={`Send quote ${quoteData.quote_number} to ${client.client_email || quoteData.client_name || "the customer"}.`}
         onYes={handleSendQuote}
         onNo={() => setConfirmSend(false)}
-        isLoading={sending || activatingService}
+        isLoading={sending}
       />
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -262,26 +278,38 @@ export default function Quote({ token, role }) {
             {downloading ? "Preparing PDF..." : "Download Signed PDF"}
           </button>
         ) : role === "MANAGER" ? (
-          <button
-            type="button"
-            className={`${btnPrimary} min-w-43 justify-center`}
-            onClick={() => setConfirmSend(true)}
-            disabled={disableSendBtn || sending || activatingService}
-          >
-            {(sending || activatingService) && (
-              <span
-                className="h-5 w-5 animate-spin rounded-full border-2 border-white/50 border-t-white"
-                aria-hidden="true"
-              />
+          <div className="flex flex-wrap justify-end gap-3">
+            {isServiceInactive && !isDeclined && (
+              <button
+                type="button"
+                className="inline-flex min-w-43 items-center justify-center rounded-xl border border-accent bg-white px-5 py-2.5 text-sm font-semibold text-accent shadow-sm transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={handleActivateService}
+                disabled={activatingService || sending}
+              >
+                {activatingService && (
+                  <span
+                    className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-orange-200 border-t-accent"
+                    aria-hidden="true"
+                  />
+                )}
+                {activatingService ? "Activating Service..." : "Activate Service"}
+              </button>
             )}
-            {sending || activatingService
-              ? activatingService
-                ? "Activating Service..."
-                : "Sending Quote..."
-              : isServiceInactive
-                ? "Activate Service & Send Quote"
-                : "Send Quote"}
-          </button>
+            <button
+              type="button"
+              className={`${btnPrimary} min-w-43 justify-center`}
+              onClick={() => setConfirmSend(true)}
+              disabled={disableSendBtn || sending || activatingService}
+            >
+              {sending && (
+                <span
+                  className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-white/50 border-t-white"
+                  aria-hidden="true"
+                />
+              )}
+              {sending ? "Sending Quote..." : "Send Quote"}
+            </button>
+          </div>
         ) : null}
       </div>
 
