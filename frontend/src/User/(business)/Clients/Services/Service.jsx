@@ -135,7 +135,7 @@ export default function Service({ token }) {
           ? `Service updated. ${revisedCount} sent quote${revisedCount === 1 ? " was" : "s were"} returned to draft and must be resent.`
           : "Service updated successfully!",
       });
-      navigate("/user/business/services");
+      navigate(`/user/business/services?client=${serviceData.client}`);
     } catch (err) {
       setAlert({ type: "danger", message: `Failed to update service: ${err}` });
     }
@@ -366,7 +366,7 @@ export default function Service({ token }) {
             type="button"
             className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/20"
             onClick={() =>
-              navigate(`/user/business/client/${serviceData.client}/services`)
+              navigate(`/user/business/services?client=${serviceData.client}`)
             }
           >
             Cancel

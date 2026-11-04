@@ -59,6 +59,8 @@ export default function ClientServicesData({
   token,
   role,
   clientId,
+  clientOptions = [],
+  onClientChange,
   header,
 }) {
   const setAlert = useAlert();
@@ -160,12 +162,13 @@ export default function ClientServicesData({
     return result;
   };
 
-  const hasFilters = FILTER_KEYS.some((key) => filters[key]);
+  const hasFilters = FILTER_KEYS.some((key) => filters[key]) || Boolean(clientFilter);
   const isFiltered = hasFilters || Boolean(table.queryArgs.search);
 
   const clearFilters = () => {
     FILTER_KEYS.forEach((key) => setFilter(key, ""));
     setSearchInput("");
+    if (clientFilter) onClientChange?.("");
   };
 
   const provinceOptions = useMemo(() => {
@@ -340,6 +343,21 @@ export default function ClientServicesData({
           onClear={clearFilters}
           actions={isManager && <TrashLink resource="services" />}
         >
+          {isManager && onClientChange && (
+            <ToolbarSelect
+              id="client_filter"
+              label="Client"
+              value={clientFilter}
+              onChange={onClientChange}
+              options={[
+                { value: "", label: "All clients" },
+                ...clientOptions.map(({ value, label, isActive }) => ({
+                  value,
+                  label: isActive ? label : `${label} (inactive)`,
+                })),
+              ]}
+            />
+          )}
           <ToolbarSelect
             id="type_filter"
             label="Subscription type"

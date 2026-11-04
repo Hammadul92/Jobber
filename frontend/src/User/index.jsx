@@ -48,11 +48,7 @@ export default function UserDashboard({ page, token, user }) {
       invoice: "/user/business/invoices",
       job: "/user/business/jobs",
       payout: "/user/business/payouts",
-    }[page] ||
-    (page === "client-services" &&
-    /^\/user\/business\/client\/[^/]+\/services\/?$/.test(location.pathname)
-      ? "/user/business/clients"
-      : null);
+    }[page] || null;
 
   const businessTabPages = useMemo(
     () =>

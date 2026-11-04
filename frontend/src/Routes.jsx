@@ -9,6 +9,7 @@ import {
   useNavigate,
   useParams,
   useSearchParams,
+  Navigate,
 } from "react-router-dom";
 
 import LoadingScreen from "./Components/ui/LoadingScreen";
@@ -111,6 +112,17 @@ function InvoiceRoute({ token, user }) {
   }
 
   return <UserDashboard page="invoice" token={token} user={user} />;
+}
+
+// Old per-client services page; the Services tab now filters by client.
+function ClientServicesRedirect() {
+  const { id } = useParams();
+  return (
+    <Navigate
+      to={`/user/business/services?client=${encodeURIComponent(id)}`}
+      replace
+    />
+  );
 }
 
 function App() {
@@ -235,9 +247,7 @@ function MainApp() {
           />
           <Route
             path="client/:id/services"
-            element={
-              <UserDashboard page="client-services" token={token} user={user} />
-            }
+            element={<ClientServicesRedirect />}
           />
           <Route
             path="services"

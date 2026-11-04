@@ -517,7 +517,7 @@ class DashboardTodosView(APIView):
     @staticmethod
     def _client_link(row):
         if row["client_id"]:
-            return f"/user/business/client/{row['client_id']}/services"
+            return f"/user/business/services?client={row['client_id']}"
         return "/user/business/services"
 
     @staticmethod

@@ -16,19 +16,38 @@ import ConfirmCustomerNotification from "../../../../Components/ui/ConfirmCustom
 import useAlert from "../../../../hooks/useAlert";
 import { apiErrorMessage } from "../../../../utils/apiError";
 
+// Create (or edit) a service. In create mode the manager picks the client;
+// defaultClientId preselects one, e.g. when the Services tab is filtered.
 export default function CreateClientServiceForm({
   showModal,
   setShowModal,
-  clientId,
   businessId,
-  clientName,
-  clientBillingAddress,
+  clients = [],
+  defaultClientId = "",
   serviceOptions = [],
   mode = "create",
   initialData = null,
 }) {
   const setAlert = useAlert();
   const isEditMode = mode === "edit" && Boolean(initialData);
+  const [selectedClientId, setSelectedClientId] = useState(String(defaultClientId || ""));
+  const clientList = Array.isArray(clients) ? clients : [];
+  const selectedClient = clientList.find(
+    (client) => String(client.id) === String(selectedClientId),
+  );
+  const clientId = selectedClient?.id;
+  const clientName = selectedClient?.client_name;
+  const clientBillingAddress = selectedClient;
+  const clientChoices = clientList
+    .filter(
+      (client) =>
+        client.is_active !== false || String(client.id) === String(selectedClientId),
+    )
+    .map((client) => ({
+      value: String(client.id),
+      label: client.client_name || client.client_email || `Client #${client.id}`,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
   const lockToStatusOnly = isEditMode && initialData?.status !== "PENDING";
   const [serviceName, setServiceName] = useState("");
   const [serviceType, setServiceType] = useState("ONE_TIME");
@@ -107,6 +126,7 @@ export default function CreateClientServiceForm({
 
     if (!isEditMode) {
       resetForm();
+      setSelectedClientId(String(defaultClientId || ""));
     } else {
       setServiceName(initialData.service_name || "");
       setServiceType(initialData.service_type || "ONE_TIME");
@@ -126,7 +146,15 @@ export default function CreateClientServiceForm({
       setAutoGenerateQuote(Boolean(initialData.auto_generate_quote));
       setAutoGenerateInvoices(Boolean(initialData.auto_generate_invoices));
     }
+    // Only re-run when the drawer opens; defaultClientId is read at that moment.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showModal, isEditMode, initialData]);
+
+  const handleClientChange = (value) => {
+    setSelectedClientId(value);
+    // The billing address belongs to the previous client.
+    if (sameAsBilling) setSameAsBilling(false);
+  };
 
   const saveService = async (payload) => {
     try {
@@ -166,6 +194,10 @@ export default function CreateClientServiceForm({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!isEditMode && !clientId) {
+      setAlert({ type: "danger", message: "Choose the client this service is for." });
+      return;
+    }
     const payload = {
       service_name: serviceName,
       service_type: serviceType,
@@ -224,7 +256,7 @@ export default function CreateClientServiceForm({
                     {isEditMode ? "Edit Service" : "Add a New Service"}
                   </h5>
                   <p className="mt-1 text-sm text-slate-500">
-                    {isEditMode ? "Update service details" : `Create a service for ${clientName || "client"}`}
+                    {isEditMode ? "Update service details" : `Create a service for ${clientName || "a client"}`}
                   </p>
                 </div>
                 <button
@@ -255,6 +287,26 @@ export default function CreateClientServiceForm({
                   </p>
 
                   <div className="space-y-6">
+                    {!isEditMode && (
+                      <div>
+                        <label
+                          htmlFor="service_client"
+                          className="mb-1 block text-sm uppercase font-semibold text-gray-500"
+                        >
+                          Client <span className="text-accent">*</span>
+                        </label>
+                        <Dropdown
+                          id="service_client"
+                          value={selectedClientId}
+                          onChange={handleClientChange}
+                          placeholder={clientChoices.length ? "Select Client" : "Add a client first"}
+                          options={clientChoices}
+                          buttonClassName="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
+                          disabled={!clientChoices.length}
+                        />
+                      </div>
+                    )}
+
                     <div>
                       <label
                         htmlFor="service_name"
@@ -483,7 +535,11 @@ export default function CreateClientServiceForm({
                       </label>
                     )}
                     {!isEditMode && !hasBillingAddress && (
-                      <p className="text-xs text-slate-500">Add a complete billing address to the client profile to use this option.</p>
+                      <p className="text-xs text-slate-500">
+                        {selectedClient
+                          ? "Add a complete billing address to the client profile to use this option."
+                          : "Select a client to use their billing address."}
+                      </p>
                     )}
                     <div className="space-y-6">
                       <div>

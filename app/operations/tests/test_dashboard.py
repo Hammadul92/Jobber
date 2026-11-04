@@ -357,7 +357,7 @@ class DashboardTodosApiTests(DashboardTestMixin, TestCase):
         priorities = [item["priority"] for item in data["items"]]
         self.assertEqual(priorities, sorted(priorities, key=lambda value: value != "high"))
         answers = next(item for item in data["items"] if item["id"].startswith("service-questionnaire-response"))
-        self.assertEqual(answers["to"], f"/user/business/client/{self.client_a.pk}/services")
+        self.assertEqual(answers["to"], f"/user/business/services?client={self.client_a.pk}")
         self.assertEqual(answers["description"], "alice still needs to complete the service questionnaire.")
 
     def test_banking_and_setup_todos_clear(self):

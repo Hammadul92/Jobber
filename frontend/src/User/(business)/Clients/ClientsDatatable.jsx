@@ -226,7 +226,7 @@ export default function ClientsDatatable({ token, showAddClient }) {
       render: (row) => (
         <div className="flex items-center gap-1 whitespace-nowrap">
           <Link
-            to={`/user/business/client/${row.id}/services`}
+            to={`/user/business/services?client=${row.id}`}
             className="inline-flex items-center gap-1 rounded-xl p-2 text-secondary hover:bg-secondary/5"
             title="Client Services"
             aria-label={`Services for ${clientNameOf(row)}`}

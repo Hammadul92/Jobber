@@ -13,11 +13,6 @@ const BUSINESS_TRAILS = {
   home: [],
   clients: [["Clients"]],
   "client/:id": [["Clients", "clients", "clients"], ["Client"]],
-  "client/:id/services": [
-    ["Clients", "clients", "clients"],
-    ["Client", "client/:id", "client"],
-    ["Services"],
-  ],
   services: [["Services"]],
   "service/:id": [["Services", "services", "client-services"], ["Service"]],
   "service-questionnaires": [["Questionnaires"]],
