@@ -85,6 +85,11 @@ INVOICE_STATUS_CHOICES = [
     ("CANCELLED", "Cancelled"),
 ]
 
+INVOICE_PAYMENT_OPTION_CHOICES = [
+    ("PAYMENT_LINK", "Payment link"),
+    ("ETRANSFER", "Interac e-Transfer"),
+]
+
 PAYOUT_STATUS_CHOICES = [
     ("PENDING", "Pending"),
     ("PAID", "Paid"),
@@ -301,6 +306,8 @@ class Business(SoftDeletableModel):
     default_payment_terms = models.CharField(
         max_length=10, choices=PAYMENT_TERMS_CHOICES, default="NET_15",
     )
+    # Where clients send Interac e-Transfers when an invoice asks for one.
+    etransfer_email = models.EmailField(blank=True, default="")
 
     services_offered = TaggableManager(
         blank=True,
@@ -894,6 +901,13 @@ class Invoice(SoftDeletableModel):
     line_items = models.JSONField(blank=True, null=True)
 
     paid_at = models.DateTimeField(blank=True, null=True)
+    # How the client was asked to pay when the invoice was last sent.
+    payment_option = models.CharField(
+        max_length=20,
+        choices=INVOICE_PAYMENT_OPTION_CHOICES,
+        default="PAYMENT_LINK",
+    )
+    payment_confirmation_sent_at = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

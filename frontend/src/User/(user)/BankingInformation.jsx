@@ -4,6 +4,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripeCardForm from "./StripeCardForm";
 import BankAccountForm from "./BankAccountForm";
+import ETransferSettings from "./ETransferSettings";
 import {
   useFetchBusinessesQuery,
   useFetchBankingInformationListQuery,
@@ -371,6 +372,8 @@ export default function BankingInformation({ token }) {
             </div>
           </div>
         )}
+
+        {hasBusiness && <ETransferSettings business={businesses[0]} />}
 
         {/* Transaction History Link */}
         {hasBusiness && (

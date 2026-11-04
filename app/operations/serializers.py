@@ -45,7 +45,7 @@ class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
                   'business_description', 'logo', 'street_address',
                   'city', 'country', 'province_state',
                   'postal_code', 'business_number', 'tax_rate', 'tax_label',
-                  'default_payment_terms',
+                  'default_payment_terms', 'etransfer_email',
                   'services_offered', 'timezone', 'created_at', 'updated_at']
 
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at']

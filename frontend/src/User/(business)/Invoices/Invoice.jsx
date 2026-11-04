@@ -6,8 +6,12 @@ import {
   useUpdateInvoiceMutation,
   useMakePaymentMutation,
   useSendInvoiceMutation,
+  useSendPaymentConfirmationMutation,
   useMarkInvoiceUnpaidMutation,
 } from "../../../store";
+import { LuCircleCheck, LuLandmark } from "react-icons/lu";
+import SendInvoiceDialog from "./SendInvoiceDialog";
+import { PAYMENT_OPTION_LABELS } from "../../../utils/paymentOptions";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Input from "../../../Components/ui/Input";
 import Textarea from "../../../Components/ui/Textarea";
@@ -56,6 +60,8 @@ export default function Invoice({ token, role }) {
   const [sendInvoice, { isLoading: sendingInvoice }] = useSendInvoiceMutation();
   const [markInvoiceUnpaid, { isLoading: markingUnpaid }] =
     useMarkInvoiceUnpaidMutation();
+  const [sendPaymentConfirmation, { isLoading: sendingConfirmation }] =
+    useSendPaymentConfirmationMutation();
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [status, setStatus] = useState("");
@@ -153,7 +159,13 @@ export default function Invoice({ token, role }) {
     try {
       await updateInvoice({ id, status: newStatus }).unwrap();
       setStatus(newStatus);
-      setAlert({ type: "success", message: `Invoice marked as ${newStatus}.` });
+      setAlert({
+        type: "success",
+        message:
+          newStatus === "PAID"
+            ? "Invoice marked as PAID. Use Send Payment Confirmation to email the client a receipt."
+            : `Invoice marked as ${newStatus}.`,
+      });
     } catch (err) {
       setAlert({
         type: "danger",
@@ -193,15 +205,33 @@ export default function Invoice({ token, role }) {
     }
   };
 
-  const handleSendInvoice = async () => {
+  const handleSendInvoice = async (paymentOption) => {
     if (sendingInvoice) return;
     try {
-      const response = await sendInvoice(id).unwrap();
+      const response = await sendInvoice({ id, paymentOption }).unwrap();
       setAlert({type: "success", message: response.detail});
     } catch (err) {
       setAlert({
         type: "danger",
         message: err?.data?.detail || "Invoice email could not be sent. Please try again.",
+      });
+    } finally {
+      setConfirmAction(null);
+    }
+  };
+
+  const handleSendConfirmation = async () => {
+    if (sendingConfirmation) return;
+    try {
+      await sendPaymentConfirmation(id).unwrap();
+      setAlert({
+        type: "success",
+        message: `Payment confirmation emailed to ${clientName || "the client"}.`,
+      });
+    } catch (err) {
+      setAlert({
+        type: "danger",
+        message: err?.data?.detail || "Payment confirmation could not be sent. Please try again.",
       });
     } finally {
       setConfirmAction(null);
@@ -242,14 +272,29 @@ export default function Invoice({ token, role }) {
   return (
     <>
       <ConfirmCustomerNotification
-        open={role === "MANAGER" && Boolean(confirmAction)}
-        detail={`Send invoice ${invoiceNumber || ""} to ${clientName || "the customer"}.`}
+        open={role === "MANAGER" && ["save", "confirmation"].includes(confirmAction?.type)}
+        detail={
+          confirmAction?.type === "confirmation"
+            ? `Email ${clientName || "the customer"} a payment confirmation for invoice ${invoiceNumber || ""} with the paid invoice PDF attached.`
+            : `Send invoice ${invoiceNumber || ""} to ${clientName || "the customer"}.`
+        }
         onYes={() => {
           if (confirmAction?.type === "save") saveInvoice(confirmAction.payload);
-          else if (confirmAction?.type === "send") handleSendInvoice();
+          else if (confirmAction?.type === "confirmation") handleSendConfirmation();
         }}
         onNo={() => setConfirmAction(null)}
-        isLoading={sendingInvoice || updatingInvoice}
+        isLoading={sendingInvoice || updatingInvoice || sendingConfirmation}
+      />
+      <SendInvoiceDialog
+        open={role === "MANAGER" && confirmAction?.type === "send"}
+        invoiceNumber={invoiceNumber}
+        clientName={clientName}
+        defaultOption={invoiceData?.payment_option}
+        etransferEmail={invoiceData?.business_etransfer_email}
+        isResend={status === "SENT"}
+        isLoading={sendingInvoice}
+        onSend={handleSendInvoice}
+        onCancel={() => setConfirmAction(null)}
       />
       <TransactionCompleteNotice
         message={completionMessage}
@@ -294,7 +339,18 @@ export default function Invoice({ token, role }) {
                     Paid {formatDate(paidAt)}
                   </span>
                 )}
+                {invoiceData?.sent_at && PAYMENT_OPTION_LABELS[invoiceData.payment_option] && (
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase text-slate-600">
+                    Via {PAYMENT_OPTION_LABELS[invoiceData.payment_option]}
+                  </span>
+                )}
               </div>
+              {status === "PAID" && invoiceData?.payment_confirmation_sent_at && (
+                <p className="inline-flex items-center gap-1.5 pt-1 text-xs font-medium text-emerald-700">
+                  <LuCircleCheck className="h-3.5 w-3.5" />
+                  Payment confirmation sent {formatDate(invoiceData.payment_confirmation_sent_at)}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2 text-slate-800 sm:items-end">
@@ -310,14 +366,29 @@ export default function Invoice({ token, role }) {
               </p>
               {role === "MANAGER" && (
                 <div className="mt-2 flex flex-wrap items-center gap-2 sm:justify-end">
-                  <button
-                    type="button"
-                    className={ACTION_BTN_STYLES.send}
-                    disabled={disableSend}
-                    onClick={() => setConfirmAction({ type: "send" })}
-                  >
-                    {sendingInvoice ? "Sending..." : status === "SENT" ? "Resend" : "Send"}
-                  </button>
+                  {status === "PAID" ? (
+                    <button
+                      type="button"
+                      className={ACTION_BTN_STYLES.send}
+                      disabled={sendingConfirmation}
+                      onClick={() => setConfirmAction({ type: "confirmation" })}
+                    >
+                      {sendingConfirmation
+                        ? "Sending..."
+                        : invoiceData?.payment_confirmation_sent_at
+                          ? "Resend Payment Confirmation"
+                          : "Send Payment Confirmation"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className={ACTION_BTN_STYLES.send}
+                      disabled={disableSend}
+                      onClick={() => setConfirmAction({ type: "send" })}
+                    >
+                      {sendingInvoice ? "Sending..." : status === "SENT" ? "Resend" : "Send"}
+                    </button>
+                  )}
                   {status === "PAID" ? (
                     <button
                       type="button"
@@ -636,7 +707,28 @@ function CustomerView({
 
         {status === "SENT" && !invoiceData?.has_paid_payout && (
           <div className={`${notes ? "mt-5" : ""} flex justify-end`}>
-            {invoiceData?.has_payment_method ? (
+            {invoiceData?.payment_option === "ETRANSFER" ? (
+              <div className="w-full rounded-2xl border border-gray-200 bg-slate-50 px-5 py-4 md:max-w-md">
+                <div className="flex items-center gap-2">
+                  <LuLandmark className="h-4 w-4 text-secondary" />
+                  <h6 className="text-sm font-semibold text-slate-900">Pay by Interac e-Transfer</h6>
+                </div>
+                <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+                  <dt className="text-slate-500">Send to</dt>
+                  <dd className="break-all font-semibold text-slate-900">
+                    {invoiceData.business_etransfer_email || "Contact the business"}
+                  </dd>
+                  <dt className="text-slate-500">Amount</dt>
+                  <dd className="font-semibold text-slate-900">{formattedTotal}</dd>
+                  <dt className="text-slate-500">Message</dt>
+                  <dd className="font-semibold text-slate-900">Invoice {invoiceNumber}</dd>
+                </dl>
+                <p className="mt-3 text-xs text-slate-500">
+                  Include the invoice number in the e-Transfer message. You&apos;ll get an email
+                  confirmation once {businessName || "the business"} receives your payment.
+                </p>
+              </div>
+            ) : invoiceData?.has_payment_method ? (
               <button
                 className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={handlePayment}

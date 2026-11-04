@@ -19,7 +19,9 @@ from core.listing import ListingMixin
 from core.trash import TrashMixin
 from core.permissions import ClientLimitedWrite
 
-from core.models import BankingInformation, Business, Client, Invoice, Payout, PayoutRefund
+from core.models import (
+    INVOICE_PAYMENT_OPTION_CHOICES, BankingInformation, Business, Client, Invoice, Payout, PayoutRefund,
+)
 from core.payment_terms import business_local_date, prepare_first_send
 from finance import serializers, emails
 from finance.stripe_connect import create_merchant_account, create_onboarding_link
@@ -27,6 +29,11 @@ from finance.payment_methods import get_client_payment_method, usable_cards_for_
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
+
+
+ETRANSFER_EMAIL_MISSING = (
+    "Add your e-Transfer email under Account > Banking before sending e-Transfer invoices."
+)
 
 
 class InvoiceDeliveryError(APIException):
@@ -439,6 +446,9 @@ class InvoiceViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
             previous_status = instance.status
             updated_instance = serializer.save()
             if previous_status != "SENT" and updated_instance.status == "SENT":
+                if (updated_instance.payment_option == "ETRANSFER"
+                        and not updated_instance.business.etransfer_email):
+                    raise DRFValidationError({"detail": ETRANSFER_EMAIL_MISSING})
                 if prepare_first_send(updated_instance):
                     updated_instance.save(update_fields=["sent_at", "due_date"])
                 try:
@@ -481,15 +491,31 @@ class InvoiceViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
                 )
             invoice.status = "SENT" if invoice.sent_at else "DRAFT"
             invoice.paid_at = None
-            invoice.save(update_fields=["status", "paid_at", "updated_at"])
+            invoice.payment_confirmation_sent_at = None
+            invoice.save(update_fields=["status", "paid_at", "payment_confirmation_sent_at", "updated_at"])
         return Response(self.get_serializer(invoice).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="send-invoice")
     def send_invoice(self, request, pk=None):
-        """Send or resend a payable invoice with a fresh client login link."""
+        """Send or resend a payable invoice.
+
+        Body: {"payment_option": "PAYMENT_LINK" | "ETRANSFER"}. Without it the
+        invoice keeps its last option (bulk sends rely on this).
+        """
         invoice = self.get_object()
         if invoice.business.owner_id != request.user.pk:
             raise PermissionDenied("Only the business owner can send invoices.")
+        payment_option = request.data.get("payment_option") or invoice.payment_option
+        if not isinstance(payment_option, str) or payment_option not in dict(INVOICE_PAYMENT_OPTION_CHOICES):
+            return Response(
+                {"payment_option": ["Choose a payment link or Interac e-Transfer."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if payment_option == "ETRANSFER" and not invoice.business.etransfer_email:
+            return Response(
+                {"detail": ETRANSFER_EMAIL_MISSING},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if invoice.status not in ("DRAFT", "SENT") or Payout.all_objects.filter(
             invoice=invoice, status="PAID",
         ).exists():
@@ -512,6 +538,7 @@ class InvoiceViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
                     {"due_date": ["Update the past due date before sending."]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+            invoice.payment_option = payment_option
             try:
                 emails.send_invoice_email(invoice)
             except Exception:
@@ -520,15 +547,38 @@ class InvoiceViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
                     {"detail": "Invoice email could not be sent. Please try again."},
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
-            update_fields = []
+            update_fields = ["payment_option"]
             if invoice.status == "DRAFT":
                 invoice.status = "SENT"
                 update_fields.append("status")
             if prepared:
                 update_fields.extend(["sent_at", "due_date"])
-            if update_fields:
-                invoice.save(update_fields=update_fields)
-        return Response({"detail": "Invoice email sent successfully."})
+            invoice.save(update_fields=update_fields)
+        how = "e-Transfer details" if payment_option == "ETRANSFER" else "a payment link"
+        return Response({"detail": f"Invoice emailed with {how}."})
+
+    @action(detail=True, methods=["post"], url_path="send-payment-confirmation")
+    def send_payment_confirmation(self, request, pk=None):
+        """Email the client a receipt with the paid invoice PDF attached."""
+        invoice = self.get_object()
+        if invoice.business.owner_id != request.user.pk:
+            raise PermissionDenied("Only the business owner can send payment confirmations.")
+        if invoice.status != "PAID":
+            return Response(
+                {"detail": "Mark the invoice paid before sending a payment confirmation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            emails.send_payment_confirmation_email(invoice)
+        except Exception:
+            logger.exception("Unable to email payment confirmation for invoice %s", invoice.pk)
+            return Response(
+                {"detail": "Payment confirmation could not be sent. Please try again."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        invoice.payment_confirmation_sent_at = timezone.now()
+        invoice.save(update_fields=["payment_confirmation_sent_at"])
+        return Response(self.get_serializer(invoice).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="make-payment")
     @transaction.atomic
@@ -551,6 +601,12 @@ class InvoiceViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         if invoice.status != "SENT":
             return Response(
                 {"detail": "Only sent invoices can be paid."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if invoice.payment_option == "ETRANSFER":
+            return Response(
+                {"detail": "This invoice is paid by Interac e-Transfer, not online."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

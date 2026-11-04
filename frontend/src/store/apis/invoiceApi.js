@@ -47,9 +47,19 @@ const invoiceApi = api.injectEndpoints({
       invalidatesTags: movedToOrFromTrash("Invoice"),
     }),
 
+    // paymentOption: "PAYMENT_LINK" | "ETRANSFER"; omit to keep the last one.
     sendInvoice: builder.mutation({
-      query: (id) => ({
+      query: ({ id, paymentOption }) => ({
         url: `/invoice/${id}/send-invoice/`,
+        method: "POST",
+        body: paymentOption ? { payment_option: paymentOption } : {},
+      }),
+      invalidatesTags: changed("Invoice"),
+    }),
+
+    sendPaymentConfirmation: builder.mutation({
+      query: (id) => ({
+        url: `/invoice/${id}/send-payment-confirmation/`,
         method: "POST",
       }),
       invalidatesTags: changed("Invoice"),
@@ -82,6 +92,7 @@ export const {
   useDeleteInvoiceMutation,
   useMakePaymentMutation,
   useSendInvoiceMutation,
+  useSendPaymentConfirmationMutation,
   useMarkInvoiceUnpaidMutation,
 } = invoiceApi;
 

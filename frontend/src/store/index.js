@@ -165,6 +165,7 @@ export {
   useDeleteInvoiceMutation,
   useMakePaymentMutation,
   useSendInvoiceMutation,
+  useSendPaymentConfirmationMutation,
   useMarkInvoiceUnpaidMutation,
 } from "./apis/invoiceApi";
 

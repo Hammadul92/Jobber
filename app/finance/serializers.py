@@ -61,6 +61,7 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
         read_only=True,
     )
     business_timezone = serializers.CharField(source="business.timezone", read_only=True)
+    business_etransfer_email = serializers.CharField(source="business.etransfer_email", read_only=True)
     client_name = serializers.CharField(
         source="client.name",
         read_only=True,
@@ -107,6 +108,9 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
             "line_items_locked",
             "notes",
             "paid_at",
+            "payment_option",
+            "payment_confirmation_sent_at",
+            "business_etransfer_email",
             "has_payment_method",
             "can_manage",
             "has_paid_payout",
@@ -127,7 +131,11 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["invoice_number", "sent_at", "created_at", "updated_at"]
+        # payment_option is chosen when the invoice is sent (send-invoice).
+        read_only_fields = [
+            "invoice_number", "sent_at", "payment_option",
+            "payment_confirmation_sent_at", "created_at", "updated_at",
+        ]
 
     def get_invoice_total(self, obj):
         return f"{obj.total_amount} {obj.currency}"
