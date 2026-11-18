@@ -899,6 +899,8 @@ class Invoice(SoftDeletableModel):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     notes = models.TextField(blank=True, null=True)
     line_items = models.JSONField(blank=True, null=True)
+    # First day of the subscription period an auto-generated invoice bills.
+    billing_period_start = models.DateField(blank=True, null=True)
 
     paid_at = models.DateTimeField(blank=True, null=True)
     # How the client was asked to pay when the invoice was last sent.
@@ -912,6 +914,15 @@ class Invoice(SoftDeletableModel):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["service", "billing_period_start"],
+                condition=models.Q(billing_period_start__isnull=False),
+                name="unique_invoice_per_service_billing_period",
+            ),
+        ]
 
     def __str__(self):
         return f"Invoice {self.invoice_number} for {self.client.name}"

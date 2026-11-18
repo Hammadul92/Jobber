@@ -15,7 +15,8 @@ from core.payment_terms import due_date_for_terms, prepare_first_send
 from finance.emails import send_invoice_email
 from operations.emails import send_quote_email
 from operations.serializers import QuoteSerializer
-from operations.views import create_auto_invoice_for_service, create_auto_quote_for_service
+from operations.recurring_invoices import create_auto_invoice_for_service
+from operations.views import create_auto_quote_for_service
 
 
 class PaymentTermDateTests(SimpleTestCase):

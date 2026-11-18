@@ -26,7 +26,6 @@ from core.models import (
     BankingInformation,
     Business,
     Client,
-    Invoice,
     Job,
     JobPhoto,
     ServiceQuestionnaire,
@@ -35,10 +34,11 @@ from core.models import (
     Service,
     Quote,
 )
-from core.pricing import business_tax_label, line_items_total, quote_line_items, service_line_items, tax_amount_for
+from core.pricing import business_tax_label, service_line_items
 from core.quote_snapshots import build_signed_quote_snapshot
 from operations import serializers, emails
 from operations.pdf import build_signed_quote_pdf
+from operations.recurring_invoices import create_auto_invoice_for_service
 
 
 QUOTE_MATERIAL_SERVICE_FIELDS = (
@@ -73,43 +73,6 @@ def create_auto_quote_for_service(service):
         terms_conditions="",
         notes="Auto-generated.",
         status="DRAFT",
-    )
-
-
-def create_auto_invoice_for_service(service):
-    """Create an invoice when a service is invoice-eligible."""
-    if (
-        service.status != "ACTIVE"
-        or not service.auto_generate_invoices
-        or service.invoices.filter(is_active=True).exists()
-    ):
-        return None
-
-    quote = (
-        service.service_quotes.filter(is_active=True)
-        .exclude(status="DECLINED")
-        .first()
-    )
-    if not quote or quote.status != "SIGNED":
-        return None
-
-    items = quote_line_items(quote)
-    subtotal = line_items_total(items)
-    tax_rate = quote.tax_rate if quote.tax_rate is not None else service.business.tax_rate
-    tax_amount = tax_amount_for(subtotal, tax_rate)
-    return Invoice.objects.create(
-        business=service.business,
-        client=service.client,
-        service=service,
-        due_date=None if quote.payment_terms else timezone.now().date() + timedelta(days=2),
-        payment_terms=quote.payment_terms,
-        currency=quote.currency or service.currency,
-        subtotal=subtotal,
-        tax_rate=tax_rate,
-        tax_amount=tax_amount,
-        total_amount=subtotal + tax_amount,
-        line_items=items,
-        notes="Auto-generated invoice.",
     )
 
 

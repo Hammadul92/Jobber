@@ -287,7 +287,7 @@ export default function Service({ token }) {
           {autoGenerateInvoices && (
             <p className="flex items-start gap-2 text-sm text-slate-500">
               <LuInfo className="mt-0.5 h-4 w-4 text-slate-400" />
-              Invoices will be created automatically once the service is active and the quote is signed.
+              Once the service is active and the quote is signed, a draft invoice is created automatically. Subscriptions get a new draft invoice every billing period.
             </p>
           )}
         </div>

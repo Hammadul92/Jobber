@@ -514,8 +514,9 @@ export default function CreateClientServiceForm({
                       {autoGenerateInvoices && (
                         <div className="mt-2 flex items-start gap-2 rounded-md border border-secondary bg-secondary/10 px-3 py-2 text-xs font-semibold text-secondary">
                           <LuInfo className="mt-px h-4 w-4 shrink-0" />
-                          Invoices will be automatically created for this
-                          service on the selected billing cycle.
+                          A draft invoice is created once the quote is signed
+                          and the service is active. Subscriptions get a new
+                          draft invoice every billing period.
                         </div>
                       )}
                     </div>
