@@ -20,10 +20,12 @@ import {
 import { RiDashboardLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
 import { getPublicSiteHomeUrl } from "../utils/publicSite";
+import useLogout from "./useLogout";
 
 function MobileTopbar({ role, businessName, user }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const logout = useLogout();
 
   const logo = "/images/contractorz-logo-horizontal.svg";
 
@@ -208,7 +210,7 @@ function MobileTopbar({ role, businessName, user }) {
   const closeMobileMenu = () => setIsMenuOpen(false);
 
   return (
-    <div className="fixed inset-x-0 top-0 z-20 flex items-end justify-between p-4 shadow-sm bg-background text-secondary md:px-12 lg:hidden">
+    <div className="fixed inset-x-0 top-0 z-40 flex items-end justify-between p-4 shadow-sm bg-background text-secondary md:px-12 lg:hidden">
       <button
         onClick={toggleMobileMenu}
         aria-expanded={isMenuOpen}
@@ -330,7 +332,10 @@ function MobileTopbar({ role, businessName, user }) {
 
           <div className="px-3 pt-6 mt-auto">
             <button
-              onClick={closeMobileMenu}
+              onClick={() => {
+                closeMobileMenu();
+                logout();
+              }}
               className="flex items-center w-full gap-2 p-3 text-sm font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded-xl"
               type="button"
             >

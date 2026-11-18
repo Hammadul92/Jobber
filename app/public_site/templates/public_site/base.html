@@ -16,6 +16,45 @@
   <link rel="icon" href="{% static 'public_site/images/favicon.png' %}">
   <link rel="stylesheet" href="{% static 'public_site/css/public-site.css' %}">
   {% block head %}{% endblock %}
+  <script>
+    // Keeps the header's Login/account state in step with the app session.
+    // The header is rendered from the contractorz_public_session cookie, which
+    // the app sets on sign-in but which can expire (or be restored from the
+    // back/forward cache) while the app's login token is still valid.
+    (() => {
+      const COOKIE = "contractorz_public_session";
+      const renderedSignedIn = {{ public_session_user|yesno:"true,false" }};
+      const hasCookie = () => new RegExp(`(?:^|;\\s*)${COOKIE}=[^;]+`).test(document.cookie);
+
+      window.addEventListener("pageshow", (event) => {
+        if (event.persisted && hasCookie() !== renderedSignedIn) window.location.reload();
+      });
+
+      // The app's token lives in this origin's localStorage, so it is only
+      // visible when the app and public site share an origin (production).
+      let token = null;
+      try { token = localStorage.getItem("token"); } catch { return; }
+      if (!token || hasCookie()) return;
+
+      fetch("/api/user/me/", { headers: { Authorization: `Token ${token}` } })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((user) => {
+          if (!user) return;
+          let photoUrl = "";
+          try {
+            const photo = new URL(user.photoUrl || user.photo || "", window.location.origin);
+            if ((user.photoUrl || user.photo) && photo.pathname.startsWith("/media/")) {
+              photoUrl = `${photo.pathname}${photo.search}`;
+            }
+          } catch { /* no usable photo */ }
+          const session = { name: user.name || "Account", email: user.email || "", role: user.role || "", photoUrl };
+          const secure = window.location.protocol === "https:" ? "; Secure" : "";
+          document.cookie = `${COOKIE}=${encodeURIComponent(JSON.stringify(session))}; Path=/; Max-Age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+          if (hasCookie()) window.location.reload();
+        })
+        .catch(() => {});
+    })();
+  </script>
 </head>
 <body>
   {% include "public_site/components/header.html" %}

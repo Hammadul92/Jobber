@@ -1,5 +1,4 @@
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   LuLogOut,
   LuUser,
@@ -20,17 +19,14 @@ import { RiDashboardLine } from "react-icons/ri";
 import {
   useFetchBusinessesQuery,
   useFetchUserQuery,
-  useLogoutUserMutation,
-  api,
 } from "../store";
+import useLogout from "./useLogout";
 
 // Unified Sidebar for both UserAccount and UserDashboard
 export default function SideNav({ user, businessRegistered }) {
-  const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
   const token = localStorage.getItem("token");
-  const [logoutUser] = useLogoutUserMutation();
+  const handleLogout = useLogout();
 
   const { data: fetchedUser } = useFetchUserQuery(undefined, {
     skip: Boolean(user) || !token,
@@ -158,14 +154,6 @@ export default function SideNav({ user, businessRegistered }) {
     }
 
     return false;
-  };
-
-  const handleLogout = async () => {
-    await logoutUser();
-    dispatch(api.util.resetApiState());
-
-    localStorage.removeItem("token");
-    navigate("/sign-in");
   };
 
   return (
