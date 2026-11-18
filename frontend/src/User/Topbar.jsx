@@ -173,7 +173,7 @@ function Topbar({ businessName, backFallback, canAccess }) {
             <h3 className="text-2xl md:text-4xl font-medium text-primary">
               {title}
             </h3>
-            <p className="text-sm md:text-base text-gray-500">{description}</p>
+            <p className="mt-1 text-sm text-slate-500">{description}</p>
           </div>
         </div>
 

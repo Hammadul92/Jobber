@@ -96,7 +96,7 @@ function DashboardTopbar({ user, notifications = [] }) {
           <h1 className="text-2xl font-medium tracking-tight md:text-3xl text-primary">
             Dashboard
           </h1>
-          <p className="mt-1 text-base text-slate-500">
+          <p className="mt-1 text-sm text-slate-500">
             Welcome back, {firstName}. Here&apos;s an overview of your
             business.
           </p>
