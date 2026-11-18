@@ -154,7 +154,7 @@ export default function JobData({ token, role }) {
         job.assignee_details?.length ? (
           <span className="inline-flex flex-wrap items-center gap-1" title={job.assignee_names}>
             <RecordLink
-              to={isManager ? `/user/business/team-member/${job.assignee_details[0].id}` : null}
+              to={isManager ? `/user/business/team-members/${job.assignee_details[0].id}/hours` : null}
             >
               {job.assignee_details[0].name}
             </RecordLink>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { LuTrash2, LuPencilLine } from "react-icons/lu";
+import { Link } from "react-router-dom";
+import { LuClock3, LuTrash2, LuPencilLine } from "react-icons/lu";
 import {
   useFetchTeamMembersPageQuery,
   useBulkTeamMembersMutation,
@@ -7,7 +8,6 @@ import {
 } from "../../../store";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordsTable from "../../../Components/ui/RecordsTable";
-import RecordLink from "../../../Components/ui/RecordLink";
 import BulkActionBar from "../../../Components/ui/BulkActionBar";
 import { pluralize } from "../../../utils/pluralize";
 import TablePagination from "../../../Components/ui/TablePagination";
@@ -192,11 +192,7 @@ export default function TeamMembersData({ token, onEdit, role }) {
       sortKey: "employee__name",
       width: "14%",
       className: "px-4 py-3 font-semibold text-slate-900",
-      render: (member) => (
-        <RecordLink to={`/user/business/team-member/${member.id}`} className="text-slate-900">
-          {member.employee_name || "—"}
-        </RecordLink>
-      ),
+      render: (member) => member.employee_name || "—",
     },
     {
       key: "role",
@@ -269,6 +265,14 @@ export default function TeamMembersData({ token, onEdit, role }) {
       width: "8%",
       render: (member) => (
         <div className="flex items-center gap-1">
+          <Link
+            to={`/user/business/team-members/${member.id}/hours`}
+            className="rounded-xl p-2 text-slate-500 hover:bg-gray-50 hover:text-accent"
+            title={`Hours worked by ${member.employee_name}`}
+            aria-label={`Hours worked by ${member.employee_name}`}
+          >
+            <LuClock3 className="h-4 w-4" />
+          </Link>
           <button
             type="button"
             onClick={() => onEdit?.(member)}

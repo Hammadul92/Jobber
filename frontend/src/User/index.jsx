@@ -48,6 +48,7 @@ export default function UserDashboard({ page, token, user }) {
       invoice: "/user/business/invoices",
       job: "/user/business/jobs",
       payout: "/user/business/payouts",
+      "team-member": "/user/business/team-members",
     }[page] || null;
 
   const businessTabPages = useMemo(

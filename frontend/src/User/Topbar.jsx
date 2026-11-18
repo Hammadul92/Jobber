@@ -46,7 +46,7 @@ const BUSINESS_TRAILS = {
   payouts: [["Payouts"]],
   "payout/:id": [["Payouts", "payouts", "payouts"], ["Payout"]],
   "team-members": [["Team Members"]],
-  "team-member/:id": [["Team Members", "team-members", "team-members"], ["Team Member"]],
+  "team-members/:id/hours": [["Team Members", "team-members", "team-members"], ["Hours Worked"]],
   trash: [["Trash"]],
 };
 

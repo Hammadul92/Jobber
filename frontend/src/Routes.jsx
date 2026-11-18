@@ -68,6 +68,11 @@ function LogoutRedirect() {
   return <div className="text-center py-5">Signing out...</div>;
 }
 
+function TeamMemberHoursRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/user/business/team-members/${id}/hours`} replace />;
+}
+
 function PublicSiteRedirect() {
   useEffect(() => {
     window.location.replace(
@@ -362,11 +367,13 @@ function MainApp() {
             element={<UserDashboard page="trash" token={token} user={user} />}
           />
           <Route
-            path="team-member/:id"
+            path="team-members/:id/hours"
             element={
               <UserDashboard page="team-member" token={token} user={user} />
             }
           />
+          {/* Old address of the same page. */}
+          <Route path="team-member/:id" element={<TeamMemberHoursRedirect />} />
         </Route>
 
         <Route path="*" element={<PublicSiteRedirect />} />
