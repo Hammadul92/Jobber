@@ -3,7 +3,10 @@
 // into client, service and quote fields. Rule-based and offline: labelled
 // lines ("Email: ...") win, otherwise patterns and the business's own
 // service list are used. Every field reports whether it was found so the
-// form can flag what still needs a look. Kept free of imports for node tests.
+// form can flag what still needs a look. Imports only data helpers, so it
+// still runs under node tests.
+
+import { findCity, provinceFromPostal, stateFromZip } from "./placeData.js";
 
 const PROVINCES = {
   CA: {
@@ -26,42 +29,6 @@ const PROVINCES = {
     DC: "District of Columbia",
   },
 };
-
-// Common Canadian cities, so "Calgary" alone fills in the city and province.
-const KNOWN_CITIES = {
-  AB: ["Calgary", "Edmonton", "Red Deer", "Lethbridge", "St. Albert", "Medicine Hat", "Grande Prairie",
-    "Airdrie", "Spruce Grove", "Leduc", "Okotoks", "Cochrane", "Fort McMurray", "Sherwood Park", "Canmore",
-    "Chestermere", "Camrose", "Lloydminster", "Beaumont", "Fort Saskatchewan", "Stony Plain", "Banff"],
-  BC: ["Vancouver", "Surrey", "Burnaby", "Richmond", "Kelowna", "Victoria", "Abbotsford", "Coquitlam",
-    "Langley", "Saanich", "Delta", "Kamloops", "Nanaimo", "Chilliwack", "Prince George", "North Vancouver",
-    "West Vancouver", "Maple Ridge", "New Westminster", "Port Coquitlam", "Vernon", "Penticton", "Squamish"],
-  SK: ["Saskatoon", "Regina", "Prince Albert", "Moose Jaw", "Swift Current", "Yorkton"],
-  MB: ["Winnipeg", "Brandon", "Steinbach", "Thompson"],
-  ON: ["Toronto", "Ottawa", "Mississauga", "Brampton", "Hamilton", "London", "Markham", "Vaughan",
-    "Kitchener", "Windsor", "Richmond Hill", "Oakville", "Burlington", "Oshawa", "Barrie", "Guelph",
-    "Cambridge", "Waterloo", "Kingston", "Whitby", "Sudbury", "Thunder Bay", "St. Catharines", "Niagara Falls",
-    "Pickering", "Ajax", "Milton", "Newmarket", "Peterborough", "Sault Ste. Marie"],
-  QC: ["Montreal", "Montréal", "Quebec City", "Laval", "Gatineau", "Longueuil", "Sherbrooke", "Saguenay",
-    "Lévis", "Levis", "Trois-Rivières", "Terrebonne"],
-  NS: ["Halifax", "Dartmouth", "Sydney", "Truro"],
-  NB: ["Moncton", "Saint John", "Fredericton", "Dieppe"],
-  NL: ["St. John's", "Mount Pearl", "Corner Brook"],
-  PE: ["Charlottetown", "Summerside"],
-  YT: ["Whitehorse"],
-  NT: ["Yellowknife"],
-  NU: ["Iqaluit"],
-};
-
-function findKnownCity(text) {
-  for (const [province, cities] of Object.entries(KNOWN_CITIES)) {
-    // Longest names first so "North Vancouver" wins over "Vancouver".
-    for (const city of [...cities].sort((a, b) => b.length - a.length)) {
-      const escaped = city.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      if (new RegExp(`(^|[^A-Za-z])${escaped}(?=[^A-Za-z]|$)`, "i").test(text)) return { city, province };
-    }
-  }
-  return null;
-}
 
 // "Calgary, AB" / "Red Deer Alberta" / "Calgary T2T 2T2": words just before
 // the province or postal code.
@@ -300,8 +267,16 @@ export function parseQuickAdd(text, { serviceOptions = [], today = new Date() } 
     [labels.address, labels.city, labels.province, labels.postal].filter(Boolean).join(", ") || contactFree;
   const postal = findPostal(labels.postal || addressText);
   let province = findProvince(labels.province || addressText, postal?.country);
+  // No province/state written: the postal or ZIP code says where it is.
+  if (!province && postal) {
+    const fromCode = postal.country === "CA" ? provinceFromPostal(postal.postal) : stateFromZip(postal.postal);
+    if (fromCode) province = { province: fromCode, country: postal.country, fromCode: true };
+  }
   const street = findStreet(labels.address || addressText);
-  const country = postal?.country || province?.country || "CA";
+  // The client's own name ("Jackson Lee") must not be read as a city.
+  const nameFree = fields.client_name
+    ? addressText.replace(new RegExp(fields.client_name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), " ")
+    : addressText;
 
   let city = labels.city ? titleCase(labels.city.trim()) : "";
   if (!city && street) {
@@ -319,20 +294,22 @@ export function parseQuickAdd(text, { serviceOptions = [], today = new Date() } 
         Object.entries(list).some(([abbr, name]) => [abbr, name.toLowerCase()].includes(words.toLowerCase())),
       );
     const candidates = [
-      !labels.province && cityBefore(addressText, province?.index),
-      cityBefore(addressText, postal?.index),
+      !labels.province && cityBefore(nameFree, province?.fromCode ? null : province?.index),
+      cityBefore(nameFree, postal ? nameFree.indexOf(postal.postal.split(" ")[0]) : null),
     ].filter((words) => words && !isProvince(words));
     const candidate = candidates[0] || "";
     // A known city inside the words wins ("Jane Doe Calgary" -> "Calgary");
     // otherwise keep a short guess, else look for a known city anywhere.
-    const known = findKnownCity(candidate) || (!candidate ? findKnownCity(addressText) : null);
+    const where = { province: province?.province, country: postal?.country || province?.country };
+    const known = findCity(candidate, where) || (!candidate ? findCity(nameFree, where) : null);
     if (known) {
       city = known.city;
-      if (!province) province = { province: known.province, country: "CA" };
+      if (!province) province = { province: known.province, country: known.country };
     } else if (candidate && candidate.split(/\s+/).length <= 2) {
       city = candidate;
     }
   }
+  const country = postal?.country || province?.country || "CA";
   set("street_address", street?.street || "", street);
   set("city", city, city);
   set("province_state", province?.province || "", province);
