@@ -4,6 +4,7 @@ import { LuArrowLeft, LuCircleAlert, LuCircleCheck, LuSparkles, LuX } from "reac
 import { useCreateClientMutation, useCreateServiceMutation } from "../../../store";
 import { missingFields, parseQuickAdd, PROVINCES } from "../../../utils/quickAddParser";
 import { apiErrorMessage } from "../../../utils/apiError";
+import Dropdown from "../../../Components/ui/Dropdown";
 import useAlert from "../../../hooks/useAlert";
 
 const EXAMPLE =
@@ -34,8 +35,10 @@ function Field({ name, fields, found, onChange, type = "text", children, require
   const value = fields[name] ?? "";
   const missing = required && !String(value).trim();
   const guessed = !missing && found[name] === false && String(value).trim();
+  // A <label> around a dropdown would re-open it when an option is clicked.
+  const Wrapper = children ? "div" : "label";
   return (
-    <label className="block text-sm">
+    <Wrapper className="block text-sm">
       <span className="mb-1 flex items-center gap-1.5 font-medium text-slate-700">
         {LABELS[name]}
         {required && <span className="text-rose-500">*</span>}
@@ -57,7 +60,7 @@ function Field({ name, fields, found, onChange, type = "text", children, require
           className={`${inputClass} ${missing ? "border-rose-300 bg-rose-50/40" : ""}`}
         />
       )}
-    </label>
+    </Wrapper>
   );
 }
 
@@ -291,33 +294,29 @@ export default function QuickAddDialog({ open, onClose, business }) {
                 <div className="grid gap-3 sm:grid-cols-3">
                   <Field name="city" required fields={fields} found={found} onChange={change} />
                   <Field name="province_state" required fields={fields} found={found} onChange={change}>
-                    <select
+                    <Dropdown
                       value={fields.province_state || ""}
-                      onChange={(event) => change("province_state", event.target.value)}
-                      className={`${inputClass} ${!fields.province_state ? "border-rose-300 bg-rose-50/40" : ""}`}
-                    >
-                      <option value="">Select</option>
-                      {Object.entries(provinceOptions).map(([code, name]) => (
-                        <option key={code} value={code}>{name}</option>
-                      ))}
-                    </select>
+                      onChange={(value) => change("province_state", value)}
+                      placeholder="Select"
+                      options={Object.entries(provinceOptions).map(([code, name]) => ({ value: code, label: name }))}
+                      buttonClassName={`h-10! rounded-lg! px-3! ${!fields.province_state ? "border-rose-300! bg-rose-50/40!" : "border-gray-200"}`} textClassName="text-sm" menuClassName="z-50"
+                    />
                   </Field>
                   <Field name="postal_code" required fields={fields} found={found} onChange={change} />
                 </div>
-                <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+                <div className="inline-flex items-center gap-2 text-sm text-slate-600">
                   Country
-                  <select
+                  <Dropdown
+                    className="w-44"
                     value={fields.country || "CA"}
-                    onChange={(event) => {
-                      change("country", event.target.value);
+                    onChange={(value) => {
+                      change("country", value);
                       change("province_state", "");
                     }}
-                    className="h-9 rounded-lg border border-gray-200 px-2 text-sm"
-                  >
-                    <option value="CA">Canada</option>
-                    <option value="US">United States</option>
-                  </select>
-                </label>
+                    options={[{ value: "CA", label: "Canada" }, { value: "US", label: "United States" }]}
+                    buttonClassName="h-9! rounded-lg! px-3! border-gray-200" textClassName="text-sm" menuClassName="z-50"
+                  />
+                </div>
               </section>
 
               <section className="space-y-3">
@@ -326,16 +325,13 @@ export default function QuickAddDialog({ open, onClose, business }) {
                 </h6>
                 <Field name="service_name" required fields={fields} found={found} onChange={change}>
                   {serviceOptions.length ? (
-                    <select
+                    <Dropdown
                       value={fields.service_name || ""}
-                      onChange={(event) => change("service_name", event.target.value)}
-                      className={`${inputClass} ${!fields.service_name ? "border-rose-300 bg-rose-50/40" : ""}`}
-                    >
-                      <option value="">Select a service</option>
-                      {serviceOptions.map((option) => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </select>
+                      onChange={(value) => change("service_name", value)}
+                      placeholder="Select a service"
+                      options={serviceOptions}
+                      buttonClassName={`h-10! rounded-lg! px-3! ${!fields.service_name ? "border-rose-300! bg-rose-50/40!" : "border-gray-200"}`} textClassName="text-sm" menuClassName="z-50"
+                    />
                   ) : null}
                 </Field>
 
@@ -367,41 +363,38 @@ export default function QuickAddDialog({ open, onClose, business }) {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm text-slate-700">
-                  <label className="inline-flex items-center gap-2">
+                  <div className="inline-flex items-center gap-2">
                     <span className="font-medium">Type</span>
-                    <select
+                    <Dropdown
+                      className="w-40"
                       value={fields.service_type || "ONE_TIME"}
-                      onChange={(event) => change("service_type", event.target.value)}
-                      className="h-9 rounded-lg border border-gray-200 px-2 text-sm"
-                    >
-                      <option value="ONE_TIME">One time</option>
-                      <option value="SUBSCRIPTION">Subscription</option>
-                    </select>
-                  </label>
+                      onChange={(value) => change("service_type", value)}
+                      options={[{ value: "ONE_TIME", label: "One time" }, { value: "SUBSCRIPTION", label: "Subscription" }]}
+                      buttonClassName="h-9! rounded-lg! px-3! border-gray-200" textClassName="text-sm" menuClassName="z-50"
+                    />
+                  </div>
                   {fields.service_type === "SUBSCRIPTION" && (
-                    <label className="inline-flex items-center gap-2">
+                    <div className="inline-flex items-center gap-2">
                       <span className="font-medium">Billed</span>
-                      <select
+                      <Dropdown
+                        className="w-36"
                         value={fields.billing_cycle || "MONTHLY"}
-                        onChange={(event) => change("billing_cycle", event.target.value)}
-                        className="h-9 rounded-lg border border-gray-200 px-2 text-sm"
-                      >
-                        <option value="MONTHLY">Monthly</option>
-                        <option value="YEARLY">Yearly</option>
-                      </select>
-                    </label>
+                        onChange={(value) => change("billing_cycle", value)}
+                        options={[{ value: "MONTHLY", label: "Monthly" }, { value: "YEARLY", label: "Yearly" }]}
+                        buttonClassName="h-9! rounded-lg! px-3! border-gray-200" textClassName="text-sm" menuClassName="z-50"
+                      />
+                    </div>
                   )}
-                  <label className="inline-flex items-center gap-2">
-                    <select
+                  <div className="inline-flex items-center gap-2">
+                    <span className="font-medium">Currency</span>
+                    <Dropdown
+                      className="w-28"
                       value={fields.currency || "CAD"}
-                      onChange={(event) => change("currency", event.target.value)}
-                      className="h-9 rounded-lg border border-gray-200 px-2 text-sm"
-                      aria-label="Currency"
-                    >
-                      <option value="CAD">CAD</option>
-                      <option value="USD">USD</option>
-                    </select>
-                  </label>
+                      onChange={(value) => change("currency", value)}
+                      options={["CAD", "USD"]}
+                      buttonClassName="h-9! rounded-lg! px-3! border-gray-200" textClassName="text-sm" menuClassName="z-50"
+                    />
+                  </div>
                 </div>
 
                 <label className="inline-flex items-center gap-2 text-sm text-slate-700">

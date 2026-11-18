@@ -12,6 +12,7 @@ import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import RecordLink from "../../../Components/ui/RecordLink";
 import { endOfDate, formatDate } from "../../../utils/formatDate";
 import Input from "../../../Components/ui/Input";
+import Dropdown from "../../../Components/ui/Dropdown";
 import Textarea from "../../../Components/ui/Textarea";
 import RichTextContent from "../../../Components/ui/RichTextContent";
 import {
@@ -509,18 +510,17 @@ export default function Quote({ token, role }) {
                     {paymentTermsLabel(paymentTerms)}
                   </p>
                 ) : (
-                  <select
+                  <Dropdown
                     id="quote-payment-terms"
-                    className="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800"
                     value={paymentTerms}
-                    onChange={(event) => setPaymentTerms(event.target.value)}
+                    onChange={setPaymentTerms}
+                    placeholder="Select Payment Terms"
+                    options={PAYMENT_TERMS_OPTIONS}
+                    buttonClassName="h-11! rounded-lg! px-3! border-gray-200"
+                    textClassName="text-sm"
+                    menuClassName="z-50"
                     required
-                  >
-                    <option value="">Select Payment Terms</option>
-                    {PAYMENT_TERMS_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
+                  />
                 )}
               </div>
             </div>
