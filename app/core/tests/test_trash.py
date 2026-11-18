@@ -159,28 +159,34 @@ class TrashTests(TestCase):
     def test_removing_a_team_member_keeps_their_jobs_unassigned(self):
         employee = get_user_model().objects.create_user("emp@example.com", "pw", role="EMPLOYEE", name="Emp")
         member = TeamMember.objects.create(business=self.business, employee=employee)
-        job = Job.objects.create(
-            service=self.service, assigned_to=member, title="Install", scheduled_date=timezone.now(),
+        job = Job.objects.create(service=self.service, title="Install", scheduled_date=timezone.now())
+        job.assignees.add(member)
+        done = Job.objects.create(
+            service=self.service, title="Done", scheduled_date=timezone.now(), status="COMPLETED",
         )
+        done.assignees.add(member, through_defaults={"hours_worked": 3})
 
         res = self.api.delete(reverse("operations:teammember-detail", args=[member.pk]))
 
         self.assertEqual(res.status_code, 204)
         job.refresh_from_db()
         self.assertFalse(job.is_deleted)
-        self.assertIsNone(job.assigned_to)
+        self.assertFalse(job.assignees.exists())
+        # Completed work keeps the member's hours.
+        done.refresh_from_db()
+        self.assertFalse(done.is_deleted)
+        self.assertEqual(done.assignments.get().hours_worked, 3)
         self.assertEqual(self.restore("teammember", member.pk).status_code, 200)
 
     def test_jobs_still_go_with_the_business_when_everything_is_deleted(self):
         employee = get_user_model().objects.create_user("emp@example.com", "pw", role="EMPLOYEE", name="Emp")
         member = TeamMember.objects.create(business=self.business, employee=employee)
-        job = Job.objects.create(
-            service=self.service, assigned_to=member, title="Install", scheduled_date=timezone.now(),
-        )
+        job = Job.objects.create(service=self.service, title="Install", scheduled_date=timezone.now())
+        job.assignees.add(member)
 
         self.business.soft_delete(user=self.owner)
         self.business.restore()
 
         job.refresh_from_db()
         self.assertFalse(job.is_deleted)
-        self.assertEqual(job.assigned_to_id, member.pk)
+        self.assertEqual(list(job.assignees.all()), [member])

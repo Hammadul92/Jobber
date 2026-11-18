@@ -152,13 +152,18 @@ class ServiceAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     readonly_fields = ["created_at", "updated_at"]
 
 
+class JobAssignmentInline(admin.TabularInline):
+    model = models.JobAssignment
+    extra = 0
+    autocomplete_fields = ["team_member"]
+
+
 class JobAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     list_display = [
         "title",
         "service",
         "get_business",
         "get_client",
-        "assigned_to",
         "get_assigned_employee",
         "status",
         "scheduled_date",
@@ -170,9 +175,11 @@ class JobAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
         "description",
         "service__service_name",
         "service__client__name",
-        "assigned_to__employee__name",
+        "assignees__employee__name",
     ]
     readonly_fields = ["created_at", "updated_at"]
+    exclude = ["assigned_to"]
+    inlines = [JobAssignmentInline]
 
     def get_business(self, obj):
         return obj.service.business.name
@@ -187,12 +194,10 @@ class JobAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):
     get_client.admin_order_field = "service__client__name"
 
     def get_assigned_employee(self, obj):
-        if obj.assigned_to:
-            return obj.assigned_to.employee.name
-        return "-"
+        names = [member.employee.name for member in obj.assignees.all()]
+        return ", ".join(names) or "-"
 
-    get_assigned_employee.short_description = "Assigned Employee"
-    get_assigned_employee.admin_order_field = "assigned_to__employee__name"
+    get_assigned_employee.short_description = "Team members"
 
 
 class JobPhotoAdmin(SoftDeletableAdminMixin, admin.ModelAdmin):

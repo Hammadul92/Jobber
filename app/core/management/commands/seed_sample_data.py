@@ -622,15 +622,16 @@ class Command(BaseCommand):
                         completed_at = timezone.now() - timedelta(
                             days=job_data["completed_days_ago"]
                         )
-                    Job.objects.create(
+                    job = Job.objects.create(
                         service=service,
-                        assigned_to=assigned_to,
                         title=job_data["title"],
                         description=job_data.get("description", ""),
                         scheduled_date=scheduled_date,
                         completed_at=completed_at,
                         status=job_data.get("status", "PENDING"),
                     )
+                    if assigned_to:
+                        job.assignees.add(assigned_to)
                     counts["jobs"] += 1
 
                 invoice_data = service_data.get("invoice")

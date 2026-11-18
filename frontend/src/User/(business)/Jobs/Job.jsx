@@ -17,6 +17,8 @@ import Select from "../../../Components/ui/Select";
 import Textarea from "../../../Components/ui/Textarea";
 import Input from "../../../Components/ui/Input";
 import { LuUpload } from "react-icons/lu";
+import MemberPicker from "../../../Components/ui/MemberPicker";
+import JobWorkPanel from "./JobWorkPanel";
 import useAlert from "../../../hooks/useAlert";
 
 export default function Job({ token, role }) {
@@ -46,7 +48,7 @@ export default function Job({ token, role }) {
   // --- State ---
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
+  const [assignees, setAssignees] = useState([]);
   const [scheduledDate, setScheduledDate] = useState("");
   const [status, setStatus] = useState("");
   const [createdAt, setCreatedAt] = useState("");
@@ -66,33 +68,21 @@ export default function Job({ token, role }) {
     { value: "AFTER", label: "After" },
   ].filter((option) => !uploadedPhotoTypes.has(option.value));
   const isPhotoTypeFullyUsed = availablePhotoTypeOptions.length === 0;
-  const assignedToOptions = canEditJobDetails
-    ? [
-        { value: "", label: "Select" },
-        ...(teamMembers
-          ? teamMembers
-              .filter((member) => member.is_active === "True")
-              .map((member) => ({
-                value: String(member.id),
-                label: member.employee_name,
-              }))
-          : []),
-      ]
-    : jobData?.assigned_to && jobData?.assigned_to_name
-      ? [
-          {
-            value: String(jobData.assigned_to),
-            label: jobData.assigned_to_name,
-          },
-        ]
-      : [{ value: "", label: "Unassigned" }];
+  // Managers pick from the active team; others see who is on the job.
+  const memberChoices = canEditJobDetails
+    ? (teamMembers || []).filter(
+        (member) =>
+          member.is_active === "True" ||
+          (jobData?.assignees || []).includes(member.id),
+      )
+    : (jobData?.assignee_details || []);
 
   createdAt;
   useEffect(() => {
     if (jobData) {
       setTitle(jobData.title || "");
       setDescription(jobData.description || "");
-      setAssignedTo(jobData.assigned_to ? String(jobData.assigned_to) : "");
+      setAssignees((jobData.assignees || []).map(String));
       setScheduledDate(jobData.scheduled_date?.slice(0, 16) || "");
       setStatus(jobData.status || "PENDING");
       setCreatedAt(jobData.created_at || "");
@@ -117,7 +107,7 @@ export default function Job({ token, role }) {
         id,
         title,
         description,
-        assigned_to: assignedTo,
+        assignees: assignees.map(Number),
         scheduled_date: scheduledDate,
         status,
       }).unwrap();
@@ -384,17 +374,6 @@ export default function Job({ token, role }) {
                 fieldClass="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
               />
 
-              <Select
-                isRequired={true}
-                id="job-assigned-to"
-                label="Assigned To"
-                value={assignedTo}
-                onChange={setAssignedTo}
-                isDisabled={!canEditJobDetails}
-                fieldClass="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-slate-700"
-                options={assignedToOptions}
-              />
-
               <Input
                 type="datetime-local"
                 fieldClass="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
@@ -405,6 +384,16 @@ export default function Job({ token, role }) {
                 id="job-scheduled-date"
               />
             </div>
+
+            <MemberPicker
+              id="job-assignees"
+              label="Assigned To"
+              members={memberChoices}
+              value={assignees}
+              onChange={setAssignees}
+              isDisabled={!canEditJobDetails}
+              emptyText="No one is assigned to this job."
+            />
 
             <div>
               <Textarea
@@ -433,6 +422,8 @@ export default function Job({ token, role }) {
               </div>
             )}
           </form>
+
+          {jobData && <JobWorkPanel job={jobData} canWork={role !== "CLIENT"} />}
 
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-3 flex items-center justify-between">

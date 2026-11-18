@@ -4,11 +4,15 @@ Views for operations APIs.
 
 from copy import deepcopy
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
+
+import pytz
 
 from django.db import transaction
 from django.http import FileResponse
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -27,6 +31,7 @@ from core.models import (
     Business,
     Client,
     Job,
+    JobAssignment,
     JobPhoto,
     ServiceQuestionnaire,
     ServiceTermsTemplate,
@@ -38,6 +43,7 @@ from core.pricing import business_tax_label, service_line_items
 from core.quote_snapshots import build_signed_quote_snapshot
 from operations import serializers, emails
 from operations.pdf import build_signed_quote_pdf
+from operations.job_work import complete_job, start_job, team_member_hours
 from operations.recurring_invoices import create_auto_invoice_for_service
 
 
@@ -256,6 +262,11 @@ class TeamMemberViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         if self.request.user.role != "ADMIN" and business.owner_id != self.request.user.pk:
             raise PermissionDenied("Only the business owner can add team members.")
         serializer.save()
+
+    @action(detail=True, methods=["get"])
+    def hours(self, request, pk=None):
+        """Hours this member logged on completed jobs: daily, monthly, yearly."""
+        return Response(team_member_hours(self.get_object()))
 
     def perform_destroy(self, instance):
         if instance.employee_id == instance.business.owner_id:
@@ -783,14 +794,17 @@ class JobViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         "service",
         "service__client",
         "service__business",
-        "assigned_to",
-        "assigned_to__employee",
+    ).prefetch_related(
+        Prefetch(
+            "assignments",
+            queryset=JobAssignment.objects.select_related("team_member__employee"),
+        ),
+        "assignees",
     ).order_by("-id")
-    search_fields = ["title", "service__service_name", "service__client__name", "assigned_to__employee__name"]
-    ordering_fields = ["title", "service__service_name", "assigned_to__employee__name", "scheduled_date", "status",
-                       "created_at"]
+    search_fields = ["title", "service__service_name", "service__client__name", "assignees__employee__name"]
+    ordering_fields = ["title", "service__service_name", "scheduled_date", "status", "created_at"]
     filter_fields = {
-        "status": "status", "assigned_to": "assigned_to_id", "unassigned": "assigned_to__isnull",
+        "status": "status", "assigned_to": "assignees", "unassigned": "assignees__isnull",
         "scheduled_from": "scheduled_date__date__gte", "scheduled_to": "scheduled_date__date__lte",
     }
     bulk_actions = {"cancel": "bulk_cancel", "delete": "destroy"}
@@ -813,7 +827,7 @@ class JobViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         elif user.role == "CLIENT":
             qs = qs.filter(service__client__user=user, service__client__is_active=True)
         elif user.role == "EMPLOYEE":
-            qs = qs.filter(assigned_to__employee=user)
+            qs = qs.filter(assignees__employee=user)
         elif user.role != "ADMIN":
             qs = qs.none()
 
@@ -826,15 +840,113 @@ class JobViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         return job
 
     def perform_update(self, serializer):
-        """Notify the business owner on the first completed transition."""
+        """Stamp start/finish times and notify the owner on completion."""
         previous_status = serializer.instance.status
         job = serializer.save()
 
+        if previous_status != "IN_PROGRESS" and job.status == "IN_PROGRESS":
+            start_job(job)
         if previous_status != "COMPLETED" and job.status == "COMPLETED":
-            if not job.completed_at:
-                job.completed_at = timezone.now()
-                job.save(update_fields=["completed_at", "updated_at"])
+            complete_job(job)
             emails.send_job_completed_email(job)
+
+    def _check_can_work(self, job):
+        if self.request.user.role == "CLIENT":
+            raise PermissionDenied("Clients cannot change job progress.")
+        if job.status == "CANCELLED":
+            raise ValidationError({"detail": "This job was cancelled."})
+
+    @action(detail=True, methods=["post"])
+    def start(self, request, pk=None):
+        """Start (activate) a job: status In progress and the clock starts."""
+        job = self.get_object()
+        self._check_can_work(job)
+        if job.status == "COMPLETED":
+            raise ValidationError({"detail": "This job is already completed."})
+        start_job(job)
+        return Response(self.get_serializer(self.get_queryset().get(pk=job.pk)).data)
+
+    @action(detail=True, methods=["post"])
+    def complete(self, request, pk=None):
+        """Complete a job; optional ``member_hours`` {team member id: hours}."""
+        job = self.get_object()
+        self._check_can_work(job)
+        member_hours = request.data.get("member_hours") or {}
+        if not isinstance(member_hours, dict):
+            raise ValidationError({"member_hours": "Send hours as {team member id: hours}."})
+        cleaned = {}
+        assigned = set(job.assignments.values_list("team_member_id", flat=True))
+        for member_id, hours in member_hours.items():
+            try:
+                member_id, hours = int(member_id), Decimal(str(hours))
+            except (TypeError, ValueError, InvalidOperation):
+                raise ValidationError({"member_hours": "Hours must be numbers."})
+            if member_id not in assigned:
+                raise ValidationError({"member_hours": "Hours can only be logged for the job's team members."})
+            if hours < 0 or hours > 1000:
+                raise ValidationError({"member_hours": "Hours must be between 0 and 1000."})
+            cleaned[member_id] = hours
+        was_completed = job.status == "COMPLETED"
+        complete_job(job, cleaned)
+        if not was_completed:
+            emails.send_job_completed_email(job)
+        return Response(self.get_serializer(self.get_queryset().get(pk=job.pk)).data)
+
+    @action(detail=False, methods=["post"])
+    def generate(self, request):
+        """Create one pending job per selected service in one go.
+
+        Body: service_ids, scheduled_date, optional title (used as a prefix),
+        optional description, and assignee_ids (omit for the whole team).
+        """
+        if request.user.role != "MANAGER":
+            raise PermissionDenied("Only business owners can generate jobs.")
+        service_ids = request.data.get("service_ids") or []
+        if not isinstance(service_ids, list) or not service_ids:
+            raise ValidationError({"service_ids": "Choose at least one service."})
+        if len(service_ids) > 200:
+            raise ValidationError({"service_ids": "Generate at most 200 jobs at a time."})
+
+        scheduled = parse_datetime(str(request.data.get("scheduled_date") or ""))
+        if scheduled is None:
+            raise ValidationError({"scheduled_date": "Choose when the jobs are scheduled."})
+        if timezone.is_naive(scheduled):
+            scheduled = timezone.make_aware(scheduled)
+
+        services = list(
+            Service.objects.filter(pk__in=service_ids, business__owner=request.user)
+            .select_related("client", "business")
+        )
+        if len(services) != len(set(service_ids)):
+            raise ValidationError({"service_ids": "Select services from your own business."})
+
+        assignee_ids = request.data.get("assignee_ids")
+        title_prefix = str(request.data.get("title") or "").strip()
+        description = str(request.data.get("description") or "").strip()
+
+        created = []
+        with transaction.atomic():
+            for service in services:
+                team = TeamMember.objects.filter(business=service.business, is_active=True)
+                if assignee_ids is not None:
+                    team = team.filter(pk__in=assignee_ids)
+                when = timezone.localtime(scheduled, pytz.timezone(service.business.timezone))
+                name = title_prefix or service.service_name
+                title = f"{name} – {service.client.name} – {when:%b} {when.day}"[:100]
+                job = Job.objects.create(
+                    service=service,
+                    title=title,
+                    description=description or None,
+                    scheduled_date=scheduled,
+                    status="PENDING",
+                )
+                serializers.JobSerializer.set_assignees(job, list(team))
+                created.append(job)
+
+        for job in created:
+            emails.send_job_created_email(job)
+        jobs = self.get_queryset().filter(pk__in=[job.pk for job in created])
+        return Response(self.get_serializer(jobs, many=True).data, status=status.HTTP_201_CREATED)
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)
@@ -852,8 +964,6 @@ class JobPhotoViewSet(viewsets.ModelViewSet):
         "job__service",
         "job__service__client",
         "job__service__business",
-        "job__assigned_to",
-        "job__assigned_to__employee",
     ).order_by("-uploaded_at")
 
     def get_queryset(self):
@@ -869,7 +979,7 @@ class JobPhotoViewSet(viewsets.ModelViewSet):
         elif user.role == "CLIENT":
             qs = qs.filter(job__service__client__user=user, job__service__client__is_active=True)
         elif user.role == "EMPLOYEE":
-            qs = qs.filter(job__assigned_to__employee=user)
+            qs = qs.filter(job__assignees__employee=user)
         elif user.role != "ADMIN":
             qs = qs.none()
 
@@ -881,15 +991,10 @@ class JobPhotoViewSet(viewsets.ModelViewSet):
         previous_status = job.status
 
         if job_photo.photo_type == "BEFORE":
-            job.status = "IN_PROGRESS"
-            job.completed_at = None
-            job.save(update_fields=["status", "completed_at", "updated_at"])
-        elif job_photo.photo_type == "AFTER":
-            job.status = "COMPLETED"
-            job.completed_at = timezone.now()
-            job.save(update_fields=["status", "completed_at", "updated_at"])
-            if previous_status != "COMPLETED":
-                emails.send_job_completed_email(job)
+            start_job(job)
+        elif job_photo.photo_type == "AFTER" and previous_status != "COMPLETED":
+            complete_job(job)
+            emails.send_job_completed_email(job)
 
     def perform_destroy(self, instance):
         instance.soft_delete(user=self.request.user)

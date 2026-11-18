@@ -8,6 +8,7 @@ import Textarea from "../../../Components/ui/Textarea";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import Select from "../../../Components/ui/Select";
 import Input from "../../../Components/ui/Input";
+import MemberPicker from "../../../Components/ui/MemberPicker";
 import { LuInfo, LuX } from "react-icons/lu";
 import useAlert from "../../../hooks/useAlert";
 
@@ -21,7 +22,7 @@ export default function CreateJobForm({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [scheduledDate, setScheduledDate] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
+  const [assignees, setAssignees] = useState([]);
 
   // Fetch data
   const { data: services = [], isLoading: loadingServices } =
@@ -41,7 +42,7 @@ export default function CreateJobForm({
         title,
         description,
         scheduled_date: scheduledDate,
-        assigned_to: assignedTo || null,
+        assignees,
       }).unwrap();
 
       setAlert({
@@ -53,7 +54,7 @@ export default function CreateJobForm({
       setTitle("");
       setDescription("");
       setScheduledDate("");
-      setAssignedTo("");
+      setAssignees([]);
       setShowModal(false);
     } catch (err) {
       const errorMessage =
@@ -163,24 +164,16 @@ export default function CreateJobForm({
                     fieldClass="h-11 px-4 py-2 text-sm"
                   />
 
-                  <Select
-                    id="job-assigned-to"
+                  <MemberPicker
+                    id="job-assignees"
                     label="Assigned To"
-                    value={assignedTo}
-                    onChange={setAssignedTo}
-                    isRequired={true}
-                    fieldClass="h-11 text-sm"
-                    options={[
-                      { value: "", label: "Select Assignee" },
-                      ...(!loadingTeam && teamMembers
-                        ? teamMembers
-                            .filter((member) => member.is_active === "True")
-                            .map((member) => ({
-                              value: member.id,
-                              label: member.employee_name,
-                            }))
-                        : []),
-                    ]}
+                    members={
+                      loadingTeam
+                        ? []
+                        : teamMembers.filter((member) => member.is_active === "True")
+                    }
+                    value={assignees}
+                    onChange={setAssignees}
                   />
                 </div>
 

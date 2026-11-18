@@ -30,8 +30,8 @@ const RELATED = {
   // Signing or declining a quote moves the service along and can create invoices.
   Quote: ["Client", "Service", "Job", "Invoice", "Dashboard"],
   Job: ["Client", "Service", "Invoice", "TeamMember", "JobPhoto", "Dashboard"],
-  // Before/after photos move the job's status.
-  JobPhoto: ["Job", "Service", "Dashboard"],
+  // Before/after photos move the job's status; completing it logs hours.
+  JobPhoto: ["Job", "Service", "TeamMember", "Dashboard"],
   Invoice: ["Client", "Service", "Job", "Payout", "Dashboard"],
   Payout: ["Client", "Invoice", "Dashboard"],
   BankingInformation: ["Client", "Invoice", "Dashboard"],

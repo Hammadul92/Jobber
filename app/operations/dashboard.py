@@ -22,6 +22,7 @@ from core.models import (
     BankingInformation,
     Business,
     Invoice,
+    JobAssignment,
     Quote,
     ServiceQuestionnaire,
     ServiceTermsTemplate,
@@ -258,13 +259,21 @@ class DashboardView(APIView):
             .values(
                 "id", "title", "status", "scheduled_date",
                 service_name=F("service__service_name"),
-                assigned_to_name=F("assigned_to__employee__name"),
                 business_timezone=F("service__business__timezone"),
             )[:UPCOMING_JOBS_LIMIT]
         )
+        rows = list(rows)
+        names = {}
+        for job_id, name in (
+            JobAssignment.objects.filter(job_id__in=[row["id"] for row in rows])
+            .order_by("team_member__employee__name")
+            .values_list("job_id", "team_member__employee__name")
+        ):
+            names.setdefault(job_id, []).append(name)
         return [
             {
                 **{key: value for key, value in row.items() if key != "business_timezone"},
+                "assigned_to_name": ", ".join(names.get(row["id"], [])) or None,
                 "scheduled_date": local_text(row["scheduled_date"], zone(row["business_timezone"], tz)),
             }
             for row in rows
@@ -453,7 +462,7 @@ class DashboardTodosView(APIView):
 
         add(
             limited(
-                jobs.exclude(status__in=CLOSED_STATUSES).filter(assigned_to__isnull=True),
+                jobs.exclude(status__in=CLOSED_STATUSES).filter(assignees__isnull=True),
                 "id", "title", service_name=F("service__service_name"),
             ),
             lambda row: todo(

@@ -1,7 +1,7 @@
 import { useMemo, Fragment } from "react";
 import { Link, matchPath, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { LuChevronRight, LuPlus, LuUserPlus } from "react-icons/lu";
+import { LuChevronRight, LuPlus, LuSparkles, LuUserPlus, LuZap } from "react-icons/lu";
 import { getTopbarActionHandler } from "./topbarActionRegistry";
 import { getPublicSiteHomeUrl } from "../utils/publicSite";
 import GoBackLink from "../Components/ui/GoBackLink";
@@ -58,14 +58,38 @@ const ACCOUNT_LABELS = {
 };
 
 function Topbar({ businessName, backFallback, canAccess }) {
-  const { title, description, action } = useSelector((state) => state.topbar);
+  const { title, description, action, secondaryActions = [] } = useSelector(
+    (state) => state.topbar,
+  );
   const location = useLocation();
-  const actionHandler = action?.key ? getTopbarActionHandler(action.key) : null;
   const publicSiteHomeUrl = getPublicSiteHomeUrl();
 
   const TOPBAR_ACTION_ICONS = {
     plus: LuPlus,
     "user-plus": LuUserPlus,
+    zap: LuZap,
+    sparkles: LuSparkles,
+  };
+
+  const renderAction = (item) => {
+    const Icon = item.icon ? TOPBAR_ACTION_ICONS[item.icon] : null;
+    const handler = item.key ? getTopbarActionHandler(item.key) : null;
+    return (
+      <button
+        key={item.key}
+        className={item.className}
+        onClick={handler || undefined}
+        type="button"
+        title={item.title || item.label}
+      >
+        {Icon ? <Icon className={`max-w-none shrink-0 ${item.iconClassName || "h-5 w-5"}`} /> : null}
+        {item.label ? (
+          <span className={item.labelClassName ?? (item.icon ? "hidden md:block" : "block")}>
+            {item.label}
+          </span>
+        ) : null}
+      </button>
+    );
   };
 
   const breadcrumbItems = useMemo(() => {
@@ -153,34 +177,11 @@ function Topbar({ businessName, backFallback, canAccess }) {
           </div>
         </div>
 
-        <div className="ml-auto">
-          {action && action.type === "button" && (
-            <button
-              className={action.className}
-              onClick={actionHandler || undefined}
-              type="button"
-              title={action.title || action.label}
-            >
-              {action.icon && TOPBAR_ACTION_ICONS[action.icon]
-                ? (() => {
-                    const Icon = TOPBAR_ACTION_ICONS[action.icon];
-                    return (
-                      <Icon className={action.iconClassName || "h-5 w-5"} />
-                    );
-                  })()
-                : null}
-              {action.label ? (
-                <span
-                  className={
-                    action.labelClassName ??
-                    (action.icon ? "hidden md:block" : "block")
-                  }
-                >
-                  {action.label}
-                </span>
-              ) : null}
-            </button>
-          )}
+        <div className="ml-auto flex items-center gap-2">
+          {secondaryActions
+            .filter((item) => item.type === "button")
+            .map(renderAction)}
+          {action && action.type === "button" && renderAction(action)}
         </div>
       </div>
     </div>

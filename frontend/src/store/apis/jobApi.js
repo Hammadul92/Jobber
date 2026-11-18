@@ -58,6 +58,28 @@ const jobApi = api.injectEndpoints({
       providesTags: ["JobPhoto"],
     }),
 
+    // Start (activate) a job: status In progress, clock starts.
+    startJob: builder.mutation({
+      query: (id) => ({ url: `/job/${id}/start/`, method: "POST" }),
+      invalidatesTags: changed("Job"),
+    }),
+
+    // Complete a job. memberHours: { teamMemberId: hours } overrides.
+    completeJob: builder.mutation({
+      query: ({ id, memberHours }) => ({
+        url: `/job/${id}/complete/`,
+        method: "POST",
+        body: { member_hours: memberHours || {} },
+      }),
+      invalidatesTags: changed("Job"),
+    }),
+
+    // Create one pending job per service in one go.
+    generateJobs: builder.mutation({
+      query: (data) => ({ url: "/job/generate/", method: "POST", body: data }),
+      invalidatesTags: changed("Job"),
+    }),
+
     createJobPhoto: builder.mutation({
       query: (data) => ({
         url: "/job-photo/",
@@ -79,6 +101,9 @@ export const {
   useDeleteJobMutation,
   useFetchJobPhotosQuery,
   useCreateJobPhotoMutation,
+  useStartJobMutation,
+  useCompleteJobMutation,
+  useGenerateJobsMutation,
 } = jobApi;
 
 export { jobApi };

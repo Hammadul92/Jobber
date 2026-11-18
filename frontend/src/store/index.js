@@ -93,6 +93,7 @@ export {
   useFetchTeamMembersPageQuery,
   useBulkTeamMembersMutation,
   useFetchTeamMemberQuery,
+  useFetchTeamMemberHoursQuery,
   useCreateTeamMemberMutation,
   useUpdateTeamMemberMutation,
   useDeleteTeamMemberMutation,
@@ -144,6 +145,9 @@ export {
   useDeleteJobMutation,
   useFetchJobPhotosQuery,
   useCreateJobPhotoMutation,
+  useStartJobMutation,
+  useCompleteJobMutation,
+  useGenerateJobsMutation,
 } from "./apis/jobApi";
 
 export {

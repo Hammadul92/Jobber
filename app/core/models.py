@@ -178,6 +178,10 @@ class SoftDeletableModel(models.Model):
 
         if cascade:
             for related in self._meta.related_objects:
+                # Many-to-many links (e.g. a member's assigned jobs) don't own
+                # the other side; restore() skips them the same way.
+                if related.many_to_many:
+                    continue
                 related_name = related.get_accessor_name()
                 related_manager = getattr(self, related_name, None)
 
@@ -649,11 +653,20 @@ class Job(SoftDeletableModel):
         related_name="jobs",
         on_delete=models.CASCADE,
     )
+    # Legacy single assignee, superseded by ``assignees``. Kept (unused) so a
+    # rollback to the previous release still finds its column; drop it in a
+    # later release.
     assigned_to = models.ForeignKey(
         "TeamMember",
-        related_name="assigned_jobs",
+        related_name="+",
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
+    )
+    assignees = models.ManyToManyField(
+        "TeamMember",
+        through="JobAssignment",
+        related_name="assigned_jobs",
         blank=True,
     )
 
@@ -661,6 +674,7 @@ class Job(SoftDeletableModel):
     description = models.TextField(blank=True, null=True)
 
     scheduled_date = models.DateTimeField()
+    started_at = models.DateTimeField(blank=True, null=True)
     completed_at = models.DateTimeField(blank=True, null=True)
 
     status = models.CharField(
@@ -677,6 +691,27 @@ class Job(SoftDeletableModel):
             f"Job {self.title} - {self.get_status_display()} "
             f"(Service: {self.service.service_name})"
         )
+
+
+class JobAssignment(models.Model):
+    """A team member working a job, with the hours they logged on it."""
+
+    job = models.ForeignKey(Job, related_name="assignments", on_delete=models.CASCADE)
+    team_member = models.ForeignKey(
+        "TeamMember",
+        related_name="job_assignments",
+        on_delete=models.CASCADE,
+    )
+    hours_worked = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["job", "team_member"], name="unique_job_team_member"),
+        ]
+
+    def __str__(self):
+        return f"{self.team_member} on {self.job.title}"
 
 
 class JobPhoto(SoftDeletableModel):
@@ -733,7 +768,8 @@ class TeamMember(SoftDeletableModel):
         the jobs go with that delete and come back with its restore.
         """
         if deleted_at is None and not self.is_deleted:
-            self.assigned_jobs.update(assigned_to=None, updated_at=timezone.now())
+            # Completed work keeps its hours; open jobs lose this assignee.
+            self.job_assignments.exclude(job__status="COMPLETED").delete()
         super().soft_delete(user=user, cascade=cascade, deleted_at=deleted_at)
 
     def __str__(self):

@@ -147,16 +147,19 @@ def send_questionnaire_submitted_email(service):
 
 
 def send_job_created_email(job):
-    """Notify the assigned employee, or owner for an unassigned job."""
+    """Notify each assigned team member, or the owner for an unassigned job."""
     business = job.service.business
-    employee = job.assigned_to.employee if job.assigned_to else None
-    recipient = employee or business.owner
-    job_link = f"{settings.FRONTEND_URL}/user/business/job/{job.id}"
+    employees = [a.team_member.employee for a in job.assignments.select_related("team_member__employee")]
+    if not employees:
+        _send_job_created_email(job, business.owner, f"A new unassigned job has been created for {business.name}.")
+        return
+    for employee in employees:
+        _send_job_created_email(job, employee, f"A new job has been assigned to you by {business.name}.")
 
-    if employee:
-        opening = f"A new job has been assigned to you by {business.name}."
-    else:
-        opening = f"A new unassigned job has been created for {business.name}."
+
+def _send_job_created_email(job, recipient, opening):
+    business = job.service.business
+    job_link = f"{settings.FRONTEND_URL}/user/business/job/{job.id}"
 
     subject = f"New job: {job.title}"
     message = (
@@ -195,8 +198,8 @@ def send_job_created_email(job):
 def send_job_completed_email(job):
     """Notify the business owner when a job is completed."""
     business = job.service.business
-    employee = job.assigned_to.employee if job.assigned_to else None
-    completed_by = employee.name if employee else "A team member"
+    names = [a.team_member.employee.name for a in job.assignments.select_related("team_member__employee")]
+    completed_by = ", ".join(names) if names else "A team member"
     job_link = f"{settings.FRONTEND_URL}/user/business/job/{job.id}"
 
     subject = f"Job completed: {job.title}"

@@ -53,8 +53,8 @@ class ListQueryCountTests(TestCase):
                                  valid_until=date.today() + timedelta(days=5))
             employee = get_user_model().objects.create_user(f"emp{n}@example.com", "pw", role="EMPLOYEE")
             member = TeamMember.objects.create(business=self.business, employee=employee)
-            Job.objects.create(service=service, assigned_to=member, title=f"Job {n}",
-                               scheduled_date=date.today())
+            job = Job.objects.create(service=service, title=f"Job {n}", scheduled_date=date.today())
+            job.assignees.add(member)
             invoice = Invoice.objects.create(
                 business=self.business, client=client, service=service, due_date=date.today(), status="SENT",
                 subtotal=10, tax_rate=0, tax_amount=0, total_amount=10,

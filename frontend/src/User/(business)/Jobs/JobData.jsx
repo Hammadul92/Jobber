@@ -149,15 +149,21 @@ export default function JobData({ token, role }) {
     {
       key: "assigned",
       title: "Assigned To",
-      sortKey: "assigned_to__employee__name",
       width: "20%",
       render: (job) =>
-        job.assigned_to_name ? (
-          <RecordLink
-            to={isManager && job.assigned_to ? `/user/business/team-member/${job.assigned_to}` : null}
-          >
-            {job.assigned_to_name}
-          </RecordLink>
+        job.assignee_details?.length ? (
+          <span className="inline-flex flex-wrap items-center gap-1" title={job.assignee_names}>
+            <RecordLink
+              to={isManager ? `/user/business/team-member/${job.assignee_details[0].id}` : null}
+            >
+              {job.assignee_details[0].name}
+            </RecordLink>
+            {job.assignee_details.length > 1 && (
+              <span className="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                +{job.assignee_details.length - 1}
+              </span>
+            )}
+          </span>
         ) : (
           "Unassigned"
         ),
@@ -363,7 +369,7 @@ export default function JobData({ token, role }) {
               name={pendingJob.title}
               detail={[
                 pendingJob.service_name,
-                pendingJob.assigned_to_name,
+                pendingJob.assignee_names,
                 pendingJob.scheduled_date &&
                   new Date(pendingJob.scheduled_date).toLocaleDateString(),
               ]

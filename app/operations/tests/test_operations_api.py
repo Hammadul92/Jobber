@@ -964,12 +964,12 @@ class JobPhotoStatusAutomationTests(TestCase):
         )
         self.job = Job.objects.create(
             service=self.service,
-            assigned_to=self.team_member,
             title="Flooring Visit",
             description="Take progress photos",
             scheduled_date=timezone.now() + timedelta(days=1),
             status="PENDING",
         )
+        self.job.assignees.add(self.team_member)
 
     def test_uploading_before_photo_sets_job_in_progress(self):
         """Test uploading a before photo updates job status to IN_PROGRESS."""
@@ -2025,7 +2025,7 @@ class WorkflowRegressionTests(TestCase):
             JOBS_URL,
             {
                 "service": service.id,
-                "assigned_to": self.team_member.id,
+                "assignees": [self.team_member.id],
                 "title": "Flooring Visit",
                 "description": "Install flooring",
                 "scheduled_date": timezone.now() + timedelta(days=1),
@@ -2055,10 +2055,10 @@ class WorkflowRegressionTests(TestCase):
         )
         job = Job.objects.create(
             service=service,
-            assigned_to=self.team_member,
             title="Flooring Visit",
             scheduled_date=timezone.now() + timedelta(days=1),
         )
+        job.assignees.add(self.team_member)
         self.client.force_authenticate(self.manager)
         detail_url = reverse("operations:job-detail", args=[job.id])
 
@@ -2250,7 +2250,7 @@ class WorkflowRegressionTests(TestCase):
             JOBS_URL,
             {
                 "service": service.id,
-                "assigned_to": self.team_member.id,
+                "assignees": [self.team_member.id],
                 "title": "Flooring Visit",
                 "description": "Install flooring",
                 "scheduled_date": timezone.now() + timedelta(days=1),
@@ -2455,10 +2455,10 @@ class WorkflowRegressionTests(TestCase):
         )
         assigned_job = Job.objects.create(
             service=service,
-            assigned_to=self.team_member,
             title="Assigned Job",
             scheduled_date=timezone.now() + timedelta(days=1),
         )
+        assigned_job.assignees.add(self.team_member)
         other_employee = get_user_model().objects.create_user(
             "other-employee@example.com",
             "test123",
@@ -2468,12 +2468,12 @@ class WorkflowRegressionTests(TestCase):
             business=self.business,
             employee=other_employee,
         )
-        Job.objects.create(
+        other_job = Job.objects.create(
             service=service,
-            assigned_to=other_member,
             title="Other Employee Job",
             scheduled_date=timezone.now() + timedelta(days=1),
         )
+        other_job.assignees.add(other_member)
 
         self.client.force_authenticate(self.manager)
         manager_res = self.client.get(JOBS_URL)
@@ -2521,10 +2521,10 @@ class WorkflowRegressionTests(TestCase):
         )
         job = Job.objects.create(
             service=service,
-            assigned_to=self.team_member,
             title="Restore Job",
             scheduled_date=timezone.now() + timedelta(days=1),
         )
+        job.assignees.add(self.team_member)
 
         self.client_record.soft_delete(user=self.manager)
         for obj in [self.client_record, service, quote, invoice, payout, job]:

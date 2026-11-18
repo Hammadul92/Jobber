@@ -5,6 +5,7 @@ import AlertDispatcher from "../../../Components/ui/AlertDispatcher";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
 import { useDispatch } from "react-redux";
 import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
+import TeamMemberHours from "./TeamMemberHours";
 
 export default function TeamMember({ token }) {
   const { id } = useParams();
@@ -185,6 +186,10 @@ export default function TeamMember({ token }) {
             Back to Team Members
           </Link>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <TeamMemberHours token={token} memberId={id} />
       </div>
     </>
   );

@@ -23,6 +23,11 @@ const teamMemberApi = api.injectEndpoints({
       query: (id) => `/team-member/${id}/`,
       providesTags: (result, error, arg) => [{ type: "TeamMember", id: arg }],
     }),
+    // Hours logged on completed jobs: today/month/year totals and series.
+    fetchTeamMemberHours: builder.query({
+      query: (id) => `/team-member/${id}/hours/`,
+      providesTags: (result, error, arg) => [{ type: "TeamMember", id: arg }, "Job"],
+    }),
     createTeamMember: builder.mutation({
       query: (data) => ({
         url: "/team-member/",
@@ -54,6 +59,7 @@ export const {
   useFetchTeamMembersPageQuery,
   useBulkTeamMembersMutation,
   useFetchTeamMemberQuery,
+  useFetchTeamMemberHoursQuery,
   useCreateTeamMemberMutation,
   useUpdateTeamMemberMutation,
   useDeleteTeamMemberMutation,

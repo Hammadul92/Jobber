@@ -25,6 +25,7 @@ from core.models import (
     Business,
     Client,
     Job,
+    JobAssignment,
     JobPhoto,
     Quote,
     ServiceQuestionnaire,
@@ -33,6 +34,7 @@ from core.models import (
     TeamMember,
 )
 from core.quote_snapshots import signed_snapshot_section
+from operations.job_work import job_hours, job_person_hours
 
 
 class BusinessSerializer(BusinessTimezoneMixin, serializers.ModelSerializer):
@@ -929,21 +931,28 @@ class ServiceQuestionnaireSerializer(OwnedRelationsMixin, serializers.ModelSeria
 
 
 class JobSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.ModelSerializer):
-    """Serializer for Job model."""
-    owned_relations = ("service", "assigned_to")
+    """Serializer for Job model. A job can have several team members."""
+    owned_relations = ("service",)
 
     service_name = serializers.CharField(
         source="service.service_name",
-        read_only=True
-    )
-    assigned_to_name = serializers.CharField(
-        source="assigned_to.employee.name",
         read_only=True
     )
     business_name = serializers.CharField(
         source="service.business.name",
         read_only=True
     )
+    client_name = serializers.CharField(
+        source="service.client.name",
+        read_only=True
+    )
+    assignees = serializers.PrimaryKeyRelatedField(
+        queryset=TeamMember.objects.all(), many=True, required=False,
+    )
+    assignee_details = serializers.SerializerMethodField()
+    assignee_names = serializers.SerializerMethodField()
+    hours_worked = serializers.SerializerMethodField()
+    person_hours = serializers.SerializerMethodField()
 
     class Meta:
         model = Job
@@ -951,52 +960,90 @@ class JobSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.Mode
             "id",
             "service",
             "service_name",
-            "assigned_to",
-            "assigned_to_name",
+            "client_name",
+            "assignees",
+            "assignee_details",
+            "assignee_names",
             "business_name",
             "title",
             "description",
             "scheduled_date",
+            "started_at",
             "completed_at",
+            "hours_worked",
+            "person_hours",
             "status",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["created_at", "updated_at"]
+        read_only_fields = ["started_at", "created_at", "updated_at"]
+
+    @staticmethod
+    def _assignments(obj):
+        return sorted(obj.assignments.all(), key=lambda a: a.team_member.employee.name.lower())
+
+    def get_assignee_details(self, obj):
+        return [
+            {
+                "id": a.team_member_id,
+                "name": a.team_member.employee.name,
+                "hours_worked": str(a.hours_worked) if a.hours_worked is not None else None,
+            }
+            for a in self._assignments(obj)
+        ]
+
+    def get_assignee_names(self, obj):
+        return ", ".join(a.team_member.employee.name for a in self._assignments(obj))
+
+    def get_hours_worked(self, obj):
+        hours = job_hours(obj)
+        return str(hours) if hours is not None else None
+
+    def get_person_hours(self, obj):
+        hours = job_person_hours(obj)
+        return str(hours) if hours is not None else None
 
     def validate(self, data):
-        """Ensure job assignment is within the same business as service."""
-        service = (
-            data.get("service")
-            or getattr(self.instance, "service", None)
-        )
-        assigned_to = (
-            data.get("assigned_to")
-            or getattr(self.instance, "assigned_to", None)
-        )
-
-        errors = {}
-
-        if assigned_to and service:
-            # Validate that assigned team member belongs to same business
-            if assigned_to.business != service.business:
-                errors["assigned_to"] = (
-                    "Assigned team member must belong to the same "
-                    "business as the service."
-                )
-
-        if errors:
-            raise serializers.ValidationError(errors)
-
+        """Ensure every assignee is on the service's business team."""
+        service = data.get("service") or getattr(self.instance, "service", None)
+        assignees = data.get("assignees")
+        if service and assignees:
+            if any(member.business_id != service.business_id for member in assignees):
+                raise serializers.ValidationError({
+                    "assignees": "Assigned team members must belong to the same business as the service.",
+                })
         return data
+
+    @staticmethod
+    def set_assignees(job, members):
+        """Make the job's assignees exactly ``members``, keeping logged hours."""
+        wanted = {member.pk for member in members}
+        job.assignments.exclude(team_member_id__in=wanted).delete()
+        existing = set(job.assignments.values_list("team_member_id", flat=True))
+        JobAssignment.objects.bulk_create(
+            [JobAssignment(job=job, team_member_id=pk) for pk in wanted - existing],
+            ignore_conflicts=True,
+        )
+
+    def create(self, validated_data):
+        members = validated_data.pop("assignees", [])
+        job = super().create(validated_data)
+        self.set_assignees(job, members)
+        return job
+
+    def update(self, instance, validated_data):
+        members = validated_data.pop("assignees", None)
+        job = super().update(instance, validated_data)
+        if members is not None:
+            self.set_assignees(job, members)
+        return job
 
 
 class JobPhotoSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
     owned_relations = ("job",)
 
     def can_link(self, field, target, user):
-        assigned = target.assigned_to
-        return super().can_link(field, target, user) or bool(assigned and assigned.employee_id == user.pk)
+        return super().can_link(field, target, user) or target.assignees.filter(employee_id=user.pk).exists()
 
     def validate(self, attrs):
         job = attrs.get("job") or getattr(self.instance, "job", None)

@@ -89,9 +89,10 @@ class DashboardTestMixin:
         return invoice
 
     def make_job(self, service, status_value, scheduled_date, assigned_to=None, title="Job"):
-        return Job.objects.create(
-            service=service, status=status_value, scheduled_date=scheduled_date, assigned_to=assigned_to, title=title,
-        )
+        job = Job.objects.create(service=service, status=status_value, scheduled_date=scheduled_date, title=title)
+        if assigned_to:
+            job.assignees.add(assigned_to)
+        return job
 
     def get_dashboard(self, user, **params):
         api = APIClient()
@@ -289,7 +290,7 @@ class DashboardApiTests(DashboardTestMixin, TestCase):
             self.make_job(service, "PENDING", utc(2026, 6, 20))
 
         self.assertEqual(count_queries(), baseline)
-        self.assertLessEqual(baseline, 16)
+        self.assertLessEqual(baseline, 17)
 
 
 class DashboardTodosApiTests(DashboardTestMixin, TestCase):

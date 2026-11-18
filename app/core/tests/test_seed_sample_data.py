@@ -158,7 +158,7 @@ class SeedSampleDataCommandTests(TestCase):
         self.assertEqual(Job.objects.count(), 1)
         self.assertEqual(Invoice.objects.count(), 1)
         self.assertEqual(
-            Job.objects.get().assigned_to.employee.email, "employee@sample.example"
+            Job.objects.get().assignees.get().employee.email, "employee@sample.example"
         )
         self.assertTrue(
             get_user_model()
