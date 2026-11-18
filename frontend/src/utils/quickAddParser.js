@@ -27,6 +27,53 @@ const PROVINCES = {
   },
 };
 
+// Common Canadian cities, so "Calgary" alone fills in the city and province.
+const KNOWN_CITIES = {
+  AB: ["Calgary", "Edmonton", "Red Deer", "Lethbridge", "St. Albert", "Medicine Hat", "Grande Prairie",
+    "Airdrie", "Spruce Grove", "Leduc", "Okotoks", "Cochrane", "Fort McMurray", "Sherwood Park", "Canmore",
+    "Chestermere", "Camrose", "Lloydminster", "Beaumont", "Fort Saskatchewan", "Stony Plain", "Banff"],
+  BC: ["Vancouver", "Surrey", "Burnaby", "Richmond", "Kelowna", "Victoria", "Abbotsford", "Coquitlam",
+    "Langley", "Saanich", "Delta", "Kamloops", "Nanaimo", "Chilliwack", "Prince George", "North Vancouver",
+    "West Vancouver", "Maple Ridge", "New Westminster", "Port Coquitlam", "Vernon", "Penticton", "Squamish"],
+  SK: ["Saskatoon", "Regina", "Prince Albert", "Moose Jaw", "Swift Current", "Yorkton"],
+  MB: ["Winnipeg", "Brandon", "Steinbach", "Thompson"],
+  ON: ["Toronto", "Ottawa", "Mississauga", "Brampton", "Hamilton", "London", "Markham", "Vaughan",
+    "Kitchener", "Windsor", "Richmond Hill", "Oakville", "Burlington", "Oshawa", "Barrie", "Guelph",
+    "Cambridge", "Waterloo", "Kingston", "Whitby", "Sudbury", "Thunder Bay", "St. Catharines", "Niagara Falls",
+    "Pickering", "Ajax", "Milton", "Newmarket", "Peterborough", "Sault Ste. Marie"],
+  QC: ["Montreal", "Montréal", "Quebec City", "Laval", "Gatineau", "Longueuil", "Sherbrooke", "Saguenay",
+    "Lévis", "Levis", "Trois-Rivières", "Terrebonne"],
+  NS: ["Halifax", "Dartmouth", "Sydney", "Truro"],
+  NB: ["Moncton", "Saint John", "Fredericton", "Dieppe"],
+  NL: ["St. John's", "Mount Pearl", "Corner Brook"],
+  PE: ["Charlottetown", "Summerside"],
+  YT: ["Whitehorse"],
+  NT: ["Yellowknife"],
+  NU: ["Iqaluit"],
+};
+
+function findKnownCity(text) {
+  for (const [province, cities] of Object.entries(KNOWN_CITIES)) {
+    // Longest names first so "North Vancouver" wins over "Vancouver".
+    for (const city of [...cities].sort((a, b) => b.length - a.length)) {
+      const escaped = city.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (new RegExp(`(^|[^A-Za-z])${escaped}(?=[^A-Za-z]|$)`, "i").test(text)) return { city, province };
+    }
+  }
+  return null;
+}
+
+// "Calgary, AB" / "Red Deer Alberta" / "Calgary T2T 2T2": words just before
+// the province or postal code.
+function cityBefore(text, index) {
+  if (index == null || index <= 0) return "";
+  const before = text.slice(0, index).replace(/[\s,]+$/, "");
+  const segment = before.split(/[,;\n]|\.\s|\d/).pop().trim();
+  const words = segment.split(/\s+/).filter(Boolean).slice(-3);
+  if (!words.length || !words.every((word) => /^[A-Z][A-Za-z.'-]*$/.test(word))) return "";
+  return words.join(" ");
+}
+
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
@@ -131,7 +178,8 @@ function findProvince(text, country) {
   const countries = country ? [country] : ["CA", "US"];
   for (const code of countries) {
     for (const [abbr, name] of Object.entries(PROVINCES[code])) {
-      if (new RegExp(`\\b${name}\\b`, "i").test(text)) return { province: abbr, country: code };
+      const match = text.match(new RegExp(`\\b${name}\\b`, "i"));
+      if (match) return { province: abbr, country: code, index: match.index };
     }
   }
   for (const code of countries) {
@@ -153,10 +201,16 @@ function findStreet(text) {
   return match ? { street: match[0].replace(/\s+/g, " ").trim(), index: match.index, end: match.index + match[0].length } : null;
 }
 
-function findMoney(text) {
+const AMOUNT = "(\\d[\\d,]*(?:\\.\\d{1,2})?)";
+
+function findMoney(text, { bare = false } = {}) {
   const match =
-    text.match(/(?:US|CA|C)?\$\s?(\d[\d,]*(?:\.\d{1,2})?)/i) ||
-    text.match(/\b(\d[\d,]*(?:\.\d{1,2})?)\s?(?:dollars|bucks|cad|usd)\b/i);
+    text.match(new RegExp(`(?:US|CA|C)?\\$\\s?${AMOUNT}`, "i")) ||
+    text.match(new RegExp(`\\b${AMOUNT}\\s?(?:\\$|dollars|bucks|cad|usd)`, "i")) ||
+    // "Price: 185", "cost 185", "rate = 185.50" without a currency sign.
+    text.match(new RegExp(`\\b(?:price|cost|rate|amount|fee|charge|budget)\\b\\s*(?:is|of)?\\s*[:=-]?\\s*${AMOUNT}\\b`, "i")) ||
+    // A labelled price value that is just a number.
+    (bare ? text.match(new RegExp(`^\\s*${AMOUNT}\\s*$`)) : null);
   return match ? Number(match[1].replace(/,/g, "")).toFixed(2) : "";
 }
 
@@ -245,7 +299,7 @@ export function parseQuickAdd(text, { serviceOptions = [], today = new Date() } 
   const addressText =
     [labels.address, labels.city, labels.province, labels.postal].filter(Boolean).join(", ") || contactFree;
   const postal = findPostal(labels.postal || addressText);
-  const province = findProvince(labels.province || addressText, postal?.country);
+  let province = findProvince(labels.province || addressText, postal?.country);
   const street = findStreet(labels.address || addressText);
   const country = postal?.country || province?.country || "CA";
 
@@ -257,6 +311,26 @@ export function parseQuickAdd(text, { serviceOptions = [], today = new Date() } 
     const words = candidate.split(/\s+/).filter(Boolean);
     if (words.length && words.length <= 3 && words.every((word) => /^[A-Za-z.'-]+$/.test(word))) {
       city = titleCase(candidate.replace(/,.*/, ""));
+    }
+  }
+  if (!city) {
+    const isProvince = (words) =>
+      Object.values(PROVINCES).some((list) =>
+        Object.entries(list).some(([abbr, name]) => [abbr, name.toLowerCase()].includes(words.toLowerCase())),
+      );
+    const candidates = [
+      !labels.province && cityBefore(addressText, province?.index),
+      cityBefore(addressText, postal?.index),
+    ].filter((words) => words && !isProvince(words));
+    const candidate = candidates[0] || "";
+    // A known city inside the words wins ("Jane Doe Calgary" -> "Calgary");
+    // otherwise keep a short guess, else look for a known city anywhere.
+    const known = findKnownCity(candidate) || (!candidate ? findKnownCity(addressText) : null);
+    if (known) {
+      city = known.city;
+      if (!province) province = { province: known.province, country: "CA" };
+    } else if (candidate && candidate.split(/\s+/).length <= 2) {
+      city = candidate;
     }
   }
   set("street_address", street?.street || "", street);
@@ -275,7 +349,7 @@ export function parseQuickAdd(text, { serviceOptions = [], today = new Date() } 
   found.items = items.length > 0;
   const price = items.length
     ? items.reduce((sum, item) => sum + Number(item.price), 0).toFixed(2)
-    : findMoney(labels.price || flat);
+    : (labels.price && findMoney(labels.price, { bare: true })) || findMoney(flat);
   set("price", price, price);
   set("currency", /\busd\b|\bus\$/i.test(flat) || country === "US" ? "USD" : "CAD", /\b(usd|cad|us\$)\b/i.test(flat));
 

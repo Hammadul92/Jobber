@@ -102,3 +102,26 @@ test("phone digits on the line before the address stay out of the street", () =>
   assert.equal(fields.street_address, "4512 Whyte Ave NW");
   assert.equal(fields.city, "Edmonton");
 });
+
+test("a price without a dollar sign is read when it is labelled", () => {
+  for (const note of ["Price: 185", "Lawn care, price 185", "Cost = 185.50", "Rate: 185/month"]) {
+    const { fields } = parseQuickAdd(note, { serviceOptions, today });
+    assert.ok(["185.00", "185.50"].includes(fields.price), `${note} -> ${fields.price}`);
+  }
+  assert.equal(parseQuickAdd("Total 3 bedrooms", { serviceOptions, today }).fields.price, "");
+});
+
+test("the city is found without a recognised street, and fills the province", () => {
+  const cases = [
+    ["Jane Doe jane@example.com 4035550100 Calgary, AB. Snow removal", "Calgary", "AB"],
+    ["Jane Doe, 12 Elm, Calgary, Alberta T2T2T2", "Calgary", "AB"],
+    ["Jane Doe, jane@example.com, Calgary. Lawn care $60", "Calgary", "AB"],
+    ["Jane Doe, North Vancouver, lawn care", "North Vancouver", "BC"],
+    ["Jane Doe, 5 Oak Rd, Smalltown SK S0K 0A0", "Smalltown", "SK"],
+  ];
+  for (const [note, city, province] of cases) {
+    const { fields } = parseQuickAdd(note, { serviceOptions, today });
+    assert.equal(fields.city, city, note);
+    assert.equal(fields.province_state, province, note);
+  }
+});
