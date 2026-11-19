@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaPen, FaTrashAlt } from "react-icons/fa";
-import { LuInfo, LuMail, LuSend } from "react-icons/lu";
+import { LuInfo, LuMail, LuPencilLine, LuSend, LuTrash2 } from "react-icons/lu";
 import { useUpdateBusinessMutation } from "../../store";
 import Input from "../../Components/ui/Input";
 import SubmitButton from "../../Components/ui/SubmitButton";
@@ -48,8 +47,11 @@ export default function ETransferSettings({ business }) {
     if (await save("")) setConfirmRemove(false);
   };
 
-  const actionBtn =
-    "inline-flex items-center gap-2 rounded-lg bg-secondary px-2 py-1.5 text-sm font-medium text-white shadow-sm transition hover:shadow-lg";
+  // Same look as secondary buttons elsewhere; delete actions in red.
+  const editBtn =
+    "inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-gray-50";
+  const removeBtn =
+    "inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:border-rose-200 hover:bg-rose-50";
 
   return (
     <div className="rounded-2xl bg-white shadow-md">
@@ -119,13 +121,13 @@ export default function ETransferSettings({ business }) {
               <LuMail className="h-4 w-4 shrink-0 text-gray-400" />
               <strong className="break-all">{savedEmail}</strong>
             </span>
-            <div className="flex items-center gap-2 text-sm md:text-base">
-              <button type="button" className={actionBtn} onClick={() => setEditing(true)}>
-                <FaPen />
+            <div className="flex items-center gap-2">
+              <button type="button" className={editBtn} onClick={() => setEditing(true)}>
+                <LuPencilLine className="h-4 w-4" />
                 Edit
               </button>
-              <button type="button" className={actionBtn} onClick={() => setConfirmRemove(true)}>
-                <FaTrashAlt />
+              <button type="button" className={removeBtn} onClick={() => setConfirmRemove(true)}>
+                <LuTrash2 className="h-4 w-4" />
                 Remove
               </button>
             </div>

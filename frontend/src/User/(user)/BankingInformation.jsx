@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { FaPen, FaTrashAlt } from "react-icons/fa";
+import { FaPen } from "react-icons/fa";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripeCardForm from "./StripeCardForm";
@@ -26,6 +26,8 @@ import {
   LuGlobe,
   LuBadgeDollarSign,
   LuUnplug,
+  LuPencilLine,
+  LuTrash2,
 } from "react-icons/lu";
 import { NavLink } from "react-router-dom";
 import useAlert from "../../hooks/useAlert";
@@ -150,8 +152,10 @@ export default function BankingInformation({ token }) {
     }
   };
 
-  const actionBtn =
-    "inline-flex items-center gap-2 rounded-lg bg-secondary px-2 py-1.5 text-sm font-medium text-white shadow-sm transition hover:shadow-lg transition";
+  const editBtn =
+    "inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-gray-50";
+  const removeBtn =
+    "inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:border-rose-200 hover:bg-rose-50";
 
   return (
     <>
@@ -461,17 +465,19 @@ export default function BankingInformation({ token }) {
                 </span>
                 <div className="flex items-center gap-2 text-sm md:text-base">
                   <button
-                    className={actionBtn}
+                    type="button"
+                    className={editBtn}
                     onClick={() => setShowCardForm(true)}
                   >
-                    <FaPen />
+                    <LuPencilLine className="h-4 w-4" />
                     Replace
                   </button>
                   <button
-                    className={actionBtn}
+                    type="button"
+                    className={removeBtn}
                     onClick={() => handleDeleteClick(activeCard.id)}
                   >
-                    <FaTrashAlt />
+                    <LuTrash2 className="h-4 w-4" />
                     Delete
                   </button>
                 </div>
