@@ -231,40 +231,9 @@ function findName(text, labels, email) {
   return "";
 }
 
-/**
- * parseQuickAdd(text, { serviceOptions, today }) -> { fields, found }
- * fields: client_*, company_name, address, service, quote values (strings);
- * found: field -> true when it came from the text (false = default/guess).
- */
-export function parseQuickAdd(text, { serviceOptions = [], today = new Date() } = {}) {
-  const raw = String(text || "");
-  const labels = readLabels(raw);
-  const flat = raw.replace(/\s+/g, " ");
-  const found = {};
-  const fields = {};
-  const set = (key, value, wasFound) => {
-    fields[key] = value;
-    found[key] = Boolean(wasFound && value);
-  };
-
-  const email = (labels.email && findEmail(labels.email)) || findEmail(flat);
-  set("client_email", email, email);
-  const phone = findPhone(labels.phone || "") || findPhone(flat.replace(email, ""));
-  set("client_phone", phone, phone);
-  set("client_name", findName(raw, labels, email), true);
-
-  const company =
-    labels.company ||
-    flat.match(/\b[A-Z][\w&'. -]{1,40}?\s(?:Inc|Ltd|LLC|Corp|Co|Corporation|Limited)\b\.?/)?.[0] ||
-    "";
-  set("company_name", company.trim(), company);
-
-  // Address: labelled parts first, then patterns over the whole note.
-  const contactFree = flat
-    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, " ")
-    .replace(/(?:\+?1[\s.-]?)?\(?\b\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/g, " ");
-  const addressText =
-    [labels.address, labels.city, labels.province, labels.postal].filter(Boolean).join(", ") || contactFree;
+// Street, city, province/state, postal code and country from address text.
+// `labels` holds labelled values ("City: Calgary") that take priority.
+function parseAddress(addressText, labels = {}, clientName = "") {
   const postal = findPostal(labels.postal || addressText);
   let province = findProvince(labels.province || addressText, postal?.country);
   // No province/state written: the postal or ZIP code says where it is.
@@ -274,8 +243,8 @@ export function parseQuickAdd(text, { serviceOptions = [], today = new Date() } 
   }
   const street = findStreet(labels.address || addressText);
   // The client's own name ("Jackson Lee") must not be read as a city.
-  const nameFree = fields.client_name
-    ? addressText.replace(new RegExp(fields.client_name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), " ")
+  const nameFree = clientName
+    ? addressText.replace(new RegExp(clientName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), " ")
     : addressText;
 
   let city = labels.city ? titleCase(labels.city.trim()) : "";
@@ -309,12 +278,87 @@ export function parseQuickAdd(text, { serviceOptions = [], today = new Date() } 
       city = candidate;
     }
   }
-  const country = postal?.country || province?.country || "CA";
-  set("street_address", street?.street || "", street);
-  set("city", city, city);
-  set("province_state", province?.province || "", province);
-  set("postal_code", postal?.postal || "", postal);
-  set("country", country, postal || province);
+  return { street, city, province, postal, country: postal?.country || province?.country || "CA" };
+}
+
+function setAddress(set, prefix, { street, city, province, postal, country }) {
+  set(`${prefix}street_address`, street?.street || "", street);
+  set(`${prefix}city`, city, city);
+  set(`${prefix}province_state`, province?.province || "", province);
+  set(`${prefix}postal_code`, postal?.postal || "", postal);
+  set(`${prefix}country`, country, postal || province);
+}
+
+const BILLING_LABEL = /^\s*[-*•]?\s*(?:billing(?:\s+address)?|bill\s+to|mailing(?:\s+address)?)\s*[:=]\s*(.*?)\s*$/i;
+
+// "Billing: 50 Oak Ave, Edmonton AB T5K 1A1", or "Billing address:" with the
+// address on the next line (or next two, when the postal code is on the
+// second). A value with no number ("Billing: monthly") is not an address.
+export function splitBilling(text) {
+  const lines = text.split(/\n/);
+  for (let i = 0; i < lines.length; i += 1) {
+    const match = lines[i].match(BILLING_LABEL);
+    if (!match) continue;
+    const used = [i];
+    let value = match[1];
+    if (!value && lines[i + 1]?.trim()) {
+      value = lines[i + 1].trim();
+      used.push(i + 1);
+      if (!findPostal(value) && lines[i + 2] && findPostal(lines[i + 2])) {
+        value += `, ${lines[i + 2].trim()}`;
+        used.push(i + 2);
+      }
+    }
+    if (!/\d/.test(value)) continue;
+    return { billing: value, rest: lines.filter((_, index) => !used.includes(index)).join("\n") };
+  }
+  return { billing: "", rest: text };
+}
+
+/**
+ * parseQuickAdd(text, { serviceOptions, today }) -> { fields, found }
+ * fields: client_*, company_name, address, service, quote values (strings);
+ * found: field -> true when it came from the text (false = default/guess).
+ */
+export function parseQuickAdd(text, { serviceOptions = [], today = new Date() } = {}) {
+  // A billing line is taken out first so its address, postal code and so on
+  // don't get mixed into the service address or the description.
+  const { billing: billingText, rest: raw } = splitBilling(String(text || ""));
+  const labels = readLabels(raw);
+  const flat = raw.replace(/\s+/g, " ");
+  const found = {};
+  const fields = {};
+  const set = (key, value, wasFound) => {
+    fields[key] = value;
+    found[key] = Boolean(wasFound && value);
+  };
+
+  const email = (labels.email && findEmail(labels.email)) || findEmail(flat);
+  set("client_email", email, email);
+  const phone = findPhone(labels.phone || "") || findPhone(flat.replace(email, ""));
+  set("client_phone", phone, phone);
+  set("client_name", findName(raw, labels, email), true);
+
+  const company =
+    labels.company ||
+    flat.match(/\b[A-Z][\w&'. -]{1,40}?\s(?:Inc|Ltd|LLC|Corp|Co|Corporation|Limited)\b\.?/)?.[0] ||
+    "";
+  set("company_name", company.trim(), company);
+
+  // Service address: labelled parts first, then patterns over the whole note.
+  const contactFree = flat
+    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, " ")
+    .replace(/(?:\+?1[\s.-]?)?\(?\b\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/g, " ");
+  const addressText =
+    [labels.address, labels.city, labels.province, labels.postal].filter(Boolean).join(", ") || contactFree;
+  const address = parseAddress(addressText, labels, fields.client_name);
+  const country = address.country;
+  setAddress(set, "", address);
+
+  // Billing address: only from a "Billing: ..." / "Bill to: ..." line.
+  if (billingText) {
+    setAddress(set, "billing_", parseAddress(billingText.replace(/\s+/g, " "), {}, fields.client_name));
+  }
 
   // Service: the business's catalogue first, then a labelled value.
   const serviceMatch = matchService(labels.service || raw, serviceOptions);

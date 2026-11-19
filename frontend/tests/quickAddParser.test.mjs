@@ -125,3 +125,44 @@ test("the city is found without a recognised street, and fills the province", ()
     assert.equal(fields.province_state, province, note);
   }
 });
+
+test("a Billing: line fills the billing address and stays out of the service address", () => {
+  const { fields, found } = parseQuickAdd(
+    "John Smith, john@example.com, 403-555-0123\n" +
+      "123 Main St NW, Calgary AB T2T 2T2\n" +
+      "Billing: 50 Oak Ave, Edmonton AB T5K 1A1\n" +
+      "Snow removal every month, $120, starting Dec 1.",
+    { serviceOptions, today },
+  );
+  assert.equal(fields.street_address, "123 Main St NW");
+  assert.equal(fields.city, "Calgary");
+  assert.equal(fields.postal_code, "T2T 2T2");
+  assert.equal(fields.billing_street_address, "50 Oak Ave");
+  assert.equal(fields.billing_city, "Edmonton");
+  assert.equal(fields.billing_province_state, "AB");
+  assert.equal(fields.billing_postal_code, "T5K 1A1");
+  assert.equal(fields.billing_country, "CA");
+  assert.equal(found.billing_street_address, true);
+  assert.doesNotMatch(fields.description, /Oak/);
+});
+
+test("a billing address can sit on the lines after the label", () => {
+  const { fields } = parseQuickAdd(
+    "Jane Doe, jane@example.com, 403-555-0199\n12 Elm St, Calgary AB T2T 2T2\n" +
+      "Bill to:\n77 Pine Rd\nRed Deer AB T4N 1A1\nLawn care $60 tomorrow",
+    { serviceOptions, today },
+  );
+  assert.equal(fields.street_address, "12 Elm St");
+  assert.equal(fields.billing_street_address, "77 Pine Rd");
+  assert.equal(fields.billing_city, "Red Deer");
+  assert.equal(fields.billing_postal_code, "T4N 1A1");
+});
+
+test("no billing line leaves billing fields unset; 'Billing: monthly' is not an address", () => {
+  const { fields } = parseQuickAdd("Jane Doe, jane@example.com, 403-555-0199\n12 Elm St, Calgary AB T2T 2T2\nBilling: monthly\nLawn care $60", {
+    serviceOptions,
+    today,
+  });
+  assert.equal(fields.billing_street_address, undefined);
+  assert.equal(fields.service_type, "SUBSCRIPTION");
+});

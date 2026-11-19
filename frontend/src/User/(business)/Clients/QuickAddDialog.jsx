@@ -34,6 +34,118 @@ const LABELS = {
 
 const BILLING_REQUIRED = ["billing_street_address", "billing_city", "billing_province_state", "billing_postal_code"];
 
+const Code = ({ children }) => (
+  <code className="rounded bg-white px-1 py-0.5 font-mono text-[0.8em] text-slate-800 ring-1 ring-gray-200">{children}</code>
+);
+
+// The rules in utils/quickAddParser.js, in plain words. Keep the two in step.
+const GUIDE = (serviceOptions) => [
+  [
+    "Name",
+    <>
+      The first part of the first line that is 2–4 words of letters only, e.g. <Code>John Smith, john@…</Code>. If
+      there is none, it is taken from an email like <Code>john.smith@…</Code>. Label: <Code>Name:</Code>,{" "}
+      <Code>Client:</Code> or <Code>Customer:</Code>.
+    </>,
+  ],
+  ["Email", <>The first email address anywhere in the note. Label: <Code>Email:</Code>.</>],
+  [
+    "Phone",
+    <>
+      The first 10-digit number, in any format: <Code>403-555-0123</Code>, <Code>(403) 555 0123</Code>,{" "}
+      <Code>+1 403 555 0123</Code>. Label: <Code>Phone:</Code>, <Code>Cell:</Code> or <Code>Mobile:</Code>.
+    </>,
+  ],
+  [
+    "Company (optional)",
+    <>
+      A name ending in Inc, Ltd, LLC, Corp or Co, e.g. <Code>Acme Landscaping Ltd</Code>. Label:{" "}
+      <Code>Company:</Code>.
+    </>,
+  ],
+  [
+    "Service address",
+    <>
+      <b>Street:</b> a house number, up to four words, then a street type (St, Ave, Rd, Dr, Blvd, Way, Cres, Ct, Ln,
+      Pl, Trail, Hwy…), with an optional NW/NE/SW/SE and unit, e.g. <Code>Unit 4, 123 Main St NW</Code>.{" "}
+      <b>City:</b> the words right after the street, or right before the province or postal code, or a known city name.{" "}
+      <b>Province / state:</b> the full name or its capital-letter code (<Code>AB</Code>, <Code>Ontario</Code>,{" "}
+      <Code>NY</Code>); if missing, worked out from the postal or ZIP code. <b>Postal / ZIP code:</b> a Canadian code
+      like <Code>T2T 2T2</Code> or a 5-digit ZIP like <Code>90210</Code>, which also sets the country. Labels:{" "}
+      <Code>Address:</Code>, <Code>City:</Code>, <Code>Province:</Code> / <Code>State:</Code>, <Code>Postal:</Code> /{" "}
+      <Code>ZIP:</Code>.
+    </>,
+  ],
+  [
+    "Billing address (optional)",
+    <>
+      Only when it differs from the service address. Start a line with <Code>Billing:</Code>,{" "}
+      <Code>Billing address:</Code>, <Code>Bill to:</Code> or <Code>Mailing address:</Code> and write the full address
+      after it, e.g. <Code>Billing: 50 Oak Ave, Edmonton AB T5K 1A1</Code>. The address can also go on the next line
+      (or the next two, with the postal code on the second). It is read with the same rules as the service address. With
+      no billing line, the service address is used for billing.
+    </>,
+  ],
+  [
+    "Service",
+    <>
+      Matched to your services
+      {serviceOptions.length
+        ? ` (${serviceOptions.slice(0, 4).join(", ")}${serviceOptions.length > 4 ? "…" : ""})`
+        : ""}{" "}
+      by its exact name, or by shared words, so “plowing snow” finds Snow Removal. Label: <Code>Service:</Code> or{" "}
+      <Code>Job:</Code>.
+    </>,
+  ],
+  [
+    "Line items (optional)",
+    <>
+      One per line, starting with <Code>-</Code>, <Code>*</Code>, <Code>•</Code> or <Code>1.</Code> and ending in a
+      price: <Code>- Salting $25</Code>. When there are items, the price is their total.
+    </>,
+  ],
+  [
+    "Price",
+    <>
+      The first amount with a dollar sign (<Code>$120</Code>), or followed by “dollars”, “CAD” or “USD”, or after
+      price, cost, rate or fee (<Code>cost 120</Code>). Label: <Code>Price:</Code> (a plain number is fine there).
+    </>,
+  ],
+  [
+    "Currency",
+    <>USD if the note says USD or US$, or the address is in the US; otherwise CAD.</>,
+  ],
+  [
+    "Type & billing",
+    <>
+      A subscription if the note says monthly, weekly, every month, per year, annual, seasonal, recurring or
+      subscription. Yearly, annual and seasonal bill yearly; everything else bills monthly. Otherwise it is a one-time
+      job.
+    </>,
+  ],
+  [
+    "Start date",
+    <>
+      The date after start, starting, begin, from or on: <Code>Dec 1</Code>, <Code>1 December 2026</Code>,{" "}
+      <Code>2026-12-01</Code>, <Code>12/01/2026</Code> (month first), today, tomorrow or next Monday. A date with no
+      year means the next one coming. If none is found, today. Label: <Code>Start:</Code>.
+    </>,
+  ],
+  [
+    "End date (optional)",
+    <>
+      The date after until, till, through, ending or ends, in the same formats. Label: <Code>End:</Code>.
+    </>,
+  ],
+  [
+    "Description",
+    <>
+      The rest of the note, leaving out lines with the email, phone, postal code or a label. Label:{" "}
+      <Code>Notes:</Code> to set it exactly.
+    </>,
+  ],
+];
+
 const inputClass =
   "h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";
 
@@ -120,6 +232,7 @@ export default function QuickAddDialog({ open, onClose, business }) {
     const parsed = parseQuickAdd(text, { serviceOptions });
     setFields(parsed.fields);
     setFound(parsed.found);
+    setSeparateBilling(BILLING_REQUIRED.some((key) => parsed.found[key]));
     setStep("review");
   };
 
@@ -263,17 +376,20 @@ export default function QuickAddDialog({ open, onClose, business }) {
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm leading-relaxed focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
               />
               <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-slate-600">
-                <p className="font-semibold text-slate-700">Include as much as you know:</p>
-                <ul className="mt-1 list-disc space-y-0.5 pl-5">
-                  <li>Name, email and phone</li>
-                  <li>Service address with city, province and postal code</li>
-                  <li>
-                    The service
-                    {serviceOptions.length ? ` (${serviceOptions.slice(0, 4).join(", ")}${serviceOptions.length > 4 ? "…" : ""})` : ""}
-                    , price and start date
-                  </li>
-                  <li>“monthly” or “every year” for a subscription; one item per line like “- Salting $25”</li>
-                </ul>
+                <p className="font-semibold text-slate-700">How each field is read</p>
+                <p className="mt-1">
+                  Write naturally, or put a field on its own line as <Code>Label: value</Code> (for example{" "}
+                  <Code>Phone: 403-555-0123</Code>). A labelled line always wins over a guess. You can fix anything on
+                  the next step.
+                </p>
+                <dl className="mt-3 space-y-2.5">
+                  {GUIDE(serviceOptions).map(([term, body]) => (
+                    <div key={term}>
+                      <dt className="font-semibold text-slate-700">{term}</dt>
+                      <dd className="mt-0.5 leading-relaxed">{body}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
             </div>
             <div className="flex shrink-0 justify-end gap-3 border-t border-gray-200 px-6 py-4">
