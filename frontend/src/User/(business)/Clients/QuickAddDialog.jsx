@@ -10,7 +10,10 @@ import useAlert from "../../../hooks/useAlert";
 const EXAMPLE =
   "John Smith, john@example.com, 403-555-0123\n" +
   "123 Main St NW, Calgary AB T2T 2T2\n" +
-  "Snow removal every month, $120, starting Dec 1. Driveway and front walk.";
+  "Billing: 50 Oak Ave, Edmonton AB T5K 1A1\n" +
+  "Snow removal every month starting Dec 1. Driveway and front walk.\n" +
+  "- Driveway clearing $95\n" +
+  "- Salting $25";
 
 const LABELS = {
   client_name: "Name",
@@ -372,9 +375,23 @@ export default function QuickAddDialog({ open, onClose, business }) {
                 onChange={(event) => setText(event.target.value)}
                 rows={10}
                 autoFocus
-                placeholder={EXAMPLE}
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm leading-relaxed focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
               />
+              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-slate-600">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-slate-700">Sample note</p>
+                  <button
+                    type="button"
+                    onClick={() => setText(EXAMPLE)}
+                    className="text-sm font-semibold text-accent hover:underline"
+                  >
+                    Use this sample
+                  </button>
+                </div>
+                <pre className="mt-2 whitespace-pre-wrap rounded-lg bg-white px-3 py-2 font-mono text-xs leading-relaxed text-slate-700 ring-1 ring-gray-200">
+                  {EXAMPLE}
+                </pre>
+              </div>
               <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-slate-600">
                 <p className="font-semibold text-slate-700">How each field is read</p>
                 <p className="mt-1">
