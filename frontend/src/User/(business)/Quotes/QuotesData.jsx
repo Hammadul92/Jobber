@@ -25,7 +25,10 @@ import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
 import TrashLink from "../../../Components/ui/TrashLink";
 import DeleteRecordMessage from "../../../Components/ui/DeleteRecordMessage";
 
-const QUOTE_STATUS_OPTIONS = ["DRAFT", "SENT", "SIGNED", "DECLINED", "EXPIRED"];
+const QUOTE_STATUS_OPTIONS = ["DRAFT", "SENT", "SIGNED", "DECLINED", "EXPIRED", "VOID"];
+const STATUS_LABELS = { VOID: "Voided" };
+// Signed and voided quotes are records: view only, never deleted.
+const isRecord = (quote) => quote.status === "SIGNED" || quote.status === "VOID";
 
 const BULK_ACTIONS = [
   {
@@ -52,7 +55,7 @@ const BULK_ACTIONS = [
 ];
 
 const getDisplayStatus = (quote) =>
-  quote.status !== "SIGNED" &&
+  !isRecord(quote) &&
   quote.valid_until &&
   new Date(quote.valid_until) < new Date()
     ? "EXPIRED"
@@ -146,6 +149,9 @@ export default function QuotesData({ token, role }) {
           className="text-slate-900"
         >
           {quote.quote_number}
+          {quote.revision > 1 && (
+            <span className="ml-1.5 text-xs font-medium text-slate-500">rev {quote.revision}</span>
+          )}
         </RecordLink>
       ),
     },
@@ -213,12 +219,14 @@ export default function QuotesData({ token, role }) {
               ? "bg-rose-100 text-rose-700"
               : status === "SENT"
                 ? "bg-sky-100 text-sky-700"
-                : "bg-slate-100 text-slate-600";
+                : status === "VOID"
+                  ? "bg-slate-200 text-slate-500 line-through"
+                  : "bg-slate-100 text-slate-600";
         return (
           <span
             className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${tone}`}
           >
-            {status}
+            {status === "VOID" ? "VOIDED" : status}
           </span>
         );
       },
@@ -260,17 +268,17 @@ export default function QuotesData({ token, role }) {
             <Link
               to={`/user/business/quote/${quote.id}`}
               className="rounded-xl p-2 text-secondary hover:bg-secondary/5"
-              title={`${quote.status === "SIGNED" ? "View" : "Edit"} quote ${quote.quote_number}`}
-              aria-label={`${quote.status === "SIGNED" ? "View" : "Edit"} quote ${quote.quote_number}`}
+              title={`${isRecord(quote) ? "View" : "Edit"} quote ${quote.quote_number}`}
+              aria-label={`${isRecord(quote) ? "View" : "Edit"} quote ${quote.quote_number}`}
             >
-              {quote.status === "SIGNED" ? (
+              {isRecord(quote) ? (
                 <LuEye className="h-4 w-4" />
               ) : (
                 <LuPencil className="h-4 w-4" />
               )}
             </Link>
           )}
-          {isManager && quote.status !== "SIGNED" && (
+          {isManager && !isRecord(quote) && (
             <button
               type="button"
               onClick={() => handleDeleteClick(quote.id)}
@@ -308,7 +316,7 @@ export default function QuotesData({ token, role }) {
               { value: "", label: "All statuses" },
               ...QUOTE_STATUS_OPTIONS.map((status) => ({
                 value: status,
-                label: status.charAt(0) + status.slice(1).toLowerCase(),
+                label: STATUS_LABELS[status] || status.charAt(0) + status.slice(1).toLowerCase(),
               })),
             ]}
           />

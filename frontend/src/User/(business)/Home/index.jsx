@@ -24,6 +24,7 @@ const quoteStatusTone = {
   APPROVED: "bg-emerald-100 text-emerald-700",
   DRAFT: "bg-slate-100 text-slate-600",
   DECLINED: "bg-rose-100 text-rose-700",
+  VOID: "bg-slate-200 text-slate-500",
 };
 
 const invoiceStatusTone = {

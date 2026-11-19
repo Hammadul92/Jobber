@@ -34,7 +34,7 @@ export default function CreateQuoteForm({
     : quoteData?.results ?? [];
 
   const quotedServiceIds = quoteRows
-    .filter((quote) => quote?.is_active !== false && quote?.status !== "DECLINED")
+    .filter((quote) => quote?.is_active !== false && !["DECLINED", "VOID"].includes(quote?.status))
     .map((quote) => Number(quote.service))
     .filter((serviceIdValue) => Number.isFinite(serviceIdValue));
 

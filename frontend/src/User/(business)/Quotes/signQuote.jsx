@@ -183,12 +183,14 @@ export default function SignQuote({ token, preview = false }) {
 
     const client = quote.client || {};
     const serviceData = quote.service_data || {};
-    const isFinalized = ["SIGNED", "DECLINED"].includes(status);
+    const isFinalized = ["SIGNED", "DECLINED", "VOID"].includes(status);
+    const replacedBy = quote.replaced_by;
     const isClientActive = String(client.is_active) === "True" || client.is_active === true;
     const statusTone = {
         SENT: "bg-blue-100 text-blue-700",
         SIGNED: "bg-emerald-100 text-emerald-700",
         DECLINED: "bg-rose-100 text-rose-700",
+        VOID: "bg-slate-200 text-slate-600",
     };
     const serviceAddress = [
         serviceData.street_address,
@@ -202,6 +204,24 @@ export default function SignQuote({ token, preview = false }) {
 
     return (
         <>
+            {status === "VOID" && (
+                <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    <p className="font-semibold text-slate-800">
+                        This quote was voided{quote.voided_at ? ` on ${formatDate(quote.voided_at, false)}` : ""} and no longer applies.
+                    </p>
+                    {quote.void_reason && <p className="mt-1">Reason: {quote.void_reason}</p>}
+                    {replacedBy && ["SENT", "SIGNED"].includes(replacedBy.status) ? (
+                        <Link
+                            to={`/user/business/quote/sign/${replacedBy.id}`}
+                            className="mt-2 inline-flex font-semibold text-accent hover:underline"
+                        >
+                            {replacedBy.status === "SENT" ? "Review and sign" : "View"} revision {replacedBy.revision} →
+                        </Link>
+                    ) : (
+                        <p className="mt-1">{quote.business_name} will send you a revised quote to sign.</p>
+                    )}
+                </div>
+            )}
             {!preview && quote.revision_required && (
                 <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                     This quote was revised after service details changed. The business must resend it before you can respond.
@@ -216,10 +236,13 @@ export default function SignQuote({ token, preview = false }) {
                             </p>
                             <h3 className="text-2xl font-semibold text-primary">
                                 {quote.quote_number}
+                                {quote.revision > 1 && (
+                                    <span className="ml-2 align-middle text-sm font-medium text-slate-500">Revision {quote.revision}</span>
+                                )}
                             </h3>
                             <div className="flex flex-wrap items-center gap-2">
                                 <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase ${statusTone[status] || "bg-gray-100 text-gray-700"}`}>
-                                    {status}
+                                    {status === "VOID" ? "Voided" : status}
                                 </span>
                                 {quote.payment_terms && (
                                     <span className="rounded-full bg-secondary/10 px-3 py-1 text-[11px] font-semibold uppercase text-secondary">
@@ -320,7 +343,7 @@ export default function SignQuote({ token, preview = false }) {
                         )}
                     </div>
 
-                    {isFinalized && (
+                    {isFinalized && status !== "VOID" && (
                         <div className={`rounded-xl px-4 py-3 ${status === "DECLINED"
                             ? "border border-rose-200 bg-rose-50 text-rose-800"
                             : "border border-emerald-200 bg-emerald-50 text-emerald-800"

@@ -3,6 +3,8 @@ Serializers for business APIs
 """
 
 import json
+
+import pytz
 from decimal import Decimal, InvalidOperation
 from core.ownership import OwnedRelationsMixin
 from core.utils import BusinessTimezoneMixin
@@ -21,6 +23,7 @@ from taggit.models import Tag
 
 
 from core.models import (
+    CLOSED_QUOTE_STATUSES,
     BankingInformation,
     Business,
     Client,
@@ -482,6 +485,7 @@ class ServiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
             quotations.append({
                 "id": quote.id,
                 "quote_number": quote.quote_number,
+                "revision": quote.revision,
                 "status": quote.status,
                 "valid_until": quote.valid_until,
                 "payment_terms": quote.payment_terms,
@@ -707,6 +711,9 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
     service_name = serializers.SerializerMethodField()
     client_name = serializers.SerializerMethodField()
     business_name = serializers.SerializerMethodField()
+    replaced_by = serializers.SerializerMethodField()
+    replaces = serializers.SerializerMethodField()
+    jobs_outside_dates = serializers.SerializerMethodField()
 
     class Meta:
         model = Quote
@@ -718,13 +725,47 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
             "terms_conditions", "combined_terms_conditions", "terms_missing",
             "notes", "line_items", "quoted_subtotal", "quoted_tax_rate", "quoted_tax_label",
             "quoted_tax_amount", "quoted_total", "quoted_currency", "revision",
-            "revision_required", "is_active", "created_at", "updated_at",
+            "revision_required", "voided_at", "void_reason", "replaced_by",
+            "replaces", "jobs_outside_dates", "is_active", "created_at", "updated_at",
         ]
         read_only_fields = [
             "id", "quote_number", "status", "general_terms_conditions",
             "combined_terms_conditions", "terms_missing", "revision",
-            "revision_required", "is_active", "created_at", "updated_at",
+            "revision_required", "voided_at", "void_reason", "is_active",
+            "created_at", "updated_at",
         ]
+
+    @staticmethod
+    def _quote_link(quote):
+        if quote is None or not quote.is_active:
+            return None
+        return {
+            "id": quote.id, "revision": quote.revision, "status": quote.status,
+            "signed_at": quote.signed_at, "voided_at": quote.voided_at,
+            "void_reason": quote.void_reason,
+        }
+
+    def get_replaced_by(self, obj):
+        return self._quote_link(obj.replaced_by)
+
+    def get_replaces(self, obj):
+        return self._quote_link(getattr(obj, "replaces", None))
+
+    def get_jobs_outside_dates(self, obj):
+        """Open jobs scheduled outside the service dates, for a revision that
+        is still being worked out after a void."""
+        if obj.status in ("SIGNED", *CLOSED_QUOTE_STATUSES) or getattr(obj, "replaces", None) is None:
+            return []
+        service = obj.service
+        if not service.start_date:
+            return []
+        tz = pytz.timezone(service.business.timezone) if service.business.timezone else None
+        rows = []
+        for job in service.jobs.filter(status__in=("PENDING", "IN_PROGRESS")).order_by("scheduled_date"):
+            day = (job.scheduled_date.astimezone(tz) if tz else job.scheduled_date).date()
+            if day < service.start_date or (service.end_date and day > service.end_date):
+                rows.append({"id": job.id, "title": job.title, "scheduled_date": day})
+        return rows
 
     def get_service_data(self, obj):
         current = dict(ServiceSerializer(obj.service, context=self.context).data)
@@ -769,7 +810,7 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
             existing_quotes = (
                 Quote.objects.filter(service=service, is_active=True)
                 .exclude(id=getattr(self.instance, "id", None))
-                .exclude(status="DECLINED")
+                .exclude(status__in=CLOSED_QUOTE_STATUSES)
             )
 
             if existing_quotes.exists():

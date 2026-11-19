@@ -64,8 +64,9 @@ def build_signed_quote_snapshot(quote):
 
 
 def signed_snapshot_section(quote, section):
-    """Return a signed snapshot section, or None for unsigned/legacy quotes."""
-    if getattr(quote, "status", None) != "SIGNED":
+    """Return a signed snapshot section, or None for unsigned/legacy quotes.
+    A voided quote keeps showing what was signed."""
+    if getattr(quote, "status", None) not in ("SIGNED", "VOID"):
         return None
     snapshot = getattr(quote, "signed_snapshot", None) or {}
     value = snapshot.get(section)

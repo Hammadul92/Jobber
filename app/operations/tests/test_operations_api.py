@@ -2635,3 +2635,143 @@ class JobScheduleTimezoneTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
         job = Job.objects.exclude(pk=self.job.pk).get(service=self.service)
         self.assertEqual(job.scheduled_date.isoformat(), "2026-12-03T14:30:00+00:00")
+
+
+class QuoteVoidAndReviseTests(TestCase):
+    """A signed quote can be voided and replaced by a new revision that keeps
+    the quote number; the void is kept as a record."""
+
+    def setUp(self):
+        QuoteInvoiceAutomationTests.setUp(self)
+        self.business.services_offered.add("Flooring")
+        ServiceTermsTemplate.objects.create(
+            business=self.business, service_name="Flooring", content="Standard terms",
+        )
+        self.media = tempfile.TemporaryDirectory()
+        self.addCleanup(self.media.cleanup)
+        override = self.settings(MEDIA_ROOT=self.media.name)
+        override.enable()
+        self.addCleanup(override.disable)
+        self.sign(self.quote)
+        self.quote.refresh_from_db()
+
+    def sign(self, quote):
+        self.client.force_authenticate(self.client_user)
+        res = self.client.post(
+            reverse(QUOTE_SIGN_URL, args=[quote.id]),
+            {"status": "SIGNED", "signature": create_test_image_file("signature.png")},
+            format="multipart",
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+
+    def void(self, quote, reason="Start date moved", user=None):
+        self.client.force_authenticate(user or self.owner)
+        return self.client.post(
+            reverse("operations:quote-void-quote", args=[quote.id]), {"reason": reason}, format="json",
+        )
+
+    def test_void_keeps_signed_record_and_starts_next_revision(self):
+        res = self.void(self.quote)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+
+        self.quote.refresh_from_db()
+        revision = Quote.objects.get(pk=res.data["id"])
+        self.assertEqual(self.quote.status, "VOID")
+        self.assertEqual(self.quote.void_reason, "Start date moved")
+        self.assertIsNotNone(self.quote.voided_at)
+        self.assertTrue(self.quote.signature)
+        self.assertIsNotNone(self.quote.signed_snapshot)
+        self.assertEqual(self.quote.replaced_by, revision)
+
+        self.assertEqual(revision.quote_number, self.quote.quote_number)
+        self.assertEqual(revision.revision, self.quote.revision + 1)
+        self.assertEqual(revision.status, "DRAFT")
+        self.assertEqual(revision.payment_terms, "NET_15")
+
+        detail = self.client.get(quote_detail_url(self.quote.id)).data
+        self.assertEqual(detail["replaced_by"]["id"], revision.id)
+        detail = self.client.get(quote_detail_url(revision.id)).data
+        self.assertEqual(detail["replaces"]["id"], self.quote.id)
+        self.assertEqual(detail["replaces"]["void_reason"], "Start date moved")
+
+        # The signed PDF of the voided quote is still available, marked void.
+        pdf = self.client.get(reverse(QUOTE_DOWNLOAD_PDF_URL, args=[self.quote.id]))
+        self.assertEqual(pdf.status_code, status.HTTP_200_OK)
+
+    def test_only_owner_can_void_and_only_signed_quotes(self):
+        self.assertEqual(self.void(self.quote, user=self.client_user).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.void(self.quote, reason=" ").status_code, status.HTTP_400_BAD_REQUEST)
+
+        revision = Quote.objects.get(pk=self.void(self.quote).data["id"])
+        self.assertEqual(self.void(self.quote).status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(self.void(revision).status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_voided_quote_is_locked(self):
+        self.void(self.quote)
+        self.client.force_authenticate(self.owner)
+        self.assertEqual(self.client.delete(quote_detail_url(self.quote.id)).status_code, 400)
+        self.assertEqual(
+            self.client.patch(quote_detail_url(self.quote.id), {"notes": "x"}, format="json").status_code, 400,
+        )
+        self.assertEqual(self.client.post(quote_send_url(self.quote.id)).status_code, 400)
+
+        self.client.force_authenticate(self.client_user)
+        res = self.client.post(
+            reverse(QUOTE_SIGN_URL, args=[self.quote.id]),
+            {"status": "SIGNED", "signature": create_test_image_file("signature.png")},
+            format="multipart",
+        )
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("voided", res.data["detail"])
+
+    def test_invoices_pause_until_the_revision_is_signed(self):
+        from operations.recurring_invoices import _signed_quote
+
+        self.assertEqual(_signed_quote(self.service), self.quote)
+        revision = Quote.objects.get(pk=self.void(self.quote).data["id"])
+        self.assertIsNone(_signed_quote(self.service))
+
+        with patch("operations.views.emails.send_quote_email"):
+            self.client.force_authenticate(self.owner)
+            self.assertEqual(self.client.post(quote_send_url(revision.id)).status_code, 200)
+        self.assertIsNone(_signed_quote(self.service))
+
+        self.sign(revision)
+        revision.refresh_from_db()
+        self.assertEqual(revision.status, "SIGNED")
+        self.assertEqual(_signed_quote(self.service), revision)
+
+    def test_new_dates_flow_into_revision_and_jobs_outside_are_flagged(self):
+        revision = Quote.objects.get(pk=self.void(self.quote).data["id"])
+        job = Job.objects.create(
+            service=self.service, title="Early visit", status="PENDING",
+            scheduled_date=timezone.now() + timedelta(days=1),
+        )
+        start = date.today() + timedelta(days=30)
+        self.client.force_authenticate(self.owner)
+        res = self.client.patch(
+            reverse("operations:service-detail", args=[self.service.id]),
+            {"start_date": start.isoformat(), "end_date": (start + timedelta(days=7)).isoformat()},
+            format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+
+        detail = self.client.get(quote_detail_url(revision.id)).data
+        self.assertEqual(detail["service_data"]["start_date"], start.isoformat())
+        self.assertEqual([row["id"] for row in detail["jobs_outside_dates"]], [job.id])
+        # The voided quote still shows what was signed.
+        old = self.client.get(quote_detail_url(self.quote.id)).data
+        self.assertEqual(old["service_data"]["start_date"], date.today().isoformat())
+
+    @patch("operations.emails.send_branded_email")
+    def test_revision_email_says_what_it_replaces(self, send):
+        from operations.emails import send_quote_email
+
+        revision = Quote.objects.get(pk=self.void(self.quote, reason="Client asked for January").data["id"])
+        revision.tax_rate = Decimal("5.00")
+        send_quote_email(revision)
+        kwargs = send.call_args.kwargs
+        self.assertIn("Revised quote", kwargs["subject"])
+        self.assertIn(f"revision {revision.revision}", kwargs["subject"])
+        self.assertTrue(any("now void" in p and "Client asked for January" in p for p in kwargs["paragraphs"]))
+        self.assertIn("now void", kwargs["text_body"])

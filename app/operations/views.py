@@ -39,6 +39,7 @@ from core.models import (
     Service,
     Quote,
 )
+from core.models import CLOSED_QUOTE_STATUSES
 from core.pricing import business_tax_label, service_line_items
 from core.quote_snapshots import build_signed_quote_snapshot
 from operations import serializers, emails
@@ -66,7 +67,7 @@ def create_auto_quote_for_service(service):
     """Create the draft once questionnaire requirements are satisfied or waived."""
     if not service.auto_generate_quote or not (service.bypass_questionnaire or service.filled_questionnaire):
         return
-    if service.service_quotes.filter(is_active=True).exclude(status="DECLINED").exists():
+    if service.service_quotes.filter(is_active=True).exclude(status__in=CLOSED_QUOTE_STATUSES).exists():
         return
     terms_template = get_active_service_terms_template(service)
     Quote.objects.create(
@@ -468,7 +469,10 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
     serializer_class = serializers.QuoteSerializer
     queryset = (
         Quote.objects.filter(is_active=True)
-        .select_related("service", "service__client", "service__client__user", "service__business")
+        .select_related(
+            "service", "service__client", "service__client__user", "service__business",
+            "replaced_by", "replaces",
+        )
         .prefetch_related(
             *serializers.service_prefetches("service__"),
             *serializers.client_prefetches("service__client__"),
@@ -492,7 +496,7 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         # EXPIRED is shown for unsigned quotes past their valid-until date.
         status_filter = self.request.query_params.get("status")
         if status_filter:
-            expired = Q(valid_until__lt=timezone.localdate()) & ~Q(status="SIGNED")
+            expired = Q(valid_until__lt=timezone.localdate()) & ~Q(status__in=("SIGNED", "VOID"))
             qs = qs.filter(expired) if status_filter == "EXPIRED" else qs.filter(status=status_filter).exclude(expired)
         if user.role == "ADMIN":
             return qs
@@ -503,8 +507,8 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         return qs.none()
 
     def perform_destroy(self, instance):
-        if instance.status == "SIGNED":
-            raise ValidationError({"detail": "Signed quotes cannot be deleted."})
+        if instance.status in ("SIGNED", "VOID"):
+            raise ValidationError({"detail": "Signed and voided quotes are kept as records and cannot be deleted."})
         instance.soft_delete(user=self.request.user)
 
     def perform_create(self, serializer):
@@ -512,7 +516,7 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         service = serializer.validated_data["service"]
         if (
             service.service_quotes.filter(is_active=True)
-            .exclude(status="DECLINED")
+            .exclude(status__in=CLOSED_QUOTE_STATUSES)
             .exists()
         ):
             raise ValidationError(
@@ -531,7 +535,8 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
     def download_pdf(self, request, pk=None):
         """Download the finalized signed quotation as a PDF."""
         quote = self.get_object()
-        if quote.status != "SIGNED" or not quote.signature:
+        # A voided quote keeps its signature, so its signed PDF stays available.
+        if quote.status not in ("SIGNED", "VOID") or not quote.signature:
             return Response(
                 {"detail": "Only signed quotations can be downloaded as PDF."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -547,9 +552,9 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """Prevent updates if quote is already signed."""
         instance = self.get_object()
-        if instance.status == "SIGNED":
+        if instance.status in ("SIGNED", "VOID"):
             return Response(
-                {"detail": "Cannot update a signed quote."},
+                {"detail": f"Cannot update a {instance.get_status_display().lower()} quote."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return super().update(request, *args, **kwargs)
@@ -566,6 +571,11 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         if quote.status == "DECLINED":
             return Response(
                 {"detail": "A declined quote cannot be resent. Create a new quote instead."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if quote.status == "VOID":
+            return Response(
+                {"detail": "A voided quote cannot be resent. Send its new revision instead."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if not quote.payment_terms:
@@ -615,6 +625,79 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    @action(detail=True, methods=["post"], url_path="void")
+    @transaction.atomic
+    def void_quote(self, request, pk=None):
+        """Void a signed quote and start its next revision as a draft.
+
+        The signed quote stays as a record (signature, snapshot, PDF). The new
+        revision keeps the quote number, follows the service's current
+        details, and must be sent and signed again; until then the service has
+        no signed quote, so automatic invoices pause.
+        """
+        if request.user.role != "MANAGER":
+            return Response(
+                {"detail": "Only the business owner can void a quote."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        candidate = self.get_object()
+        Service.objects.select_for_update().get(pk=candidate.service_id)
+        quote = Quote.objects.select_for_update().get(pk=candidate.pk)
+        if quote.status != "SIGNED":
+            return Response(
+                {"detail": "Only a signed quote can be voided."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        reason = str(request.data.get("reason") or "").strip()
+        if not reason:
+            return Response(
+                {"reason": ["Say why the quote is being voided."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if len(reason) > 500:
+            return Response(
+                {"reason": ["Keep the reason under 500 characters."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        service = quote.service
+        quote.status = "VOID"
+        quote.voided_at = timezone.now()
+        quote.void_reason = reason
+        quote.save(update_fields=["status", "voided_at", "void_reason", "updated_at"])
+
+        last_revision = (
+            Quote.all_objects.filter(quote_number=quote.quote_number)
+            .order_by("-revision").values_list("revision", flat=True).first()
+        )
+        terms_template = get_active_service_terms_template(service)
+        revision = Quote.objects.create(
+            service=service,
+            quote_number=quote.quote_number,
+            revision=last_revision + 1,
+            status="DRAFT",
+            line_items=service_line_items(service),
+            currency=service.currency,
+            valid_until=max(quote.valid_until, timezone.localdate() + timedelta(days=7)),
+            payment_terms=quote.payment_terms,
+            general_terms_conditions=(
+                terms_template.content if terms_template else quote.general_terms_conditions
+            ),
+            terms_conditions=quote.terms_conditions,
+            notes=quote.notes,
+        )
+        quote.replaced_by = revision
+        quote.save(update_fields=["replaced_by"])
+
+        return Response(
+            {
+                "detail": f"Quote {quote.quote_number} voided. Revision {revision.revision} is ready to edit and send.",
+                "id": revision.id,
+                "revision": revision.revision,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
     @action(detail=True, methods=["post"], url_path="sign-quote")
     @transaction.atomic
     def sign_quote(self, request, pk=None):
@@ -623,7 +706,7 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         try:
             candidate = self.get_object()
             Service.objects.select_for_update().get(pk=candidate.service_id)
-            quote = self.get_queryset().select_for_update().get(pk=candidate.pk)
+            quote = self.get_queryset().select_for_update(of=("self",)).get(pk=candidate.pk)
             self.check_object_permissions(request, quote)
         except Quote.DoesNotExist:
             return Response(
@@ -643,6 +726,12 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         if new_status not in ["SIGNED", "DECLINED"]:
             return Response(
                 {"detail": "Invalid status. Must be 'SIGNED' or 'DECLINED'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if quote.status == "VOID":
+            return Response(
+                {"detail": "This quote was voided and replaced. Sign the new revision instead."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

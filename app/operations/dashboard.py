@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.models import (
+    CLOSED_QUOTE_STATUSES,
     BankingInformation,
     Business,
     Invoice,
@@ -407,7 +408,7 @@ class DashboardTodosView(APIView):
         add(
             limited(
                 services.filter(Q(bypass_questionnaire=True) | ~EMPTY_ANSWERS, auto_generate_quote=True)
-                .exclude(Exists(live_quotes.exclude(status="DECLINED"))),
+                .exclude(Exists(live_quotes.exclude(status__in=CLOSED_QUOTE_STATUSES))),
                 *service_fields, **service_expressions,
             ),
             lambda row: todo(

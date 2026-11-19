@@ -69,7 +69,12 @@ QUOTE_STATUS_CHOICES = [
     ("SENT", "Sent"),
     ("SIGNED", "Signed"),
     ("DECLINED", "Declined"),
+    ("VOID", "Voided"),
 ]
+
+# Quotes in these statuses are closed: they never block a new quote for the
+# service, and are never "the" quote invoices or jobs follow.
+CLOSED_QUOTE_STATUSES = ("DECLINED", "VOID")
 
 JOB_PHOTO_TYPE_CHOICES = [
     ("BEFORE", "Before"),
@@ -783,7 +788,8 @@ class Quote(SoftDeletableModel):
     service = models.ForeignKey(
         "Service", on_delete=models.CASCADE, related_name="service_quotes"
     )
-    quote_number = models.CharField(max_length=20, unique=True, editable=False)
+    # A revised quote keeps its number; (quote_number, revision) is unique.
+    quote_number = models.CharField(max_length=20, editable=False)
     date_created = models.DateTimeField(auto_now_add=True)
     valid_until = models.DateField()
     payment_terms = models.CharField(
@@ -809,20 +815,36 @@ class Quote(SoftDeletableModel):
     revision_required = models.BooleanField(default=False)
     signed_snapshot = models.JSONField(blank=True, null=True)
 
+    # Set when a signed quote is voided and replaced by a new revision.
+    voided_at = models.DateTimeField(null=True, blank=True)
+    void_reason = models.TextField(blank=True, default="")
+    replaced_by = models.OneToOneField(
+        "self", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="replaces",
+    )
+
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["quote_number", "revision"],
+                name="unique_quote_number_revision",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.quote_number} for {self.service.client}"
 
     def clean(self):
-        """Ensure only one active (non-declined) quote exists per service."""
-        if self.service_id:
+        """Ensure only one open (not declined or voided) quote exists per service."""
+        if self.service_id and self.status not in CLOSED_QUOTE_STATUSES:
             existing_quotes = (
                 Quote.objects.filter(service=self.service, is_active=True)
                 .exclude(id=self.id)
-                .exclude(status="DECLINED")
+                .exclude(status__in=CLOSED_QUOTE_STATUSES)
             )
 
             if existing_quotes.exists():
@@ -850,7 +872,7 @@ class Quote(SoftDeletableModel):
                 super().save(*args, **kwargs)
                 return
             except IntegrityError as exc:
-                if "core_quote_quote_number_key" not in str(exc):
+                if "unique_quote_number_revision" not in str(exc):
                     raise
                 self.quote_number = None
 

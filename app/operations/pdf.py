@@ -226,8 +226,16 @@ def build_signed_quote_pdf(quote):
 
     metadata = [
         _paragraph("QUOTATION", styles["meta"]),
-        _paragraph(quote.quote_number, styles["reference"]),
-        Paragraph('<font color="#047857"><b>SIGNED</b></font>', styles["meta"]),
+        _paragraph(
+            f"{quote.quote_number} (revision {quote.revision})"
+            if getattr(quote, "revision", 1) > 1 else quote.quote_number,
+            styles["reference"],
+        ),
+        Paragraph(
+            '<font color="#b91c1c"><b>VOIDED</b></font>' if getattr(quote, "status", "") == "VOID"
+            else '<font color="#047857"><b>SIGNED</b></font>',
+            styles["meta"],
+        ),
     ]
     if valid_until:
         metadata.append(_paragraph(f"Valid until: {valid_until:%d %b %Y}", styles["meta"]))

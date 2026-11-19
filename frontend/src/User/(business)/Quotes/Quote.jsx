@@ -6,6 +6,7 @@ import {
   useUpdateServiceMutation,
   useUpdateQuoteMutation,
   useSendQuoteMutation,
+  useVoidQuoteMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
@@ -16,6 +17,7 @@ import Dropdown from "../../../Components/ui/Dropdown";
 import Textarea from "../../../Components/ui/Textarea";
 import RichTextContent from "../../../Components/ui/RichTextContent";
 import {
+  LuBan,
   LuDownload,
   LuMail,
   LuMapPin,
@@ -28,6 +30,7 @@ import { formatAddress } from "../../../utils/formatAddress";
 import LineItemsTable from "../../../Components/ui/LineItemsTable";
 import { PAYMENT_TERMS_OPTIONS, paymentTermsLabel } from "../../../utils/paymentTerms";
 import ConfirmCustomerNotification from "../../../Components/ui/ConfirmCustomerNotification";
+import ConfirmDialog from "../../../Components/ui/ConfirmDialog";
 import useAlert from "../../../hooks/useAlert";
 
 export default function Quote({ token, role }) {
@@ -43,6 +46,10 @@ export default function Quote({ token, role }) {
   const [updateQuote, { isLoading: updating }] = useUpdateQuoteMutation();
   const [updateService, { isLoading: activatingService }] = useUpdateServiceMutation();
   const [sendQuote, { isLoading: sending }] = useSendQuoteMutation();
+  const [voidQuote, { isLoading: voiding }] = useVoidQuoteMutation();
+  const [confirmVoid, setConfirmVoid] = useState(false);
+  const [voidReason, setVoidReason] = useState("");
+  const [voidError, setVoidError] = useState("");
 
   const [validUntil, setValidUntil] = useState("");
   const [paymentTerms, setPaymentTerms] = useState("");
@@ -145,6 +152,24 @@ export default function Quote({ token, role }) {
     }
   };
 
+  // Void the signed quote and open its new draft revision.
+  const handleVoid = async () => {
+    if (voiding) return;
+    if (!voidReason.trim()) {
+      setVoidError("Say why the quote is being voided.");
+      return;
+    }
+    try {
+      const result = await voidQuote({ id, reason: voidReason.trim() }).unwrap();
+      setConfirmVoid(false);
+      setVoidReason("");
+      setAlert({ type: "success", message: result.detail });
+      navigate(`/user/business/quote/${result.id}`);
+    } catch (err) {
+      setVoidError(err?.data?.reason?.[0] || err?.data?.detail || "Could not void the quote.");
+    }
+  };
+
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
@@ -195,7 +220,12 @@ export default function Quote({ token, role }) {
   const client = quoteData.client || {};
   const serviceData = quoteData.service_data || {};
 
-  const isSigned = quoteData.status === "SIGNED";
+  // A voided quote keeps its signature: read-only, PDF still downloadable.
+  const isVoid = quoteData.status === "VOID";
+  const isSigned = quoteData.status === "SIGNED" || isVoid;
+  const replaces = quoteData.replaces;
+  const replacedBy = quoteData.replaced_by;
+  const jobsOutsideDates = quoteData.jobs_outside_dates || [];
   const isDeclined = quoteData.status === "DECLINED";
   const isInactiveClient =
     client.is_active === false || client.is_active === "False";
@@ -235,7 +265,9 @@ export default function Quote({ token, role }) {
           ? "bg-rose-100 text-rose-700"
           : quoteData.status === "DECLINED"
             ? "bg-rose-100 text-rose-700"
-            : "bg-slate-100 text-slate-600";
+            : isVoid
+              ? "bg-slate-200 text-slate-600 line-through"
+              : "bg-slate-100 text-slate-600";
 
   const pillBadge = `inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold ${statusColor}`;
   const btnPrimary =
@@ -253,15 +285,70 @@ export default function Quote({ token, role }) {
         isLoading={sending}
       />
 
+      <ConfirmDialog
+        open={confirmVoid}
+        title={`Void quote ${quoteData.quote_number}?`}
+        confirmLabel="Void & revise"
+        loadingLabel="Voiding..."
+        isLoading={voiding}
+        onConfirm={handleVoid}
+        onCancel={() => {
+          setConfirmVoid(false);
+          setVoidError("");
+        }}
+        message={
+          <div className="space-y-3">
+            <p>
+              The signed quote is kept as a record, marked void. A new draft, revision {(quoteData.revision || 1) + 1},
+              opens with the service&apos;s current details for you to edit and send. The client signs again.
+            </p>
+            <p>Automatic invoices pause until the new revision is signed.</p>
+            <label htmlFor="void-reason" className="block font-semibold text-slate-700">
+              Reason <span className="text-accent">*</span>
+            </label>
+            <textarea
+              id="void-reason"
+              rows={3}
+              maxLength={500}
+              value={voidReason}
+              onChange={(event) => {
+                setVoidReason(event.target.value);
+                setVoidError("");
+              }}
+              placeholder="e.g. Start date moved to January 5"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+            />
+            <p className="text-xs text-slate-500">The client sees this reason in the email with the new revision.</p>
+            {voidError && <p className="text-sm font-semibold text-rose-600">{voidError}</p>}
+          </div>
+        }
+      />
+
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <h3 className="text-3xl font-medium tracking-tight text-slate-900">
             {quoteData.quote_number}
           </h3>
-          <span className={pillBadge}>{quoteData.status}</span>
+          {quoteData.revision > 1 && (
+            <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+              Revision {quoteData.revision}
+            </span>
+          )}
+          <span className={pillBadge}>{isVoid ? "VOIDED" : quoteData.status}</span>
         </div>
 
         {isSigned ? (
+          <div className="flex flex-wrap justify-end gap-3">
+          {role === "MANAGER" && !isVoid && (
+            <button
+              type="button"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:border-rose-200 hover:bg-rose-50"
+              onClick={() => setConfirmVoid(true)}
+            >
+              <LuBan className="h-4 w-4" aria-hidden="true" />
+              Void &amp; revise
+            </button>
+          )}
           <button
             type="button"
             className={`${btnPrimary} min-w-52 justify-center gap-2`}
@@ -278,6 +365,7 @@ export default function Quote({ token, role }) {
             )}
             {downloading ? "Preparing PDF..." : "Download Signed PDF"}
           </button>
+          </div>
         ) : role === "MANAGER" ? (
           <div className="flex flex-wrap justify-end gap-3">
             {isServiceInactive && !isDeclined && (
@@ -313,6 +401,69 @@ export default function Quote({ token, role }) {
           </div>
         ) : null}
       </div>
+
+      {isVoid && (
+        <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+          <p className="font-semibold text-slate-800">
+            Voided{quoteData.voided_at ? ` on ${formatDate(quoteData.voided_at)}` : ""}
+          </p>
+          {quoteData.void_reason && <p className="mt-1">Reason: {quoteData.void_reason}</p>}
+          <p className="mt-1">
+            This is the record of what the client signed. It no longer applies
+            {replacedBy ? (
+              <>
+                {" "}and was replaced by{" "}
+                <Link className="font-semibold text-accent hover:underline" to={`/user/business/quote/${replacedBy.id}`}>
+                  revision {replacedBy.revision}
+                </Link>{" "}
+                ({replacedBy.status.toLowerCase()}).
+              </>
+            ) : (
+              "."
+            )}
+          </p>
+        </div>
+      )}
+
+      {replaces && !isSigned && (
+        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+          <p>
+            This revision replaces{" "}
+            <Link className="font-semibold underline" to={`/user/business/quote/${replaces.id}`}>
+              revision {replaces.revision}
+            </Link>
+            , signed{replaces.signed_at ? ` ${formatDate(replaces.signed_at, false)}` : ""} and voided
+            {replaces.void_reason ? `: ${replaces.void_reason}` : "."}
+          </p>
+          <p className="mt-1">
+            Change the dates, items or price on{" "}
+            <Link className="font-semibold underline" to={`/user/business/service/${serviceData.id}`}>
+              the service
+            </Link>
+            ; this draft follows them. Then send it for the client to sign. Automatic invoices are paused until it is
+            signed.
+          </p>
+        </div>
+      )}
+
+      {jobsOutsideDates.length > 0 && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <p className="font-semibold">
+            {jobsOutsideDates.length === 1 ? "1 open job is" : `${jobsOutsideDates.length} open jobs are`} scheduled
+            outside the service dates ({serviceData.start_date} to {serviceData.end_date || "no end date"}):
+          </p>
+          <ul className="mt-1 list-disc space-y-0.5 pl-5">
+            {jobsOutsideDates.map((job) => (
+              <li key={job.id}>
+                <Link className="underline" to={`/user/business/job/${job.id}`}>
+                  {job.title}
+                </Link>{" "}
+                on {formatDate(job.scheduled_date)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {disableReasons.length > 0 && !isSigned && (
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">

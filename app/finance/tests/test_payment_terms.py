@@ -83,7 +83,11 @@ class PaymentTermWorkflowTests(TestCase):
         self.assertEqual(invoice.status, "SENT")
         self.assertEqual(invoice.due_date, date(2026, 11, 10))
         first_sent_at = invoice.sent_at
-        self.api.post(url)
+        # Resend on a fixed day before the due date, so the test doesn't age out.
+        with patch("core.payment_terms.timezone.now", return_value=datetime(
+            2026, 11, 1, 1, 0, tzinfo=datetime_timezone.utc,
+        )):
+            self.api.post(url)
         invoice.refresh_from_db()
         self.assertEqual(invoice.sent_at, first_sent_at)
         self.assertEqual(invoice.due_date, date(2026, 11, 10))
