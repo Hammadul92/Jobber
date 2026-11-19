@@ -2593,3 +2593,45 @@ class WorkflowRegressionTests(TestCase):
         self.assertEqual(first_sign_res.status_code, status.HTTP_200_OK)
         second_sign_res = self.sign_quote_as_client(quote)
         self.assertEqual(second_sign_res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class JobScheduleTimezoneTests(TestCase):
+    """A scheduled time typed without an offset is the business's local time,
+    and comes back as the same wall-clock time."""
+
+    def setUp(self):
+        JobPhotoStatusAutomationTests.setUp(self)
+        self.business.timezone = "America/Toronto"
+        self.business.save(update_fields=["timezone"])
+        self.client.force_authenticate(self.owner)
+
+    def test_create_and_update_keep_the_typed_time(self):
+        res = self.client.post(
+            reverse("operations:job-list"),
+            {"service": self.service.id, "title": "Visit", "scheduled_date": "2026-12-03T09:30"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+        job = Job.objects.get(pk=res.data["id"])
+        self.assertEqual(job.scheduled_date.isoformat(), "2026-12-03T14:30:00+00:00")
+        self.assertEqual(res.data["scheduled_date"], "2026-12-03 09:30:00")
+
+        res = self.client.patch(
+            reverse("operations:job-detail", args=[job.id]),
+            {"scheduled_date": "2026-12-04T15:00"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+        self.assertEqual(res.data["scheduled_date"], "2026-12-04 15:00:00")
+        job.refresh_from_db()
+        self.assertEqual(job.scheduled_date.isoformat(), "2026-12-04T20:00:00+00:00")
+
+    def test_generate_jobs_reads_time_in_business_timezone(self):
+        res = self.client.post(
+            reverse("operations:job-generate"),
+            {"service_ids": [self.service.id], "scheduled_date": "2026-12-03T09:30"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+        job = Job.objects.exclude(pk=self.job.pk).get(service=self.service)
+        self.assertEqual(job.scheduled_date.isoformat(), "2026-12-03T14:30:00+00:00")

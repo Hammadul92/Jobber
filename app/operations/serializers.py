@@ -1003,6 +1003,28 @@ class JobSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.Mode
         hours = job_person_hours(obj)
         return str(hours) if hours is not None else None
 
+    def to_internal_value(self, data):
+        """Read a scheduled time without an offset ("2026-12-03T09:30") in
+        the business's timezone, the same one jobs are shown in."""
+        service = getattr(self.instance, "service", None)
+        service_id = data.get("service") if hasattr(data, "get") else None
+        tz_name = None
+        if service_id not in (None, ""):
+            try:
+                tz_name = (
+                    Service.objects.filter(pk=service_id)
+                    .values_list("business__timezone", flat=True)
+                    .first()
+                )
+            except (TypeError, ValueError, DjangoValidationError):
+                tz_name = None
+        elif service is not None:
+            tz_name = service.business.timezone
+        if not tz_name:
+            return super().to_internal_value(data)
+        with timezone.override(tz_name):
+            return super().to_internal_value(data)
+
     def validate(self, data):
         """Ensure every assignee is on the service's business team."""
         service = data.get("service") or getattr(self.instance, "service", None)

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setTopbar, resetTopbar } from "../../../store/topbarSlice";
 import {
   useFetchJobQuery,
   useUpdateJobMutation,
@@ -16,6 +18,7 @@ import { formatDate } from "../../../utils/formatDate";
 import Select from "../../../Components/ui/Select";
 import Textarea from "../../../Components/ui/Textarea";
 import Input from "../../../Components/ui/Input";
+import SubmitButton from "../../../Components/ui/SubmitButton";
 import { LuUpload } from "react-icons/lu";
 import MemberPicker from "../../../Components/ui/MemberPicker";
 import JobWorkPanel from "./JobWorkPanel";
@@ -24,6 +27,7 @@ import useAlert from "../../../hooks/useAlert";
 export default function Job({ token, role }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const {
     data: jobData,
@@ -83,11 +87,31 @@ export default function Job({ token, role }) {
       setTitle(jobData.title || "");
       setDescription(jobData.description || "");
       setAssignees((jobData.assignees || []).map(String));
-      setScheduledDate(jobData.scheduled_date?.slice(0, 16) || "");
+      // The API sends business-local time ("2026-12-03 09:30:00"); the input
+      // takes "2026-12-03T09:30". Both sides are the business's clock.
+      setScheduledDate(jobData.scheduled_date?.replace(" ", "T").slice(0, 16) || "");
       setStatus(jobData.status || "PENDING");
       setCreatedAt(jobData.created_at || "");
     }
   }, [jobData]);
+
+  const jobTitle = jobData?.title || "";
+  const jobClient = jobData?.client_name || "";
+  useEffect(() => {
+    dispatch(
+      setTopbar({
+        title: jobTitle && jobClient ? `${jobTitle} for ${jobClient}` : jobTitle || "Job",
+        description:
+          role === "CLIENT"
+            ? "See when the job is scheduled, who is on it, and its photos."
+            : "Update the schedule, crew and status, track hours, and upload before and after photos.",
+        action: null,
+      }),
+    );
+    return () => {
+      dispatch(resetTopbar());
+    };
+  }, [dispatch, jobTitle, jobClient, role]);
 
   useEffect(() => {
     if (availablePhotoTypeOptions.length > 0) {
@@ -411,14 +435,11 @@ export default function Job({ token, role }) {
 
             {canEditJobDetails && (
               <div className="-mt-2 flex justify-end">
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-3 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accentLight disabled:opacity-60 disabled:cursor-not-allowed"
-                  style={{ minWidth: 140 }}
-                  disabled={updatingJob}
-                >
-                  Save Changes
-                </button>
+                <SubmitButton
+                  isLoading={updatingJob}
+                  btnClass="inline-flex items-center justify-center rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accentLight hover:shadow-lg disabled:opacity-60"
+                  btnName="Save Changes"
+                />
               </div>
             )}
           </form>

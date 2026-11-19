@@ -101,7 +101,8 @@ export default function GenerateJobsDialog({ token, open, onClose }) {
     try {
       const jobs = await generateJobs({
         service_ids: chosen.map((service) => service.id),
-        scheduled_date: new Date(scheduledDate).toISOString(),
+        // Wall-clock time; the server reads it in the business's timezone.
+        scheduled_date: scheduledDate,
         title: title.trim(),
         description: description.trim(),
         assignee_ids: assignees.map(Number),

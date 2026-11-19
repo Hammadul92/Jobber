@@ -910,8 +910,6 @@ class JobViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
         scheduled = parse_datetime(str(request.data.get("scheduled_date") or ""))
         if scheduled is None:
             raise ValidationError({"scheduled_date": "Choose when the jobs are scheduled."})
-        if timezone.is_naive(scheduled):
-            scheduled = timezone.make_aware(scheduled)
 
         services = list(
             Service.objects.filter(pk__in=service_ids, business__owner=request.user)
@@ -930,14 +928,21 @@ class JobViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
                 team = TeamMember.objects.filter(business=service.business, is_active=True)
                 if assignee_ids is not None:
                     team = team.filter(pk__in=assignee_ids)
-                when = timezone.localtime(scheduled, pytz.timezone(service.business.timezone))
+                business_tz = pytz.timezone(service.business.timezone)
+                # A time without an offset is wall-clock time at the business.
+                job_time = (
+                    timezone.make_aware(scheduled, business_tz)
+                    if timezone.is_naive(scheduled)
+                    else scheduled
+                )
+                when = timezone.localtime(job_time, business_tz)
                 name = title_prefix or service.service_name
                 title = f"{name} – {service.client.name} – {when:%b} {when.day}"[:100]
                 job = Job.objects.create(
                     service=service,
                     title=title,
                     description=description or None,
-                    scheduled_date=scheduled,
+                    scheduled_date=job_time,
                     status="PENDING",
                 )
                 serializers.JobSerializer.set_assignees(job, list(team))
