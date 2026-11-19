@@ -147,7 +147,8 @@ export default function Invoice({ token, role }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const payload = { id, status, subtotal, tax_rate: taxRate, tax_amount: taxAmount, total_amount: totalAmount, notes };
-    if (!paymentTerms || status === "DRAFT") payload.due_date = dueDate || null;
+    // Paid and cancelled invoices keep their due date; others can move it.
+    if (!isLocked && invoiceData.status !== "CANCELLED") payload.due_date = dueDate || null;
     if (invoiceData.status !== "SENT" && status === "SENT") {
       setConfirmAction({ type: "save", payload });
     } else {
@@ -471,16 +472,23 @@ export default function Invoice({ token, role }) {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <Input
-              type="date"
-              id="invoice-due-date"
-              label="Due Date"
-              value={dueDate}
-              onChange={setDueDate}
-              isRequired={!paymentTerms}
-              isDisabled={isLocked || Boolean(paymentTerms && status !== "DRAFT")}
-              fieldClass={fieldClass}
-            />
+            <div>
+              <Input
+                type="date"
+                id="invoice-due-date"
+                label="Due Date"
+                value={dueDate}
+                onChange={setDueDate}
+                isRequired={!paymentTerms || invoiceData.status === "SENT"}
+                isDisabled={isLocked || invoiceData.status === "CANCELLED"}
+                fieldClass={fieldClass}
+              />
+              {invoiceData.status === "SENT" && dueDate !== (invoiceData.due_date || "") && (
+                <p className="-mt-4 mb-4 text-xs text-amber-700">
+                  Save, then resend the invoice so the client gets the new due date.
+                </p>
+              )}
+            </div>
             <Input
               type="number"
               id="invoice-subtotal"

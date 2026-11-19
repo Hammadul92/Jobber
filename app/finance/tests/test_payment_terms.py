@@ -8,6 +8,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from core.models import Business, Client, Invoice, Quote, Service, ServiceTermsTemplate
@@ -212,18 +213,38 @@ class PaymentTermWorkflowTests(TestCase):
         self.assertEqual(invoice.due_date, date(2026, 12, 1))
 
     @patch("finance.views.emails.send_invoice_email")
-    def test_manual_due_date_survives_first_send_and_locks(self, send_email):
-        invoice = self.invoice("NET_15", date(2026, 12, 1))
+    def test_manual_due_date_survives_first_send_and_stays_editable(self, send_email):
+        today = timezone.localdate()
+        invoice = self.invoice("NET_15", today + timedelta(days=10))
         response = self.api.post(reverse("finance:invoice-send-invoice", args=[invoice.pk]))
         self.assertEqual(response.status_code, 200)
         invoice.refresh_from_db()
-        self.assertEqual(invoice.due_date, date(2026, 12, 1))
+        self.assertEqual(invoice.due_date, today + timedelta(days=10))
         self.assertIsNotNone(invoice.sent_at)
+        url = reverse("finance:invoice-detail", args=[invoice.pk])
+
+        response = self.api.patch(url, {"due_date": (today + timedelta(days=20)).isoformat()}, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.due_date, today + timedelta(days=20))
+
+        # Not into the past, and a sent invoice keeps a due date.
+        response = self.api.patch(url, {"due_date": (today - timedelta(days=3)).isoformat()}, format="json")
+        self.assertEqual(response.status_code, 400)
+        response = self.api.patch(url, {"due_date": None}, format="json")
+        self.assertEqual(response.status_code, 400)
+
+    @patch("finance.views.emails.send_invoice_email")
+    def test_overdue_invoice_saves_without_moving_its_date(self, send_email):
+        invoice = self.invoice("NET_15", timezone.localdate() + timedelta(days=5))
+        self.api.post(reverse("finance:invoice-send-invoice", args=[invoice.pk]))
+        past = timezone.localdate() - timedelta(days=3)
+        Invoice.objects.filter(pk=invoice.pk).update(due_date=past)
         response = self.api.patch(
             reverse("finance:invoice-detail", args=[invoice.pk]),
-            {"due_date": "2026-12-02"}, format="json",
+            {"due_date": past.isoformat(), "notes": "Called the client"}, format="json",
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 200, response.data)
 
     @patch("finance.views.emails.send_invoice_email")
     def test_past_manual_due_date_blocks_sending(self, send_email):

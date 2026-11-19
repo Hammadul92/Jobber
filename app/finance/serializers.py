@@ -182,12 +182,19 @@ class InvoiceSerializer(OwnedRelationsMixin, BusinessTimezoneMixin, serializers.
             attrs.setdefault("due_date", None)
         elif "payment_terms" in attrs and attrs["payment_terms"] != self.instance.payment_terms:
             raise serializers.ValidationError({"payment_terms": "Payment terms cannot be changed after creation."})
+        # A sent invoice's due date can be moved (paid/cancelled ones stay locked
+        # below), but it must keep one.
         if self.instance and self.instance.payment_terms and "due_date" in attrs:
             if self.instance.status != "DRAFT" or self.instance.sent_at is not None:
-                if attrs["due_date"] != self.instance.due_date:
-                    raise serializers.ValidationError({"due_date": "A sent invoice's due date cannot be changed."})
-        if business and (self.instance is None or self.instance.payment_terms) and (
-            attrs.get("due_date") is not None and attrs["due_date"] < business_local_date(business)
+                if attrs["due_date"] is None:
+                    raise serializers.ValidationError({"due_date": "A sent invoice needs a due date."})
+        # Only a changed date must be in the future, so an overdue invoice can
+        # still be saved without touching its date.
+        due_date_changed = "due_date" in attrs and (
+            self.instance is None or attrs["due_date"] != self.instance.due_date
+        )
+        if business and (self.instance is None or self.instance.payment_terms) and due_date_changed and (
+            attrs["due_date"] is not None and attrs["due_date"] < business_local_date(business)
         ):
             raise serializers.ValidationError({"due_date": "The due date cannot be in the past."})
         if self.instance and attrs.get("status") == "SENT" and self.instance.payment_terms:
