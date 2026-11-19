@@ -91,7 +91,8 @@ export default function ETransferSettings({ business }) {
                 fieldClass="mb-0 h-11 rounded-lg px-3 py-2 text-sm"
               />
             </div>
-            <div className="flex items-center gap-2">
+            {/* Input keeps a bottom margin; match it so buttons line up with the field. */}
+            <div className="flex items-center gap-2 md:mb-6">
               {savedEmail && (
                 <button
                   type="button"
