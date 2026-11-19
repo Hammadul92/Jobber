@@ -21,12 +21,18 @@ const LABELS = {
   city: "City",
   province_state: "Province / state",
   postal_code: "Postal / ZIP code",
+  billing_street_address: "Billing street address",
+  billing_city: "Billing city",
+  billing_province_state: "Billing province / state",
+  billing_postal_code: "Billing postal / ZIP code",
   service_name: "Service",
   price: "Price",
   start_date: "Start date",
   end_date: "End date",
   description: "Description",
 };
+
+const BILLING_REQUIRED = ["billing_street_address", "billing_city", "billing_province_state", "billing_postal_code"];
 
 const inputClass =
   "h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";
@@ -74,13 +80,17 @@ export default function QuickAddDialog({ open, onClose, business }) {
   const [fields, setFields] = useState({});
   const [found, setFound] = useState({});
   const [autoInvoice, setAutoInvoice] = useState(true);
+  const [separateBilling, setSeparateBilling] = useState(false);
   const [createdClientId, setCreatedClientId] = useState(null);
   const [createClient, { isLoading: creatingClient }] = useCreateClientMutation();
   const [createService, { isLoading: creatingService }] = useCreateServiceMutation();
   const busy = creatingClient || creatingService;
 
   const serviceOptions = useMemo(() => business?.services_offered || [], [business]);
-  const missing = missingFields(fields);
+  const missing = [
+    ...missingFields(fields),
+    ...(separateBilling ? BILLING_REQUIRED.filter((key) => !String(fields[key] ?? "").trim()) : []),
+  ];
 
   useEffect(() => {
     if (!open) return undefined;
@@ -96,6 +106,7 @@ export default function QuickAddDialog({ open, onClose, business }) {
     setStep("write");
     setFields({});
     setFound({});
+    setSeparateBilling(false);
     setCreatedClientId(null);
   };
 
@@ -135,6 +146,15 @@ export default function QuickAddDialog({ open, onClose, business }) {
       province_state: fields.province_state,
       postal_code: fields.postal_code.trim(),
     };
+    const billing = separateBilling
+      ? {
+          street_address: fields.billing_street_address.trim(),
+          city: fields.billing_city.trim(),
+          country: fields.billing_country || "CA",
+          province_state: fields.billing_province_state,
+          postal_code: fields.billing_postal_code.trim(),
+        }
+      : address;
 
     try {
       // 1. Client (kept if a later step fails, so a retry doesn't duplicate it).
@@ -145,11 +165,11 @@ export default function QuickAddDialog({ open, onClose, business }) {
           client_email: fields.client_email.trim(),
           client_phone: fields.client_phone || "",
           company_name: (fields.company_name || "").trim(),
-          billing_street_address: address.street_address,
-          billing_city: address.city,
-          billing_country: address.country,
-          billing_province_state: address.province_state,
-          billing_postal_code: address.postal_code,
+          billing_street_address: billing.street_address,
+          billing_city: billing.city,
+          billing_country: billing.country,
+          billing_province_state: billing.province_state,
+          billing_postal_code: billing.postal_code,
         }).unwrap();
         clientId = client.id;
         setCreatedClientId(clientId);
@@ -200,6 +220,7 @@ export default function QuickAddDialog({ open, onClose, business }) {
   };
 
   const provinceOptions = PROVINCES[fields.country || "CA"] || {};
+  const billingProvinceOptions = PROVINCES[fields.billing_country || "CA"] || {};
 
   return (
     <div className="fixed inset-0 z-50">
@@ -288,7 +309,7 @@ export default function QuickAddDialog({ open, onClose, business }) {
 
               <section className="space-y-3">
                 <h6 className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-                  2 · Service address (also used for billing)
+                  2 · Service address{separateBilling ? "" : " (also used for billing)"}
                 </h6>
                 <Field name="street_address" required fields={fields} found={found} onChange={change} />
                 <div className="grid gap-3 sm:grid-cols-3">
@@ -317,7 +338,49 @@ export default function QuickAddDialog({ open, onClose, business }) {
                     buttonClassName="h-9! rounded-lg! px-3! border-gray-200" textClassName="text-sm" menuClassName="z-50"
                   />
                 </div>
+                <label className="flex items-center gap-2 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-[#ff6a00]"
+                    checked={separateBilling}
+                    onChange={(event) => setSeparateBilling(event.target.checked)}
+                  />
+                  Billing address is different from the service address
+                </label>
               </section>
+
+              {separateBilling && (
+                <section className="space-y-3">
+                  <h6 className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Billing address</h6>
+                  <Field name="billing_street_address" required fields={fields} found={found} onChange={change} />
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <Field name="billing_city" required fields={fields} found={found} onChange={change} />
+                    <Field name="billing_province_state" required fields={fields} found={found} onChange={change}>
+                      <Dropdown
+                        value={fields.billing_province_state || ""}
+                        onChange={(value) => change("billing_province_state", value)}
+                        placeholder="Select"
+                        options={Object.entries(billingProvinceOptions).map(([code, name]) => ({ value: code, label: name }))}
+                        buttonClassName={`h-10! rounded-lg! px-3! ${!fields.billing_province_state ? "border-rose-300! bg-rose-50/40!" : "border-gray-200"}`} textClassName="text-sm" menuClassName="z-50"
+                      />
+                    </Field>
+                    <Field name="billing_postal_code" required fields={fields} found={found} onChange={change} />
+                  </div>
+                  <div className="inline-flex items-center gap-2 text-sm text-slate-600">
+                    Country
+                    <Dropdown
+                      className="w-44"
+                      value={fields.billing_country || "CA"}
+                      onChange={(value) => {
+                        change("billing_country", value);
+                        change("billing_province_state", "");
+                      }}
+                      options={[{ value: "CA", label: "Canada" }, { value: "US", label: "United States" }]}
+                      buttonClassName="h-9! rounded-lg! px-3! border-gray-200" textClassName="text-sm" menuClassName="z-50"
+                    />
+                  </div>
+                </section>
+              )}
 
               <section className="space-y-3">
                 <h6 className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
