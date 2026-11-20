@@ -19,6 +19,8 @@ import TableToolbar, {
 } from "../../../../Components/ui/TableToolbar";
 import RecordsTable from "../../../../Components/ui/RecordsTable";
 import RecordLink from "../../../../Components/ui/RecordLink";
+import QuoteStatusBadge from "../../../../Components/ui/QuoteStatusBadge";
+import { quoteSummary } from "../../../../utils/quoteSummary";
 import BulkActionBar from "../../../../Components/ui/BulkActionBar";
 import { pluralize } from "../../../../utils/pluralize";
 import TablePagination from "../../../../Components/ui/TablePagination";
@@ -218,14 +220,14 @@ export default function ClientServicesData({
       key: "type",
       title: "Type",
       sortKey: "service_type",
-      width: isAllServicesView ? "10%" : isManager ? "11%" : "12%",
+      width: isAllServicesView ? "9%" : isManager ? "10%" : "11%",
       render: (service) =>
         service.service_type === "SUBSCRIPTION" ? "Subscription" : "One-time",
     },
     {
       key: "address",
       title: "Service Address",
-      width: isAllServicesView ? "21%" : isManager ? "24%" : "28%",
+      width: isAllServicesView ? "15%" : isManager ? "17%" : "21%",
       render: (service) =>
         [
           service.street_address,
@@ -275,9 +277,17 @@ export default function ClientServicesData({
       },
     },
     {
+      key: "quote",
+      title: "Quote",
+      width: "10%",
+      render: (service) => (
+        <QuoteStatusBadge summary={quoteSummary(service.quotations)} isManager={isManager} />
+      ),
+    },
+    {
       key: "questionnaire",
       title: "Questionnaire",
-      width: "12%",
+      width: isAllServicesView ? "9%" : "10%",
       render: (service) =>
         service.service_questionnaires?.id ? (
           <Link

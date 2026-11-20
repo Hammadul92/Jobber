@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { LuInfo } from "react-icons/lu";
 import { useDispatch } from "react-redux";
 import {
@@ -17,6 +17,9 @@ import { countries, provinces } from "../../../../constants/locations";
 import { setTopbar, resetTopbar } from "../../../../store/topbarSlice";
 import useAlert from "../../../../hooks/useAlert";
 import { formatMoney } from "../../../../utils/formatMoney";
+import { formatDate } from "../../../../utils/formatDate";
+import { quoteSummary } from "../../../../utils/quoteSummary";
+import QuoteStatusBadge from "../../../../Components/ui/QuoteStatusBadge";
 
 export default function Service({ token }) {
   const { id } = useParams();
@@ -143,6 +146,29 @@ export default function Service({ token }) {
 
   if (isLoading) return <LoadingScreen />;
 
+  const quote = quoteSummary(serviceData?.quotations);
+  const quoteLink = quote && (
+    <Link className="font-semibold underline" to={`/user/business/quote/${quote.quote.id}`}>
+      {quote.quote.quote_number}
+    </Link>
+  );
+  const quoteNotice = quote && {
+    EXPIRED: (
+      <>
+        Quote {quoteLink} expired
+        {quote.quote.valid_until ? ` on ${formatDate(quote.quote.valid_until, false)}` : ""}. Update its Valid Until
+        date and send it again.
+      </>
+    ),
+    VOID: (
+      <>
+        Quote {quoteLink} was voided. No signed quote is in force, so automatic invoices are stopped. Open the quote
+        to revise it.
+      </>
+    ),
+    DECLINED: <>The client declined quote {quoteLink}. Create a new quote to continue.</>,
+  }[quote.state];
+
   return (
     <>
       <form
@@ -163,6 +189,8 @@ export default function Service({ token }) {
               >
                 {status}
               </span>
+              <span className="ml-1 text-[11px] font-semibold uppercase text-slate-400">Quote</span>
+              <QuoteStatusBadge summary={quote} />
             </div>
           </div>
           <div className="flex flex-col gap-2 text-slate-800">
@@ -179,6 +207,17 @@ export default function Service({ token }) {
             </p>
           </div>
         </div>
+        {quoteNotice && (
+          <div
+            className={`rounded-lg border px-4 py-3 text-sm ${
+              quote.state === "VOID"
+                ? "border-slate-200 bg-slate-50 text-slate-700"
+                : "border-rose-200 bg-rose-50 text-rose-800"
+            }`}
+          >
+            {quoteNotice}
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6 mb-0">
           <Input
             type="number"
