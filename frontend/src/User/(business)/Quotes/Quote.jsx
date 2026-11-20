@@ -15,7 +15,7 @@ import { endOfDate, formatDate } from "../../../utils/formatDate";
 import Input from "../../../Components/ui/Input";
 import Dropdown from "../../../Components/ui/Dropdown";
 import Textarea from "../../../Components/ui/Textarea";
-import RichTextContent from "../../../Components/ui/RichTextContent";
+import ExpandableField from "../../../Components/ui/ExpandableField";
 import {
   LuBan,
   LuDownload,
@@ -677,21 +677,12 @@ export default function Quote({ token, role }) {
             </div>
 
             <div className="mt-5">
-              <label
-                htmlFor="quote-general-terms-conditions"
-                className="mb-1 block text-sm font-semibold uppercase text-gray-500"
-              >
-                General Terms & Conditions
-              </label>
-              <div
+              <ExpandableField
                 id="quote-general-terms-conditions"
-                className="min-h-36 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 text-sm text-slate-700"
-              >
-                <RichTextContent
-                  html={quoteData.general_terms_conditions || ""}
-                  emptyText="No general terms added."
-                />
-              </div>
+                label="General Terms & Conditions"
+                html={quoteData.general_terms_conditions || ""}
+                emptyText="No general terms added."
+              />
             </div>
 
             <div className="mt-5">
@@ -708,15 +699,13 @@ export default function Quote({ token, role }) {
             </div>
 
             <div className="mt-5">
-              <Textarea
+              <ExpandableField
                 id="quote-notes"
                 label="Notes"
                 value={notes}
                 onChange={setNotes}
-                isRequired={false}
-                isDisabled={isSigned}
-                fieldClass="h-36 w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
-                rows={6}
+                isEditable={!isSigned}
+                emptyText="No notes added."
               />
             </div>
 
