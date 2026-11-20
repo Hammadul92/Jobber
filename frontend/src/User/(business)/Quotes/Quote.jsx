@@ -699,13 +699,15 @@ export default function Quote({ token, role }) {
             </div>
 
             <div className="mt-5">
-              <ExpandableField
+              <Textarea
                 id="quote-notes"
                 label="Notes"
                 value={notes}
                 onChange={setNotes}
-                isEditable={!isSigned}
-                emptyText="No notes added."
+                isRequired={false}
+                isDisabled={isSigned}
+                fieldClass="h-36 w-full rounded-lg border border-gray-200 px-3 py-3 text-sm text-slate-700"
+                rows={6}
               />
             </div>
 
