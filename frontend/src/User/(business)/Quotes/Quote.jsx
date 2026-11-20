@@ -7,6 +7,7 @@ import {
   useUpdateQuoteMutation,
   useSendQuoteMutation,
   useVoidQuoteMutation,
+  useReviseQuoteMutation,
 } from "../../../store";
 import SubmitButton from "../../../Components/ui/SubmitButton";
 import LoadingScreen from "../../../Components/ui/LoadingScreen";
@@ -19,6 +20,7 @@ import ExpandableField from "../../../Components/ui/ExpandableField";
 import {
   LuBan,
   LuDownload,
+  LuFilePen,
   LuMail,
   LuMapPin,
   LuPhone,
@@ -47,6 +49,8 @@ export default function Quote({ token, role }) {
   const [updateService, { isLoading: activatingService }] = useUpdateServiceMutation();
   const [sendQuote, { isLoading: sending }] = useSendQuoteMutation();
   const [voidQuote, { isLoading: voiding }] = useVoidQuoteMutation();
+  const [reviseQuote, { isLoading: revising }] = useReviseQuoteMutation();
+  const [confirmRevise, setConfirmRevise] = useState(false);
   const [confirmVoid, setConfirmVoid] = useState(false);
   const [voidReason, setVoidReason] = useState("");
   const [voidError, setVoidError] = useState("");
@@ -152,7 +156,7 @@ export default function Quote({ token, role }) {
     }
   };
 
-  // Void the signed quote and open its new draft revision.
+  // Void the signed quote: the agreement ends and nothing replaces it.
   const handleVoid = async () => {
     if (voiding) return;
     if (!voidReason.trim()) {
@@ -164,9 +168,26 @@ export default function Quote({ token, role }) {
       setConfirmVoid(false);
       setVoidReason("");
       setAlert({ type: "success", message: result.detail });
-      navigate(`/user/business/quote/${result.id}`);
     } catch (err) {
       setVoidError(err?.data?.reason?.[0] || err?.data?.detail || "Could not void the quote.");
+    }
+  };
+
+  // Start the next revision as a draft; the signed quote stays in force.
+  const handleRevise = async () => {
+    if (revising) return;
+    try {
+      const result = await reviseQuote(id).unwrap();
+      setConfirmRevise(false);
+      setAlert({ type: "success", message: result.detail });
+      navigate(`/user/business/quote/${result.id}`);
+    } catch (err) {
+      setConfirmRevise(false);
+      if (err?.data?.id) {
+        navigate(`/user/business/quote/${err.data.id}`);
+        return;
+      }
+      setAlert({ type: "danger", message: err?.data?.detail || "Could not start a revision." });
     }
   };
 
@@ -225,6 +246,12 @@ export default function Quote({ token, role }) {
   const isSigned = quoteData.status === "SIGNED" || isVoid;
   const replaces = quoteData.replaces;
   const replacedBy = quoteData.replaced_by;
+  // A draft or sent revision of this quote that the client has not answered.
+  const openRevision =
+    replacedBy && ["DRAFT", "SENT"].includes(replacedBy.status) ? replacedBy : null;
+  const canRevise =
+    role === "MANAGER" && isSigned && !openRevision && replacedBy?.status !== "SIGNED";
+  const nextRevision = (quoteData.revision || 1) + 1;
   const jobsOutsideDates = quoteData.jobs_outside_dates || [];
   const isDeclined = quoteData.status === "DECLINED";
   const isInactiveClient =
@@ -286,9 +313,32 @@ export default function Quote({ token, role }) {
       />
 
       <ConfirmDialog
+        open={confirmRevise}
+        title={`Revise quote ${quoteData.quote_number}?`}
+        confirmLabel={`Start revision ${nextRevision}`}
+        loadingLabel="Starting..."
+        isLoading={revising}
+        onConfirm={handleRevise}
+        onCancel={() => setConfirmRevise(false)}
+        message={
+          <div className="space-y-3">
+            <p>
+              A new draft, revision {nextRevision}, opens with the service&apos;s current details for you to edit and
+              send. The client signs it to accept the change.
+            </p>
+            <p>
+              {isVoid
+                ? "This quote is void, so automatic invoices stay stopped until the revision is signed."
+                : "This signed quote stays in force, and keeps billing, until the client signs the revision. Then it is voided automatically."}
+            </p>
+          </div>
+        }
+      />
+
+      <ConfirmDialog
         open={confirmVoid}
         title={`Void quote ${quoteData.quote_number}?`}
-        confirmLabel="Void & revise"
+        confirmLabel="Void quote"
         loadingLabel="Voiding..."
         isLoading={voiding}
         onConfirm={handleVoid}
@@ -299,10 +349,9 @@ export default function Quote({ token, role }) {
         message={
           <div className="space-y-3">
             <p>
-              The signed quote is kept as a record, marked void. A new draft, revision {(quoteData.revision || 1) + 1},
-              opens with the service&apos;s current details for you to edit and send. The client signs again.
+              The agreement ends. The signed quote is kept as a record, marked void, and nothing replaces it.
             </p>
-            <p>Automatic invoices pause until the new revision is signed.</p>
+            <p>Automatic invoices for this service stop. To change a deal that continues, use Revise instead.</p>
             <label htmlFor="void-reason" className="block font-semibold text-slate-700">
               Reason <span className="text-accent">*</span>
             </label>
@@ -315,10 +364,10 @@ export default function Quote({ token, role }) {
                 setVoidReason(event.target.value);
                 setVoidError("");
               }}
-              placeholder="e.g. Start date moved to January 5"
+              placeholder="e.g. Client cancelled the contract"
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
             />
-            <p className="text-xs text-slate-500">The client sees this reason in the email with the new revision.</p>
+            <p className="text-xs text-slate-500">Kept on the quote record. The client sees it if you revise the quote later.</p>
             {voidError && <p className="text-sm font-semibold text-rose-600">{voidError}</p>}
           </div>
         }
@@ -339,14 +388,33 @@ export default function Quote({ token, role }) {
 
         {isSigned ? (
           <div className="flex flex-wrap justify-end gap-3">
-          {role === "MANAGER" && !isVoid && (
+          {role === "MANAGER" && !isVoid && !openRevision && (
             <button
               type="button"
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:border-rose-200 hover:bg-rose-50"
               onClick={() => setConfirmVoid(true)}
             >
               <LuBan className="h-4 w-4" aria-hidden="true" />
-              Void &amp; revise
+              Void
+            </button>
+          )}
+          {role === "MANAGER" && openRevision && (
+            <Link
+              to={`/user/business/quote/${openRevision.id}`}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-gray-50"
+            >
+              <LuFilePen className="h-4 w-4" aria-hidden="true" />
+              Open revision {openRevision.revision}
+            </Link>
+          )}
+          {canRevise && (
+            <button
+              type="button"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-gray-50"
+              onClick={() => setConfirmRevise(true)}
+            >
+              <LuFilePen className="h-4 w-4" aria-hidden="true" />
+              Revise
             </button>
           )}
           <button
@@ -412,36 +480,48 @@ export default function Quote({ token, role }) {
             This is the record of what the client signed. It no longer applies
             {replacedBy ? (
               <>
-                {" "}and was replaced by{" "}
+                {" "}and {replacedBy.status === "SIGNED" ? "was replaced by" : "is being revised in"}{" "}
                 <Link className="font-semibold text-accent hover:underline" to={`/user/business/quote/${replacedBy.id}`}>
                   revision {replacedBy.revision}
                 </Link>{" "}
                 ({replacedBy.status.toLowerCase()}).
               </>
             ) : (
-              "."
+              ". Automatic invoices for this service are stopped."
             )}
           </p>
+        </div>
+      )}
+
+      {!isVoid && openRevision && (
+        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+          <Link className="font-semibold underline" to={`/user/business/quote/${openRevision.id}`}>
+            Revision {openRevision.revision}
+          </Link>{" "}
+          is {openRevision.status === "SENT" ? "waiting for the client to sign" : "a draft"}. This quote stays in force,
+          and keeps billing, until the client signs it.
         </div>
       )}
 
       {replaces && !isSigned && (
         <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
           <p>
-            This revision replaces{" "}
+            This revision {replaces.status === "SIGNED" ? "updates" : "replaces"}{" "}
             <Link className="font-semibold underline" to={`/user/business/quote/${replaces.id}`}>
               revision {replaces.revision}
             </Link>
-            , signed{replaces.signed_at ? ` ${formatDate(replaces.signed_at, false)}` : ""} and voided
-            {replaces.void_reason ? `: ${replaces.void_reason}` : "."}
+            , signed{replaces.signed_at ? ` ${formatDate(replaces.signed_at, false)}` : ""}
+            {replaces.status === "SIGNED"
+              ? ". That quote stays in force, and keeps billing, until the client signs this one; then it is voided."
+              : ` and voided${replaces.void_reason ? `: ${replaces.void_reason}` : "."}`}
           </p>
           <p className="mt-1">
             Change the dates, items or price on{" "}
             <Link className="font-semibold underline" to={`/user/business/service/${serviceData.id}`}>
               the service
             </Link>
-            ; this draft follows them. Then send it for the client to sign. Automatic invoices are paused until it is
-            signed.
+            ; this draft follows them. Then send it for the client to sign.
+            {replaces.status !== "SIGNED" && " Automatic invoices are stopped until it is signed."}
           </p>
         </div>
       )}

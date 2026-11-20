@@ -39,7 +39,7 @@ from core.models import (
     Service,
     Quote,
 )
-from core.models import CLOSED_QUOTE_STATUSES
+from core.models import CLOSED_QUOTE_STATUSES, other_open_quotes
 from core.pricing import business_tax_label, service_line_items
 from core.quote_snapshots import build_signed_quote_snapshot
 from operations import serializers, emails
@@ -575,7 +575,7 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
             )
         if quote.status == "VOID":
             return Response(
-                {"detail": "A voided quote cannot be resent. Send its new revision instead."},
+                {"detail": "A voided quote cannot be resent. Revise it to send a new version."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if not quote.payment_terms:
@@ -625,27 +625,49 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["post"], url_path="void")
-    @transaction.atomic
-    def void_quote(self, request, pk=None):
-        """Void a signed quote and start its next revision as a draft.
-
-        The signed quote stays as a record (signature, snapshot, PDF). The new
-        revision keeps the quote number, follows the service's current
-        details, and must be sent and signed again; until then the service has
-        no signed quote, so automatic invoices pause.
-        """
-        if request.user.role != "MANAGER":
-            return Response(
-                {"detail": "Only the business owner can void a quote."},
+    def _locked_quote_for_owner(self, action_label):
+        """The quote, row-locked with its service, or an error Response."""
+        if self.request.user.role != "MANAGER":
+            return None, Response(
+                {"detail": f"Only the business owner can {action_label} a quote."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         candidate = self.get_object()
         Service.objects.select_for_update().get(pk=candidate.service_id)
-        quote = Quote.objects.select_for_update().get(pk=candidate.pk)
+        return Quote.objects.select_for_update().get(pk=candidate.pk), None
+
+    @staticmethod
+    def _open_revision(quote):
+        """The draft or sent revision of `quote`, if one is in progress."""
+        revision = quote.replaced_by
+        if revision is None or not revision.is_live or revision.status in CLOSED_QUOTE_STATUSES:
+            return None
+        return revision if revision.status != "SIGNED" else None
+
+    @action(detail=True, methods=["post"], url_path="void")
+    @transaction.atomic
+    def void_quote(self, request, pk=None):
+        """Void a signed quote: the agreement ends and nothing replaces it.
+
+        The quote stays as a record (signature, snapshot, PDF). With no signed
+        quote left, automatic invoices for the service stop. To change a deal
+        that continues, revise the quote instead.
+        """
+        quote, error = self._locked_quote_for_owner("void")
+        if error:
+            return error
         if quote.status != "SIGNED":
             return Response(
                 {"detail": "Only a signed quote can be voided."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        open_revision = self._open_revision(quote)
+        if open_revision is not None:
+            return Response(
+                {"detail": (
+                    f"Revision {open_revision.revision} of this quote is in progress. "
+                    "Delete that draft, or let the client respond, before voiding."
+                )},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         reason = str(request.data.get("reason") or "").strip()
@@ -660,11 +682,55 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        service = quote.service
         quote.status = "VOID"
         quote.voided_at = timezone.now()
         quote.void_reason = reason
         quote.save(update_fields=["status", "voided_at", "void_reason", "updated_at"])
+        return Response(
+            {"detail": f"Quote {quote.quote_number} voided.", "id": quote.id},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"], url_path="revise")
+    @transaction.atomic
+    def revise_quote(self, request, pk=None):
+        """Start the next revision of a signed or voided quote as a draft.
+
+        The revision keeps the quote number and follows the service's current
+        details. A signed quote stays in force, and keeps billing, until the
+        client signs the revision; signing it voids the quote it replaces.
+        """
+        quote, error = self._locked_quote_for_owner("revise")
+        if error:
+            return error
+        if quote.status not in ("SIGNED", "VOID"):
+            return Response(
+                {"detail": "Only a signed or voided quote can be revised. Edit this quote directly instead."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if quote.replaced_by_id and quote.replaced_by.is_live and quote.replaced_by.status == "SIGNED":
+            return Response(
+                {"detail": f"Revision {quote.replaced_by.revision} already replaced this quote. Revise that one."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        open_revision = self._open_revision(quote)
+        if open_revision is not None:
+            return Response(
+                {
+                    "detail": f"Revision {open_revision.revision} is already in progress.",
+                    "id": open_revision.id,
+                    "revision": open_revision.revision,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        service = quote.service
+        other = other_open_quotes(service, quote).first()
+        if other is not None:
+            return Response(
+                {"detail": f"Quote {other.quote_number} is already open for this service."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         last_revision = (
             Quote.all_objects.filter(quote_number=quote.quote_number)
@@ -687,11 +753,11 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
             notes=quote.notes,
         )
         quote.replaced_by = revision
-        quote.save(update_fields=["replaced_by"])
+        quote.save(update_fields=["replaced_by", "updated_at"])
 
         return Response(
             {
-                "detail": f"Quote {quote.quote_number} voided. Revision {revision.revision} is ready to edit and send.",
+                "detail": f"Revision {revision.revision} of {quote.quote_number} is ready to edit and send.",
                 "id": revision.id,
                 "revision": revision.revision,
             },
@@ -730,8 +796,12 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
             )
 
         if quote.status == "VOID":
+            replaced = quote.replaced_by_id and quote.replaced_by.is_live
             return Response(
-                {"detail": "This quote was voided and replaced. Sign the new revision instead."},
+                {"detail": (
+                    "This quote was voided and replaced. Sign the new revision instead."
+                    if replaced else "This quote was voided and no longer applies."
+                )},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -783,6 +853,14 @@ class QuoteViewSet(TrashMixin, ListingMixin, viewsets.ModelViewSet):
             "status", "signed_at", "signature", "line_items", "currency",
             "signed_snapshot",
         ])
+
+        # Signing a revision ends the quote it replaces.
+        previous = getattr(quote, "replaces", None)
+        if new_status == "SIGNED" and previous is not None and previous.status == "SIGNED":
+            previous.status = "VOID"
+            previous.voided_at = quote.signed_at
+            previous.void_reason = f"Replaced by revision {quote.revision}."
+            previous.save(update_fields=["status", "voided_at", "void_reason", "updated_at"])
 
         if new_status == "SIGNED":
             create_auto_invoice_for_service(quote.service)

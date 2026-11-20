@@ -53,12 +53,20 @@ const quoteApi = api.injectEndpoints({
       }),
       invalidatesTags: changed("Quote"),
     }),
-    // Void a signed quote; the response holds the new revision's id.
+    // Void a signed quote: it ends with nothing replacing it.
     voidQuote: builder.mutation({
       query: ({ id, reason }) => ({
         url: `/quote/${id}/void/`,
         method: "POST",
         body: { reason },
+      }),
+      invalidatesTags: changed("Quote"),
+    }),
+    // Start the next revision of a signed or voided quote; returns its id.
+    reviseQuote: builder.mutation({
+      query: (id) => ({
+        url: `/quote/${id}/revise/`,
+        method: "POST",
       }),
       invalidatesTags: changed("Quote"),
     }),
@@ -83,6 +91,7 @@ export const {
   useDeleteQuoteMutation,
   useSendQuoteMutation,
   useVoidQuoteMutation,
+  useReviseQuoteMutation,
   useSignQuoteMutation,
 } = quoteApi;
 

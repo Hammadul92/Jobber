@@ -24,6 +24,7 @@ from taggit.models import Tag
 
 from core.models import (
     CLOSED_QUOTE_STATUSES,
+    other_open_quotes,
     BankingInformation,
     Business,
     Client,
@@ -737,7 +738,7 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
 
     @staticmethod
     def _quote_link(quote):
-        if quote is None or not quote.is_active:
+        if quote is None or not quote.is_live:
             return None
         return {
             "id": quote.id, "revision": quote.revision, "status": quote.status,
@@ -807,13 +808,7 @@ class QuoteSerializer(OwnedRelationsMixin, serializers.ModelSerializer):
         service = attrs.get("service") or getattr(self.instance, "service", None)
 
         if service:
-            existing_quotes = (
-                Quote.objects.filter(service=service, is_active=True)
-                .exclude(id=getattr(self.instance, "id", None))
-                .exclude(status__in=CLOSED_QUOTE_STATUSES)
-            )
-
-            if existing_quotes.exists():
+            if other_open_quotes(service, self.instance).exists():
                 raise serializers.ValidationError(
                     {
                         "service": (

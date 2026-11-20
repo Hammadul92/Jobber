@@ -76,6 +76,23 @@ QUOTE_STATUS_CHOICES = [
 # service, and are never "the" quote invoices or jobs follow.
 CLOSED_QUOTE_STATUSES = ("DECLINED", "VOID")
 
+
+def other_open_quotes(service, quote=None):
+    """Open quotes on the service other than `quote`. Revisions share a quote
+    number and form one agreement, so a signed quote and its pending revision
+    do not count against each other."""
+    qs = (
+        Quote.objects.filter(service=service, is_active=True)
+        .exclude(status__in=CLOSED_QUOTE_STATUSES)
+    )
+    if quote is not None:
+        if quote.id:
+            qs = qs.exclude(id=quote.id)
+        if quote.quote_number:
+            qs = qs.exclude(quote_number=quote.quote_number)
+    return qs
+
+
 JOB_PHOTO_TYPE_CHOICES = [
     ("BEFORE", "Before"),
     ("AFTER", "After"),
@@ -815,7 +832,8 @@ class Quote(SoftDeletableModel):
     revision_required = models.BooleanField(default=False)
     signed_snapshot = models.JSONField(blank=True, null=True)
 
-    # Set when a signed quote is voided and replaced by a new revision.
+    # replaced_by points from a quote to its next revision. While that
+    # revision is open the quote stays in force; signing it voids this one.
     voided_at = models.DateTimeField(null=True, blank=True)
     void_reason = models.TextField(blank=True, default="")
     replaced_by = models.OneToOneField(
@@ -838,14 +856,23 @@ class Quote(SoftDeletableModel):
     def __str__(self):
         return f"{self.quote_number} for {self.service.client}"
 
+    @property
+    def is_live(self):
+        """Not deactivated and not in the trash."""
+        return self.is_active and not self.is_deleted
+
+    # A quote has no dependents: its only reverse relation is the quote it
+    # revises, which is a separate record and must not follow it to the trash.
+    def soft_delete(self, user=None, cascade=True, deleted_at=None):
+        super().soft_delete(user=user, cascade=False, deleted_at=deleted_at)
+
+    def restore(self, cascade=True):
+        super().restore(cascade=False)
+
     def clean(self):
         """Ensure only one open (not declined or voided) quote exists per service."""
         if self.service_id and self.status not in CLOSED_QUOTE_STATUSES:
-            existing_quotes = (
-                Quote.objects.filter(service=self.service, is_active=True)
-                .exclude(id=self.id)
-                .exclude(status__in=CLOSED_QUOTE_STATUSES)
-            )
+            existing_quotes = other_open_quotes(self.service, self)
 
             if existing_quotes.exists():
                 raise ValidationError(

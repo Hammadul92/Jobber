@@ -16,7 +16,7 @@ import pytz
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
-from core.models import CLOSED_QUOTE_STATUSES, Invoice, Service
+from core.models import Invoice, Service
 from core.pricing import line_items_total, quote_line_items, tax_amount_for
 
 logger = logging.getLogger(__name__)
@@ -79,12 +79,12 @@ def _format_day(day):
 
 
 def _signed_quote(service):
-    quote = (
-        service.service_quotes.filter(is_active=True)
-        .exclude(status__in=CLOSED_QUOTE_STATUSES)
-        .first()
+    # A draft or sent revision does not pause billing: the signed quote stays
+    # in force until the revision is signed and voids it.
+    return (
+        service.service_quotes.filter(is_active=True, status="SIGNED")
+        .order_by("-revision", "-id").first()
     )
-    return quote if quote and quote.status == "SIGNED" else None
 
 
 def _create_invoice(service, quote, period=None):

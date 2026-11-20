@@ -119,6 +119,7 @@ export {
   useDeleteQuoteMutation,
   useSendQuoteMutation,
   useVoidQuoteMutation,
+  useReviseQuoteMutation,
   useSignQuoteMutation,
 } from "./apis/quoteApi";
 

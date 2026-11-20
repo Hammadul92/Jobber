@@ -217,9 +217,18 @@ export default function SignQuote({ token, preview = false }) {
                         >
                             {replacedBy.status === "SENT" ? "Review and sign" : "View"} revision {replacedBy.revision} →
                         </Link>
-                    ) : (
-                        <p className="mt-1">{quote.business_name} will send you a revised quote to sign.</p>
-                    )}
+                    ) : null}
+                </div>
+            )}
+            {status === "SIGNED" && replacedBy?.status === "SENT" && (
+                <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                    {quote.business_name} sent a revised version of this quote. This one stays in effect until you sign it.{" "}
+                    <Link
+                        to={`/user/business/quote/sign/${replacedBy.id}`}
+                        className="font-semibold text-accent hover:underline"
+                    >
+                        Review revision {replacedBy.revision} →
+                    </Link>
                 </div>
             )}
             {!preview && quote.revision_required && (

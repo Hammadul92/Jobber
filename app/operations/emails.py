@@ -13,21 +13,32 @@ def send_quote_email(quote):
     subtotal, tax_label, tax_amount, total = quote_tax_details(quote)
     currency = quote.currency or quote.service.currency
     period = " per month" if quote.service.billing_cycle == "MONTHLY" else ""
-    # A revision sent after voiding a signed quote says what it replaces.
-    voided = getattr(quote, "replaces", None)
-    if voided is not None and voided.status != "VOID":
-        voided = None
-    label = f"{quote.quote_number} (revision {quote.revision})" if voided else quote.quote_number
-    void_note = (
-        f"This revised quote replaces quote {quote.quote_number} that you signed on "
-        f"{voided.signed_at:%B} {voided.signed_at.day}, {voided.signed_at.year}, which is now void. "
-        f"Reason: {voided.void_reason}. Please review and sign this revision."
-        if voided else ""
+    # A revision says which signed version it updates or replaces.
+    previous = getattr(quote, "replaces", None)
+    if previous is None or not previous.is_live or previous.status not in ("SIGNED", "VOID") \
+            or not previous.signed_at:
+        previous = None
+    revised = previous is not None
+    label = f"{quote.quote_number} (revision {quote.revision})" if revised else quote.quote_number
+    signed_on = (
+        f"{previous.signed_at:%B} {previous.signed_at.day}, {previous.signed_at.year}" if revised else ""
     )
+    if not revised:
+        void_note = ""
+    elif previous.status == "SIGNED":
+        void_note = (
+            f"This revised quote updates quote {quote.quote_number} that you signed on {signed_on}. "
+            f"That version stays in effect until you sign this one."
+        )
+    else:
+        void_note = (
+            f"This revised quote replaces quote {quote.quote_number} that you signed on {signed_on}, "
+            f"which is now void. Reason: {previous.void_reason}. Please review and sign this revision."
+        )
 
     subject = (
         f"Revised quote {label} - {quote.service.service_name}"
-        if voided else f"Quote {quote.quote_number} - {quote.service.service_name}"
+        if revised else f"Quote {quote.quote_number} - {quote.service.service_name}"
     )
     payment_terms_line = (
         f"Payment Terms: {quote.get_payment_terms_display()}\n"
@@ -54,8 +65,8 @@ def send_quote_email(quote):
         subject=subject,
         text_body=message,
         recipient_list=[quote.service.client.user.email],
-        eyebrow="Revised quote" if voided else "Quote ready",
-        heading="Your revised quote is ready to review." if voided else "Your quote is ready to review.",
+        eyebrow="Revised quote" if revised else "Quote ready",
+        heading="Your revised quote is ready to review." if revised else "Your quote is ready to review.",
         paragraphs=[
             f"Hello {quote.service.client.name},",
             f"{quote.service.business.name} sent you a new quote for review and signature.",
