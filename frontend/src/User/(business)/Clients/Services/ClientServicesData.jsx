@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  LuCheck,
   LuTrash2,
   LuPencil,
 } from "react-icons/lu";
@@ -192,7 +191,7 @@ export default function ClientServicesData({
       key: "service",
       title: "Service",
       sortKey: "service_name",
-      width: isAllServicesView ? "13%" : isManager ? "17%" : "18%",
+      width: isAllServicesView ? "16%" : isManager ? "20%" : "21%",
       className: "px-4 py-3 font-semibold text-slate-900",
       render: (service) => (
         <RecordLink
@@ -227,7 +226,7 @@ export default function ClientServicesData({
     {
       key: "address",
       title: "Service Address",
-      width: isAllServicesView ? "15%" : isManager ? "17%" : "21%",
+      width: isAllServicesView ? "21%" : isManager ? "24%" : "28%",
       render: (service) =>
         [
           service.street_address,
@@ -237,22 +236,6 @@ export default function ClientServicesData({
         ]
           .filter(Boolean)
           .join(", ") || "Address not provided",
-    },
-    {
-      key: "start",
-      title: "Start",
-      sortKey: "start_date",
-      width: isManager ? "9%" : "10%",
-      render: (service) =>
-        service.start_date ? formatDate(service.start_date, false) : "—",
-    },
-    {
-      key: "end",
-      title: "End",
-      sortKey: "end_date",
-      width: isAllServicesView ? "9%" : "10%",
-      render: (service) =>
-        service.end_date ? formatDate(service.end_date, false) : "—",
     },
     {
       key: "status",
@@ -285,23 +268,20 @@ export default function ClientServicesData({
       ),
     },
     {
-      key: "questionnaire",
-      title: "Questionnaire",
+      key: "start",
+      title: "Start",
+      sortKey: "start_date",
+      width: isManager ? "9%" : "10%",
+      render: (service) =>
+        service.start_date ? formatDate(service.start_date, false) : "—",
+    },
+    {
+      key: "end",
+      title: "End",
+      sortKey: "end_date",
       width: isAllServicesView ? "9%" : "10%",
       render: (service) =>
-        service.service_questionnaires?.id ? (
-          <Link
-            to={`/user/business/service-questionnaire/${service.service_questionnaires.id}/form/${service.id}`}
-            className="inline-flex items-center gap-1 font-medium text-secondary hover:text-accent"
-          >
-            {service.filled_questionnaire && <LuCheck className="h-4 w-4" />}
-            Questionnaire
-          </Link>
-        ) : service.bypass_questionnaire ? (
-          "Bypassed"
-        ) : (
-          "None"
-        ),
+        service.end_date ? formatDate(service.end_date, false) : "—",
     },
     isManager && {
       key: "actions",

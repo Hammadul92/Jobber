@@ -146,11 +146,13 @@ export default function QuotesData({ token, role }) {
                 ? `/user/business/quote/sign/${quote.id}`
                 : null
           }
-          className="text-slate-900"
+          className="group text-slate-900"
         >
           {quote.quote_number}
           {quote.revision > 1 && (
-            <span className="ml-1.5 text-xs font-medium text-slate-500">rev {quote.revision}</span>
+            <span className="ml-1.5 text-xs font-medium text-slate-500 group-hover:text-accent">
+              rev {quote.revision}
+            </span>
           )}
         </RecordLink>
       ),
