@@ -15,9 +15,15 @@ export default function ConfirmDialog({
 }) {
   const cancelButtonRef = useRef(null);
 
+  // Focus Cancel only when the dialog opens. Callers often pass inline
+  // handlers, so tying focus to them would pull focus out of any field in
+  // the message (such as a reason box) on every keystroke.
+  useEffect(() => {
+    if (open) cancelButtonRef.current?.focus();
+  }, [open]);
+
   useEffect(() => {
     if (!open) return undefined;
-    cancelButtonRef.current?.focus();
     const handleKeyDown = (event) => {
       if (event.key === "Escape" && !isLoading) onCancel();
     };
