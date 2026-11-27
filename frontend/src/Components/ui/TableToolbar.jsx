@@ -1,5 +1,10 @@
 import { Children, useId, useState } from "react";
-import { LuChevronDown, LuSearch, LuSlidersHorizontal, LuX } from "react-icons/lu";
+import {
+  LuChevronDown,
+  LuSearch,
+  LuSlidersHorizontal,
+  LuX,
+} from "react-icons/lu";
 import DatePicker from "./DatePicker";
 import Dropdown from "./Dropdown";
 
@@ -58,15 +63,16 @@ export default function TableToolbar({
   isFiltered = false,
   onClear,
   actions,
+  filterCount,
   children,
 }) {
   const searchId = useId();
   const [filtersOpen, setFiltersOpen] = useState(readFiltersOpen);
   const hasFilters = Children.count(children) > 0;
   // Filter fields are ToolbarSelect/ToolbarDate, so a set value means active.
-  const activeFilterCount = Children.toArray(children).filter(
-    (child) => child?.props?.value,
-  ).length;
+  const activeFilterCount =
+    filterCount ??
+    Children.toArray(children).filter((child) => child?.props?.value).length;
 
   const toggleFilters = () => {
     setFiltersOpen((open) => {

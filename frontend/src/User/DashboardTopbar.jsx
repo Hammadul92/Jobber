@@ -12,25 +12,41 @@ const getFirstName = (user) => {
   return displayName.split(" ")[0] || "User";
 };
 
-function DashboardTopbar({ user, notifications = [] }) {
+function DashboardTopbar({
+  user,
+  notifications = [],
+  title = "Dashboard",
+  description,
+  children,
+  notificationsUnreadCount,
+  notificationsLoading = false,
+  notificationsError = "",
+  notificationsReadPending = false,
+  onNotificationRead,
+  onNotificationsReadAll,
+  onNotificationsOpen,
+}) {
   const firstName = getFirstName(user);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [readNotificationIds, setReadNotificationIds] = useState(new Set());
   const dropdownRef = useRef(null);
+  const bellRef = useRef(null);
   const notificationStorageKey = `contractorz:dashboard-notifications:${user?.id || user?.email || "guest"}`;
 
   const notificationsWithReadState = useMemo(
     () =>
       notifications.map((notification) => ({
         ...notification,
-        isRead: readNotificationIds.has(notification.id),
+        isRead:
+          notification.is_read ?? readNotificationIds.has(notification.id),
       })),
     [notifications, readNotificationIds],
   );
 
-  const unreadCount = notificationsWithReadState.filter(
-    (notification) => !notification.isRead,
-  ).length;
+  const unreadCount =
+    notificationsUnreadCount ??
+    notificationsWithReadState.filter((notification) => !notification.isRead)
+      .length;
   const unreadNotifications = notificationsWithReadState.filter(
     (notification) => !notification.isRead,
   );
@@ -44,6 +60,10 @@ function DashboardTopbar({ user, notifications = [] }) {
   };
 
   const markNotificationAsRead = (id) => {
+    if (onNotificationRead) {
+      onNotificationRead(id);
+      return;
+    }
     setReadNotificationIds((currentIds) => {
       const nextIds = new Set(currentIds);
       nextIds.add(id);
@@ -53,6 +73,10 @@ function DashboardTopbar({ user, notifications = [] }) {
   };
 
   const markAllNotificationsAsRead = () => {
+    if (onNotificationsReadAll) {
+      onNotificationsReadAll();
+      return;
+    }
     setReadNotificationIds((currentIds) => {
       const nextIds = new Set(currentIds);
       notifications.forEach((notification) => nextIds.add(notification.id));
@@ -63,10 +87,7 @@ function DashboardTopbar({ user, notifications = [] }) {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsNotificationsOpen(false);
       }
     };
@@ -79,11 +100,25 @@ function DashboardTopbar({ user, notifications = [] }) {
   }, []);
 
   useEffect(() => {
+    if (!isNotificationsOpen) return;
+    const onKey = (event) => {
+      if (event.key === "Escape") {
+        setIsNotificationsOpen(false);
+        bellRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isNotificationsOpen]);
+
+  useEffect(() => {
     try {
       const storedIds = JSON.parse(
         localStorage.getItem(notificationStorageKey) || "[]",
       );
-      setReadNotificationIds(new Set(Array.isArray(storedIds) ? storedIds : []));
+      setReadNotificationIds(
+        new Set(Array.isArray(storedIds) ? storedIds : []),
+      );
     } catch {
       setReadNotificationIds(new Set());
     }
@@ -94,15 +129,20 @@ function DashboardTopbar({ user, notifications = [] }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-medium tracking-tight md:text-3xl text-primary">
-            Dashboard
+            {title}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Welcome back, {firstName}. Here&apos;s an overview of your
-            business.
+            {description || (
+              <>
+                Welcome back, {firstName}. Here&apos;s an overview of your
+                business.
+              </>
+            )}
           </p>
         </div>
 
         <div className="flex items-center self-start gap-3 lg:self-center">
+          {children}
           {/* <label className="relative hidden md:block">
             <LuSearch className="absolute w-5 h-5 -translate-y-1/2 pointer-events-none left-4 top-1/2 text-slate-400" />
             <input
@@ -114,10 +154,14 @@ function DashboardTopbar({ user, notifications = [] }) {
 
           <div ref={dropdownRef} className="relative">
             <button
+              ref={bellRef}
               type="button"
               aria-label="Notifications"
               aria-expanded={isNotificationsOpen}
-              onClick={() => setIsNotificationsOpen((current) => !current)}
+              onClick={() => {
+                if (!isNotificationsOpen) onNotificationsOpen?.();
+                setIsNotificationsOpen(!isNotificationsOpen);
+              }}
               className="relative inline-flex items-center justify-center transition h-11 w-11 rounded-xl text-slate-500 hover:bg-gray-100 hover:text-slate-700"
             >
               <LuBell className="w-6 h-6" />
@@ -129,7 +173,11 @@ function DashboardTopbar({ user, notifications = [] }) {
             </button>
 
             {isNotificationsOpen && (
-              <div className="absolute right-0 z-40 mt-3 min-w-80 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.16)]">
+              <div
+                role="dialog"
+                aria-label="Notifications"
+                className="absolute right-0 z-40 mt-3 w-[min(20rem,calc(100vw-2rem))] max-w-none! overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.16)]"
+              >
                 <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-4 py-4">
                   <div>
                     <p className="text-base font-semibold text-slate-900">
@@ -139,7 +187,7 @@ function DashboardTopbar({ user, notifications = [] }) {
                   <button
                     type="button"
                     onClick={markAllNotificationsAsRead}
-                    disabled={!unreadCount}
+                    disabled={!unreadCount || notificationsReadPending}
                     className="mt-0.5 text-xs font-medium text-accent transition hover:text-orange-700 disabled:cursor-not-allowed disabled:text-slate-300"
                   >
                     Mark all as read
@@ -147,7 +195,22 @@ function DashboardTopbar({ user, notifications = [] }) {
                 </div>
 
                 <div className="max-h-96 overflow-y-auto p-3">
-                  {unreadNotifications.length ? (
+                  {notificationsError && (
+                    <p
+                      role="alert"
+                      className="mb-2 px-3 py-2 text-sm text-rose-600"
+                    >
+                      {notificationsError}
+                    </p>
+                  )}
+                  {notificationsLoading && !unreadNotifications.length ? (
+                    <p
+                      role="status"
+                      className="px-4 py-8 text-center text-sm text-slate-500"
+                    >
+                      Loading notifications…
+                    </p>
+                  ) : unreadNotifications.length ? (
                     <div className="space-y-1">
                       {unreadNotifications.map((item) => (
                         <div
@@ -170,6 +233,7 @@ function DashboardTopbar({ user, notifications = [] }) {
                             <div className="mt-2 flex items-center justify-between gap-3">
                               <button
                                 type="button"
+                                disabled={notificationsReadPending}
                                 onClick={() => markNotificationAsRead(item.id)}
                                 className="text-xs font-medium text-accent transition hover:text-orange-700"
                               >
@@ -193,9 +257,11 @@ function DashboardTopbar({ user, notifications = [] }) {
                       ))}
                     </div>
                   ) : (
-                    <div className="px-4 py-8 text-center text-sm text-slate-500">
-                      No unread notifications.
-                    </div>
+                    !notificationsError && (
+                      <div className="px-4 py-8 text-center text-sm text-slate-500">
+                        No unread notifications.
+                      </div>
+                    )
                   )}
                 </div>
               </div>

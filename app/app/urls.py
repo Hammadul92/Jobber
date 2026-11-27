@@ -24,6 +24,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
+    path("api/super-admin/", include("super_admin.urls")),
     path("admin/", admin.site.urls),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(

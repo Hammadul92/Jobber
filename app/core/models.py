@@ -127,49 +127,6 @@ REFUND_STATUS_CHOICES = [
 ]
 
 
-class UserManager(BaseUserManager):
-    """Manager for users."""
-
-    def create_user(self, email, password=None, **extra_fields):
-        """Create, save and return a new user."""
-        if not email:
-            raise ValueError("User must have an email address.")
-        user = self.model(email=self.normalize_email(email), **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-
-        return user
-
-    def create_superuser(self, email, password):
-        """Create and return a new superuser."""
-        user = self.create_user(email, password)
-        user.is_staff = True
-        user.is_superuser = True
-        user.save(using=self._db)
-
-        return user
-
-
-class User(AbstractBaseUser, PermissionsMixin):
-    """User in the system."""
-
-    name = models.CharField(max_length=255)
-    email = models.EmailField(max_length=255, unique=True)
-    phone = models.CharField(max_length=20)
-    photo = models.ImageField(upload_to="uploads/profile_photos/", null=True, blank=True)
-    role = models.CharField(
-        max_length=20,
-        choices=ROLE_CHOICES,
-        default="USER",
-    )
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-
-    objects = UserManager()
-
-    USERNAME_FIELD = "email"
-
-
 class SoftDeletableModel(models.Model):
     is_deleted = models.BooleanField(default=False)
     deleted_by = models.ForeignKey(
@@ -266,6 +223,58 @@ class SoftDeletableModel(models.Model):
             if parent is not None:
                 return parent
         return None
+
+
+
+class UserManager(BaseUserManager):
+    """Manager for users."""
+
+    def create_user(self, email, password=None, **extra_fields):
+        """Create, save and return a new user."""
+        if not email:
+            raise ValueError("User must have an email address.")
+        user = self.model(email=self.normalize_email(email), **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+
+        return user
+
+    def create_superuser(self, email, password):
+        """Create and return a new superuser."""
+        user = self.create_user(email, password)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+
+        return user
+
+
+class User(AbstractBaseUser, PermissionsMixin, SoftDeletableModel):
+    """User in the system."""
+
+    name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255, unique=True)
+    phone = models.CharField(max_length=20)
+    photo = models.ImageField(upload_to="uploads/profile_photos/", null=True, blank=True)
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default="USER",
+    )
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    objects = UserManager()
+    all_objects = UserManager()
+
+    USERNAME_FIELD = "email"
+
+    def save(self, *args, **kwargs):
+        if self.is_deleted:
+            self.is_active = False
+            if kwargs.get("update_fields") is not None:
+                kwargs["update_fields"] = set(kwargs["update_fields"]) | {"is_active"}
+        super().save(*args, **kwargs)
 
 
 class ActiveManager(models.Manager):
@@ -1125,8 +1134,11 @@ class Payout(SoftDeletableModel):
         )
 
 
-class PayoutRefund(models.Model):
+class PayoutRefund(SoftDeletableModel):
     """One Stripe refund against a payment; a payment may have several."""
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
 
     payout = models.ForeignKey(Payout, related_name="refunds", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
