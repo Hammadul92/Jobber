@@ -1,7 +1,13 @@
 import { useMemo, Fragment } from "react";
 import { Link, matchPath, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { LuChevronRight, LuPlus, LuSparkles, LuUserPlus, LuZap } from "react-icons/lu";
+import {
+  LuChevronRight,
+  LuPlus,
+  LuSparkles,
+  LuUserPlus,
+  LuZap,
+} from "react-icons/lu";
 import { getTopbarActionHandler } from "./topbarActionRegistry";
 import { getPublicSiteHomeUrl } from "../utils/publicSite";
 import GoBackLink from "../Components/ui/GoBackLink";
@@ -46,7 +52,10 @@ const BUSINESS_TRAILS = {
   payouts: [["Payouts"]],
   "payout/:id": [["Payouts", "payouts", "payouts"], ["Payout"]],
   "team-members": [["Team Members"]],
-  "team-members/:id/hours": [["Team Members", "team-members", "team-members"], ["Hours Worked"]],
+  "team-members/:id/hours": [
+    ["Team Members", "team-members", "team-members"],
+    ["Hours Worked"],
+  ],
   trash: [["Trash"]],
 };
 
@@ -57,10 +66,22 @@ const ACCOUNT_LABELS = {
   credentials: "Credentials",
 };
 
-function Topbar({ businessName, backFallback, canAccess }) {
-  const { title, description, action, secondaryActions = [] } = useSelector(
-    (state) => state.topbar,
-  );
+function Topbar({
+  businessName,
+  backFallback,
+  canAccess,
+  config,
+  breadcrumbs,
+  extraActions,
+}) {
+  const storedConfig = useSelector((state) => state.topbar);
+  const {
+    title,
+    description,
+    action,
+    secondaryActions = [],
+  } = config || storedConfig;
+  const Heading = config?.headingTag || "h3";
   const location = useLocation();
   const publicSiteHomeUrl = getPublicSiteHomeUrl();
 
@@ -73,18 +94,28 @@ function Topbar({ businessName, backFallback, canAccess }) {
 
   const renderAction = (item) => {
     const Icon = item.icon ? TOPBAR_ACTION_ICONS[item.icon] : null;
-    const handler = item.key ? getTopbarActionHandler(item.key) : null;
+    const handler =
+      item.onClick || (item.key ? getTopbarActionHandler(item.key) : null);
     return (
       <button
         key={item.key}
         className={item.className}
         onClick={handler || undefined}
         type="button"
+        disabled={item.disabled}
         title={item.title || item.label}
       >
-        {Icon ? <Icon className={`max-w-none shrink-0 ${item.iconClassName || "h-5 w-5"}`} /> : null}
+        {Icon ? (
+          <Icon
+            className={`max-w-none shrink-0 ${item.iconClassName || "h-5 w-5"}`}
+          />
+        ) : null}
         {item.label ? (
-          <span className={item.labelClassName ?? (item.icon ? "hidden md:block" : "block")}>
+          <span
+            className={
+              item.labelClassName ?? (item.icon ? "hidden md:block" : "block")
+            }
+          >
             {item.label}
           </span>
         ) : null}
@@ -93,6 +124,7 @@ function Topbar({ businessName, backFallback, canAccess }) {
   };
 
   const breadcrumbItems = useMemo(() => {
+    if (breadcrumbs) return breadcrumbs;
     const items = [{ label: "Contractorz", href: publicSiteHomeUrl }];
     const { pathname } = location;
 
@@ -125,7 +157,7 @@ function Topbar({ businessName, backFallback, canAccess }) {
     }
 
     return items;
-  }, [location, businessName, publicSiteHomeUrl, canAccess]);
+  }, [location, businessName, publicSiteHomeUrl, canAccess, breadcrumbs]);
 
   return (
     <div className="bg-white md:p-8 md:pr-12 lg:p-8 lg:pr-14 px-4 py-4 border-b border-gray-300 w-full">
@@ -162,7 +194,9 @@ function Topbar({ businessName, backFallback, canAccess }) {
         </ol>
       </nav>
 
-      <div className={`${title || backFallback ? "flex" : "hidden"} items-start justify-between gap-y-2 mt-3`}>
+      <div
+        className={`${title || backFallback ? "flex" : "hidden"} items-start justify-between gap-y-2 mt-3`}
+      >
         <div className="flex min-w-0 items-start gap-3 md:ml-6">
           {backFallback && (
             <div className="pt-0.5 md:pt-1">
@@ -170,14 +204,15 @@ function Topbar({ businessName, backFallback, canAccess }) {
             </div>
           )}
           <div className="min-w-0">
-            <h3 className="text-2xl md:text-4xl font-medium text-primary">
+            <Heading className="text-2xl md:text-4xl font-medium text-primary">
               {title}
-            </h3>
+            </Heading>
             <p className="mt-1 text-sm text-slate-500">{description}</p>
           </div>
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          {extraActions}
           {secondaryActions
             .filter((item) => item.type === "button")
             .map(renderAction)}

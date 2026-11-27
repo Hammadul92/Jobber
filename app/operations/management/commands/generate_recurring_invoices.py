@@ -10,6 +10,7 @@ from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 
 from operations.recurring_invoices import generate_due_subscription_invoices
+from super_admin.telemetry import system_event
 
 
 class Command(BaseCommand):
@@ -30,9 +31,11 @@ class Command(BaseCommand):
                 close_old_connections()
             try:
                 created = generate_due_subscription_invoices()
+                system_event("recurring_invoices", "completed", {"created": len(created)})
                 if created or not loop:
                     self.stdout.write(f"Created {len(created)} recurring invoice(s).")
             except Exception as exc:  # keep the loop alive through DB hiccups
+                system_event("recurring_invoices", "failed", {"error_type": type(exc).__name__})
                 if not loop:
                     raise
                 self.stderr.write(f"Recurring invoice run failed: {exc}")

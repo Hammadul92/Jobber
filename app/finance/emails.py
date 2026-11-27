@@ -169,7 +169,10 @@ def send_payment_confirmation_email(invoice):
             *([{"label": "Refunded", "value": f"${refunded:,.2f} {invoice.currency}"}] if refunded else []),
             {"label": "Balance due", "value": f"$0.00 {invoice.currency}"},
         ],
-        notice="Please keep this email for your records. Questions about this payment should be directed to the business.",
+        notice=(
+            "Please keep this email for your records. "
+            "Questions about this payment should be directed to the business."
+        ),
         signoff=business.name,
         reply_to=[business.email],
         brand_name=business.name,

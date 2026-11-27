@@ -155,7 +155,13 @@ def send_branded_email(
     # Build the copy first: backends such as SendGrid write delivery details
     # into the sent message's headers, which must not leak into the copy.
     admin_copy = _build_admin_copy(email, context, text_body, subject)
-    sent = email.send(fail_silently=False)
+    from super_admin.telemetry import system_event
+    try:
+        sent = email.send(fail_silently=False)
+    except Exception as exc:
+        system_event("email", "failed", {"error_type": type(exc).__name__})
+        raise
+    system_event("email", "accepted" if sent else "failed", {"recipient_count": len(recipient_list)})
     if not sent:
         raise RuntimeError("Email backend did not accept the message.")
     if admin_copy is not None:

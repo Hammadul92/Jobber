@@ -195,19 +195,31 @@ def build_invoice_pdf(invoice):
         if item.get("description"):
             detail.append(_paragraph(item["description"], styles["body"]))
         rows.append([detail, _paragraph(_money(item.get("price"), currency), styles["label_right"])])
-    rows.append([_paragraph("SUBTOTAL", styles["label"]), _paragraph(_money(invoice.subtotal, currency), styles["label_right"])])
+    rows.append([
+        _paragraph("SUBTOTAL", styles["label"]),
+        _paragraph(_money(invoice.subtotal, currency), styles["label_right"]),
+    ])
     if invoice.tax_amount:
         tax_label = (business.tax_label or "Tax").upper()
         rows.append([
             _paragraph(f"{tax_label} ({invoice.tax_rate}%)", styles["label"]),
             _paragraph(_money(invoice.tax_amount, currency), styles["label_right"]),
         ])
-    rows.append([_paragraph("TOTAL", styles["label"]), _paragraph(_money(invoice.total_amount, currency), styles["label_right"])])
+    rows.append([
+        _paragraph("TOTAL", styles["label"]),
+        _paragraph(_money(invoice.total_amount, currency), styles["label_right"]),
+    ])
     refunded = refunded_total(invoice) if is_paid else Decimal("0")
     if is_paid:
-        rows.append([_paragraph("AMOUNT PAID", styles["label"]), _paragraph(_money(invoice.total_amount, currency), styles["label_right"])])
+        rows.append([
+            _paragraph("AMOUNT PAID", styles["label"]),
+            _paragraph(_money(invoice.total_amount, currency), styles["label_right"]),
+        ])
         if refunded:
-            rows.append([_paragraph("REFUNDED", styles["label"]), _paragraph(_money(refunded, currency), styles["label_right"])])
+            rows.append([
+                _paragraph("REFUNDED", styles["label"]),
+                _paragraph(_money(refunded, currency), styles["label_right"]),
+            ])
     balance = Decimal("0") if is_paid else invoice.total_amount
     rows.append([_paragraph("BALANCE DUE", styles["label"]), _paragraph(_money(balance, currency), styles["amount"])])
     pricing = LongTable(rows, colWidths=[width * 0.72, width * 0.28], repeatRows=1)

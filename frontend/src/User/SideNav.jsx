@@ -1,6 +1,6 @@
-import { NavLink, useLocation } from "react-router-dom";
+import WorkspaceNavigation from "../Components/ui/WorkspaceNavigation";
+import { useLocation } from "react-router-dom";
 import {
-  LuLogOut,
   LuUser,
   LuReceipt,
   LuBriefcase,
@@ -16,10 +16,7 @@ import {
   LuTrash2,
 } from "react-icons/lu";
 import { RiDashboardLine } from "react-icons/ri";
-import {
-  useFetchBusinessesQuery,
-  useFetchUserQuery,
-} from "../store";
+import { useFetchBusinessesQuery, useFetchUserQuery } from "../store";
 import useLogout from "./useLogout";
 
 // Unified Sidebar for both UserAccount and UserDashboard
@@ -157,106 +154,27 @@ export default function SideNav({ user, businessRegistered }) {
   };
 
   return (
-    <aside className="hidden lg:block sidebar min-h-screen border-r border-gray-200 w-76">
-      <div className="bg-white min-h-full flex flex-col p-6">
-        {/* Profile Section */}
-        <div className="flex items-center gap-3 mb-6">
-          {/* Profile avatar */}
-          <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-gray-200">
-            <span className="text-lg font-bold text-gray-500">
-              {displayName.charAt(0).toUpperCase()}
-            </span>
-            {(currentUser?.photoUrl || currentUser?.photo) && (
-              <img
-                key={currentUser.photoUrl || currentUser.photo}
-                src={currentUser.photoUrl || currentUser.photo}
-                alt="Profile"
-                className="absolute inset-0 h-full w-full object-cover"
-                onError={(event) => {
-                  event.currentTarget.hidden = true;
-                }}
-              />
-            )}
-          </div>
-          <div>
-            <div className="font-semibold text-xl">{displayName}</div>
-            <div className="text-sm text-gray-500">{displayEmail}</div>
-          </div>
-        </div>
-
-        {/* Account Menu */}
-        <nav className="mb-4 space-y-1 bg-gray-50 border border-gray-100 p-2 rounded-xl">
-          {accountMenu
-            .filter((item) => item.visible)
-            .map((item) => (
-              <NavLink
-                key={item.key}
-                to={item.path}
-                end={item.key === "business"}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl p-3 font-medium transition ${
-                    isActive
-                      ? "bg-accent text-white font-bold shadow-lg shadow-accent/50"
-                      : "text-gray-500 hover:bg-secondary hover:text-white font-medium"
-                  }`
-                }
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-        </nav>
-
-        {/* Workspace Section */}
-        {isBusinessRegistered && role && role !== "USER" && (
-          <div className="mt-4 text-[0.7rem] text-gray-400 font-semibold">
-            WORKSPACE
-          </div>
-        )}
-        {isBusinessRegistered && role && role !== "USER" && (
-          <div className="mb-4 font-bold text-lg text-gray-900">
-            {currentUser?.business?.name ||
+    <aside className="hidden lg:block sidebar min-h-screen border-r border-gray-200 w-76 shrink-0">
+      <WorkspaceNavigation
+        user={{ ...currentUser, name: displayName, email: displayEmail }}
+        accountItems={accountMenu}
+        navigationItems={
+          isBusinessRegistered && role && role !== "USER"
+            ? dashboardMenu.map((item) => ({
+                ...item,
+                active: isMenuItemActive(item.path),
+              }))
+            : []
+        }
+        workspaceName={
+          isBusinessRegistered && role && role !== "USER"
+            ? currentUser?.business?.name ||
               businesses?.[0]?.name ||
-              "Test Business"}
-          </div>
-        )}
-
-        {/* Dashboard Menu */}
-        <nav className="mb-4 space-y-1 px-2 rounded-xl">
-          {isBusinessRegistered &&
-            role &&
-            role !== "USER" &&
-            dashboardMenu.map((item) => {
-              const isActive = isMenuItemActive(item.path);
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center gap-3 rounded-xl p-3 font-medium transition ${
-                    isActive
-                      ? "bg-gray-100 text-black font-bold"
-                      : "text-gray-500 hover:bg-gray-100 hover:text-black font-medium"
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span>{item.name}</span>
-                </NavLink>
-              );
-            })}
-        </nav>
-
-        {/* Logout */}
-        <div className="mt-auto pt-6 px-3">
-          <button
-            onClick={handleLogout}
-            type="button"
-            className=" p-3 flex items-center gap-2 text-gray-500 hover:text-accent hover:bg-gray-100 w-full text-sm font-medium rounded-xl"
-          >
-            <LuLogOut className="w-5 h-5" />
-            Logout Account
-          </button>
-        </div>
-      </div>
+              "Test Business"
+            : null
+        }
+        onLogout={handleLogout}
+      />
     </aside>
   );
 }
