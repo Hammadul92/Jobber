@@ -225,7 +225,6 @@ class SoftDeletableModel(models.Model):
         return None
 
 
-
 class UserManager(BaseUserManager):
     """Manager for users."""
 
